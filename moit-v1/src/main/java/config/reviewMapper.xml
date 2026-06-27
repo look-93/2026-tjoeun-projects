@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.moit.dao.ReviewMapper">
+
+    <!-- 후기 등록하기 -->
+    <insert id="insertUserReview" parameterType="ReviewDto">
+        INSERT INTO reviews
+        (
+            meetup_id,
+            member_id,
+            content,
+            rating,
+            is_public
+        )
+        VALUES
+        (
+            #{meetupId},
+            #{memberId},
+            #{content},
+            #{rating},
+            IF(#{isPublic} = 1, 'Y', 'N')
+        )
+    </insert>
+
+    <!-- 특정 모임의 후기 목록 조회 -->
+    <select id="selectUserReview" parameterType="int" resultType="ReviewDto">
+        SELECT
+            review_id AS id,
+            meetup_id AS meetupId,
+            member_id AS memberId,
+            content,
+            rating,
+            likes_count AS likesCount,
+            views_count AS viewsCount,
+            IF(is_public = 'Y', 1, 0) AS isPublic,
+            IF(delete_yn = 'Y', 1, 0) AS deleteYn,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM reviews
+        WHERE meetup_id = #{meetupId}
+          AND is_public = 'Y'
+          AND delete_yn = 'N'
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 인기 후기 좋아요순 정렬 -->
+    <select id="selectReviewPopular" resultType="ReviewDto">
+        SELECT
+            review_id AS id,
+            meetup_id AS meetupId,
+            member_id AS memberId,
+            content,
+            rating,
+            likes_count AS likesCount,
+            views_count AS viewsCount,
+            IF(is_public = 'Y', 1, 0) AS isPublic,
+            IF(delete_yn = 'Y', 1, 0) AS deleteYn,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM reviews
+        WHERE is_public = 'Y'
+          AND delete_yn = 'N'
+        ORDER BY likes_count DESC
+    </select>
+
+    <!-- 후기 수정 -->
+    <update id="updateUserReview" parameterType="ReviewDto">
+        UPDATE reviews
+        SET
+            content = #{content},
+            rating = #{rating},
+            <choose>
+                <when test="isPublic == '1' or isPublic == 'Y'">
+                    is_public = 'Y'
+                </when>
+                <otherwise>
+                    is_public = 'N'
+                </otherwise>
+            </choose>
+        WHERE review_id = #{id}
+          AND member_id = #{memberId}
+          AND delete_yn = 'N'
+    </update>
+
+    <!-- 후기 삭제 (논리 삭제) -->
+    <update id="deleteUserReview" parameterType="ReviewDto">
+        UPDATE reviews
+        SET delete_yn = 'Y'
+        WHERE review_id = #{id}
+          AND member_id = #{memberId}
+    </update>
+    
+    
+    
+
+    <!-- 사용자 비공개 처리 -->
+    <update id="updateUserReviewHide" parameterType="ReviewDto">
+        UPDATE reviews
+        SET is_public = 'N'
+        WHERE review_id = #{id}
+          AND member_id = #{memberId}
+    </update>
+
+    <!-- 조회수 증가 -->
+    <update id="increaseReviewViews" parameterType="int">
+        UPDATE reviews
+        SET views_count = views_count + 1
+        WHERE review_id = #{id}
+    </update>
+    
+    
+    <!-- 좋아요 증가  -->
+    <update id="updateLikeCount" parameterType="int">
+    update reviews
+    set likes_count=likes_count+1
+    where review_id=#{id}
+    </update>
+    
+    <select id="selectReviewsByMemberId" resultType="ReviewDto">
+        SELECT
+            review_id AS id,
+            meetup_id AS meetupId,
+            member_id AS memberId,
+            content,
+            rating,
+            likes_count AS likesCount,
+            views_count AS viewsCount,
+            IF(is_public = 'Y', 1, 0) AS isPublic,
+            IF(delete_yn = 'Y', 1, 0) AS deleteYn,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM reviews
+        WHERE member_id = #{memberId}
+          AND delete_yn = 'N'
+        
+        <choose>
+            <when test="sort == 'popular'">
+                ORDER BY likes_count DESC, created_at DESC
+            </when>
+            <when test="sort == 'latest'">
+                ORDER BY created_at DESC
+            </when>
+            <otherwise>
+                ORDER BY created_at DESC </otherwise>
+        </choose>
+    </select>
+    
+    
+    <select id="SearchReviewByContent" parameterType="string" resultType="ReviewDto">
+        SELECT
+            review_id AS id,
+            meetup_id AS meetupId,
+            member_id AS memberId,
+            content,
+            rating,
+            likes_count AS likesCount,
+            views_count AS viewsCount,
+            IF(is_public = 'Y', 1, 0) AS isPublic,
+            IF(delete_yn = 'Y', 1, 0) AS deleteYn,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM reviews
+        WHERE content LIKE CONCAT('%', #{keyword}, '%')
+          AND delete_yn = 'N'
+    </select>
+    
+    
+    <!--  좋아요 기능 -->
+    <select id="checkLikeExists" parameterType="map" resultType="int">
+        SELECT COUNT(*) FROM review_likes WHERE review_id = #{reviewId} AND member_id = #{memberId}
+    </select>
+    
+    <insert id="insertLike" parameterType="map">
+        INSERT INTO review_likes (review_id, member_id, created_at) VALUES (#{reviewId}, #{memberId}, NOW())
+    </insert>
+
+    <delete id="deleteLike" parameterType="map">
+        DELETE FROM review_likes WHERE review_id = #{reviewId} AND member_id = #{memberId}
+    </delete>
+
+    <update id="incrementLikeCount" parameterType="int">
+        UPDATE reviews SET likes_count = likes_count + 1 WHERE review_id = #{reviewId}
+    </update>
+
+    <update id="decrementLikeCount" parameterType="int">
+        UPDATE reviews SET likes_count = IF(likes_count > 0, likes_count - 1, 0) WHERE review_id = #{reviewId}
+    </update>
+
+    <select id="getLikeCount" parameterType="int" resultType="int">
+        SELECT likes_count FROM reviews WHERE review_id = #{reviewId}
+    </select>
+    
+
+    <!-- 관리자용 전체 후기 조회 -->
+    <select id="adminSelectReviewList" resultType="ReviewDto">
+        SELECT
+            review_id AS id,
+            meetup_id AS meetupId,
+            member_id AS memberId,
+            content,
+            rating,
+            likes_count AS likesCount,
+            views_count AS viewsCount,
+            IF(is_public = 'Y', 1, 0) AS isPublic,
+            IF(delete_yn = 'Y', 1, 0) AS deleteYn,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM reviews
+        WHERE delete_yn = 'N'
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 후기 내용(키워드) 검색 -->
+    <select id="adminSearchReviewByContent" parameterType="string" resultType="ReviewDto">
+        SELECT
+            review_id AS id,
+            meetup_id AS meetupId,
+            member_id AS memberId,
+            content,
+            rating,
+            likes_count AS likesCount,
+            views_count AS viewsCount,
+            IF(is_public = 'Y', 1, 0) AS isPublic,
+            IF(delete_yn = 'Y', 1, 0) AS deleteYn,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM reviews
+        WHERE content LIKE CONCAT('%', #{keyword}, '%')
+          AND delete_yn = 'N'
+    </select>
+
+    <!-- 작성자 회원번호로 검색 -->
+    <select id="adminSearchReviewByWriter" parameterType="int" resultType="ReviewDto">
+        SELECT
+            review_id AS id,
+            meetup_id AS meetupId,
+            member_id AS memberId,
+            content,
+            rating,
+            likes_count AS likesCount,
+            views_count AS viewsCount,
+            IF(is_public = 'Y', 1, 0) AS isPublic,
+            IF(delete_yn = 'Y', 1, 0) AS deleteYn,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM reviews
+        WHERE member_id = #{memberId}
+          AND delete_yn = 'N'
+    </select>
+
+    <!-- 관리자 비공개 처리 -->
+    <update id="adminHideReview">
+        UPDATE reviews
+        SET is_public = 'N'
+        WHERE review_id = #{id}
+    </update>
+
+    <!-- 관리자 권한 후기 삭제 -->
+    <update id="adminDeleteReview">
+        UPDATE reviews
+        SET delete_yn = 'Y'
+        WHERE review_id = #{id}
+    </update>
+
+</mapper>

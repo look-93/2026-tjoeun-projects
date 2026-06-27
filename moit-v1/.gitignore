@@ -1,0 +1,25 @@
+# Maven
+target/
+
+# Eclipse / STS
+.project
+.classpath
+.settings/
+
+# Java
+*.class
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IntelliJ (혹시 사용하는 팀원 있을 경우)
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+/.metadata/

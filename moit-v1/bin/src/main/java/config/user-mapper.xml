@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moit.dao.UserMapper"> 
+  
+	<insert id="insert" parameterType="UserDto">
+		insert into users(nickname, bpass, email, mobile, bip)
+		value(#{nickname}, #{bpass}, #{email}, #{mobile}, #{bip})
+	</insert>
+	
+	<select id="findByEmail" parameterType="string" resultType="UserDto">
+		select * from users where email=#{email}	
+	</select>
+
+	<select id="findByNickname" parameterType="string" resultType="UserDto">
+		select * from users where nickname=#{nickname}	
+	</select>
+	
+	<select id="findByEmailUserInfo" resultType="UserDto">
+		select * from users where email=#{email}	
+	</select>
+
+	<insert id="insertAuth" parameterType="AuthDto">
+		insert into authorities (email, auth)
+		value(#{email}, #{auth})
+	</insert>
+
+	<select     resultMap="authListMap"   id="readAuth"  parameterType="string">
+	   select    u.email,  u.bpass,  a.auth
+	   from      users u    left   join authorities a    on u.email   = a.email  
+	   where     u.email =#{email} 
+	</select>
+	<resultMap  id="authListMap"          type="AuthUserDto">
+	     <result  property="email"         column="email"  />
+	     <result  property="bpass"         column="bpass"  />
+	     <collection  property="authList"  resultMap="authMap"  />
+	</resultMap>
+	<resultMap  id="authMap"       type="AuthDto" > 
+	     <result  property="auth"      column="auth"   />
+	</resultMap>  
+</mapper>
+
+
+<!-- public class UserDto {
+	private int uno;
+	private String  nickname;
+	private String  bpass;
+	private String  email;
+	private String  mobile;
+	private String  udate;
+	private String  bip;
+} -->

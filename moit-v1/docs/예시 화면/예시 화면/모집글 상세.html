@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>MOIT | 모집글 상세</title>
+
+<style>
+
+:root{
+    --c1:#B6FFFA;
+    --c2:#98E4FF;
+    --c3:#80B3FF;
+    --c4:#687EFF;
+
+    --bg:#f7faff;
+    --white:#fff;
+    --text:#222;
+    --gray:#777;
+
+    --shadow:0 5px 20px rgba(0,0,0,.08);
+    --radius:20px;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:var(--bg);
+    font-family:sans-serif;
+}
+
+.container{
+    width:1300px;
+    max-width:95%;
+    margin:auto;
+}
+
+a{
+    text-decoration:none;
+    color:inherit;
+}
+
+/* HEADER */
+
+header{
+    height:80px;
+    background:white;
+    box-shadow:var(--shadow);
+}
+
+.header-inner{
+    height:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.logo{
+    font-size:30px;
+    font-weight:bold;
+    color:var(--c4);
+}
+
+nav{
+    display:flex;
+    gap:30px;
+}
+
+nav a{
+    font-weight:600;
+}
+
+/* MAIN */
+
+.detail-wrap{
+    margin-top:30px;
+
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:25px;
+}
+
+/* LEFT */
+
+.left-panel{
+    display:flex;
+    flex-direction:column;
+    gap:25px;
+}
+
+.image-box{
+    background:white;
+    padding:20px;
+    border-radius:20px;
+    box-shadow:var(--shadow);
+}
+
+.main-image{
+    height:450px;
+    border-radius:20px;
+
+    background:
+    linear-gradient(
+    135deg,
+    var(--c2),
+    var(--c3)
+    );
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-size:80px;
+}
+
+.thumb-list{
+    display:flex;
+    gap:10px;
+    margin-top:15px;
+}
+
+.thumb{
+    flex:1;
+    height:80px;
+    border-radius:10px;
+    background:var(--c2);
+}
+
+/* CONTENT */
+
+.content-box{
+    background:white;
+    padding:30px;
+    border-radius:20px;
+    box-shadow:var(--shadow);
+}
+
+.badge{
+    display:inline-block;
+
+    padding:7px 15px;
+
+    background:#dfffe4;
+    color:#009933;
+
+    border-radius:50px;
+    margin-bottom:15px;
+}
+
+.title{
+    font-size:32px;
+    margin-bottom:20px;
+}
+
+.tags{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+.tag{
+    background:#eef7ff;
+    color:var(--c4);
+    padding:8px 12px;
+    border-radius:50px;
+}
+
+.description{
+    line-height:1.8;
+}
+
+/* RIGHT */
+
+.side-box{
+    background:white;
+    padding:25px;
+    border-radius:20px;
+    box-shadow:var(--shadow);
+    margin-bottom:20px;
+}
+
+.info-row{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:15px;
+}
+
+.btn{
+    width:100%;
+    border:none;
+    padding:15px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+.btn-primary{
+    background:var(--c4);
+    color:white;
+}
+
+.btn-outline{
+    margin-top:10px;
+    background:white;
+    border:2px solid var(--c4);
+    color:var(--c4);
+}
+
+/* TABS */
+
+.tabs{
+    background:white;
+    border-radius:20px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+}
+
+.tab-header{
+    display:flex;
+}
+
+.tab-btn{
+    flex:1;
+    padding:20px;
+    text-align:center;
+    border-bottom:3px solid transparent;
+    cursor:pointer;
+}
+
+.active{
+    border-color:var(--c4);
+    color:var(--c4);
+    font-weight:bold;
+}
+
+.tab-content{
+    padding:25px;
+}
+
+/* COMMENTS */
+
+.comment{
+    padding:15px 0;
+    border-bottom:1px solid #eee;
+}
+
+.comment-name{
+    font-weight:bold;
+}
+
+.comment-date{
+    color:gray;
+    font-size:12px;
+}
+
+.comment-write{
+    display:flex;
+    margin-top:20px;
+    gap:10px;
+}
+
+.comment-write input{
+    flex:1;
+    padding:15px;
+    border-radius:10px;
+    border:1px solid #ddd;
+}
+
+.comment-write button{
+    width:120px;
+    border:none;
+    background:var(--c4);
+    color:white;
+    border-radius:10px;
+}
+
+/* RELATED */
+
+.related{
+    margin-top:30px;
+}
+
+.related-grid{
+    display:grid;
+    grid-template-columns:
+    repeat(3,1fr);
+    gap:20px;
+}
+
+.related-card{
+    background:white;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:var(--shadow);
+}
+
+.related-img{
+    height:150px;
+    background:var(--c2);
+}
+
+.related-body{
+    padding:15px;
+}
+
+/* MOBILE */
+
+@media(max-width:768px){
+
+.detail-wrap{
+    grid-template-columns:1fr;
+}
+
+.related-grid{
+    grid-template-columns:1fr;
+}
+
+nav{
+    display:none;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div class="container header-inner">
+
+<div class="logo">MOIT</div>
+
+<nav>
+<a href="#">홈</a>
+<a href="#">모집찾기</a>
+<a href="#">행사</a>
+<a href="#">커뮤니티</a>
+<a href="#">공지사항</a>
+</nav>
+
+</div>
+
+</header>
+
+<div class="container">
+
+<div class="detail-wrap">
+
+<!-- LEFT -->
+
+<div class="left-panel">
+
+<div class="image-box">
+
+<div class="main-image">
+🏔️
+</div>
+
+<div class="thumb-list">
+<div class="thumb"></div>
+<div class="thumb"></div>
+<div class="thumb"></div>
+<div class="thumb"></div>
+</div>
+
+</div>
+
+<div class="content-box">
+
+<div class="badge">
+모집중
+</div>
+
+<h1 class="title">
+등산 좋아하는 사람 모여라!
+</h1>
+
+<div class="tags">
+<div class="tag">운동</div>
+<div class="tag">등산</div>
+<div class="tag">서울</div>
+</div>
+
+<div class="description">
+
+안녕하세요.
+
+주말마다 함께 등산할 분들을 모집합니다.
+
+초보자도 환영하며
+20~30대 누구나 참여 가능합니다.
+
+북한산, 관악산, 청계산 등
+서울 근교 위주로 활동 예정입니다.
+
+</div>
+
+</div>
+
+<div class="tabs">
+
+<div class="tab-header">
+
+<div class="tab-btn active">
+상세정보
+</div>
+
+<div class="tab-btn">
+신청자목록(8)
+</div>
+
+<div class="tab-btn">
+후기(12)
+</div>
+
+</div>
+
+<div class="tab-content">
+
+<h3>모임 안내</h3>
+
+<br>
+
+<p>✔ 매주 토요일 오전 9시</p>
+<p>✔ 서울 지역</p>
+<p>✔ 초보 가능</p>
+<p>✔ 회비 없음</p>
+
+</div>
+
+</div>
+
+<div class="content-box">
+
+<h3>댓글</h3>
+
+<div class="comment">
+
+<div class="comment-name">
+김모잇
+</div>
+
+<div class="comment-date">
+2026.06.15
+</div>
+
+<p>
+참여하고 싶어요!
+</p>
+
+</div>
+
+<div class="comment">
+
+<div class="comment-name">
+이모임
+</div>
+
+<div class="comment-date">
+2026.06.15
+</div>
+
+<p>
+저도 신청했습니다 🙂
+</p>
+
+</div>
+
+<div class="comment-write">
+
+<input
+placeholder="댓글을 입력하세요">
+
+<button>
+등록
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- RIGHT -->
+
+<div>
+
+<div class="side-box">
+
+<h3 style="margin-bottom:20px;">
+모집 정보
+</h3>
+
+<div class="info-row">
+<span>모집 인원</span>
+<span>8 / 10명</span>
+</div>
+
+<div class="info-row">
+<span>지역</span>
+<span>서울</span>
+</div>
+
+<div class="info-row">
+<span>작성일</span>
+<span>2026.06.15</span>
+</div>
+
+<div class="info-row">
+<span>조회수</span>
+<span>412</span>
+</div>
+
+<button class="btn btn-primary">
+신청하기
+</button>
+
+<button class="btn btn-outline">
+♡ 관심모임 등록
+</button>
+
+</div>
+
+<div class="side-box">
+
+<h3>작성자</h3>
+
+<br>
+
+<p>홍길동</p>
+<p>등산 모임 운영 3년</p>
+<p>평점 ⭐4.8</p>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- RELATED -->
+
+<section class="related">
+
+<h2 style="margin-bottom:20px;">
+관련 모임 추천
+</h2>
+
+<div class="related-grid">
+
+<div class="related-card">
+<div class="related-img"></div>
+<div class="related-body">
+북한산 등산 모임
+</div>
+</div>
+
+<div class="related-card">
+<div class="related-img"></div>
+<div class="related-body">
+주말 트레킹 모임
+</div>
+</div>
+
+<div class="related-card">
+<div class="related-img"></div>
+<div class="related-body">
+한강 러닝 크루
+</div>
+</div>
+
+</div>
+
+</section>
+
+</div>
+
+</body>
+</html>

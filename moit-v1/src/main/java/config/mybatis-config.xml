@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<settings>
+		<setting name="mapUnderscoreToCamelCase" value="true" />
+	</settings>
+	<typeAliases>
+		<typeAlias type="com.moit.dto.AuthDto" alias="AuthDto" />
+		<typeAlias type="com.moit.dto.AuthUserDto" alias="AuthUserDto" />
+		<typeAlias type="com.moit.dto.UserDto" alias="UserDto" />
+		<typeAlias type="com.moit.dto.MeetupDto" alias="MeetupDto" />
+		<typeAlias type="com.moit.dto.MeetupSearchDto" alias="MeetupSearchDto" />
+		<typeAlias type="com.moit.dto.MeetupImageDto" alias="MeetupImageDto" />
+		<typeAlias type="com.moit.dto.MeetupApplicationsDto" alias="MeetupApplicationsDto" />
+		<typeAlias type="com.moit.dto.MeetupLikeDto" alias="MeetupLikeDto" />
+		<typeAlias type="com.moit.dto.common.SidoDto" alias="SidoDto" />
+		<typeAlias type="com.moit.dto.common.SigunguDto" alias="SigunguDto" />
+		<typeAlias type="com.moit.dto.common.CategoryDto" alias="CategoryDto" />	
+	    <typeAlias type="com.moit.dto.ReportsDto" alias="ReportsDto" />
+	    <typeAlias type="com.moit.dto.AdvertisementDto" alias="AdvertisementDto" />
+	    <typeAlias type="com.moit.dto.AdvertiserDto" alias="AdvertiserDto" />
+		<typeAlias type="com.moit.dto.QuestionDto"  alias="QuestionDto" />
+		<typeAlias type="com.moit.dto.AnswerDto"    alias="AnswerDto" />
+		<typeAlias type="com.moit.dto.ReviewDto"     alias="ReviewDto" />
+	</typeAliases>
+</configuration>

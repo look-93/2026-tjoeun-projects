@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOIT | 모집글 목록</title>
+
+<style>
+
+:root{
+    --c1:#B6FFFA;
+    --c2:#98E4FF;
+    --c3:#80B3FF;
+    --c4:#687EFF;
+
+    --bg:#f7faff;
+    --white:#fff;
+    --text:#222;
+    --gray:#777;
+
+    --radius:20px;
+    --shadow:0 5px 15px rgba(0,0,0,.07);
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:sans-serif;
+    background:var(--bg);
+}
+
+.container{
+    width:1400px;
+    max-width:95%;
+    margin:auto;
+}
+
+/* HEADER */
+
+header{
+    background:white;
+    height:80px;
+    box-shadow:var(--shadow);
+}
+
+.header-inner{
+    height:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.logo{
+    font-size:30px;
+    font-weight:bold;
+    color:var(--c4);
+}
+
+nav{
+    display:flex;
+    gap:30px;
+}
+
+nav a{
+    text-decoration:none;
+    color:#333;
+}
+
+.search-top{
+    width:250px;
+    padding:12px;
+    border-radius:30px;
+    border:1px solid #ddd;
+}
+
+/* PAGE */
+
+.page{
+    margin-top:30px;
+    display:grid;
+    grid-template-columns:260px 1fr;
+    gap:25px;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+    background:white;
+    border-radius:20px;
+    padding:25px;
+    box-shadow:var(--shadow);
+    height:fit-content;
+}
+
+.sidebar h3{
+    margin-bottom:20px;
+}
+
+.category{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.category a{
+    padding:12px;
+    border-radius:12px;
+    text-decoration:none;
+    color:#333;
+}
+
+.category a:hover,
+.category .active{
+    background:var(--c2);
+}
+
+/* CONTENT */
+
+.content{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+}
+
+.filter-box{
+    background:white;
+    border-radius:20px;
+    padding:20px;
+    box-shadow:var(--shadow);
+
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.filter-box input,
+.filter-box select{
+    padding:12px;
+    border-radius:12px;
+    border:1px solid #ddd;
+}
+
+.filter-box button{
+    background:var(--c4);
+    color:white;
+    border:none;
+    padding:12px 20px;
+    border-radius:12px;
+}
+
+/* CARD */
+
+.card-grid{
+    display:grid;
+    grid-template-columns:
+    repeat(auto-fill,minmax(280px,1fr));
+    gap:20px;
+}
+
+.card{
+    background:white;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:var(--shadow);
+    transition:.3s;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+}
+
+.card-img{
+    height:180px;
+    background:linear-gradient(
+    135deg,
+    var(--c2),
+    var(--c3)
+    );
+}
+
+.card-body{
+    padding:20px;
+}
+
+.badge{
+    display:inline-block;
+    background:#dfffe4;
+    color:#009933;
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:12px;
+    margin-bottom:10px;
+}
+
+.badge-close{
+    background:#ffe5e5;
+    color:red;
+}
+
+.card h4{
+    margin-bottom:10px;
+}
+
+.card p{
+    color:var(--gray);
+    margin-bottom:5px;
+    font-size:14px;
+}
+
+.card-footer{
+    margin-top:15px;
+    display:flex;
+    justify-content:space-between;
+}
+
+.like{
+    color:var(--c4);
+}
+
+/* PAGINATION */
+
+.pagination{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-top:20px;
+}
+
+.pagination a{
+    width:40px;
+    height:40px;
+    background:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    border-radius:10px;
+    text-decoration:none;
+    color:#333;
+}
+
+.pagination .active{
+    background:var(--c4);
+    color:white;
+}
+
+/* MOBILE */
+
+@media(max-width:768px){
+
+.page{
+    grid-template-columns:1fr;
+}
+
+nav{
+    display:none;
+}
+
+.search-top{
+    display:none;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="container header-inner">
+
+        <div class="logo">MOIT</div>
+
+        <nav>
+            <a href="#">홈</a>
+            <a href="#">모집찾기</a>
+            <a href="#">행사</a>
+            <a href="#">커뮤니티</a>
+            <a href="#">공지사항</a>
+        </nav>
+
+        <input
+        class="search-top"
+        placeholder="검색어를 입력하세요">
+
+    </div>
+</header>
+
+<div class="container">
+
+    <div class="page">
+
+        <!-- LEFT -->
+
+        <aside class="sidebar">
+
+            <h3>카테고리</h3>
+
+            <div class="category">
+
+                <a href="#" class="active">전체</a>
+                <a href="#">운동/스포츠</a>
+                <a href="#">문화/예술</a>
+                <a href="#">스터디</a>
+                <a href="#">봉사활동</a>
+                <a href="#">게임</a>
+                <a href="#">여행</a>
+                <a href="#">음악</a>
+
+            </div>
+
+        </aside>
+
+        <!-- RIGHT -->
+
+        <section class="content">
+
+            <div class="filter-box">
+
+                <input
+                type="text"
+                placeholder="모임명 검색">
+
+                <select>
+                    <option>전체 지역</option>
+                    <option>서울</option>
+                    <option>인천</option>
+                    <option>경기</option>
+                </select>
+
+                <select>
+                    <option>최신순</option>
+                    <option>인기순</option>
+                    <option>마감임박순</option>
+                </select>
+
+                <button>검색</button>
+
+            </div>
+
+            <div class="card-grid">
+
+                <!-- CARD 1 -->
+
+                <div class="card">
+
+                    <div class="card-img"></div>
+
+                    <div class="card-body">
+
+                        <span class="badge">
+                            모집중
+                        </span>
+
+                        <h4>러닝 크루 모집</h4>
+
+                        <p>🏃 운동/스포츠</p>
+                        <p>📍 서울</p>
+                        <p>👥 8 / 10명</p>
+
+                        <div class="card-footer">
+                            <span>2026.06.15</span>
+                            <span class="like">❤️ 34</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- CARD -->
+
+                <div class="card">
+
+                    <div class="card-img"></div>
+
+                    <div class="card-body">
+
+                        <span class="badge">
+                            모집중
+                        </span>
+
+                        <h4>독서 스터디</h4>
+
+                        <p>📚 스터디</p>
+                        <p>📍 인천</p>
+                        <p>👥 5 / 8명</p>
+
+                        <div class="card-footer">
+                            <span>2026.06.14</span>
+                            <span class="like">❤️ 21</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-img"></div>
+
+                    <div class="card-body">
+
+                        <span class="badge badge-close">
+                            마감
+                        </span>
+
+                        <h4>보드게임 모임</h4>
+
+                        <p>🎲 게임</p>
+                        <p>📍 경기</p>
+                        <p>👥 10 / 10명</p>
+
+                        <div class="card-footer">
+                            <span>2026.06.10</span>
+                            <span class="like">❤️ 48</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+
+                    <div class="card-img"></div>
+
+                    <div class="card-body">
+
+                        <span class="badge">
+                            모집중
+                        </span>
+
+                        <h4>주말 등산 모임</h4>
+
+                        <p>⛰️ 운동</p>
+                        <p>📍 서울</p>
+                        <p>👥 12 / 15명</p>
+
+                        <div class="card-footer">
+                            <span>2026.06.12</span>
+                            <span class="like">❤️ 62</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+                    <div class="card-img"></div>
+                    <div class="card-body">
+                        <span class="badge">모집중</span>
+                        <h4>영화 같이 볼 사람</h4>
+                        <p>🎬 문화</p>
+                        <p>📍 부천</p>
+                        <p>👥 7 / 10명</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-img"></div>
+                    <div class="card-body">
+                        <span class="badge">모집중</span>
+                        <h4>카페 투어 모임</h4>
+                        <p>☕ 문화</p>
+                        <p/모집글목록.html>📍 서울</p>
+                        <p>👥 4 / 8명</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="pagination">
+
+                <a href="#">‹</a>
+                <a href="#" class="active">1</a>
+                <a href="#">2</a>
+                <a href="#">3</a>
+                <a href="#">4</a>
+                <a href="#">›</a>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</div>
+
+</body>
+</html>

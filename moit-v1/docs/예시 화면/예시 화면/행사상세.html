@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>MOIT | 행사 상세</title>
+
+<style>
+
+:root{
+--c1:#B6FFFA;
+--c2:#98E4FF;
+--c3:#80B3FF;
+--c4:#687EFF;
+
+--bg:#f7faff;
+--shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:sans-serif;
+}
+
+body{
+background:var(--bg);
+}
+
+.container{
+width:1300px;
+max-width:95%;
+margin:auto;
+}
+
+header{
+height:80px;
+background:white;
+box-shadow:var(--shadow);
+}
+
+.header-inner{
+height:100%;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.logo{
+font-size:30px;
+font-weight:bold;
+color:var(--c4);
+}
+
+.detail-wrap{
+margin-top:30px;
+
+display:grid;
+grid-template-columns:2fr 1fr;
+gap:25px;
+}
+
+.card{
+background:white;
+border-radius:20px;
+padding:25px;
+box-shadow:var(--shadow);
+margin-bottom:25px;
+}
+
+.poster{
+height:500px;
+
+border-radius:20px;
+
+background:
+linear-gradient(
+135deg,
+var(--c2),
+var(--c4)
+);
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+font-size:90px;
+color:white;
+}
+
+.badge{
+display:inline-block;
+
+background:#e7fff1;
+color:#009944;
+
+padding:8px 15px;
+border-radius:50px;
+
+margin-bottom:15px;
+}
+
+.title{
+font-size:38px;
+margin-bottom:15px;
+}
+
+.tags{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+margin-bottom:20px;
+}
+
+.tag{
+background:#eef5ff;
+color:var(--c4);
+padding:8px 12px;
+border-radius:30px;
+}
+
+.info p{
+margin-bottom:12px;
+color:#555;
+line-height:1.7;
+}
+
+.side-box{
+background:white;
+padding:25px;
+border-radius:20px;
+box-shadow:var(--shadow);
+margin-bottom:20px;
+}
+
+.info-row{
+display:flex;
+justify-content:space-between;
+margin-bottom:15px;
+}
+
+.btn{
+width:100%;
+padding:15px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+font-size:16px;
+}
+
+.btn-primary{
+background:var(--c4);
+color:white;
+}
+
+.btn-outline{
+margin-top:10px;
+background:white;
+border:2px solid var(--c4);
+color:var(--c4);
+}
+
+.schedule{
+margin-top:15px;
+}
+
+.schedule-item{
+padding:15px;
+border-left:4px solid var(--c4);
+background:#f8fbff;
+margin-bottom:15px;
+border-radius:10px;
+}
+
+.progress{
+height:15px;
+background:#eee;
+border-radius:20px;
+overflow:hidden;
+margin-top:15px;
+}
+
+.progress-bar{
+width:85%;
+height:100%;
+background:var(--c4);
+}
+
+.review{
+padding:15px 0;
+border-bottom:1px solid #eee;
+}
+
+.review strong{
+display:block;
+margin-bottom:5px;
+}
+
+.qna{
+padding:15px 0;
+border-bottom:1px solid #eee;
+}
+
+.map{
+height:350px;
+background:#dfefff;
+border-radius:20px;
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+font-size:40px;
+}
+
+@media(max-width:768px){
+
+.detail-wrap{
+grid-template-columns:1fr;
+}
+
+.title{
+font-size:28px;
+}
+
+.poster{
+height:300px;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div class="container header-inner">
+
+<div class="logo">MOIT</div>
+
+<div>
+행사 · 모집 · 마이페이지
+</div>
+
+</div>
+
+</header>
+
+<div class="container">
+
+<div class="detail-wrap">
+
+<!-- LEFT -->
+
+<div>
+
+<div class="card">
+
+<div class="poster">
+🎉
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="badge">
+신청 가능
+</div>
+
+<h1 class="title">
+2026 MOIT SUMMER FESTIVAL
+</h1>
+
+<div class="tags">
+
+<div class="tag">축제</div>
+<div class="tag">공연</div>
+<div class="tag">서울</div>
+
+</div>
+
+<div class="info">
+
+<p>
+여름을 맞아 진행되는 MOIT 대표 축제입니다.
+</p>
+
+<p>
+다양한 공연과 체험부스,
+푸드트럭, 이벤트가 준비되어 있습니다.
+</p>
+
+<p>
+대학생과 일반인 누구나 참여 가능합니다.
+</p>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>📅 행사 일정</h2>
+
+<div class="schedule">
+
+<div class="schedule-item">
+10:00 입장 시작
+</div>
+
+<div class="schedule-item">
+13:00 메인 공연
+</div>
+
+<div class="schedule-item">
+16:00 이벤트 추첨
+</div>
+
+<div class="schedule-item">
+18:00 종료
+</div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>📍 행사 장소</h2>
+
+<br>
+
+<div class="map">
+🗺️ 지도 영역
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>⭐ 후기</h2>
+
+<div class="review">
+<strong>김모잇</strong>
+작년 행사도 정말 재미있었습니다.
+</div>
+
+<div class="review">
+<strong>박모임</strong>
+공연 퀄리티가 좋았어요.
+</div>
+
+<div class="review">
+<strong>이축제</strong>
+올해도 기대됩니다.
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>❓ Q&A</h2>
+
+<div class="qna">
+Q. 주차 가능한가요?
+</div>
+
+<div class="qna">
+A. 행사장 주차장을 이용할 수 있습니다.
+</div>
+
+<div class="qna">
+Q. 참가비가 있나요?
+</div>
+
+<div class="qna">
+A. 무료입니다.
+</div>
+
+</div>
+
+</div>
+
+<!-- RIGHT -->
+
+<div>
+
+<div class="side-box">
+
+<h3 style="margin-bottom:20px;">
+행사 정보
+</h3>
+
+<div class="info-row">
+<span>행사일</span>
+<span>2026.07.15</span>
+</div>
+
+<div class="info-row">
+<span>장소</span>
+<span>서울 광장</span>
+</div>
+
+<div class="info-row">
+<span>정원</span>
+<span>85 / 100명</span>
+</div>
+
+<div class="info-row">
+<span>주최</span>
+<span>MOIT</span>
+</div>
+
+<div class="progress">
+<div class="progress-bar"></div>
+</div>
+
+<br>
+
+<button class="btn btn-primary">
+행사 신청하기
+</button>
+
+<button class="btn btn-outline">
+관심 행사 등록
+</button>
+
+</div>
+
+<div class="side-box">
+
+<h3>🏢 제휴업체</h3>
+
+<br>
+
+<p>MOIT Entertainment</p>
+<p>평점 ⭐ 4.9</p>
+<p>행사 진행 32회</p>
+
+</div>
+
+<div class="side-box">
+
+<h3>🎯 추천 행사</h3>
+
+<br>
+
+<p>여름 음악 페스티벌</p>
+<p>IT 컨퍼런스 2026</p>
+<p>플리마켓 축제</p>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</body>
+</html>

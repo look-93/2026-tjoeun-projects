@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MOIT | 마이페이지</title>
+
+<style>
+
+:root{
+--c1:#B6FFFA;
+--c2:#98E4FF;
+--c3:#80B3FF;
+--c4:#687EFF;
+
+--bg:#f7faff;
+--shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:sans-serif;
+}
+
+body{
+background:var(--bg);
+}
+
+.container{
+width:1400px;
+max-width:95%;
+margin:auto;
+}
+
+header{
+height:80px;
+background:white;
+box-shadow:var(--shadow);
+}
+
+.header-inner{
+height:100%;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.logo{
+font-size:30px;
+font-weight:bold;
+color:var(--c4);
+}
+
+/* PROFILE */
+
+.profile-card{
+margin-top:30px;
+
+background:white;
+border-radius:25px;
+padding:30px;
+
+display:flex;
+align-items:center;
+gap:25px;
+
+box-shadow:var(--shadow);
+}
+
+.profile-img{
+width:120px;
+height:120px;
+border-radius:50%;
+
+background:
+linear-gradient(
+135deg,
+var(--c2),
+var(--c4)
+);
+}
+
+.profile-info h2{
+margin-bottom:10px;
+}
+
+.badge{
+display:inline-block;
+
+padding:8px 15px;
+border-radius:30px;
+
+background:#eef4ff;
+color:var(--c4);
+}
+
+/* CONTENT */
+
+.mypage-wrap{
+margin-top:25px;
+
+display:grid;
+grid-template-columns:260px 1fr;
+gap:25px;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+background:white;
+border-radius:20px;
+padding:20px;
+box-shadow:var(--shadow);
+height:fit-content;
+}
+
+.menu{
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.menu a{
+padding:15px;
+border-radius:12px;
+text-decoration:none;
+color:#333;
+}
+
+.menu a:hover,
+.menu .active{
+background:var(--c2);
+}
+
+/* MAIN */
+
+.main-content{
+display:flex;
+flex-direction:column;
+gap:25px;
+}
+
+.dashboard{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:20px;
+}
+
+.stat-card{
+background:white;
+padding:25px;
+border-radius:20px;
+box-shadow:var(--shadow);
+text-align:center;
+}
+
+.stat-card h3{
+font-size:30px;
+color:var(--c4);
+margin-top:10px;
+}
+
+/* TABLE */
+
+.section{
+background:white;
+padding:25px;
+border-radius:20px;
+box-shadow:var(--shadow);
+}
+
+.section-title{
+margin-bottom:20px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+padding:15px;
+text-align:left;
+border-bottom:1px solid #eee;
+}
+
+th{
+background:#f8fbff;
+}
+
+/* FAVORITE */
+
+.favorite-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:15px;
+}
+
+.favorite-card{
+background:#f8fbff;
+padding:20px;
+border-radius:15px;
+}
+
+/* MOBILE */
+
+@media(max-width:768px){
+
+.mypage-wrap{
+grid-template-columns:1fr;
+}
+
+.dashboard{
+grid-template-columns:1fr 1fr;
+}
+
+.favorite-grid{
+grid-template-columns:1fr;
+}
+
+.profile-card{
+flex-direction:column;
+text-align:center;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div class="container header-inner">
+
+<div class="logo">MOIT</div>
+
+<div>
+🔔 👤
+</div>
+
+</div>
+
+</header>
+
+<div class="container">
+
+<!-- PROFILE -->
+
+<div class="profile-card">
+
+<div class="profile-img"></div>
+
+<div class="profile-info">
+
+<h2>홍길동</h2>
+
+<p style="margin-bottom:10px;">
+hong@example.com
+</p>
+
+<span class="badge">
+일반 회원
+</span>
+
+</div>
+
+</div>
+
+<!-- CONTENT -->
+
+<div class="mypage-wrap">
+
+<!-- SIDEBAR -->
+
+<aside class="sidebar">
+
+<div class="menu">
+
+<a class="active" href="#">
+내 정보
+</a>
+
+<a href="#">
+내 모집글
+</a>
+
+<a href="#">
+신청한 모임
+</a>
+
+<a href="#">
+신청한 행사
+</a>
+
+<a href="#">
+관심 모임
+</a>
+
+<a href="#">
+관심 행사
+</a>
+
+<a href="#">
+작성한 후기
+</a>
+
+<a href="#">
+내 신고내역
+</a>
+
+<a href="#">
+회원정보 수정
+</a>
+
+<a href="#">
+비밀번호 변경
+</a>
+
+<a href="#">
+회원 탈퇴
+</a>
+
+</div>
+
+</aside>
+
+<!-- MAIN -->
+
+<div class="main-content">
+
+<!-- STATS -->
+
+<div class="dashboard">
+
+<div class="stat-card">
+📝
+<h3>12</h3>
+<p>내 모집글</p>
+</div>
+
+<div class="stat-card">
+👥
+<h3>8</h3>
+<p>신청 모임</p>
+</div>
+
+<div class="stat-card">
+🎉
+<h3>4</h3>
+<p>신청 행사</p>
+</div>
+
+<div class="stat-card">
+⭐
+<h3>16</h3>
+<p>작성 후기</p>
+</div>
+
+</div>
+
+<!-- 신청 모임 -->
+
+<div class="section">
+
+<h2 class="section-title">
+신청한 모임
+</h2>
+
+<table>
+
+<tr>
+<th>모임명</th>
+<th>지역</th>
+<th>상태</th>
+</tr>
+
+<tr>
+<td>러닝 크루</td>
+<td>서울</td>
+<td>승인완료</td>
+</tr>
+
+<tr>
+<td>독서 스터디</td>
+<td>인천</td>
+<td>대기중</td>
+</tr>
+
+</table>
+
+</div>
+
+<!-- 관심 모임 -->
+
+<div class="section">
+
+<h2 class="section-title">
+관심 모임
+</h2>
+
+<div class="favorite-grid">
+
+<div class="favorite-card">
+🏃 러닝 크루
+</div>
+
+<div class="favorite-card">
+📚 독서 스터디
+</div>
+
+<div class="favorite-card">
+🎬 영화 모임
+</div>
+
+</div>
+
+</div>
+
+<!-- 후기 -->
+
+<div class="section">
+
+<h2 class="section-title">
+최근 작성 후기
+</h2>
+
+<table>
+
+<tr>
+<th>제목</th>
+<th>작성일</th>
+</tr>
+
+<tr>
+<td>러닝 크루 후기</td>
+<td>2026.06.15</td>
+</tr>
+
+<tr>
+<td>독서 모임 후기</td>
+<td>2026.06.12</td>
+</tr>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</body>
+</html>

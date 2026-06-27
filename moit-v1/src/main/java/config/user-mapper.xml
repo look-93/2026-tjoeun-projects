@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moit.dao.UserMapper">
+
+    <insert id="insert" parameterType="UserDto" useGeneratedKeys="true" keyProperty="memberId">
+        INSERT INTO members (
+            login_id, mobile, nickname, email, password, member_type_id, status_id, profile_url
+        ) VALUES (
+            #{loginId}, #{mobile}, #{nickname}, #{email}, #{password}, #{memberTypeId}, #{statusId}, #{profileUrl}
+        )
+    </insert>
+
+    <select id="readAuth" parameterType="map" resultType="AuthUserDto">
+        SELECT m.login_id, m.password, mt.type_name, m.nickname,m.profile_url
+        FROM members m
+        JOIN member_type mt ON m.member_type_id = mt.member_type_id
+        WHERE m.login_id = #{loginId} AND m.delete_yn = 'N' 
+    </select>
+
+    <select id="findMember" parameterType="map" resultType="UserDto">
+        SELECT * FROM members
+        <where>
+            <choose>
+                <when test="loginId != null and loginId != ''">
+                    AND login_id = #{loginId}
+                </when>
+                <when test="nickname != null and nickname != ''">
+                    AND nickname = #{nickname}
+                </when>
+                <otherwise>
+                    AND 1 = 0
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <update id="updateMember" parameterType="UserDto">
+        UPDATE members
+        <set>
+            <if test="nickname != null and nickname != ''">nickname = #{nickname},</if>
+            <if test="password != null and password != ''">password = #{password},</if>
+            <if test="mobile != null and mobile != ''">mobile = #{mobile},</if>
+            <if test="memberTypeId > 0">member_type_id = #{memberTypeId},</if>
+            <if test="statusId > 0">status_id = #{statusId},</if>
+            <if test="deleteYn != null and deleteYn != ''">delete_yn = #{deleteYn},</if>
+            <if test="profileUrl != null and profileUrl != ''">profile_url = #{profileUrl},</if>
+        </set>
+        WHERE login_id = #{loginId}
+    </update>
+
+    <select id="select10" parameterType="java.util.HashMap" resultType="UserDto">
+        SELECT * FROM members
+        <where>
+            AND delete_yn = 'N'
+            
+            <if test="memberTypeId > 0">
+                AND member_type_id = #{memberTypeId}
+            </if>
+            <if test="statusId > 0">
+                AND status_id = #{statusId}
+            </if>
+            
+            <if test="searchKeyword != null and searchKeyword != ''">
+                AND (
+                    login_id LIKE CONCAT('%', #{searchKeyword}, '%') OR 
+                    nickname LIKE CONCAT('%', #{searchKeyword}, '%') OR
+                    email LIKE CONCAT('%', #{searchKeyword}, '%')
+                )
+            </if>
+        </where>
+        ORDER BY member_id DESC
+        LIMIT #{start}, #{end}
+    </select>
+
+    <select id="selectCnt" parameterType="java.util.HashMap" resultType="int">
+        SELECT COUNT(*) FROM members
+        <where>
+            AND delete_yn = 'N'
+            <if test="memberTypeId > 0">
+                AND member_type_id = #{memberTypeId}
+            </if>
+            <if test="statusId > 0">
+                AND status_id = #{statusId}
+            </if>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                AND (
+                    login_id LIKE CONCAT('%', #{searchKeyword}, '%') OR 
+                    nickname LIKE CONCAT('%', #{searchKeyword}, '%') OR
+                    email LIKE CONCAT('%', #{searchKeyword}, '%')
+                )
+            </if>
+        </where>
+    </select>
+
+    <delete id="deleteMember" parameterType="string">
+        DELETE FROM members WHERE login_id = #{loginId}
+    </delete>
+
+</mapper>
