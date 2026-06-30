@@ -1,0 +1,36 @@
+# =========================
+# Maven & Gradle
+# =========================
+target/
+!.mvn/wrapper/maven-wrapper.jar
+.gradle/
+build/
+
+# =========================
+# IDEs (Eclipse, IntelliJ, VS Code)
+# =========================
+.project
+.classpath
+.settings/
+.factorypath
+.metadata/
+.idea/
+*.iml
+out/
+.vscode/
+
+# =========================
+# Java & Logs & OS
+# =========================
+*.class
+*.log
+logs/
+.DS_Store
+Thumbs.db
+*.swp
+
+# =========================
+# Spring Boot (보안/로컬 설정만 제외)
+# =========================
+application-local.properties
+application-secret.properties
