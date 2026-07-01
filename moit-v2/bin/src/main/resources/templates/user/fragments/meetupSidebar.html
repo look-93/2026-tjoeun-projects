@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<body>
+	<th:block th:fragment="meetupSidebar">
+		<aside class="sidebar">
+
+			<h3>카테고리</h3>
+
+			<div class="category meetupList-category">
+				<a href="#" class="active">전체</a> 
+				<a href="#">운동/스포츠</a> 
+				<a href="#">문화/예술</a>
+				<a href="#">스터디</a> 
+				<a href="#">봉사활동</a> 
+				<a href="#">게임</a> 
+				<a href="#">여행</a> 
+				<a href="#">음악</a>
+			</div>
+
+			<div class="sidebar-ad meetupList-sidebar-ad">
+				<div class="ad-tag">ADVERTISEMENT</div>
+				<h3>
+					신규 회원<br> 특별 혜택
+				</h3>
+				<p>
+					가입만 해도<br> 할인 쿠폰 지급
+				</p>
+				<a href="#"> 지금 확인하기 </a>
+			</div>
+		</aside>
+	</th:block>
+</body>
+</html>

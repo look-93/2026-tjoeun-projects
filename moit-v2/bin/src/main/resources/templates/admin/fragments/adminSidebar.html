@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<body>
+	<th:block th:fragment="adminSidebar">
+		<!-- 사이드바 -->
+		<div class="sidebar">
+			<div class="logo">MOIT</div>
+			<div class="menu">	
+				<!-- 링크생기면 th:href -->
+				<a href="#"  class="active">회원관리</a> 
+				<a href="#">모임관리</a> 
+				<a href="#">문의관리</a>
+				<a href="#">후기관리</a>
+				<a href="#">신고관리</a>				 
+				<a href="#">광고관리</a>
+			</div>
+		</div>
+	</th:block>
+</body>
+</html>
