@@ -10,16 +10,18 @@ import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupSearchDto;
 
 @Service
-public class MeetupServiceImpl implements MeetupService{
+public class AdminMeetupServiceImpl implements AdminMeetupService{
 	@Autowired MeetupMapper meetupMapper;
 
 	@Override
-	public List<MeetupDto> adminList(int pstartno, MeetupSearchDto meetupSearchDto) {
+	public List<MeetupDto> findAllMeetupBy(int pstartno, MeetupSearchDto meetupSearchDto) {
 		meetupSearchDto.setEnd(10);
 		meetupSearchDto.setStart((pstartno-1)*10);		
-		return meetupMapper.adminList(meetupSearchDto);
+		return meetupMapper.findAllMeetupBy(meetupSearchDto);
 	}
-	
+	public int findAllMeetupCountBy(MeetupSearchDto meetupSearchDto) {
+		return meetupMapper.findAllMeetupCountBy(meetupSearchDto);
+	}
 	
 	
 }
