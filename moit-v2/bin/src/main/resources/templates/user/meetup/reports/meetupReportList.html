@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+<div class="mylist-page">
+
+	<section class="mylist-card">
+		<div class="mylist-card-head">
+			<div class="mylist-card-title">
+				내 신고내역
+			</div>
+		</div>
+
+		<div class="mylist-table-wrap">
+			<table class="mylist-table">
+				<thead>
+					<tr>
+						<th>번호</th>
+						<th>대상</th>
+						<th>대상ID</th>
+						<th>신고사유</th>
+						<th>상태</th>
+						<th>신고일</th>
+						<th>관리</th>
+					</tr>
+				</thead>
+
+				<tbody>
+					<tr th:each="dto, status: ${list}">
+						<td th:text="${status.count}"></td>
+						<td th:text="${dto.targetType}"></td>
+						<td th:text="${dto.targetId}"></td>
+						<td th:text="${dto.reasonCode}"></td>
+						<td>
+							<div th:switch="${dto.status}">
+								<span th:case="'PENDING'" th:text="${dto.status}"></span>
+								<span th:case="'APPROVED'" th:text="${dto.status}"></span>
+								<span th:case="'REJECTED'" th:text="${dto.status}"></span>
+							</div>
+						</td>
+						<td th:text="${dto.createdAt}"></td>
+						<td>
+							<a class="mylist-link" th:href="@{/report/user/detail(reportId=${dto.reportId})}">
+								상세
+							</a>
+						</td>
+					</tr>
+				</tbody>
+
+				<tfoot>
+					<tr>
+						<td colspan="7">
+							<ul class="mylist-pagination">
+								<!-- 이전 -->
+								<th:block th:if="${paging.start > paging.bottomlist}">
+									<li>
+										<a th:href="@{/(pstartno=${paging.start - 1})}" class="mylist-page-btn">이전</a>
+									</li>
+								</th:block>
+
+								<!-- 페이지 번호 -->
+								<th:block th:each=" i : ${#numbers.sequence(paging.start, paging.end)}">
+									<li>
+										<a th:href="@{/(pstartno=${i})}" class="mylist-page-btn"
+											th:classappend="${i == paging.current}' ? 'active' : ''"
+											th:text="${i}">
+										</a>
+									</li>
+								</th:block>
+
+								<!-- 다음 -->
+								<th:if test="${paging.end < paging.pagetotal}">
+									<li>
+										<a th:href="@{/(pstartno=${paging.end + 1})}" class="mylist-page-btn">다음</a>
+									</li>
+								</th:if>
+							</ul>
+						</td>
+					</tr>
+				</tfoot>
+				
+			</table>
+		</div>
+	</section>
+
+</div>
+
+</body>
+</html>
