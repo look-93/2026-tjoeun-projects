@@ -10,12 +10,13 @@ public class AdvertisementSearchDto {
 
     private String status;        // OPEN / PENDING / CLOSED
     private String approvalStatus; // WAITING / APPROVED / REJECTED
+    
+    // 광고주
+    private Integer advertiserId;
 
     // 페이징
     private int page = 1;   // 기본 1페이지
     private int size = 10;  // 기본 10개
-
-    private int offset;
 
     // 정렬 (선택)
     private String orderType;  
