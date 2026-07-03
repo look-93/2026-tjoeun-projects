@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.moit.advertisement.dao.AdvertisementMapper">
+
+    <!-- 관리자 광고 목록 -->
+    <select id="searchByAdmin"
+        parameterType="com.moit.advertisement.dto.AdvertisementSearchDto"
+        resultType="com.moit.advertisement.dto.AdvertisementDto">
+
+        SELECT *
+        FROM advertisements
+        WHERE delete_yn = 'N'
+
+        <if test="searchText != null and searchText != ''">
+            AND title LIKE '%' || #{searchText} || '%'
+        </if>
+
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+
+        ORDER BY ad_id DESC
+        OFFSET #{offset} ROWS
+        FETCH NEXT #{size} ROWS ONLY
+
+    </select>
+
+    <!-- 관리자 목록 개수 -->
+    <select id="selectAdminAdvertisementTotalCnt"
+        parameterType="com.moit.advertisement.dto.AdvertisementSearchDto"
+        resultType="int">
+
+        SELECT COUNT(*)
+        FROM advertisements
+        WHERE delete_yn = 'N'
+
+        <if test="searchText != null and searchText != ''">
+            AND title LIKE '%' || #{searchText} || '%'
+        </if>
+
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+
+    </select>
+
+    <!-- 내 광고 목록 -->
+    <select id="searchMyAdvertisement"
+        parameterType="com.moit.advertisement.dto.AdvertisementSearchDto"
+        resultType="com.moit.advertisement.dto.AdvertisementDto">
+
+        SELECT *
+        FROM advertisements
+        WHERE delete_yn = 'N'
+          AND advertiser_id = #{advertiserId}
+
+        <if test="searchText != null and searchText != ''">
+            AND title LIKE '%' || #{searchText} || '%'
+        </if>
+
+        ORDER BY ad_id DESC
+        OFFSET #{offset} ROWS
+        FETCH NEXT #{size} ROWS ONLY
+
+    </select>
+
+    <!-- 내 광고 목록 개수 -->
+    <select id="selectMyAdvertisementTotalCnt"
+        parameterType="com.moit.advertisement.dto.AdvertisementSearchDto"
+        resultType="int">
+
+        SELECT COUNT(*)
+        FROM advertisements
+        WHERE delete_yn = 'N'
+          AND advertiser_id = #{advertiserId}
+
+        <if test="searchText != null and searchText != ''">
+            AND title LIKE '%' || #{searchText} || '%'
+        </if>
+
+    </select>
+
+    <!-- 승인 대기 목록 -->
+    <select id="searchApprovalList"
+        parameterType="com.moit.advertisement.dto.AdvertisementSearchDto"
+        resultType="com.moit.advertisement.dto.AdvertisementDto">
+
+        SELECT *
+        FROM advertisements
+        WHERE delete_yn = 'N'
+
+        <if test="approvalStatus != null and approvalStatus != ''">
+            AND approval_status = #{approvalStatus}
+        </if>
+
+        <if test="searchText != null and searchText != ''">
+            AND title LIKE '%' || #{searchText} || '%'
+        </if>
+
+        ORDER BY created_at DESC
+        OFFSET #{offset} ROWS
+        FETCH NEXT #{size} ROWS ONLY
+
+    </select>
+
+    <!-- 승인 목록 개수 -->
+    <select id="selectApprovalAdvertisementTotalCnt"
+        parameterType="com.moit.advertisement.dto.AdvertisementSearchDto"
+        resultType="int">
+
+        SELECT COUNT(*)
+        FROM advertisements
+        WHERE delete_yn = 'N'
+
+        <if test="approvalStatus != null and approvalStatus != ''">
+            AND approval_status = #{approvalStatus}
+        </if>
+
+        <if test="searchText != null and searchText != ''">
+            AND title LIKE '%' || #{searchText} || '%'
+        </if>
+
+    </select>
+
+    <!-- 상세 조회 -->
+    <select id="selectAdvertisementOne"
+        parameterType="int"
+        resultType="com.moit.advertisement.dto.AdvertisementDto">
+
+        SELECT *
+        FROM advertisements
+        WHERE ad_id = #{adId}
+          AND delete_yn = 'N'
+
+    </select>
+
+    <!-- 광고 등록 -->
+    <insert id="insertAdvertisement">
+
+        <selectKey
+            keyProperty="adId"
+            resultType="int"
+            order="BEFORE">
+
+            SELECT seq_advertisements.NEXTVAL
+            FROM dual
+
+        </selectKey>
+
+        INSERT INTO advertisements
+        (
+            ad_id,
+            title,
+            content,
+            image_url,
+            landing_url,
+            ad_type,
+            position,
+            target_age_min,
+            target_age_max,
+            target_gender,
+            device_type,
+            ad_channel,
+            start_datetime,
+            end_datetime,
+            advertiser_id,
+            total_budget
+        )
+        VALUES
+        (
+            #{adId},
+            #{title},
+            #{content},
+            #{imageUrl},
+            #{landingUrl},
+            #{adType},
+            #{position},
+            #{targetAgeMin},
+            #{targetAgeMax},
+            #{targetGender},
+            #{deviceType},
+            #{adChannel},
+            #{startDatetime},
+            #{endDatetime},
+            #{advertiserId},
+            #{totalBudget}
+        )
+    </insert>
+
+       <!-- 광고 수정 -->
+    <update id="updateAdvertisement"
+        parameterType="com.moit.advertisement.dto.AdvertisementDto">
+
+        UPDATE advertisements
+        SET
+            title = #{title},
+            content = #{content},
+            image_url = #{imageUrl},
+            landing_url = #{landingUrl},
+            ad_type = #{adType},
+            position = #{position},
+            target_age_min = #{targetAgeMin},
+            target_age_max = #{targetAgeMax},
+            target_gender = #{targetGender},
+            device_type = #{deviceType},
+            ad_channel = #{adChannel},
+            start_datetime = #{startDatetime},
+            end_datetime = #{endDatetime},
+            total_budget = #{totalBudget},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE ad_id = #{adId}
+          AND advertiser_id = #{advertiserId}
+          AND delete_yn = 'N'
+
+    </update>
+
+    <!-- 광고 삭제 -->
+    <update id="deleteAdvertisement"
+        parameterType="int">
+
+        UPDATE advertisements
+        SET
+            delete_yn = 'Y',
+            updated_at = CURRENT_TIMESTAMP
+        WHERE ad_id = #{adId}
+
+    </update>
+
+    <!-- 승인 상태 변경 -->
+    <update id="updateApprovalStatus"
+        parameterType="com.moit.advertisement.dto.AdvertisementDto">
+
+        UPDATE advertisements
+        SET
+            approval_status = #{approvalStatus},
+            approved_by = #{approvedBy},
+            approved_at = CURRENT_TIMESTAMP,
+            reject_reason = #{rejectReason},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE ad_id = #{adId}
+
+    </update>
+
+    <!-- 광고 상태 변경 -->
+    <update id="updateAdvertisementStatus"
+        parameterType="com.moit.advertisement.dto.AdvertisementDto">
+
+        UPDATE advertisements
+        SET
+            status = #{status},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE ad_id = #{adId}
+
+    </update>
+
+    <!-- 노출 수 증가 -->
+    <update id="updateImpressions"
+        parameterType="int">
+
+        UPDATE advertisements
+        SET impressions = impressions + 1
+        WHERE ad_id = #{adId}
+
+    </update>
+
+    <!-- 클릭 수 증가 -->
+    <update id="updateAdvertisementClick"
+        parameterType="int">
+
+        UPDATE advertisements
+        SET clicks = clicks + 1
+        WHERE ad_id = #{adId}
+
+    </update>
+
+    <!-- 메인 광고 조회 -->
+    <select id="selectTopAdvertisement"
+        resultType="com.moit.advertisement.dto.AdvertisementDto">
+
+        SELECT *
+        FROM
+        (
+            SELECT *
+            FROM advertisements
+            WHERE delete_yn = 'N'
+              AND status = 'OPEN'
+              AND approval_status = 'APPROVED'
+              AND CURRENT_TIMESTAMP BETWEEN start_datetime AND end_datetime
+            ORDER BY
+                priority_score DESC,
+                DBMS_RANDOM.VALUE
+        )
+        WHERE ROWNUM = 1
+
+    </select>
+
+    <!-- 전체 광고 수 -->
+    <select id="selectTotalAdvertisementCnt"
+        resultType="int">
+
+        SELECT COUNT(*)
+        FROM advertisements
+        WHERE delete_yn = 'N'
+
+    </select>
+
+    <!-- OPEN 광고 수 -->
+    <select id="selectOpenAdvertisementCnt"
+        resultType="int">
+
+        SELECT COUNT(*)
+        FROM advertisements
+        WHERE delete_yn = 'N'
+          AND status = 'OPEN'
+
+    </select>
+
+    <!-- PENDING 광고 수 -->
+    <select id="selectPendingAdvertisementCnt"
+        resultType="int">
+
+        SELECT COUNT(*)
+        FROM advertisements
+        WHERE delete_yn = 'N'
+          AND status = 'PENDING'
+
+    </select>
+
+    <!-- CLOSED 광고 수 -->
+    <select id="selectClosedAdvertisementCnt"
+        resultType="int">
+
+        SELECT COUNT(*)
+        FROM advertisements
+        WHERE delete_yn = 'N'
+          AND status = 'CLOSED'
+
+    </select>
+
+</mapper>
