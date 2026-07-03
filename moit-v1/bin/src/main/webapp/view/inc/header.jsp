@@ -11,6 +11,12 @@
     <!-- Latest compiled JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <link href="./css/board.css" rel="stylesheet">
+    <style>
+        html::-webkit-scrollbar, 
+        body::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <!--  header  -->
@@ -51,7 +57,7 @@
                     <li class="nav-item">
                       <form  action="${pageContext.request.contextPath}/users/logout"   method="post">
                       	<input type="hidden"   name="${_csrf.parameterName}"    value="${_csrf.token}"/>
-                      	<input type="submit"  value="로그아웃"   class="btn btn-danger"/>
+                      	<input type="submit"  value="로그아웃1"   class="btn btn-danger"/>
                       </form>
                     </li>
                 </sec:authorize>
