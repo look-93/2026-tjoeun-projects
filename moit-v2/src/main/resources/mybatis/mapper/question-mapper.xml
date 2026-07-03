@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moit.meetup.dao.QuestionMapper">
+
+	<!-- 관리자측 페이징 -->
+	<select id="findAll" resultType="QuestionDto"
+		parameterType="java.util.HashMap">
+		SELECT * FROM questions WHERE delete_yn = 'N' ORDER BY question_id DESC limit #{start} , #{end}
+	</select>
+
+	<!-- 전체 문의 수 -->
+	<select id="findAllCnt" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    WHERE delete_yn = 'N'
+	</select>
+	
+	<!-- 내 문의 총 개수 -->
+	<select id="findMyQuestionCnt" parameterType="int" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    WHERE member_id = #{memberId}
+	      AND delete_yn = 'N'
+	</select>
+
+	<!-- 답변 대기 문의 수 -->
+	<select id="findPendingCnt" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    WHERE status = 'PENDING'
+	      AND delete_yn = 'N'
+	</select>
+	
+	<!-- 답변 완료 문의 수 -->
+	<select id="findAnsweredCnt" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    WHERE status = 'ANSWERED'
+	      AND delete_yn = 'N'
+	</select>
+	
+	<!-- 오늘 등록된 문의 수 -->
+	<select id="findTodayCnt" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    WHERE DATE(created_at) = CURDATE()
+	      AND delete_yn = 'N'
+	</select>
+
+	<!-- 상세보기 -->
+	<select id="findById" resultType="QuestionDto">
+		SELECT * FROM questions WHERE question_id = #{questionId} AND delete_yn = 'N'
+	</select>
+
+	<!-- 제목, 내용, 등록일 검색 -->
+	<select id="findBySearch" resultType="QuestionDto">
+		SELECT
+		question_id, parent_id, member_id, category, title, content, status,
+		is_public, delete_yn, created_at, updated_at
+		FROM questions
+		<where>
+			delete_yn = 'N'
+			<if test="title != null and title != ''">
+				AND title LIKE CONCAT('%', #{title}, '%')
+			</if>
+			<if test="content != null and content != ''">
+				AND content LIKE CONCAT('%', #{content}, '%')
+			</if>
+			<if test="createdAt != null">
+				AND DATE(created_at) = DATE(#{createdAt}) 
+			</if>
+		</where>
+		ORDER BY created_at DESC
+	</select>
+
+	<!-- 문의글 작성 -->
+	<insert id="insertQuestion"
+        parameterType="QuestionDto"
+        useGeneratedKeys="true"
+        keyProperty="questionId"
+        keyColumn="question_id">
+
+    INSERT INTO questions
+    (parent_id, member_id, category, title, content,
+     is_public, delete_yn)
+    VALUES
+    (#{parentId}, #{memberId}, #{category},
+     #{title}, #{content},
+     #{isPublic}, #{deleteYn})
+	</insert>
+
+	<!-- 답변 달리면 상태 변경 -->
+	<update id="updateStatusAnswered">
+		UPDATE questions
+		SET status = 'ANSWERED'
+		WHERE question_id = #{questionId}
+	</update>
+
+	<!-- 문의 수정 -->
+	<update id="updateQuestion">
+		UPDATE questions
+		SET
+		title = #{title},
+		content = #{content},
+		is_public = #{isPublic}
+		WHERE question_id = #{questionId}
+	</update>
+
+	<!-- 문의 삭제 (논리삭제) -->
+	<update id="deleteQuestion">
+		UPDATE questions
+		SET delete_yn = 'Y'
+		WHERE question_id = #{questionId}
+	</update>
+	
+	<!-- 사용자측 페이징 -->
+	<select id="findMyQuestions" resultType="QuestionDto" parameterType="int">
+		SELECT * from questions
+		WHERE member_id = #{memberId}
+		  AND delete_yn = 'N'
+		ORDER BY question_id DESC
+		LIMIT #{start}, #{end}
+	</select>
+	
+	<!--  -->
+	<update id="updateStatusPending">
+	    UPDATE questions
+	    SET status = 'PENDING'
+	    WHERE question_id = #{questionId}
+	</update>
+	
+	<!--  -->
+	<select id="selectByParentId" parameterType="int" resultType="QuestionDto">
+	    SELECT *
+	    FROM questions
+	    WHERE parent_id = #{parentId}
+	      AND category = 'MEETUP'
+	      AND delete_yn = 'N'
+	      AND is_public = 'Y'
+	    ORDER BY question_id DESC
+	</select>
+</mapper>
+
