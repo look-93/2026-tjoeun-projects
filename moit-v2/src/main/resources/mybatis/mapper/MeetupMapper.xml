@@ -3,7 +3,8 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.moit.meetup.dao.MeetupMapper">
-	<!-- findAllMeetupBy 단건조회  -->
+
+	<!-- meetup 단건조회 - 관리자/사용자  -->
 	<select id="findAllMeetupBy" parameterType="MeetupSearchDto" resultType="MeetupDto">
 		SELECT A.*,
 			   C.total_participants, <!-- 총 참가자 수 -->
@@ -18,15 +19,15 @@
 				   AND delete_yn = 'N'
 				   GROUP BY meetup_id
 				  ) C ON C.meetup_id = A.meetup_id
-		WHERE A.delete_yn = 'N' ;
+		WHERE A.delete_yn = 'N'
 		<if test="status != null and status != ''">
 			AND A.status = #{status}
 		</if>
-		<if test="searchType == 'title' and searchText != ''">
-			AND A.title LIKE CONCAT('%', #{searchText}, '%')
+		<if test="searchType == 'title' and searchText != null and searchText != ''">
+			AND A.title LIKE '%' || #{searchText} || '%'
 		</if>
-		<if test="searchType == 'name' and searchText != ''">
-			AND B.nickname LIKE CONCAT('%', #{searchText}, '%')
+		<if test="searchType == 'name' and searchText != null and searchText != ''">
+			AND B.nickname LIKE'%'|| #{searchText} || '%'
 		</if>
 		ORDER BY A.created_at DESC
 		OFFSET #{start} ROWS FETCH NEXT #{end} ROWS ONLY
@@ -43,18 +44,23 @@
 				   AND delete_yn = 'N'
 				   GROUP BY meetup_id
 				  ) C ON C.meetup_id = A.meetup_id
-		WHERE A.delete_yn = 'N' ;
+		WHERE A.delete_yn = 'N'
 		<if test="status != null and status != ''">
 			AND A.status = #{status}
 		</if>
-		<if test="searchType == 'title' and searchText != ''">
-			AND A.title LIKE CONCAT('%', #{searchText}, '%')
+		<if test="searchType == 'title' and searchText != null and searchText != ''">
+			AND A.title LIKE '%' || #{searchText} || '%'
 		</if>
-		<if test="searchType == 'name' and searchText != ''">
-			AND B.nickname LIKE CONCAT('%', #{searchText}, '%')
+		<if test="searchType == 'name' and searchText != null and searchText != ''">
+			AND B.nickname LIKE'%'|| #{searchText} || '%'
 		</if>
-		ORDER BY A.created_at DESC
-		OFFSET #{start} ROWS FETCH NEXT #{end} ROWS ONLY
 	</select> 	
+	
+	<!-- 논리삭제 -->
+	<update id="updateMeetupDeleteYn" parameterType="int">
+		UPDATE meetups
+		SET delete_yn = "Y"
+		WHERE meetup_id = #{meetup_id}	
+	</update>	
 
 </mapper>

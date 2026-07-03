@@ -13,15 +13,28 @@ import com.moit.meetup.dto.MeetupSearchDto;
 public class AdminMeetupServiceImpl implements AdminMeetupService{
 	@Autowired MeetupMapper meetupMapper;
 
+	//관리자 - 목록 조회 + paging
 	@Override
 	public List<MeetupDto> findAllMeetupBy(int pstartno, MeetupSearchDto meetupSearchDto) {
-		meetupSearchDto.setEnd(10);
+		int pageSize = 10;
+		meetupSearchDto.setEnd(pageSize);
 		meetupSearchDto.setStart((pstartno-1)*10);		
-		return meetupMapper.findAllMeetupBy(meetupSearchDto);
+//		List<MeetupDto> list =
+//		System.out.println("_dddddddddddddddddddddddddddddddddd"+list);
+		return  meetupMapper.findAllMeetupBy(meetupSearchDto);
 	}
+	@Override
 	public int findAllMeetupCountBy(MeetupSearchDto meetupSearchDto) {
 		return meetupMapper.findAllMeetupCountBy(meetupSearchDto);
 	}
+	
+	//관리자 - 모임 리스트 삭제
+	@Override
+	public int updateMeetupDeleteYn(int meetupId) {
+		return meetupMapper.updateMeetupDeleteYn(meetupId);
+	}
+	
+	
 	
 	
 }

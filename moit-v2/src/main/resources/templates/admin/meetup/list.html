@@ -11,14 +11,6 @@
 		<!-- 각자파트 -->
 		<div class="row mb-4">
 
-			<!-- 상단 -->
-			<div
-				class="topbar d-flex justify-content-between align-items-center">
-				<h3>모집관리</h3>
-
-				<div>관리자님</div>
-			</div>
-
 			<!-- 통계 -->
 			<div class="row mb-4">
 
@@ -67,7 +59,7 @@
 					<div class="row">
 
 						<div class="col-md-4">
-							<input type="text" name="searchText" class="form-control" placeholder="모집명 검색">
+							<input type="text" id="searchText" name="searchText" class="form-control" placeholder="모집명 검색">
 						</div>
 
 						<div class="col-md-2">
@@ -121,71 +113,146 @@
 						</tr>
 					</thead>
 					
-					<tbody id="searchList">
+					<tbody id="meetupList"></tbody>
+
+				</table>		
 						
-						<!-- <c:forEach var="searchList" items="${searchList}" varStatus="status">
-							<tr>
-								<td>${paging.listtotal - paging.pstartno - status.index}</td>
-								<td>${serchList.nickname}</td> 모집자명으로 수정!
-								<td>${serchList.title}</td>
-								<td>${serchList.meetupAt}</td>
-								<td>${serchList.minParticipants }</td>
-								<td>${serchList.maxParticipants  }</td>
-								<td>${serchList.totalParticipants }</td>									
-								<td>
-									<form action="${pageContext.request.contextPath}/meetup/admin/delete.do?meetupId=${serchList.meetupId}" method="post">
-										<input  type="hidden" name="${_csrf.parameterName}"  value="${_csrf.token}" /> 보안
-										<button class="btn btn-danger btn-sm">삭제</button>
-									</form>
-								</td>
-							</tr>
-
-
-						</c:forEach> -->
-
-					</tbody>
-
-				</table>
-				
-				<ul class="pagination justify-content-center" id="pagingArea">
-					<!-- 이전 -->
-					<!-- <c:if test="${paging.start > paging.bottomlist}">
-						<li class="page-item"><a class="page-link" href="?pstartno= ${paging.start-1}"> < </a>
-						</li>
-					</c:if>
-
-					1,2,3,4,5,6
-					<c:forEach var="i" begin="${paging.start}" end="${paging.end}">
-						<li class="page-item <c:if test="${i==paging.current}"> active </c:if>">
-							<a href="?pstartno=${i}" class="page-link">${i}</a>
-						</li>
-					</c:forEach>
-
-					다음
-					<c:if test="${paging.pagetotal > paging.end}">
-						<li class="page-item"><a class="page-link" href="?pstartno= ${paging.end+1}"> > </a>
-						</li>
-					</c:if> -->
-				</ul>					
+				<ul class="pagination justify-content-center" id="pagingArea"></ul>					
 
 			</div>
 		
 		</div>
 		<!-- 각자파트 -->	
-	</div>
-<script>
- 	// 페이지가열리면 처음조회
-	window.addEventListener("load",function(){
+<script th:inline="javascript" >
+ 	// 페이지가가 처음 로드될 때 실행
+	window.addEventListener("DOMContentLoaded",function(){
 		loadMeetup(1);
 		
-		document.getElemntById("searchForm").addEventListener("submit", function(e){
-		 e.preventfault(); // form submit
-		 loadMeetup(1); // 검색하면 1페이지부터 조회
+		document.getElementById("searchForm").addEventListener("submit", function(e){
+		 e.preventDefault(); // form submit
+		 loadMeetup(1); // 처음 접속 시 첫 페이지 로드
 		});
 	});
  	
+ 	// json으로 페이지 값 가져오기
+ 	function loadMeetup(page){
+ 		const params = {
+ 			searchText: document.getElementById("searchText").value, 	// 검색어
+ 			status: document.getElementById("status").value,			// 검색조건 - 모집중, 모집마감, 취소
+ 			searchType: document.getElementById("searchType").value,	// 검색타입 - 작성자이름, 모집명
+ 			pstartno: page
+ 		};
+ 		
+ 		const queryString = new URLSearchParams(params).toString();
+ 		
+ 		fetch("/admin/meetup/list/data?" + queryString, {
+ 		    method: "GET"
+ 		})
+ 		.then(res=>{
+ 		    // 서버가 200 OK가 아닌 404, 500 등을 뱉었는지 확인
+ 		    if (!res.ok) {
+ 		        throw new Error(`서버 응답 에러! 상태코드: ${res.status}`);
+ 		    }
+ 		    return res.json();
+ 		})
+ 		.then(data=>{
+ 			/* console.log("백엔드에서 받은 실제 데이터:", data); // 전체 데이터 구조 먼저 확인 */
+ 		    if (data.searchList) {
+ 		        makeTable(data.searchList, data.paging);
+ 		        makePaging(data.paging);
+ 		    } else {
+ 		        console.warn("searchList 데이터가 비어있습니다:", data);
+ 		    }
+ 		})
+ 		.catch(error =>{
+ 			console.error("데이터 로드 중 에러 발생", error);
+ 		})
+ 	}
+ 	
+ 	// 테이블생성
+ 	function makeTable(list, paging){
+ 		let html="";
+ 		
+ 		list.forEach((meetup, index)=>{
+ 			let rowNum = paging.listtotal - ((paging.current - 1) * paging.onepagelist) - index;
+ 			html+=`
+ 			<tr>
+ 				<td>${rowNum}</td>
+				<td>${meetup.nickname}</td>
+				<td>${meetup.title}</td>
+				<td>${meetup.meetupAt}</td>
+				<td>${meetup.minParticipants}</td>
+				<td>${meetup.maxParticipants}</td>
+				<td>${meetup.totalParticipants}</td>						
+				<td> <button class="btn btn-danger btn-sm" onclick="deleteMeetup(${meetup.meetupId})">삭제</button> </td>
+			</tr>
+ 			`;
+ 		});
+ 		document.getElementById("meetupList").innerHTML=html;
+ 	}
+ 	
+ 	function makePaging(paging){
+ 		let html = "";
+ 		
+ 		if(paging.start > paging.bottomlist){
+ 			html += `
+			<li class="page-item">
+ 				<a class="page-link" href="#" onclick="loadMeetup(${paging.start-1}); return false;"> < </a>
+ 			</li> 			
+ 			`;
+ 		}
+ 		
+ 		for(let i=paging.start; i<=paging.end;i++){
+ 			
+ 			let activeClass = (i == paging.current) ? "active" : "";
+ 			
+ 			html +=`
+			<li class="page-item ${activeClass}">
+				<a href="#" class="page-link" onclick="loadMeetup(${i}); return false;">${i}</a>
+			</li>			
+ 			`;
+ 		}
+ 		
+ 	    if(paging.pagetotal>paging.end){
+
+ 	        html+=`
+ 	        <li class="page-item">
+ 	            <a class="page-link"
+ 	                href="#"
+ 	                onclick="loadMeetup(${paging.end+1});return false;">
+ 	                >
+ 	            </a>
+ 	        </li>
+ 	        `;
+ 	    }
+
+ 	    document.getElementById("pagingArea").innerHTML=html; 		
+ 	}
+ 	
+ 	function deleteMeetup(meetupId){
+/*  		const token = document.querySelector("meta[name='_csrf']").content;
+ 		const header = document.querySelector("meta[name='_csrf_header']").content; */
+ 		
+ 		fetch("/admin/meetup/delete",{
+ 			method:"POST",
+ 			headers:{
+ 				"Content-Type" : "application/json"
+/*  				,[header]: token */
+ 			},
+ 			body:JSON.stringify({meetupId: meetupId})
+ 		})
+ 		.then(res => res.json())
+ 		.then(data => {
+ 			alert(data.message);
+ 		})
+ 		.catch(error=>{
+ 			console.error("데이터 로드 중 에러 발생", error);
+ 		});
+ 	}
 
 
-</script>
+</script>		
+	</div>
+
 </body>
 </html>
