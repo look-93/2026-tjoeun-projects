@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.moit.advertisement.dao.AdvertisementMapper;
 import com.moit.advertisement.dto.AdvertisementDto;
+import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 
 import lombok.RequiredArgsConstructor;
@@ -42,13 +43,13 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
 	// 승인 목록
 	@Override
-	public List<AdvertisementDto> searchApprovalList(AdvertisementSearchDto dto) {
+	public List<AdvertisementDto> searchWaitingList(AdvertisementSearchDto dto) {
 	    return advertisementMapper.searchApprovalList(dto);
 	}
 
 	// 승인 목록 개수
 	@Override
-	public int selectApprovalAdvertisementTotalCnt(AdvertisementSearchDto dto) {
+	public int selectWaitingTotalCnt(AdvertisementSearchDto dto) {
 	    return advertisementMapper.selectApprovalAdvertisementTotalCnt(dto);
 	}
 
@@ -86,6 +87,24 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     @Override
     public int updateAdvertisementStatus(AdvertisementDto dto) {
         return advertisementMapper.updateAdvertisementStatus(dto);
+    }
+    
+    // 이미지 등록
+    @Override
+    public int insertAdvertisementImage(AdvertisementImageDto dto) {
+        return advertisementMapper.insertAdvertisementImage(dto);
+    }
+
+    // 이미지 목록
+    @Override
+    public List<AdvertisementImageDto> selectAdvertisementImageList(int adId) {
+        return advertisementMapper.selectAdvertisementImageList(adId);
+    }
+
+    // 이미지 삭제
+    @Override
+    public int deleteAdvertisementImage(int adId) {
+        return advertisementMapper.deleteAdvertisementImage(adId);
     }
 
     // 노출 수 증가

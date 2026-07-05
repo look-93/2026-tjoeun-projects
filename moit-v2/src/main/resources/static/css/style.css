@@ -1755,3 +1755,105 @@ footer {
 .meetup-detail-back-link:active {
     transform: scale(0.97);
 }
+
+
+/* ========== Advertisement Write ========== */
+/* ========== 광고 등록 ========== */
+.ad-write-container {
+    max-width: 1000px;
+    margin: 40px auto;
+}
+
+.ad-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+
+.ad-section-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f2f2f2;
+}
+
+.image-upload-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.image-item {
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fafafa;
+}
+
+.image-item h5 {
+    margin-bottom: 12px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.preview-box {
+    width: 100%;
+    height: 180px;
+    border: 2px dashed #ddd;
+    border-radius: 10px;
+    background: #fff;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.preview-box img {
+    max-width: 100%;
+    max-height: 100%;
+    display: none;
+}
+
+.required::after {
+    content: " *";
+    color: red;
+}
+
+.form-bottom {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.image-help {
+    font-size: 13px;
+    color: #777;
+    margin-top: 5px;
+}
+
+.ad-period {
+    display: flex;
+    gap: 20px;
+}
+
+.ad-period > div {
+    flex: 1;
+}
+
+@media (max-width:768px){
+
+    .image-upload-grid{
+        grid-template-columns:1fr;
+    }
+
+    .ad-period{
+        flex-direction:column;
+    }
+
+}
