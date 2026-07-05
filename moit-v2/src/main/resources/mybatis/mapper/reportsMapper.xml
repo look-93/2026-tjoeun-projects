@@ -2,21 +2,21 @@
 <!DOCTYPE mapper
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.moit.dao.ReportsMapper">
+<mapper namespace="com.moit.reports.dao.ReportsMapper">
 
 
 	<!-- ===== user ===== -->
 	<!-- ===== user ===== -->
 	<!-- 신고 작성  /     서비스에서  - target_type  (MEETUP , REVIEW )   -->
 	<insert id="insertUserReport" parameterType="ReportsDto">
-		insert into reports (target_type, target_id, member_id, reason_code, reason_detail)
-		values ( #{targetType}, #{targetId}, #{memberId}, #{reasonCode}, #{reasonDetail} )
+		insert into reports (report_id, target_type, target_id, member_id, reason_code, reason_detail)
+		values ( reports_seq.nextval, #{targetType}, #{targetId}, #{memberId}, #{reasonCode}, #{reasonDetail} )
 	</insert>
   
 	<!-- 사용자 본인이 작성한 신고 내역 수정 -->
 	<update id="updateUserReport" parameterType="ReportsDto">
 		update reports
-		set reason_code = #{reasonCode}, reason_detail = #{reasonDetail}
+		set reason_code = #{reasonCode}, reason_detail = #{reasonDetail}, updated_at = sysdate
 		where report_id = #{reportId} and member_id = #{memberId} and delete_yn = 'N' and status = 'PENDING'
 	</update>
 
@@ -33,7 +33,7 @@
 		from reports
 		where member_id = #{memberId} and delete_yn = 'N'
 		order by report_id desc
-		limit #{start}, #{end}
+		offset #{start} rows fetch next #{end} rows only
 	</select>
 	<select id="selectUserCnt" resultType="int">
 		select count(*) from reports 
@@ -42,10 +42,11 @@
 
 	<!-- 사용자 본인이 작성한 신고 내역 상세 조회 -->
 	<select id="selectUserReportDetail" resultType="ReportsDto" parameterType="ReportsDto">
-		select report_id, target_type, target_id, member_id, reason_code, reason_detail, status, created_at
+		select report_id, target_type, target_id, member_id, reason_code, reason_detail, status, created_at, updated_at
 		from reports
 		where report_id = #{reportId} and member_id = #{memberId} and delete_yn = 'N'
 	</select>
+	
 
 	
 	<!-- ===== admin ===== -->
@@ -103,7 +104,7 @@
 	        
 	    order by report_id desc
 	    <if test="start != null and end != null">
-	        limit #{start}, #{end}
+	        offset #{start} rows fetch next #{end} rows only
 	    </if>
 	</select>
 

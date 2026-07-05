@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,8 +22,13 @@ import com.moit.util.UtilPaging;
 public class ReportController { // test lcy
 	@Autowired ReportsService service;
 	
+	@RequestMapping("/user/meetup/report/button")
+    public String reportButton() {
+        return "user/meetup/report/button";
+    }
+	
 	// 내 신고내역 화면 mylist
-	@RequestMapping("/report/user/mylist.do")
+	@RequestMapping("/user/meetup/report/mylist")
 	public String reportMylist( @RequestParam(value="pstartno", defaultValue="1") int pstartno,
 								Model model,
 								Principal principal) {
@@ -38,12 +44,12 @@ public class ReportController { // test lcy
 		model.addAttribute("paging", new UtilPaging( service.selectUserCnt(memberId), pstartno ));
 		model.addAttribute("list", service.selectUserReport(pstartno, memberId));
 		model.addAttribute("menu", "myReport");
-		return "report/user/mylist";
+		return "user/meetup/report/mylist";
 	}
 	
 	
 	// br등록
-	@RequestMapping("/report/user/myPageMyReportList.do")
+	@RequestMapping("/user/meetup/report/myPageMyReportList")
 	public String myPageMyReport( @RequestParam(value="pstartno", defaultValue="1") int pstartno,
 								Model model,
 								Authentication authentication) {
@@ -53,10 +59,10 @@ public class ReportController { // test lcy
 		model.addAttribute("paging", new UtilPaging( service.selectUserCnt(memberId), pstartno ));
 		model.addAttribute("list", service.selectUserReport(pstartno, memberId));
 		model.addAttribute("menu", "myReport");
-		return "report/user/myPageMyReportList";
+		return "user/meetup/report/myPageMyReportList";
 	}
 	// 신고 작성 화면 write
-	@RequestMapping( value="/report/user/write.do", method = RequestMethod.GET  )
+	@RequestMapping( value="/user/meetup/report/write", method = RequestMethod.GET  )
 	public String reportWrite(	@RequestParam("targetType") String targetType,
 								@RequestParam("targetId") int targetId,
 								Model model) {
@@ -67,10 +73,10 @@ public class ReportController { // test lcy
 		
 		model.addAttribute("dto", dto);
 		
-		return "report/user/write";
+		return "user/meetup/report/write";
 	}
 	// 신고 작성 기능
-	@RequestMapping( value="/report/user/write.do", method = RequestMethod.POST  )
+	@RequestMapping( value="/user/meetup/report/write", method = RequestMethod.POST  )
 	public String reportWrite_post(ReportsDto dto, RedirectAttributes rttr) {
 		
 		dto.setMemberId(1); // 로그인 회원 번호 test
@@ -88,15 +94,15 @@ public class ReportController { // test lcy
 			result = "신고등록 완료";
 			rttr.addFlashAttribute("result", result);
 			
-			return "redirect:/report/user/mylist.do";
+			return "redirect:/user/meetup/report/mylist";
 		}
 		
 		rttr.addFlashAttribute("result", result);
-		return "redirect:/report/user/write.do?targetType=" + dto.getTargetType() + "&targetId=" + dto.getTargetId();
+		return "redirect:/user/meetup/report/write?targetType=" + dto.getTargetType() + "&targetId=" + dto.getTargetId();
 	}
 	
 	// 내 신고 상세 화면 detail
-	@RequestMapping("/report/user/detail.do")
+	@RequestMapping("/user/meetup/report/detail")
 	public String reportDetail( int reportId, Model model) {
 		
 		ReportsDto dto = new ReportsDto();
@@ -105,11 +111,11 @@ public class ReportController { // test lcy
 		
 		model.addAttribute("dto", service.selectUserReportDetail(dto));
 		
-		return "report/user/detail";
+		return "user/meetup/report/detail";
 	}
 	
 	// 신고 수정 화면 update
-	@RequestMapping( value="/report/user/update.do", method = RequestMethod.GET  )
+	@RequestMapping( value="/user/meetup/report/update", method = RequestMethod.GET  )
 	public String reportUpdate(int reportId, Model model) {
 
 		ReportsDto dto = new ReportsDto();
@@ -117,12 +123,14 @@ public class ReportController { // test lcy
 		dto.setMemberId(1);
 		
 		model.addAttribute("dto", service.selectUserReportDetail(dto));
-		return "report/user/update";
+		return "user/meetup/report/update";
 	}
 	
 	// 신고 수정 처리
-	@RequestMapping( value="/report/user/update.do", method = RequestMethod.POST )
+	@RequestMapping( value="/user/meetup/report/update", method = RequestMethod.POST )
 	public String reportUpdate_post(ReportsDto dto, RedirectAttributes rttr) {
+		
+		dto.setMemberId(1);
 		
 		String result="신고수정 실패";
 		
@@ -131,11 +139,11 @@ public class ReportController { // test lcy
 		}
 
 		rttr.addFlashAttribute("result", result);
-		return "redirect:/report/user/detail.do?reportId=" + dto.getReportId();
+		return "redirect:/user/meetup/report/detail?reportId=" + dto.getReportId();
 	}
 	
 	// 신고 삭제 처리 delete
-	@RequestMapping( value="/report/user/delete.do", method=RequestMethod.POST )
+	@RequestMapping( value="/user/meetup/report/delete", method=RequestMethod.POST )
 	public String reportDelete_post(ReportsDto dto, RedirectAttributes rttr) {
 		
 		dto.setMemberId(1); 
@@ -147,12 +155,12 @@ public class ReportController { // test lcy
 		}
 		
 		rttr.addFlashAttribute("result", result);
-		return "redirect:/report/user/mylist.do";
+		return "redirect:/user/meetup/report/mylist";
 	}
 	
 	
 	// 관리자 리스트 목록
-	@RequestMapping("/report/admin/adminList.do")
+	@RequestMapping("/admin/report/adminList")
 	public String adminList(@RequestParam(value="pstartno", defaultValue="1") int pstartno,
 							@RequestParam(value="targetType", required=false) String targetType,
 							@RequestParam(value="status", required=false) String status,
@@ -171,12 +179,16 @@ public class ReportController { // test lcy
 		model.addAttribute("menu", "report");
 		model.addAttribute("paging", new UtilPaging( service.selectAdminReportsCnt(map), pstartno));
 		model.addAttribute("list", service.selectAdminReports(map));
+		
+		model.addAttribute("targetType", targetType); // meetup, review
+		model.addAttribute("status", status); // pendding
+		model.addAttribute("deleteYn", deleteYn); // delete
 
-		return "report/admin/adminList";
+		return "admin/report/adminList";
 	}
 	
 	// 관리자 리스트 목록 상세보기
-	@RequestMapping("/report/admin/adminDetail.do")
+	@RequestMapping("/admin/report/adminDetail")
 	public String adminDetail(	@RequestParam("reportId") int reportId,
 								Model model) {
 		
@@ -185,29 +197,33 @@ public class ReportController { // test lcy
 //		model.addAttribute("dto", service.selectAdminReports(map));
 		
 		List<ReportsDto> list = service.selectAdminReports(map); // 조회 결과
-		if (list != null & !list.isEmpty()) {
+		if (list != null && !list.isEmpty()) {
 			model.addAttribute("dto", list.get(0));
 		}
 		
-		return "report/admin/adminDetail";
+		return "admin/report/adminDetail";
 	}
 	
 	// 관리자 APPROVED 수정
-	@RequestMapping( value="/report/admin/update.do", method=RequestMethod.POST )
+	@RequestMapping( value="/admin/report/update", method=RequestMethod.POST )
 	public String reportUpdateAdmin_post(ReportsDto dto, RedirectAttributes rttr) {
 		
-		String result="APPROVED 수정 실패";
+		String result="status 상태 수정 실패";
 		
 		if( service.updateAdmin(dto) > 0 ) {
-			result="APPROVED 수정 성공";
+			if( "APPROVED".equals(dto.getStatus()) ) {
+				result="APPROVED 수정 성공";
+			} else if ( "REJECTED".equals(dto.getStatus()) ) {
+				result="REJECTED 수정 성공";
+			}
 		}
 		
 		rttr.addFlashAttribute("result", result);
-		return "redirect:/report/admin/adminList.do";
+		return "redirect:/admin/report/adminList";
 	}
 	
 	// 관리자 신고 삭제
-	@RequestMapping( value="/report/admin/delete.do", method=RequestMethod.POST )
+	@RequestMapping( value="/admin/report/delete", method=RequestMethod.POST )
 	public String reportDeleteAdmin_post(	@RequestParam("reportId") int reportId,
 											ReportsDto dto, RedirectAttributes rttr) {
 		
@@ -218,7 +234,7 @@ public class ReportController { // test lcy
 		}
 		
 		rttr.addFlashAttribute("result", result);
-		return "redirect:/report/admin/adminList.do";
+		return "redirect:/admin/report/adminList";
 	}
 	
 }
