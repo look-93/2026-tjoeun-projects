@@ -17,28 +17,28 @@
 				<div class="col-md-3">
 					<div class="card-box">
 						<h6>전체 모집글</h6>
-						<div class="stat-number">25</div>
+						<div class="stat-number" id="totalMeetupCount">0</div>
 					</div>
 				</div>
 
 				<div class="col-md-3">
 					<div class="card-box">
 						<h6>모집중</h6>
-						<div class="stat-number">8</div>
+						<div class="stat-number" id="recruitingCount">0</div>
 					</div>
 				</div>
 
 				<div class="col-md-3">
 					<div class="card-box">
-						<h6>진행예정</h6>
-						<div class="stat-number">10</div>
+						<h6>모집마감</h6>
+						<div class="stat-number" id="closedCount">0</div>
 					</div>
 				</div>
 
 				<div class="col-md-3">
 					<div class="card-box">
-						<h6>모집종료</h6>
-						<div class="stat-number">7</div>
+						<h6>기상악화로 인한 취소</h6>
+						<div class="stat-number" id="weatherCanceledCount">0</div>
 					</div>
 				</div>
 
@@ -124,6 +124,13 @@
 		</div>
 		<!-- 각자파트 -->	
 <script th:inline="javascript" >
+	//csrf 토큰
+	const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+	const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+	
+	let currentPage = 1;
+
+
  	// 페이지가가 처음 로드될 때 실행
 	window.addEventListener("DOMContentLoaded",function(){
 		loadMeetup(1);
@@ -136,6 +143,7 @@
  	
  	// json으로 페이지 값 가져오기
  	function loadMeetup(page){
+ 		currentPage = page
  		const params = {
  			searchText: document.getElementById("searchText").value, 	// 검색어
  			status: document.getElementById("status").value,			// 검색조건 - 모집중, 모집마감, 취소
@@ -160,6 +168,8 @@
  		    if (data.searchList) {
  		        makeTable(data.searchList, data.paging);
  		        makePaging(data.paging);
+ 		        summaryData(data.summaryData);
+ 		       //console.log("summaryData:", data.summaryData);
  		    } else {
  		        console.warn("searchList 데이터가 비어있습니다:", data);
  		    }
@@ -169,7 +179,16 @@
  		})
  	}
  	
- 	// 테이블생성
+ 	// 관리자 페이지 상단 통계 데이터 생성 
+ 	function summaryData(data){
+ 		if(!data) return; 		
+ 		document.getElementById("totalMeetupCount").innerText = data.totalMeetupCount;
+ 		document.getElementById("recruitingCount").innerText = data.recruitingCount;
+ 		document.getElementById("closedCount").innerText = data.closedCount;
+ 		document.getElementById("weatherCanceledCount").innerText = data.weatherCanceledCount;
+ 	}
+ 	
+ 	// 리스트 목록 생성
  	function makeTable(list, paging){
  		let html="";
  		
@@ -229,25 +248,37 @@
  	    document.getElementById("pagingArea").innerHTML=html; 		
  	}
  	
+ 	// 삭제
  	function deleteMeetup(meetupId){
-/*  		const token = document.querySelector("meta[name='_csrf']").content;
- 		const header = document.querySelector("meta[name='_csrf_header']").content; */
+ 		const result = confirm('삭제하시겠습니까?');
+ 		if(result){
+ 			fetch("/admin/meetup/delete",{
+ 	 			method:"POST",
+ 	 			headers: getCsrfHeaders(),
+ 	 			body:JSON.stringify({meetupId: meetupId})
+ 	 		})
+ 	 		.then(res => {
+ 	 			if(!res.ok){
+ 	 				throw new Error(`서버 응답에러 :${res.status}`);
+ 	 			}	
+ 	 			return res.json();
+ 	 		})
+ 	 		.then(data => {
+ 	 			//삭제 후 페이징 처리
+ 	 			if(currentPage != null){
+ 	 				//console.log(currentPage + "1"); 
+ 	 				loadMeetup(currentPage);
+ 	 			}else{
+ 	 				//console.log(currentPage + "2"); 
+ 	 				loadMeetup(1);
+ 	 			} 	 			
+ 	 			//console.log(currentPage) 
+ 	 		})
+ 	 		.catch(error=>{
+ 	 			console.error("데이터 로드 중 에러 발생", error);
+ 	 		});
+ 		}
  		
- 		fetch("/admin/meetup/delete",{
- 			method:"POST",
- 			headers:{
- 				"Content-Type" : "application/json"
-/*  				,[header]: token */
- 			},
- 			body:JSON.stringify({meetupId: meetupId})
- 		})
- 		.then(res => res.json())
- 		.then(data => {
- 			alert(data.message);
- 		})
- 		.catch(error=>{
- 			console.error("데이터 로드 중 에러 발생", error);
- 		});
  	}
 
 

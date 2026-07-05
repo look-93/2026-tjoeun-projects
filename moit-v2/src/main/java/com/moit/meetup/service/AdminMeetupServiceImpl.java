@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.moit.meetup.dao.MeetupMapper;
+import com.moit.meetup.dto.AdminMeetupStatusSummaryDto;
 import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupSearchDto;
 
@@ -19,15 +20,18 @@ public class AdminMeetupServiceImpl implements AdminMeetupService{
 		int pageSize = 10;
 		meetupSearchDto.setEnd(pageSize);
 		meetupSearchDto.setStart((pstartno-1)*10);		
-//		List<MeetupDto> list =
-//		System.out.println("_dddddddddddddddddddddddddddddddddd"+list);
 		return  meetupMapper.findAllMeetupBy(meetupSearchDto);
 	}
 	@Override
 	public int findAllMeetupCountBy(MeetupSearchDto meetupSearchDto) {
 		return meetupMapper.findAllMeetupCountBy(meetupSearchDto);
 	}
-	
+
+	// 	//관리자 상단 통계
+	@Override
+	public AdminMeetupStatusSummaryDto findAdminMeetupStatusSummary() {
+		return meetupMapper.findAdminMeetupStatusSummary();
+	}
 	//관리자 - 모임 리스트 삭제
 	@Override
 	public int updateMeetupDeleteYn(int meetupId) {

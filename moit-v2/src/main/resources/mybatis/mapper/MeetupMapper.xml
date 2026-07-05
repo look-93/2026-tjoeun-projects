@@ -55,12 +55,20 @@
 			AND B.nickname LIKE'%'|| #{searchText} || '%'
 		</if>
 	</select> 	
-	
+
+	<!-- 관리자 통계 -->
+	<select id="findAdminMeetupStatusSummary" resultType="AdminMeetupStatusSummaryDto">
+		SELECT COUNT(*) AS total_meetup_count, <!-- 전체 모집글 -->
+			   COUNT(CASE WHEN status = 'RECRUITING' THEN 1 END) AS recruiting_count, <!-- 모집중 -->
+			   COUNT(CASE WHEN status = 'CLOSED' THEN 1 END) AS closed_count, <!-- 모집마감 -->
+			   COUNT(CASE WHEN status = 'WEATHER_CANCELED' THEN 1 END) AS weather_canceled_count <!-- 기상악화로 인한 취소 -->
+		FROM meetups A	
+	</select>
+
 	<!-- 논리삭제 -->
 	<update id="updateMeetupDeleteYn" parameterType="int">
 		UPDATE meetups
-		SET delete_yn = "Y"
-		WHERE meetup_id = #{meetup_id}	
-	</update>	
-
+		SET delete_yn = 'Y'
+		WHERE meetup_id = #{meetupId}	
+	</update>		
 </mapper>

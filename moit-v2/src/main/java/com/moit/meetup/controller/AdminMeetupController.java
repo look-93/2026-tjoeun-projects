@@ -45,11 +45,13 @@ public class AdminMeetupController {
 	    //System.out.println("count = " + adminMeetupService.findAllMeetupCountBy(meetupSearchDto));
 	    //System.out.println("list = " + adminMeetupService.findAllMeetupBy(pstartno, meetupSearchDto).size());
 		Map<String, Object> map = new HashMap<>();
-		map.put("menu", "meetup"); // 사이드바 메뉴 active 값
+		//map.put("menu", "meetup"); // 사이드바 메뉴 active 값
 		map.put("paging", new UtilPaging(adminMeetupService.findAllMeetupCountBy(meetupSearchDto), pstartno) );
 		map.put("searchList", adminMeetupService.findAllMeetupBy(pstartno, meetupSearchDto));
+		map.put("summaryData", adminMeetupService.findAdminMeetupStatusSummary());
 		return map;
 	}
+
 	
 	// 관리자 - 모임 리스트 삭제
 	@PostMapping("/delete")
@@ -59,7 +61,6 @@ public class AdminMeetupController {
 		int meetupId = meetup.get("meetupId");
 		int result = adminMeetupService.updateMeetupDeleteYn(meetupId);
 		map.put("result", result);
-		map.put("message", result > 0 ? "삭제 성공" : "삭제 실패");
 			
 		return map;		
 	}

@@ -7,14 +7,35 @@
 			<div class="logo">MOIT</div>
 			<div class="menu">	
 				<!-- 링크생기면 th:href -->
-				<a href="#"  class="active">회원관리</a> 
-				<a href="#">모임관리</a> 
+				<a href="#">회원관리</a> 
+				<a href="/admin/meetup/list"
+				   class="menu-link"
+				   data-path="/admin/meetup">
+				   모임관리
+				</a>
 				<a href="#">문의관리</a>
 				<a href="#">후기관리</a>
 				<a href="#">신고관리</a>				 
 				<a href="#">광고관리</a>
 			</div>
 		</div>
+		<script>
+	
+			document.addEventListener("DOMContentLoaded", function () {
+		
+			    const path = window.location.pathname;
+		
+			    document.querySelectorAll(".menu-link").forEach(a => {
+		
+			        const basePath = a.dataset.path;
+		
+			        if (path.startsWith(basePath)) {
+			            a.classList.add("active");
+			        }
+			    });
+			});
+		</script>
 	</th:block>
+
 </body>
 </html>
