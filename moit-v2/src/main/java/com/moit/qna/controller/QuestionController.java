@@ -1,20 +1,23 @@
-package com.moit.controller;
-
-import lombok.RequiredArgsConstructor;
+package com.moit.qna.controller;
 
 import java.util.List;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.moit.dto.AnswerDto;
-import com.moit.dto.QuestionDto;
-import com.moit.service.AnswerService;
-import com.moit.service.QuestionService;
+import com.moit.qna.dto.AnswerDto;
+import com.moit.qna.dto.QuestionDto;
+import com.moit.qna.service.AnswerService;
+import com.moit.qna.service.QuestionService;
+
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 
 /**
 문의 화면 요청 처리 Controller
@@ -50,14 +53,14 @@ public class QuestionController {
         model.addAttribute("answeredCnt", questionService.getAnsweredCnt());
         // 오늘 등록된 문의 수
         model.addAttribute("todayCnt", questionService.getTodayCnt());
-        return "qna/admin/answerList";
+        return "user/qna/answerList";
     }
 
     // 모임글 문의 등록
     @GetMapping("/write")
     public String write(QuestionDto dto) {
         //questionService.register(dto);
-        return "qna/admin/moquestion1";
+        return "user/qna/moquestion1";
     }
     
     // 모임글 문의 등록
@@ -73,7 +76,7 @@ public class QuestionController {
     @GetMapping("/adminWrite")
     public String adminWrite(QuestionDto dto) {
         //questionService.register(dto);
-        return "qna/admin/adquestion1";
+        return "user/qna/adquestion1";
     }
     
     // 관리자 문의 등록
@@ -89,14 +92,14 @@ public class QuestionController {
     @GetMapping("/{id}")
     public String detail(@PathVariable int id, Model model) {
         model.addAttribute("data", questionService.getDetail(id));
-        return "qna/admin/moquestion2";
+        return "user/qna/moquestion2";
     }
 
     // 문의 수정 화면 이동
     @GetMapping("/edit/{id}")
     public String editForm(@PathVariable int id, Model model) {
         model.addAttribute("data", questionService.getDetail(id));
-        return "qna/admin/moquestion3";
+        return "user/qna/moquestion3";
     }
 
     // 문의 수정 처리
@@ -125,7 +128,7 @@ public class QuestionController {
     @GetMapping("/answer/write/{id}")
     public String answerForm(@PathVariable int id, Model model) {
         model.addAttribute("data", questionService.getDetail(id));
-        return "qna/admin/moanswer1";
+        return "user/qna/moanswer1";
     }
     
     // 답변 수정 화면
@@ -133,7 +136,7 @@ public class QuestionController {
     public String answerEditForm(@PathVariable int questionId, Model model) {
     	 model.addAttribute("data", questionService.getDetail(questionId));
     	 model.addAttribute("answer", answerService.getAnswer(questionId));
-        return "qna/admin/moanswer2";
+        return "user/qna/moanswer2";
     }
 
     // 답변 수정 처리
@@ -174,6 +177,6 @@ public class QuestionController {
         model.addAttribute("page", page);
         model.addAttribute("totalPage", totalPage);
 
-        return "qna/admin/moquestion2";
+        return "user/qna/moquestion2";
     }
 }

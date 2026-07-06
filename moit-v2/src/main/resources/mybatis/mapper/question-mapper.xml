@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.moit.meetup.dao.QuestionMapper">
+<mapper namespace="com.moit.qna.dao.QuestionMapper">
 
 	<!-- 관리자측 페이징 -->
 	<select id="findAll" resultType="QuestionDto"
-		parameterType="java.util.HashMap">
-		SELECT * FROM questions WHERE delete_yn = 'N' ORDER BY question_id DESC limit #{start} , #{end}
+		parameterType="map">
+		SELECT * FROM questions WHERE delete_yn = 'N' ORDER BY question_id DESC OFFSET #{start} ROWS FETCH NEXT #{end} ROWS ONLY
 	</select>
 
 	<!-- 전체 문의 수 -->
@@ -43,7 +43,7 @@
 	<select id="findTodayCnt" resultType="int">
 	    SELECT COUNT(*)
 	    FROM questions
-	    WHERE DATE(created_at) = CURDATE()
+	    WHERE TRUNC(created_at) = TRUNC(SYSDATE)
 	      AND delete_yn = 'N'
 	</select>
 
@@ -61,13 +61,13 @@
 		<where>
 			delete_yn = 'N'
 			<if test="title != null and title != ''">
-				AND title LIKE CONCAT('%', #{title}, '%')
+				AND title LIKE '%' || #{title} || '%'
 			</if>
 			<if test="content != null and content != ''">
-				AND content LIKE CONCAT('%', #{content}, '%')
+				AND content LIKE '%' || #{content} || '%'
 			</if>
 			<if test="createdAt != null">
-				AND DATE(created_at) = DATE(#{createdAt}) 
+				AND TRUNC(created_at) = TRUNC(#{createdAt})
 			</if>
 		</where>
 		ORDER BY created_at DESC
@@ -114,22 +114,23 @@
 	</update>
 	
 	<!-- 사용자측 페이징 -->
-	<select id="findMyQuestions" resultType="QuestionDto" parameterType="int">
+	<select id="findMyQuestions" resultType="QuestionDto" parameterType="map">
 		SELECT * from questions
 		WHERE member_id = #{memberId}
 		  AND delete_yn = 'N'
 		ORDER BY question_id DESC
-		LIMIT #{start}, #{end}
+		OFFSET #{start} ROWS
+		FETCH NEXT #{end} ROWS ONLY
 	</select>
 	
-	<!--  -->
+	<!-- 답변 삭제 시 문의 상태를 답변 대기로 변경 -->
 	<update id="updateStatusPending">
 	    UPDATE questions
 	    SET status = 'PENDING'
 	    WHERE question_id = #{questionId}
 	</update>
 	
-	<!--  -->
+	<!-- 모임(parentId)의 공개 문의 목록 조회 -->
 	<select id="selectByParentId" parameterType="int" resultType="QuestionDto">
 	    SELECT *
 	    FROM questions
