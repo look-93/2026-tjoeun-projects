@@ -3,7 +3,185 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.moit.meetup.dao.MeetupMapper">
-  <select id="readTime" resultType="string">
-     select sysdate from dual
-  </select>
+
+	<!-- meetup 단건조회 - 관리자/사용자  -->
+	<select id="findAllMeetupBy" parameterType="MeetupSearchDto" resultType="MeetupDto">
+		SELECT A.*,
+			   C.total_participants, <!-- 총 참가자 수 -->
+			   B.nickname,
+			   
+			   CASE 
+			   	WHEN A.status = 'RECRUITING' THEN '모집중'
+			   	WHEN A.status = 'CLOSED' THEN '모집마감'
+			   END AS status_name,
+			   D.name AS sigungu_name,
+			   E.name AS sido_name,
+			   TO_CHAR(A.meetup_at, 'YYYY.MM.DD') AS formatted_meetup_at,
+			   F.category_name,
+			   <!-- 좋아요 수 추가-->
+			   CASE
+				WHEN H.member_id IS NULL THEN 0
+				ELSE 1
+			   END AS has_like,
+		   	   I.like_cnt
+		FROM meetups A
+		LEFT JOIN members B ON B.member_id = A.member_id
+		LEFT JOIN (SELECT meetup_id,
+		                  COUNT(*) AS total_participants
+				   FROM meetup_applications
+				   WHERE 1=1
+				   AND status ='APPROVED'
+				   AND delete_yn = 'N'
+				   GROUP BY meetup_id
+				  ) C ON C.meetup_id = A.meetup_id
+				  
+		LEFT JOIN sigungus 	 D ON D.sigungu_id = A.sigungu_id
+		LEFT JOIN sidos 	 E ON E.sido_id = D.sido_id 
+		LEFT JOIN categories F ON F.category_id = A.category_id
+		LEFT JOIN categories G ON G.category_id = F.parent_id
+		LEFT JOIN meetup_likes H ON H.meetup_id = A.meetup_id AND H.member_id = A.meetup_id				  
+		LEFT OUTER JOIN (SELECT COUNT(meetup_id) as like_cnt, 
+	  						  	meetup_id 
+	  				     FROM meetup_likes 
+	  				    GROUP BY meetup_id
+	  				  ) I ON I.meetup_id = A.meetup_id		  
+		WHERE A.delete_yn = 'N'
+		  AND A.status IN ( 'RECRUITING', 'CLOSED')
+		<if test="status != null and status != ''">
+			AND A.status = #{status}
+		</if>
+		<if test="searchType == 'title' and adminSearchText != null and adminSearchText != ''">
+			AND A.title LIKE '%' || #{adminSearchText} || '%'
+		</if>
+		<if test="searchType == 'name' and adminSearchText != null and adminSearchText != ''">
+			AND B.nickname LIKE'%' || #{adminSearchText} || '%'
+		</if>
+		<if test="searchText != null and searchText != ''">
+		      AND A.title LIKE '%' || #{searchText} || '%'
+		</if>		
+		
+		<if test="sidoId != null and sidoId != 0">
+		        AND E.sido_id = #{sidoId}
+		</if>  
+		
+		<if test="categoryId != null and categoryId != 0">
+		        AND G.category_id = #{categoryId}
+		</if> 		
+				
+		 ORDER BY
+		<choose>
+			<when test="orderType == 'createAt' and orderType != ''"> 
+				A.created_at DESC
+			</when>
+			<when test="orderType == 'list' and orderType != ''">
+				NVL(I.like_cnt,0) DESC
+			</when>
+			<when test="orderType == 'meetupAt' and orderType != ''">
+				A.meetup_At ASC
+			</when>		
+	 		<otherwise>
+				A.created_at DESC
+			</otherwise>
+		</choose>		
+		OFFSET #{start} ROWS FETCH NEXT #{end} ROWS ONLY
+	</select> 	
+	<select id="findAllMeetupCountBy" parameterType="MeetupSearchDto" resultType="int">
+		SELECT COUNT(*)
+		FROM meetups A
+		LEFT JOIN members B ON B.member_id = A.member_id
+		LEFT JOIN (SELECT meetup_id,
+		                  COUNT(*) AS total_participants
+				   FROM meetup_applications
+				   WHERE 1=1
+				   AND status ='APPROVED'
+				   AND delete_yn = 'N'
+				   GROUP BY meetup_id
+				  ) C ON C.meetup_id = A.meetup_id
+				  
+		LEFT JOIN sigungus 	 D ON D.sigungu_id = A.sigungu_id
+		LEFT JOIN sidos 	 E ON E.sido_id = D.sido_id 
+		LEFT JOIN categories F ON F.category_id = A.category_id
+		LEFT JOIN categories G ON G.category_id = F.parent_id
+		LEFT JOIN meetup_likes H ON H.meetup_id = A.meetup_id AND H.member_id = A.meetup_id				  
+		LEFT OUTER JOIN (SELECT COUNT(meetup_id) as like_cnt, 
+	  						  	meetup_id 
+	  				     FROM meetup_likes 
+	  				    GROUP BY meetup_id
+	  				  ) I ON I.meetup_id = A.meetup_id					  
+		WHERE A.delete_yn = 'N'
+		  AND A.status IN ( 'RECRUITING', 'CLOSED')
+		<if test="status != null and status != ''">
+			AND A.status = #{status}
+		</if>
+		<if test="searchType == 'title' and adminSearchText != null and adminSearchText != ''">
+			AND A.title LIKE '%' || #{adminSearchText} || '%'
+		</if>
+		<if test="searchType == 'name' and adminSearchText != null and adminSearchText != ''">
+			AND B.nickname LIKE'%' || #{adminSearchText} || '%'
+		</if>
+		<if test="searchText != null and searchText != ''">
+		      AND A.title LIKE '%' || #{searchText} || '%'
+		</if>
+		<if test="sidoId != null and sidoId != 0">
+		        AND E.sido_id = #{sidoId}
+		</if>  		
+		<if test="categoryId != null and categoryId != 0">
+		        AND G.category_id = #{categoryId}
+		</if> 			
+	</select> 	
+	
+ 	<!-- 좋아요 -->
+ 	<insert id="insertMeetupLike" parameterType="MeetupLikeDto">
+		INSERT INTO meetup_likes  (meetup_id, member_id)
+		VALUES (#{meetupId}, #{memberId}) 	
+ 	</insert> 
+ 	<!-- 좋아요 삭제 -->
+ 	<delete id="deleteMeetupLike" parameterType="MeetupLikeDto">
+		DELETE FROM meetup_likes
+		WHERE 1=1
+		  AND meetup_id = #{meetupId}
+		  AND member_id = #{memberId}	
+ 	</delete>  		
+
+	<!-- 관리자 통계 -->
+	<select id="findAdminMeetupStatusSummary" resultType="AdminMeetupStatusSummaryDto">
+		SELECT COUNT(*) AS total_meetup_count, <!-- 전체 모집글 -->
+			   COUNT(CASE WHEN status = 'RECRUITING' THEN 1 END) AS recruiting_count, <!-- 모집중 -->
+			   COUNT(CASE WHEN status = 'CLOSED' THEN 1 END) AS closed_count, <!-- 모집마감 -->
+			   COUNT(CASE WHEN status = 'WEATHER_CANCELED' THEN 1 END) AS weather_canceled_count <!-- 기상악화로 인한 취소 -->
+		FROM meetups A	
+	   WHERE delete_yn = 'N'
+	</select>
+	
+ 	<!-- 시도 조회 -->
+ 	<select id="findAllSido" resultType="SidoDto">
+ 		select * from sidos
+ 	</select>
+ 	
+ 	<!-- 시군구 조회 -->
+  	<select id="findAllSigungu" resultType="SigunguDto">
+ 		select * from sigungus 
+ 	</select>
+ 	
+ 	<!-- 카테고리 조회 -->
+ 	<select id="findAllCategory" resultType="CategoryDto">
+	 	SELECT *
+		  FROM categories
+		 WHERE parent_id IS NULL
+ 	</select>
+ 	
+ 	<!-- 자식 카테고리 조회 -->
+ 	<select id="findAllChildCategory" resultType="CategoryDto">
+	 	SELECT *
+		  FROM categories
+		 WHERE parent_id IS NOT NULL
+ 	</select>	
+
+	<!-- 논리삭제 -->
+	<update id="updateMeetupDeleteYn" parameterType="int">
+		UPDATE meetups
+		SET delete_yn = 'Y',
+			ststus = 'DELETED'
+		WHERE meetup_id = #{meetupId}	
+	</update>		
 </mapper>
