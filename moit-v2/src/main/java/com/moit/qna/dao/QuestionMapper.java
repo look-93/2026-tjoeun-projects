@@ -1,9 +1,10 @@
-package com.moit.meetup.dao;
+package com.moit.qna.dao;
 
 import java.util.List;
 import java.util.Map;
 import org.apache.ibatis.annotations.Mapper;
-import com.moit.meetup.dto.QuestionDto;
+
+import com.moit.qna.dto.QuestionDto;
 
 @Mapper
 public interface QuestionMapper {
