@@ -1,5 +1,23 @@
 package com.moit.meetup.service;
 
-public interface MeetupService {
+import java.util.List;
 
+import com.moit.meetup.dto.MeetupDto;
+import com.moit.meetup.dto.MeetupSearchDto;
+import com.moit.meetup.dto.common.CategoryDto;
+import com.moit.meetup.dto.common.SidoDto;
+import com.moit.meetup.dto.common.SigunguDto;
+
+public interface MeetupService {
+	// 사용자 - 목록 조회 + paging
+	public List<MeetupDto> findAllMeetupBy(int pstartno, MeetupSearchDto meetupSearchDto);
+	public int findAllMeetupCountBy(MeetupSearchDto meetupSearchDto);
+	
+	//시도, 시군구
+	public List<SidoDto> findAllSido();
+	public List<SigunguDto> findAllSigungu();
+	
+	//카테고리
+	public List<CategoryDto> findAllCategory();
+	public List<CategoryDto> findAllChildCategory();
 }

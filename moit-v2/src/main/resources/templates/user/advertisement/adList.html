@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{user/mypage/layouts/mypageLayout}">
+
+<head>
+    <title>MOIT | 내 광고 관리</title>
+</head>
+
+<body>
+
+<div layout:fragment="content">
+
+    <div class="page-title-wrap">
+        <h3 class="mb-0">내 광고 관리</h3>
+
+        <a th:href="@{/user/advertisement/write}"
+           class="btn btn-primary">
+            광고 등록
+        </a>
+    </div>
+
+    <!-- 검색 -->
+    <div class="search-area">
+            <form method="get"
+                  th:action="@{/user/advertisement/list}">
+
+                <div class="search-box">
+    				<div class="search-form">
+                        <input
+                                type="text"
+                                name="searchText"
+                                class="form-control"
+                                placeholder="광고명을 입력하세요."
+                                th:value="${dto.searchText}">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+                            검색
+                        </button>
+					</div>
+                </div>
+
+            </form>
+    </div>
+
+    <!-- 목록 -->
+    <div class="search-area">
+    	<div class="table-wrap">
+            <table class="table">
+
+                <thead>
+
+                <tr>
+
+                    <th style="width:70px;">번호</th>
+
+                    <th style="width:90px;">이미지</th>
+
+                    <th>광고명</th>
+
+                    <th style="width:120px;">승인상태</th>
+
+                    <th style="width:120px;">운영상태</th>
+
+                    <th style="width:220px;">광고기간</th>
+
+                    <th style="width:180px;">관리</th>
+
+                </tr>
+
+                </thead>
+
+                <tbody>
+
+                <tr th:if="${#lists.isEmpty(list)}">
+
+                    <td colspan="7">
+                        등록된 광고가 없습니다.
+                    </td>
+
+                </tr>
+
+                <tr th:each="ad, stat : ${list}">
+
+                    <!-- 번호 -->
+                    <td th:text="${totalCnt - ((dto.page - 1) * dto.size + stat.index)}"></td>
+
+                    <!-- 이미지 -->
+                    <td>
+
+                        <!-- 리스트의 0번 인덱스를 직접 찌르는 대신, th:each와 th:if 구조로 안전하게 추출 -->
+					    <th:block th:if="${ad.imageList != null and !#lists.isEmpty(ad.imageList)}">
+					        <img class="ad-thumb"
+					        	 th:each="img, imgStat : ${ad.imageList}" 
+					             th:if="${imgStat.index == 0}"
+					             th:src="${img.imageUrl}" />
+					    </th:block>
+					    
+					    <!-- 만약 이미지가 없는 경우 보일 기본 대체 텍스트나 빈 칸 처리 -->
+					    <span th:if="${ad.imageList == null or #lists.isEmpty(ad.imageList)}">-</span>
+
+                    </td>
+
+                    <!-- 광고명 -->
+                    <td class="table-title"
+                        th:text="${ad.title}">
+                    </td>
+
+                    <!-- 승인상태 -->
+                    <td>
+
+                        <span class="ad-badge ad-bg-warning"
+                              th:if="${ad.approvalStatus=='WAITING'}">
+                            승인대기
+                        </span>
+
+                        <span class="ad-badge ad-bg-success"
+                              th:if="${ad.approvalStatus=='APPROVED'}">
+                            승인완료
+                        </span>
+
+                        <span class="ad-badge ad-bg-danger"
+                              th:if="${ad.approvalStatus=='REJECTED'}">
+                            반려
+                        </span>
+
+                    </td>
+
+                    <!-- 운영상태 -->
+                    <td>
+
+                        <span class="ad-badge ad-bg-secondary"
+                              th:if="${ad.status=='PENDING'}">
+                            대기
+                        </span>
+
+                        <span class="ad-badge ad-bg-primary"
+                              th:if="${ad.status=='OPEN'}">
+                            진행중
+                        </span>
+
+                        <span class="ad-badge ad-bg-dark"
+                              th:if="${ad.status=='CLOSED'}">
+                            종료
+                        </span>
+
+                    </td>
+
+                    <!-- 광고기간 -->
+                    <td>
+
+                        <span
+                                th:text="${#temporals.format(ad.startDatetime,'yyyy-MM-dd')}">
+                        </span>
+
+                        ~
+
+                        <span
+                                th:text="${#temporals.format(ad.endDatetime,'yyyy-MM-dd')}">
+                        </span>
+
+                    </td>
+
+                    <!-- 관리 -->
+                    <td>
+
+                        <div class="table-action">
+
+                            <a class="btn btn-sm btn-primary"
+                               th:href="@{/user/advertisement/detail(adId=${ad.adId})}">
+                                상세
+                            </a>
+
+                            <form th:action="@{/user/advertisement/delete}"
+                                  method="post"
+                                  onsubmit="return confirm('정말 삭제하시겠습니까?');">
+
+                                <input type="hidden"
+                                       name="adId"
+                                       th:value="${ad.adId}">
+
+                                <button type="submit"
+                                        class="btn btn-sm btn-danger">
+                                    삭제
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+        
+	        <!-- 페이징 -->
+			<nav class="pagination-wrap">
+			
+			    <ul class="pagination justify-content-center">
+			
+			        <!-- 이전 -->
+			        <li class="page-item"
+			            th:classappend="${dto.page <= 1} ? 'disabled'">
+			
+			            <a class="page-link"
+			               th:href="@{/user/advertisement/list(page=${dto.page-1},searchText=${dto.searchText})}">
+			                이전
+			            </a>
+			
+			        </li>
+			
+			        <!-- 페이지 번호 -->
+			        <li class="page-item"
+			            th:each="i : ${#numbers.sequence(1,totalPage)}"
+			            th:classappend="${dto.page==i} ? 'active'">
+			
+			            <a class="page-link"
+			               th:text="${i}"
+			               th:href="@{/user/advertisement/list(page=${i},searchText=${dto.searchText})}">
+			            </a>
+			
+			        </li>
+			
+			        <!-- 다음 -->
+			        <li class="page-item"
+			            th:classappend="${dto.page>=totalPage} ? 'disabled'">
+			
+			            <a class="page-link"
+			               th:href="@{/user/advertisement/list(page=${dto.page+1},searchText=${dto.searchText})}">
+			                다음
+			            </a>
+			
+			        </li>
+			
+			    </ul>
+			
+			</nav>
+		</div>
+    </div>
+
+</div>    
+
+</body>
+</html>

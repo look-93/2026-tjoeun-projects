@@ -1,0 +1,85 @@
+/* 관리자화면 css */
+body{
+    background:#f4f7fc;
+}
+
+.sidebar{
+    min-height:100vh;
+    background:white;
+    border-right:1px solid #ddd;
+}
+
+.logo{
+    font-size:26px;
+    font-weight:bold;
+    color:#4a7dff;
+    text-align:center;
+    padding:25px;
+    border-bottom:1px solid #eee;
+}
+
+.menu a{
+    display:block;
+    padding:15px 20px;
+    text-decoration:none;
+    color:#333;
+    font-weight:500;
+}
+
+.menu a:hover{
+    background:#edf3ff;
+}
+
+.menu .active{
+    background:#4a7dff;
+    color:white;
+}
+
+.topbar{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:20px;
+}
+
+.card-box{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    box-shadow:0 2px 5px rgba(0,0,0,.05);
+}
+
+.stat-number{
+    font-size:30px;
+    font-weight:bold;
+    color:#4a7dff;
+}
+
+.table-box{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+}
+
+.tab-btn{
+    border:none;
+    background:white;
+    padding:10px 20px;
+    border-radius:10px;
+    margin-right:10px;
+}
+
+.tab-btn.active{
+    background:#4a7dff;
+    color:white;
+}
+
+.badge-role-a{
+    background:#198754;
+}
+
+.badge-role-b{
+    background:#0d6efd;
+}
+
+/* 관리자화면 css */
