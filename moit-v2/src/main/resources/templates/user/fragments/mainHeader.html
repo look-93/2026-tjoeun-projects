@@ -12,17 +12,7 @@
             MOIT
         </a>
 
-        <nav>
-            <a th:href="@{/meetup/user/list}"
-               th:classappend="${menu == 'meetup'} ? 'active' : ''">
-                모집찾기
-            </a>
-
-            <a class="inquiry-btn"
-               th:href="@{/questions/adminWrite(category='ADMIN')}">
-                💬 관리자 1:1 문의
-            </a>
-        </nav>
+        
     </div>
 
     <!-- 우측 그룹 -->
@@ -33,8 +23,21 @@
         </div>
         
 		<div class="header-right">
-        <nav>
+		
+		<nav>
+            <a th:href="@{/meetup/user/list}"
+               th:classappend="${menu == 'meetup'} ? 'active' : ''">
+                모집찾기
+            </a>
 
+            <a class="inquiry-btn"
+               th:href="@{/questions/adminWrite(category='ADMIN')}">
+                💬 관리자 1:1 문의
+            </a>
+        </nav>
+		
+        <nav>
+        	
             <!-- 로그인 안한 상태 -->
             <div sec:authorize="isAnonymous()">
                 <a class="nav-link inquiry-btn"
