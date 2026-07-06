@@ -165,8 +165,26 @@ public class AdvertisementAdminController {
 
         advertisementService.updateAdvertisementStatus(dto);
 
-        return "redirect:/admin/advertisement/detail?adId=" + adId + "&mode=manage";
+        return "redirect:/admin/advertisement/manageList?tab=status";
     }
+    
+    @PostMapping("/status/detail")
+    public String statusFromDetail(@RequestParam int adId,
+		            @RequestParam String status,
+		            HttpSession session) {
+		
+		Integer loginMemberId = getLogin(session);
+		
+		AdvertisementDto dto = new AdvertisementDto();
+		dto.setAdId(adId);
+		dto.setStatus(status);
+		dto.setStatusUpdatedBy(loginMemberId);
+		dto.setStatusUpdatedAt(LocalDateTime.now());
+		
+		advertisementService.updateAdvertisementStatus(dto);
+		
+		 return "redirect:/admin/advertisement/detail?adId=" + dto.getAdId() + "&mode=manage";
+	}
 
     // 로그인 헬퍼
     private Integer getLogin(HttpSession session) {

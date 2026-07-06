@@ -108,7 +108,24 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	// 승인 상태 변경
 	@Override
 	public int updateApprovalStatus(AdvertisementDto dto) {
-		return advertisementMapper.updateApprovalStatus(dto);
+
+	    if ("APPROVED".equals(dto.getApprovalStatus())) {
+
+	        return advertisementMapper.approveAd(
+	                dto.getAdId(),
+	                dto.getApprovedBy()
+	        );
+
+	    } else if ("REJECTED".equals(dto.getApprovalStatus())) {
+
+	        return advertisementMapper.rejectAd(
+	                dto.getAdId(),
+	                dto.getApprovedBy(),
+	                dto.getRejectReason() != null ? dto.getRejectReason() : ""
+	        );
+	    }
+
+	    throw new IllegalArgumentException("잘못된 상태값");
 	}
 
 	// 상태 변경

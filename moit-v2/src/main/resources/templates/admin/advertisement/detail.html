@@ -223,18 +223,31 @@
             <!-- ========================= -->
             <div th:if="${mode == 'manage'}" style="display:inline;">
 
-                <form th:action="@{/admin/advertisement/status}"
+                <form th:action="@{/admin/advertisement/status/detail}"
                       method="post"
                       style="display:inline;">
 
                     <input type="hidden" name="adId" th:value="${dto.adId}"/>
 
-                    <select name="status" class="form-select d-inline-block"
-                            style="width:150px; display:inline;">
-                        <option value="OPEN">OPEN</option>
-                        <option value="CLOSED">CLOSED</option>
-                        <option value="PAUSED">PAUSED</option>
-                    </select>
+                    <select name="status" class="form-select d-inline-block" 
+                    		style="width:150px; display:inline;">
+
+					    <option value="OPEN"
+					        th:selected="${dto.status == 'OPEN'}">
+					        OPEN
+					    </option>
+					
+					    <option value="CLOSED"
+					        th:selected="${dto.status == 'CLOSED'}">
+					        CLOSED
+					    </option>
+					
+					    <option value="PENDING"
+					        th:selected="${dto.status == 'PENDING'}">
+					        PENDING
+					    </option>
+					
+					</select>
 
                     <button type="submit" class="btn btn-primary">
                         상태 변경

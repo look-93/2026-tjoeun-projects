@@ -114,7 +114,7 @@
 				        <td>
 				        	<div class="d-flex gap-1">
 						        <a class="btn btn-sm btn-primary"
-						           th:href="@{/admin/advertisement/approvalDetail(adId=${ad.adId}, mode='approval')}">
+						           th:href="@{/admin/advertisement/detail(adId=${ad.adId}, mode='approval')}">
 						            상세
 						        </a>
 					            <form th:action="@{/admin/advertisement/approve}" method="post">
@@ -240,22 +240,36 @@
 				
 				        <!-- 상태 -->
 				        <td>
-				            <span th:if="${ad.approvalStatus == 'APPROVED'
-    										and ad.startDatetime.isAfter(now)}">
-				                PENDING
-				            </span>
-				
-				            <span th:if="${ad.approvalStatus == 'APPROVED'
-							    and ad.startDatetime.isBefore(now)
-							    and ad.endDatetime.isAfter(now)}">
-							    OPEN
-				            </span>
-				
-				            <span th:if="${ad.approvalStatus == 'APPROVED'
-							    and ad.endDatetime.isBefore(now)}">
-							    CLOSED
-							</span>
-				        </td>
+						    <form th:action="@{/admin/advertisement/status}" method="post">
+						
+						        <input type="hidden" name="adId" th:value="${ad.adId}"/>
+						
+						        <select name="status"
+						                class="form-select form-select-sm status-select"
+						                th:classappend="${ad.status == 'OPEN'} ? ' status-open' :
+						                               (${ad.status == 'PENDING'} ? ' status-pending' :
+						                               ' status-closed')"
+						                onchange="this.form.submit()">
+						
+						            <option value="OPEN"
+						                    th:selected="${ad.status == 'OPEN'}">
+						                OPEN
+						            </option>
+						
+						            <option value="PENDING"
+						                    th:selected="${ad.status == 'PENDING'}">
+						                PENDING
+						            </option>
+						
+						            <option value="CLOSED"
+						                    th:selected="${ad.status == 'CLOSED'}">
+						                CLOSED
+						            </option>
+						
+						        </select>
+						
+						    </form>
+						</td>
 				
 				        <!-- 기간 -->
 				        <td>
@@ -273,7 +287,7 @@
 				        <!-- 관리 (상세 버튼) -->
 				        <td>
 				            <a class="btn btn-sm btn-primary"
-				               th:href="@{/admin/advertisement/manageDetail(adId=${ad.adId}, mode='manage')}">
+				               th:href="@{/admin/advertisement/detail(adId=${ad.adId}, mode='manage')}">
 				                상세
 				            </a>
 				        </td>

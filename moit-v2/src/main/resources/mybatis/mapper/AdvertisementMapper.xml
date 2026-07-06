@@ -279,24 +279,29 @@
 	</delete>
 
     <!-- 승인 상태 변경 -->
-    <update id="updateApprovalStatus"
-        parameterType="com.moit.advertisement.dto.AdvertisementDto">
-
-        UPDATE advertisements
-        SET
-            approval_status = #{approvalStatus},
-            approved_by = #{approvedBy},
-            approved_at =
-			CASE
-			    WHEN #{approvalStatus}='APPROVED'
-			    THEN CURRENT_TIMESTAMP
-			    ELSE NULL
-			END,
-            reject_reason = #{rejectReason},
-            updated_at = CURRENT_TIMESTAMP
-        WHERE ad_id = #{adId}
-
-    </update>
+    <!-- 승인 -->
+	<update id="approveAd">
+	    UPDATE advertisements
+	    SET
+	        approval_status = 'APPROVED',
+	        approved_by = #{approvedBy},
+	        approved_at = CURRENT_TIMESTAMP,
+	        reject_reason = NULL,
+	        updated_at = CURRENT_TIMESTAMP
+	    WHERE ad_id = #{adId}
+	</update>
+	
+	<!-- 반려 -->
+	<update id="rejectAd">
+	    UPDATE advertisements
+	    SET
+	        approval_status = 'REJECTED',
+	        approved_by = #{approvedBy},
+	        approved_at = NULL,
+	        reject_reason = #{rejectReason, jdbcType=VARCHAR},
+	        updated_at = CURRENT_TIMESTAMP
+	    WHERE ad_id = #{adId}
+	</update>
 
     <!-- 광고 상태 변경 -->
     <update id="updateAdvertisementStatus"

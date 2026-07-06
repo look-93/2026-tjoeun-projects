@@ -43,6 +43,10 @@ public interface AdvertisementMapper {
     
     // 상태 변경
     int updateAdvertisementStatus(AdvertisementDto dto);
+        
+    int approveAd(int adId, int approvedBy);
+
+    int rejectAd(int adId, int approvedBy, String rejectReason);
     
     // 이미지 등록
     int insertAdvertisementImage(AdvertisementImageDto dto);
@@ -69,4 +73,6 @@ public interface AdvertisementMapper {
     int selectPendingAdvertisementCnt();
 
     int selectClosedAdvertisementCnt();
+    
+
 }
