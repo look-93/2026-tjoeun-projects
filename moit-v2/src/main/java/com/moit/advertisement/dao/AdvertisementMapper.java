@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.moit.advertisement.dto.AdvertisementDto;
+import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 
 @Mapper
@@ -21,9 +22,9 @@ public interface AdvertisementMapper {
 	int selectAdminAdvertisementTotalCnt(AdvertisementSearchDto dto);
 
 	// 승인 목록
-	List<AdvertisementDto> searchApprovalList(AdvertisementSearchDto dto);
+	List<AdvertisementDto> searchWaitingList(AdvertisementSearchDto dto);
 
-	int selectApprovalAdvertisementTotalCnt(AdvertisementSearchDto dto);
+	int selectWaitingTotalCnt(AdvertisementSearchDto dto);
 
     // 상세 조회
     AdvertisementDto selectAdvertisementOne(int adId);
@@ -42,10 +43,19 @@ public interface AdvertisementMapper {
     
     // 상태 변경
     int updateAdvertisementStatus(AdvertisementDto dto);
+    
+    // 이미지 등록
+    int insertAdvertisementImage(AdvertisementImageDto dto);
 
-    // 노출 / 클릭 증가
+    // 이미지 조회
+    List<AdvertisementImageDto> selectAdvertisementImageList(int adId);
+
+    // 이미지 삭제
+    int deleteAdvertisementImage(int adId);
+
+    // 노출 증가
     int updateImpressions(int adId);
-
+    // 클릭 증가
     int updateAdvertisementClick(int adId);
 
     // 사용자 광고 1건

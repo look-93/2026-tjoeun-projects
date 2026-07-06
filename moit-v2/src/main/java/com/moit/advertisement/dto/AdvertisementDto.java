@@ -1,6 +1,7 @@
 package com.moit.advertisement.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.Data;
 
@@ -13,7 +14,7 @@ public class AdvertisementDto {
     // 기본 정보
     private String title;
     private String content;
-    private String imageUrl;
+    private List<AdvertisementImageDto> imageList;
     private String landingUrl;
 
     // 유형/노출
@@ -36,9 +37,11 @@ public class AdvertisementDto {
     private String approvalStatus;      // WAITING / APPROVED / REJECTED
 
     // 승인 정보
-    private Integer approvedBy;
-    private LocalDateTime approvedAt;
-    private String rejectReason;
+    private Integer approvedBy; // 승인관리자
+    private LocalDateTime approvedAt;  // 승인시각
+    private String rejectReason; // 반려사유
+    private Integer statusUpdatedBy;
+    private LocalDateTime statusUpdatedAt;
 
     // 통계
     private int impressions;

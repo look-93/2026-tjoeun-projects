@@ -3,6 +3,7 @@ package com.moit.advertisement.service;
 import java.util.List;
 
 import com.moit.advertisement.dto.AdvertisementDto;
+import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 
 public interface AdvertisementService {
@@ -20,10 +21,10 @@ public interface AdvertisementService {
 	int selectAdminAdvertisementTotalCnt(AdvertisementSearchDto dto);
 
 	// 승인 목록
-	List<AdvertisementDto> searchApprovalList(AdvertisementSearchDto dto);
+	List<AdvertisementDto> searchWaitingList(AdvertisementSearchDto dto);
 
 	// 승인 목록 개수
-	int selectApprovalAdvertisementTotalCnt(AdvertisementSearchDto dto);
+	int selectWaitingTotalCnt(AdvertisementSearchDto dto);
 
     // 상세 조회
     AdvertisementDto selectAdvertisementOne(int adId);
@@ -42,6 +43,15 @@ public interface AdvertisementService {
     
     // 상태 변경
     int updateAdvertisementStatus(AdvertisementDto dto);
+    
+    // 이미지 등록
+    int insertAdvertisementImage(AdvertisementImageDto dto);
+
+    // 이미지 전체 조회
+    List<AdvertisementImageDto> selectAdvertisementImageList(int adId);
+
+    // 이미지 삭제
+    int deleteAdvertisementImage(int adId);
 
     // 노출 수 증가
     int updateImpressions(int adId);
