@@ -6,12 +6,14 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.moit.reports.api.ApiEmail;
 import com.moit.reports.dao.ReportsMapper;
 import com.moit.reports.dto.ReportsDto;
 
 @Service
 public class ReportsServiceImpl implements ReportsService {
 	@Autowired ReportsMapper dao;
+	@Autowired ApiEmail apiEmail;
 
 	@Override // 사용자 본인이 작성한 신고 내역 조회 & 유저 - 페이징
 	public List<ReportsDto> selectUserReport(int pstartno, int memberId) {
@@ -54,12 +56,44 @@ public class ReportsServiceImpl implements ReportsService {
 	// ===== admin =====
 	@Override
 	public int updateAdmin(ReportsDto dto) {
+		
+		// apiEmail content
+		String content = "신고 처리되지 않음.";
+		if( "APPROVED".equals(dto.getStatus()) ) {
+			content = "신고 처리가 승인 되었습니다.";
+		} else if( "REJECTED".equals(dto.getStatus()) ) {
+			content = "신고 처리가 반려 되었습니다.";
+		}
+		
+		// apiEmail Email
+		String email = dao.selectEmail(dto);
+		
+		//메일 test
+		//apiEmail.sendMail(content, email);
 		return dao.updateAdmin(dto);
 	}
-
+	
 	@Override
 	public int deleteAdmin(int reportId) {
-		return dao.deleteAdmin(reportId);
+		
+		ReportsDto dto = new ReportsDto();
+		int result = dao.deleteAdmin(reportId);
+		
+		// apiEmail Email
+		String email = dao.selectEmail(dto);
+			
+		if( result > 0 ) {
+			// apiEmail content
+			String content="삭제되지 않음.";
+			if( dao.deleteAdmin(reportId) > 0 ) {
+				content = "신고 글이 삭제 되었습니다.";
+
+			}
+			//메일 test
+			//apiEmail.sendMail(content, email);
+		}
+		
+		return result;
 	}
 
 	@Override // 관리자 신고 목록 조회 (동적 조건 + 페이징 + 단건 조회까지 포함)
@@ -71,6 +105,8 @@ public class ReportsServiceImpl implements ReportsService {
 	public int selectAdminReportsCnt(HashMap<String, Object> map) {
 		return dao.selectAdminReportsCnt(map);
 	}
+
+	
 
 	/*
 	@Override // ��ü �Ű� ��� ��� ��ȸ

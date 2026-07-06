@@ -9,19 +9,24 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.moit.reports.api.ApiEmail;
 import com.moit.reports.dto.ReportsDto;
 import com.moit.reports.service.ReportsService;
 import com.moit.util.UtilPaging;
 
 @Controller
-public class ReportController { // test lcy
+public class ReportController {
 	@Autowired ReportsService service;
+	@Autowired ApiEmail apiEmail;
 	
+	// test button
 	@RequestMapping("/user/meetup/report/button")
     public String reportButton() {
         return "user/meetup/report/button";
@@ -62,7 +67,7 @@ public class ReportController { // test lcy
 		return "user/meetup/report/myPageMyReportList";
 	}
 	// 신고 작성 화면 write
-	@RequestMapping( value="/user/meetup/report/write", method = RequestMethod.GET  )
+	@GetMapping("/user/meetup/report/write")
 	public String reportWrite(	@RequestParam("targetType") String targetType,
 								@RequestParam("targetId") int targetId,
 								Model model) {
@@ -76,7 +81,7 @@ public class ReportController { // test lcy
 		return "user/meetup/report/write";
 	}
 	// 신고 작성 기능
-	@RequestMapping( value="/user/meetup/report/write", method = RequestMethod.POST  )
+	@PostMapping("/user/meetup/report/write")
 	public String reportWrite_post(ReportsDto dto, RedirectAttributes rttr) {
 		
 		dto.setMemberId(1); // 로그인 회원 번호 test
@@ -115,7 +120,7 @@ public class ReportController { // test lcy
 	}
 	
 	// 신고 수정 화면 update
-	@RequestMapping( value="/user/meetup/report/update", method = RequestMethod.GET  )
+	@GetMapping( value="/user/meetup/report/update")
 	public String reportUpdate(int reportId, Model model) {
 
 		ReportsDto dto = new ReportsDto();
@@ -127,7 +132,7 @@ public class ReportController { // test lcy
 	}
 	
 	// 신고 수정 처리
-	@RequestMapping( value="/user/meetup/report/update", method = RequestMethod.POST )
+	@PostMapping("/user/meetup/report/update")
 	public String reportUpdate_post(ReportsDto dto, RedirectAttributes rttr) {
 		
 		dto.setMemberId(1);
@@ -143,7 +148,7 @@ public class ReportController { // test lcy
 	}
 	
 	// 신고 삭제 처리 delete
-	@RequestMapping( value="/user/meetup/report/delete", method=RequestMethod.POST )
+	@PostMapping("/user/meetup/report/delete")
 	public String reportDelete_post(ReportsDto dto, RedirectAttributes rttr) {
 		
 		dto.setMemberId(1); 
@@ -160,7 +165,7 @@ public class ReportController { // test lcy
 	
 	
 	// 관리자 리스트 목록
-	@RequestMapping("/admin/report/adminList")
+	@GetMapping("/admin/report/adminList")
 	public String adminList(@RequestParam(value="pstartno", defaultValue="1") int pstartno,
 							@RequestParam(value="targetType", required=false) String targetType,
 							@RequestParam(value="status", required=false) String status,
@@ -205,7 +210,7 @@ public class ReportController { // test lcy
 	}
 	
 	// 관리자 APPROVED 수정
-	@RequestMapping( value="/admin/report/update", method=RequestMethod.POST )
+	@PostMapping("/admin/report/update")
 	public String reportUpdateAdmin_post(ReportsDto dto, RedirectAttributes rttr) {
 		
 		String result="status 상태 수정 실패";
@@ -213,20 +218,19 @@ public class ReportController { // test lcy
 		if( service.updateAdmin(dto) > 0 ) {
 			if( "APPROVED".equals(dto.getStatus()) ) {
 				result="APPROVED 수정 성공";
-			} else if ( "REJECTED".equals(dto.getStatus()) ) {
+			}
+			else if ( "REJECTED".equals(dto.getStatus()) ) {
 				result="REJECTED 수정 성공";
 			}
 		}
-		
 		rttr.addFlashAttribute("result", result);
 		return "redirect:/admin/report/adminList";
 	}
 	
 	// 관리자 신고 삭제
-	@RequestMapping( value="/admin/report/delete", method=RequestMethod.POST )
+	@PostMapping("/admin/report/delete")
 	public String reportDeleteAdmin_post(	@RequestParam("reportId") int reportId,
 											ReportsDto dto, RedirectAttributes rttr) {
-		
 		String result="신고삭제 실패";
 		
 		if( service.deleteAdmin(reportId) > 0 ) {
@@ -236,6 +240,10 @@ public class ReportController { // test lcy
 		rttr.addFlashAttribute("result", result);
 		return "redirect:/admin/report/adminList";
 	}
+	
+	
+	
+	
 	
 }
 
