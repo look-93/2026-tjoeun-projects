@@ -30,7 +30,6 @@ public interface ReportsService {
 	// ===== admin =====
 	// ===== admin =====
 	public int updateAdmin(ReportsDto dto);
-	
     public int deleteAdmin(int reportId);
 
     // 관리자 신고 목록 조회 (동적 조건 + 페이징 + 단건 조회까지 포함)

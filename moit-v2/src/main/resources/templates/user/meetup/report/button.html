@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{user/layouts/layout}">
+
+<head>
+<meta charset="UTF-8">
+<title>신고 버튼 테스트</title>
+</head>
+
+<body>
+
+<div layout:fragment="content">
+
+    <div class="container my-5">
+        <h3>신고 버튼 테스트</h3>
+
+        <div class="text-end">
+            <a th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=2)}"
+               class="btn btn-outline-primary">
+                모임 신고
+            </a>
+
+            <a th:href="@{/user/meetup/report/write(targetType='REVIEW', targetId=2)}"
+               class="btn btn-outline-danger">
+                리뷰 신고
+            </a>
+
+            <a th:href="@{/user/meetup/report/mylist}"
+               class="btn btn-outline-success">
+                내 신고글 보기
+            </a>
+
+            <a th:href="@{/admin/report/adminList}"
+               class="btn btn-outline-success">
+                출입금지
+            </a>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

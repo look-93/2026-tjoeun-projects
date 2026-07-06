@@ -1,25 +1,32 @@
 <!DOCTYPE html>
-<html>
-<head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head lang="ko">
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- <title>MOIT | 모집글 목록</title> -->
+<title>MOIT</title>
+<link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
+	<th:block th:replace="~{user/fragments/header :: header}" />
+	<div class="container">
+			<div layout:fragment="content">
+				<!-- 페이지 내용 -->
 
 <main class="write-page">
 
 	<section class="write-layout">
 		<form class="write-card write-form-card"
-			  action="${pageContext.request.contextPath}/report/user/write.do"
+			  th:action="@{/user/meetup/report/write}"
 			  method="post">
 
 			<div class="write-card-title">
 				<h2 class="write-heading">신고하기</h2>
 			</div>
 
-			<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
-			<input type="hidden" name="targetType" value="${dto.targetType}" />
-			<input type="hidden" name="targetId" value="${dto.targetId}" />
+			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+			<input type="hidden" name="targetType" th:value="${dto.targetType}" />
+			<input type="hidden" name="targetId" th:value="${dto.targetId}" />
 
 			<div class="write-field">
 				<label class="write-label">
@@ -46,6 +53,11 @@
 					<label class="write-reason">
 						<input class="write-radio" type="radio" name="reasonCode" value="AD" />
 						광고성 게시물 (AD)
+					</label>
+
+					<label class="write-reason">
+						<input class="write-radio" type="radio" name="reasonCode" value="NOSHOW" />
+						노쇼 (NOSHOW)
 					</label>
 
 					<label class="write-reason">
@@ -89,5 +101,8 @@
 	});
 </script>
 
+			</div>
+	</div>
+	<th:block th:replace="~{user/fragments/footer :: footer}" />
 </body>
 </html>
