@@ -59,7 +59,7 @@
 					<div class="row">
 
 						<div class="col-md-4">
-							<input type="text" id="searchText" name="searchText" class="form-control" placeholder="모집명 검색">
+							<input type="text" id="adminSearchText" name="adminSearchText" class="form-control" placeholder="모집명 검색">
 						</div>
 
 						<div class="col-md-2">
@@ -123,166 +123,166 @@
 		
 		</div>
 		<!-- 각자파트 -->	
-<script th:inline="javascript" >
-	//csrf 토큰
-	const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-	const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-	
-	let currentPage = 1;
-
-
- 	// 페이지가가 처음 로드될 때 실행
-	window.addEventListener("DOMContentLoaded",function(){
-		loadMeetup(1);
+	<script th:inline="javascript" >
+		//csrf 토큰
+		const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+		const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 		
-		document.getElementById("searchForm").addEventListener("submit", function(e){
-		 e.preventDefault(); // form submit
-		 loadMeetup(1); // 처음 접속 시 첫 페이지 로드
+		let currentPage = 1;
+	
+	
+	 	// 페이지가가 처음 로드될 때 실행
+		window.addEventListener("DOMContentLoaded",function(){
+			loadMeetup(1);
+			
+			document.getElementById("searchForm").addEventListener("submit", function(e){
+			 e.preventDefault(); // form submit
+			 loadMeetup(1); // 처음 접속 시 첫 페이지 로드
+			});
 		});
-	});
- 	
- 	// json으로 페이지 값 가져오기
- 	function loadMeetup(page){
- 		currentPage = page
- 		const params = {
- 			searchText: document.getElementById("searchText").value, 	// 검색어
- 			status: document.getElementById("status").value,			// 검색조건 - 모집중, 모집마감, 취소
- 			searchType: document.getElementById("searchType").value,	// 검색타입 - 작성자이름, 모집명
- 			pstartno: page
- 		};
- 		
- 		const queryString = new URLSearchParams(params).toString();
- 		
- 		fetch("/admin/meetup/list/data?" + queryString, {
- 		    method: "GET"
- 		})
- 		.then(res=>{
- 		    // 서버가 200 OK가 아닌 404, 500 등을 뱉었는지 확인
- 		    if (!res.ok) {
- 		        throw new Error(`서버 응답 에러! 상태코드: ${res.status}`);
- 		    }
- 		    return res.json();
- 		})
- 		.then(data=>{
- 			/* console.log("백엔드에서 받은 실제 데이터:", data); // 전체 데이터 구조 먼저 확인 */
- 		    if (data.searchList) {
- 		        makeTable(data.searchList, data.paging);
- 		        makePaging(data.paging);
- 		        summaryData(data.summaryData);
- 		       //console.log("summaryData:", data.summaryData);
- 		    } else {
- 		        console.warn("searchList 데이터가 비어있습니다:", data);
- 		    }
- 		})
- 		.catch(error =>{
- 			console.error("데이터 로드 중 에러 발생", error);
- 		})
- 	}
- 	
- 	// 관리자 페이지 상단 통계 데이터 생성 
- 	function summaryData(data){
- 		if(!data) return; 		
- 		document.getElementById("totalMeetupCount").innerText = data.totalMeetupCount;
- 		document.getElementById("recruitingCount").innerText = data.recruitingCount;
- 		document.getElementById("closedCount").innerText = data.closedCount;
- 		document.getElementById("weatherCanceledCount").innerText = data.weatherCanceledCount;
- 	}
- 	
- 	// 리스트 목록 생성
- 	function makeTable(list, paging){
- 		let html="";
- 		
- 		list.forEach((meetup, index)=>{
- 			let rowNum = paging.listtotal - ((paging.current - 1) * paging.onepagelist) - index;
- 			html+=`
- 			<tr>
- 				<td>${rowNum}</td>
-				<td>${meetup.nickname}</td>
-				<td>${meetup.title}</td>
-				<td>${meetup.meetupAt}</td>
-				<td>${meetup.minParticipants}</td>
-				<td>${meetup.maxParticipants}</td>
-				<td>${meetup.totalParticipants}</td>						
-				<td> <button class="btn btn-danger btn-sm" onclick="deleteMeetup(${meetup.meetupId})">삭제</button> </td>
-			</tr>
- 			`;
- 		});
- 		document.getElementById("meetupList").innerHTML=html;
- 	}
- 	
- 	function makePaging(paging){
- 		let html = "";
- 		
- 		if(paging.start > paging.bottomlist){
- 			html += `
-			<li class="page-item">
- 				<a class="page-link" href="#" onclick="loadMeetup(${paging.start-1}); return false;"> < </a>
- 			</li> 			
- 			`;
- 		}
- 		
- 		for(let i=paging.start; i<=paging.end;i++){
- 			
- 			let activeClass = (i == paging.current) ? "active" : "";
- 			
- 			html +=`
-			<li class="page-item ${activeClass}">
-				<a href="#" class="page-link" onclick="loadMeetup(${i}); return false;">${i}</a>
-			</li>			
- 			`;
- 		}
- 		
- 	    if(paging.pagetotal>paging.end){
-
- 	        html+=`
- 	        <li class="page-item">
- 	            <a class="page-link"
- 	                href="#"
- 	                onclick="loadMeetup(${paging.end+1});return false;">
- 	                >
- 	            </a>
- 	        </li>
- 	        `;
- 	    }
-
- 	    document.getElementById("pagingArea").innerHTML=html; 		
- 	}
- 	
- 	// 삭제
- 	function deleteMeetup(meetupId){
- 		const result = confirm('삭제하시겠습니까?');
- 		if(result){
- 			fetch("/admin/meetup/delete",{
- 	 			method:"POST",
- 	 			headers: getCsrfHeaders(),
- 	 			body:JSON.stringify({meetupId: meetupId})
- 	 		})
- 	 		.then(res => {
- 	 			if(!res.ok){
- 	 				throw new Error(`서버 응답에러 :${res.status}`);
- 	 			}	
- 	 			return res.json();
- 	 		})
- 	 		.then(data => {
- 	 			//삭제 후 페이징 처리
- 	 			if(currentPage != null){
- 	 				//console.log(currentPage + "1"); 
- 	 				loadMeetup(currentPage);
- 	 			}else{
- 	 				//console.log(currentPage + "2"); 
- 	 				loadMeetup(1);
- 	 			} 	 			
- 	 			//console.log(currentPage) 
- 	 		})
- 	 		.catch(error=>{
- 	 			console.error("데이터 로드 중 에러 발생", error);
- 	 		});
- 		}
- 		
- 	}
-
-
-</script>		
+	 	
+	 	// json으로 페이지 값 가져오기
+	 	function loadMeetup(page){
+	 		currentPage = page
+	 		const params = {
+	 			adminSearchText: document.getElementById("adminSearchText").value, 	// 검색어
+	 			status: document.getElementById("status").value,			// 검색조건 - 모집중, 모집마감, 취소
+	 			searchType: document.getElementById("searchType").value,	// 검색타입 - 작성자이름, 모집명
+	 			pstartno: page
+	 		};
+	 		
+	 		const queryString = new URLSearchParams(params).toString();
+	 		
+	 		fetch("/admin/meetup/list/data?" + queryString, {
+	 		    method: "GET"
+	 		})
+	 		.then(res=>{
+	 		    // 서버가 200 OK가 아닌 404, 500 등을 뱉었는지 확인
+	 		    if (!res.ok) {
+	 		        throw new Error(`서버 응답 에러! 상태코드: ${res.status}`);
+	 		    }
+	 		    return res.json();
+	 		})
+	 		.then(data=>{
+	 			/* console.log("백엔드에서 받은 실제 데이터:", data); // 전체 데이터 구조 먼저 확인 */
+	 		    if (data.searchList) {
+	 		        makeTable(data.searchList, data.paging);
+	 		        makePaging(data.paging);
+	 		        summaryData(data.summaryData);
+	 		       //console.log("summaryData:", data.summaryData);
+	 		    } else {
+	 		        console.warn("searchList 데이터가 비어있습니다:", data);
+	 		    }
+	 		})
+	 		.catch(error =>{
+	 			console.error("데이터 로드 중 에러 발생", error);
+	 		})
+	 	}
+	 	
+	 	// 관리자 페이지 상단 통계 데이터 생성 
+	 	function summaryData(data){
+	 		if(!data) return;
+	 		document.getElementById("totalMeetupCount").innerText = data.totalMeetupCount;
+	 		document.getElementById("recruitingCount").innerText = data.recruitingCount;
+	 		document.getElementById("closedCount").innerText = data.closedCount;
+	 		document.getElementById("weatherCanceledCount").innerText = data.weatherCanceledCount;
+	 	}
+	 	
+	 	// 리스트 목록 생성
+	 	function makeTable(list, paging){
+	 		let html="";
+	 		
+	 		list.forEach((meetup, index)=>{
+	 			let rowNum = paging.listtotal - ((paging.current - 1) * paging.onepagelist) - index;
+	 			html+=`
+	 			<tr>
+	 				<td>${rowNum}</td>
+					<td>${meetup.nickname}</td>
+					<td>${meetup.title}</td>
+					<td>${meetup.meetupAt}</td>
+					<td>${meetup.minParticipants}</td>
+					<td>${meetup.maxParticipants}</td>
+					<td>${meetup.totalParticipants}</td>						
+					<td> <button class="btn btn-danger btn-sm" onclick="deleteMeetup(${meetup.meetupId})">삭제</button> </td>
+				</tr>
+	 			`;
+	 		});
+	 		document.getElementById("meetupList").innerHTML=html;
+	 	}
+	 	
+	 	function makePaging(paging){
+	 		let html = "";
+	 		
+	 		if(paging.start > paging.bottomlist){
+	 			html += `
+				<li class="page-item">
+	 				<a class="page-link" href="#" onclick="loadMeetup(${paging.start-1}); return false;"> < </a>
+	 			</li> 			
+	 			`;
+	 		}
+	 		
+	 		for(let i=paging.start; i<=paging.end;i++){
+	 			
+	 			let activeClass = (i == paging.current) ? "active" : "";
+	 			
+	 			html +=`
+				<li class="page-item ${activeClass}">
+					<a href="#" class="page-link" onclick="loadMeetup(${i}); return false;">${i}</a>
+				</li>			
+	 			`;
+	 		}
+	 		
+	 	    if(paging.pagetotal>paging.end){
+	
+	 	        html+=`
+	 	        <li class="page-item">
+	 	            <a class="page-link"
+	 	                href="#"
+	 	                onclick="loadMeetup(${paging.end+1});return false;">
+	 	                >
+	 	            </a>
+	 	        </li>
+	 	        `;
+	 	    }
+	
+	 	    document.getElementById("pagingArea").innerHTML=html; 		
+	 	}
+	 	
+	 	// 삭제
+	 	function deleteMeetup(meetupId){
+	 		const result = confirm('삭제하시겠습니까?');
+	 		if(result){
+	 			fetch("/admin/meetup/delete",{
+	 	 			method:"POST",
+	 	 			headers: getCsrfHeaders(),
+	 	 			body:JSON.stringify({meetupId: meetupId})
+	 	 		})
+	 	 		.then(res => {
+	 	 			if(!res.ok){
+	 	 				throw new Error(`서버 응답에러 :${res.status}`);
+	 	 			}	
+	 	 			return res.json();
+	 	 		})
+	 	 		.then(data => {
+	 	 			//삭제 후 페이징 처리
+	 	 			if(currentPage != null){
+	 	 				//console.log(currentPage + "1"); 
+	 	 				loadMeetup(currentPage);
+	 	 			}else{
+	 	 				//console.log(currentPage + "2"); 
+	 	 				loadMeetup(1);
+	 	 			} 	 			
+	 	 			//console.log(currentPage) 
+	 	 		})
+	 	 		.catch(error=>{
+	 	 			console.error("데이터 로드 중 에러 발생", error);
+	 	 		});
+	 		}
+	 		
+	 	}
+	
+	
+	</script>		
 	</div>
 
 </body>

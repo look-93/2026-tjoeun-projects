@@ -26,8 +26,6 @@ public class AdminMeetupController {
 	/*1. 관리자 - 모임 리스트 화면(HTML) 호출*/
 	@GetMapping("/list")
 	public String listPage() {
-		// templates/admin/meetup/list.html (또는 설정하신 경로)을 열어줍니다.
-		// ※ 본인의 실제 Thymeleaf 파일 경로 문자열을 리턴하셔야 합니다.
 		return "/admin/meetup/list"; 
 	}	
 	
