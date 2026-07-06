@@ -37,7 +37,7 @@ public class MeetupController {
 		map.put("paging", new UtilPaging(meetupService.findAllMeetupCountBy(meetupSearchDto), pstartno));
 		map.put("searchList", meetupService.findAllMeetupBy(pstartno, meetupSearchDto));
 		map.put("sidoList", meetupService.findAllSido());
-		map.put("categoryList", meetupService.findAllCategory());
+		map.put("categorys", meetupService.findAllCategory());
 		System.out.println(meetupSearchDto.getSearchText());
 		
 		return map;

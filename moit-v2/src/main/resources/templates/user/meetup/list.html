@@ -60,7 +60,7 @@
 			
 		})
 		
-		function loadMeetup(page){
+		function loadMeetup(page){			
 			currentPage = page;
 			const params = {
 				searchText: document.getElementById("searchText").value,	//검색어
@@ -81,6 +81,7 @@
 				return res.json();
 			})
 			.then(data=>{
+				//console.log(data.categorys)
 				if(data.searchList){
 					makeCard(data.searchList, data.paging);
 					makePaging(data.paging);
