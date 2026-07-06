@@ -1,8 +1,10 @@
 package com.moit.advertisement.dao;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
@@ -48,6 +50,11 @@ public interface AdvertisementMapper {
 
     int rejectAd(int adId, int approvedBy, String rejectReason);
     
+    
+    void updatePeriod(@Param("adId") Long adId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+    
     // 이미지 등록
     int insertAdvertisementImage(AdvertisementImageDto dto);
 
@@ -55,7 +62,7 @@ public interface AdvertisementMapper {
     List<AdvertisementImageDto> selectAdvertisementImageList(int adId);
 
     // 이미지 삭제
-    int deleteAdvertisementImage(int adId);
+    int deleteAdvertisementImages(int adId);
 
     // 노출 증가
     int updateImpressions(int adId);

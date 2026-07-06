@@ -207,15 +207,15 @@
 	    (
 	        image_id,
 	        ad_id,
-	        image_type,
-	        image_url
+	        image_url,
+	        image_type
 	    )
 	    VALUES
 	    (
 	        #{imageId},
 	        #{adId},
-	        #{imageType},
-	        #{imageUrl}
+	        #{imageUrl},
+	        #{imageType}
 	    )
 	
 	</insert>
@@ -225,7 +225,11 @@
         parameterType="int"
         resultType="com.moit.advertisement.dto.AdvertisementImageDto">
 
-	    SELECT *
+	    SELECT
+	        image_id,
+	        ad_id,
+	        image_type AS imageType,
+	        image_url
 	    FROM advertisement_images
 	    WHERE ad_id = #{adId}
 	    ORDER BY image_id
@@ -269,7 +273,7 @@
     </update>
     
     <!-- 광고 이미지 삭제 -->
-    <delete id="deleteAdvertisementImage"
+    <delete id="deleteAdvertisementImages"
         parameterType="int">
 
 	    DELETE
@@ -315,6 +319,15 @@
 	        updated_at = CURRENT_TIMESTAMP
 	    WHERE ad_id = #{adId}
 	
+	</update>
+	
+	<!-- 광고 기간 변경 -->
+	<update id="updatePeriod">
+	    UPDATE advertisements
+	    SET start_datetime = #{start},
+	        end_datetime = #{end},
+	        updated_at = SYSDATE
+	    WHERE ad_id = #{adId}
 	</update>
 
     <!-- 노출 수 증가 -->

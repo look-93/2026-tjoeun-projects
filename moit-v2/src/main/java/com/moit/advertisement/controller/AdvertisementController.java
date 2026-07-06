@@ -26,8 +26,8 @@ import lombok.RequiredArgsConstructor;
 public class AdvertisementController {
 
     private final AdvertisementService advertisementService;
-    // 파일 공통경로
-    private static final String UPLOAD_PATH = "D:/file/ad/";
+
+    private static final String UPLOAD_PATH = "C:/upload/ad/";
 
     // 내 광고 목록
     @GetMapping("/list")
@@ -41,7 +41,6 @@ public class AdvertisementController {
 
         if (loginMemberId == null) {
             loginMemberId = 12;
-            //  return "redirect:/member/login"; // 로그인 연동시 변경
         }
 
         dto.setAdvertiserId(loginMemberId);
@@ -72,19 +71,26 @@ public class AdvertisementController {
 
     // 등록 화면
     @GetMapping("/write")
-    public String write() {
+    public String write(Model model) {
 
-    	return "user/advertisement/adWrite";
+        model.addAttribute("dto", new AdvertisementDto());
+        model.addAttribute("mode", "write");
 
+        return "user/advertisement/adForm";
     }
 
- // 등록
+    // 등록
     @PostMapping("/write")
     public String writeAction(
 
             AdvertisementDto dto,
-            @RequestParam(value = "imageFiles", required = false) List<MultipartFile> imageFiles,
-            @RequestParam(value = "imageTypes", required = false) List<String> imageTypes,
+
+            @RequestParam(value = "imageFiles", required = false)
+            List<MultipartFile> imageFiles,
+
+            @RequestParam(value = "imageTypes", required = false)
+            List<String> imageTypes,
+
             HttpSession session) {
 
         try {
@@ -94,12 +100,10 @@ public class AdvertisementController {
 
             if (loginMemberId == null) {
                 loginMemberId = 12;
-                // return "redirect:/member/login";
             }
 
             dto.setAdvertiserId(loginMemberId);
 
-            // 광고 등록
             advertisementService.insertAdvertisement(dto);
 
             if (imageFiles != null && imageTypes != null) {
@@ -140,17 +144,14 @@ public class AdvertisementController {
             throw new RuntimeException(e);
         }
 
-        return "redirect:/user/advertisement/adList";
+        return "redirect:/user/advertisement/list";
     }
 
- // 상세 조회
+    // 상세
     @GetMapping("/detail")
     public String detail(
-
             @RequestParam int adId,
-
             HttpSession session,
-
             Model model) {
 
         AdvertisementDto dto =
@@ -161,15 +162,14 @@ public class AdvertisementController {
 
         if (loginMemberId == null) {
             loginMemberId = 12;
-            // return "redirect:/member/login";
         }
 
         if (dto == null) {
-            return "redirect:/user/advertisement/adList";
+            return "redirect:/user/advertisement/list";
         }
 
         if (dto.getAdvertiserId() != loginMemberId) {
-            return "redirect:/user/advertisement/adList";
+            return "redirect:/user/advertisement/list";
         }
 
         model.addAttribute("dto", dto);
@@ -192,20 +192,22 @@ public class AdvertisementController {
 
         if (loginMemberId == null) {
             loginMemberId = 12;
-            // return "redirect:/member/login";
         }
 
         if (dto == null) {
-            return "redirect:/user/advertisement/adList";
+            return "redirect:/user/advertisement/list";
         }
 
         if (dto.getAdvertiserId() != loginMemberId) {
-            return "redirect:/user/advertisement/adList";
+            return "redirect:/user/advertisement/list";
         }
 
         model.addAttribute("dto", dto);
+        model.addAttribute("mode", "edit");
+        
+        setImageModel(dto, model);
 
-        return "user/advertisement/adEdit";
+        return "user/advertisement/adForm";
     }
 
     // 수정
@@ -222,101 +224,75 @@ public class AdvertisementController {
 
             HttpSession session) {
 
-        try {
+        Integer loginMemberId =
+                (Integer) session.getAttribute("loginMemberId");
 
-            AdvertisementDto origin =
-                    advertisementService.selectAdvertisementOne(dto.getAdId());
-
-            Integer loginMemberId =
-                    (Integer) session.getAttribute("loginMemberId");
-
-            if (loginMemberId == null) {
-                loginMemberId = 12;
-                // return "redirect:/member/login";
-            }
-
-            if (origin == null) {
-                return "redirect:/user/advertisement/adList";
-            }
-
-            if (origin.getAdvertiserId() != loginMemberId) {
-                return "redirect:/user/advertisement/adList";
-            }
-
-            dto.setAdvertiserId(loginMemberId);
-
-            // 광고 정보 수정
-            advertisementService.updateAdvertisement(dto);
-
-            // 이미지 수정
-            if (imageFiles != null && imageTypes != null) {
-
-                // 기존 이미지 조회
-                List<AdvertisementImageDto> oldImages =
-                        advertisementService.selectAdvertisementImageList(dto.getAdId());
-
-                // 실제 파일 삭제
-                for (AdvertisementImageDto image : oldImages) {
-
-                    if (image.getImageUrl() == null) {
-                        continue;
-                    }
-
-                    String fileName =
-                            image.getImageUrl().replace("/upload/ad/", "");
-
-                    File oldFile =
-                            new File(UPLOAD_PATH, fileName);
-
-                    if (oldFile.exists()) {
-                        oldFile.delete();
-                    }
-                }
-
-                // DB 이미지 삭제
-                advertisementService.deleteAdvertisementImage(dto.getAdId());
-
-                File dir = new File(UPLOAD_PATH);
-
-                if (!dir.exists()) {
-                    dir.mkdirs();
-                }
-
-                // 새 이미지 등록
-                for (int i = 0; i < imageFiles.size(); i++) {
-
-                    MultipartFile file = imageFiles.get(i);
-
-                    if (file == null || file.isEmpty()) {
-                        continue;
-                    }
-
-                    String saveName =
-                            UUID.randomUUID()
-                            + "_"
-                            + file.getOriginalFilename();
-
-                    file.transferTo(new File(dir, saveName));
-
-                    AdvertisementImageDto imageDto =
-                            new AdvertisementImageDto();
-
-                    imageDto.setAdId(dto.getAdId());
-                    imageDto.setImageType(imageTypes.get(i));
-                    imageDto.setImageUrl("/upload/ad/" + saveName);
-
-                    advertisementService.insertAdvertisementImage(imageDto);
-                }
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        if (loginMemberId == null) {
+            loginMemberId = 12;
         }
 
-        return "redirect:/user/advertisement/adDetail?adId=" + dto.getAdId();
+        AdvertisementDto origin =
+                advertisementService.selectAdvertisementOne(dto.getAdId());
+
+        if (origin == null) {
+            return "redirect:/user/advertisement/list";
+        }
+
+        if (origin.getAdvertiserId() != loginMemberId) {
+            return "redirect:/user/advertisement/list";
+        }
+
+        dto.setAdvertiserId(loginMemberId);
+
+        advertisementService.updateAdvertisement(
+                dto,
+                imageFiles,
+                imageTypes);
+
+        return "redirect:/user/advertisement/detail?adId=" + dto.getAdId();
     }
 
-    // 삭제
+    private void setImageModel(
+            AdvertisementDto dto,
+            Model model) {
+
+        String mainImage = "";
+        String bannerImage = "";
+        String listSidebarImage = "";
+        String detailSidebarImage = "";
+
+        if (dto.getImageList() != null) {
+
+            for (AdvertisementImageDto image : dto.getImageList()) {
+
+                switch (image.getImageType()) {
+
+                case "MAIN":
+                    mainImage = image.getImageUrl();
+                    break;
+
+                case "MEETUP_LIST_BANNER":
+                    bannerImage = image.getImageUrl();
+                    break;
+
+                case "MEETUP_LIST_SIDEBAR":
+                    listSidebarImage = image.getImageUrl();
+                    break;
+
+                case "MEETUP_DETAIL_SIDEBAR":
+                    detailSidebarImage = image.getImageUrl();
+                    break;
+                }
+            }
+        }
+
+        model.addAttribute("mainImage", mainImage);
+        model.addAttribute("bannerImage", bannerImage);
+        model.addAttribute("listSidebarImage", listSidebarImage);
+        model.addAttribute("detailSidebarImage", detailSidebarImage);
+    }
+    
+ // 삭제
     @PostMapping("/delete")
     public String delete(
             @RequestParam int adId,
@@ -335,43 +311,19 @@ public class AdvertisementController {
 
         // 권한 체크
         if (dto == null) {
-            return "redirect:/user/advertisement/adList";
+            return "redirect:/user/advertisement/list";
         }
 
         if (dto.getAdvertiserId() != loginMemberId) {
-            return "redirect:/user/advertisement/adList";
+            return "redirect:/user/advertisement/list";
         }
 
-        // 기존 이미지 조회
-        List<AdvertisementImageDto> imageList =
-                advertisementService.selectAdvertisementImageList(adId);
-
-        // 실제 파일 삭제
-        for (AdvertisementImageDto image : imageList) {
-
-            if (image.getImageUrl() == null) {
-                continue;
-            }
-
-            String fileName =
-                    image.getImageUrl().replace("/upload/ad/", "");
-
-            File file =
-                    new File(UPLOAD_PATH, fileName);
-
-            if (file.exists()) {
-                file.delete();
-            }
-        }
-
-        // 이미지 DB 삭제
-        advertisementService.deleteAdvertisementImage(adId);
-
-        // 광고 삭제(논리삭제)
+        // 서비스에서 파일 + 이미지DB + 광고 삭제 모두 처리
         advertisementService.deleteAdvertisement(adId);
 
-        return "redirect:/user/advertisement/adList";
+        return "redirect:/user/advertisement/list";
     }
+
 
     // 광고 클릭
     @GetMapping("/click")

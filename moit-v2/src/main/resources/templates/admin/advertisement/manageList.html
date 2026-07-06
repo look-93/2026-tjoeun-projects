@@ -71,13 +71,13 @@
 		    <table class="table table-hover align-middle">
 			    <thead>
 				    <tr>
-				        <th>번호</th>
-				        <th>이미지</th>
-				        <th>광고명</th>
-				        <th>유형</th>
-				        <th>상태</th>
-				        <th>기간</th>
-				        <th>관리</th>
+				        <th style="width:8%;">번호</th>
+				        <th style="width:10%;">이미지</th>
+				        <th style="width:25%;">광고명</th>
+				        <th style="width:10%;">유형</th>
+				        <th style="width:10%;">상태</th>
+				        <th style="width:15%;">기간</th>
+				        <th style="width:10%;">관리</th>
 				    </tr>
 			    </thead>
 			
@@ -105,9 +105,9 @@
 				
 				        <!-- 기간 -->
 				        <td>
-				            <span th:text="${ad.startDatetime}"></span>
+				            <span th:text="${#temporals.format(ad.startDatetime,'yyyy-MM-dd')}"></span>
 				            ~
-				            <span th:text="${ad.endDatetime}"></span>
+				            <span th:text="${#temporals.format(ad.endDatetime,'yyyy-MM-dd')}"></span>
 				        </td>
 				
 				        <!-- 관리 (승인 버튼) -->
@@ -273,9 +273,9 @@
 				
 				        <!-- 기간 -->
 				        <td>
-				            <span th:text="${ad.startDatetime}"></span>
+				            <span th:text="${#temporals.format(ad.startDatetime,'yyyy-MM-dd')}"></span>
 				            ~
-				            <span th:text="${ad.endDatetime}"></span>
+				            <span th:text="${#temporals.format(ad.endDatetime,'yyyy-MM-dd')}"></span>
 				        </td>
 				
 				        <!-- 노출수 -->

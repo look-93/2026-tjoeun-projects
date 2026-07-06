@@ -1,11 +1,16 @@
 package com.moit.advertisement.controller;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
@@ -166,6 +171,16 @@ public class AdvertisementAdminController {
         advertisementService.updateAdvertisementStatus(dto);
 
         return "redirect:/admin/advertisement/manageList?tab=status";
+    }
+    
+    @PostMapping("updatePeriod")
+    public String updatePeriod(
+            @RequestParam Long adId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
+    ) {
+        advertisementService.updatePeriod(adId, start.atStartOfDay(), end.atStartOfDay());
+        return "redirect:/admin/advertisement/detail?adId=" + adId + "&mode=manage";
     }
     
     @PostMapping("/status/detail")

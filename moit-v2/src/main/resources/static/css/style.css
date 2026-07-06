@@ -1929,38 +1929,47 @@ footer {
 
 /* 페이징 */
 
-.pagination {
+/* ========== Advertisement Pagination (NEW) ========== */
+
+.ad-pagination {
     display: flex;
     justify-content: center;
     list-style: none;
     gap: 6px;
     margin-top: 30px;
     padding: 0;
+    margin: 0;
 }
 
-.page-item .page-link {
+.ad-page-item .ad-page-link {
     display: block;
     padding: 8px 14px;
     border: 1px solid #ddd;
-    border-radius: 6px;
+    border-radius: 8px;
     text-decoration: none;
     color: #333;
     background: #fff;
+    font-size: 14px;
+    white-space: nowrap; /* 글씨 튀어나오는 문제 해결 */
 }
 
-.page-item.active .page-link {
-    background: #0d6efd;
+.ad-page-item.active .ad-page-link {
+    background: var(--c4);
     color: #fff;
-    border-color: #0d6efd;
+    border-color: var(--c4);
+    font-weight: 600;
 }
 
-.page-item.disabled .page-link {
-    opacity: .5;
+.ad-page-item.disabled .ad-page-link {
+    opacity: .4;
     pointer-events: none;
 }
 
-.pagination-wrap{
-    margin-top:30px;
+.ad-pagination-wrap {
+    margin-top: 30px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
 /* 빈 목록 */

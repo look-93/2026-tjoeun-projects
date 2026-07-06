@@ -24,4 +24,6 @@ public interface AdvertisementImageMapper {
     // 광고기준 이미지 전체 삭제
     int deleteAdvertisementImages(int adId);
 
+    
+
 }
