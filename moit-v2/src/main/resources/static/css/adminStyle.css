@@ -179,22 +179,3 @@ body{
 .table-hover tbody tr:hover {
     background: #f1f5ff;
 }
-
-.card-box {
-    background: white;
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0 2px 5px rgba(0,0,0,.05);
-}
-
-.stat-number {
-    font-size: 24px;
-    font-weight: bold;
-    color: #4a7dff;
-}
-
-.table-box {
-    background: white;
-    border-radius: 12px;
-    padding: 15px;
-}

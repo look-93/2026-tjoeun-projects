@@ -30,15 +30,15 @@
 		<!-- 승인 관리 탭 -->
 		<div th:if="${tab == 'approval'}">
 		
-		<div class="col-md-3">
-		    <div class="card-box">
-		        <h6>승인 대기</h6>
-		        <div class="stat-number" th:text="${waitingCnt}"></div>
-		    </div>
-		</div>
-		
-		    <h4>광고 승인 관리</h4>
-		    
+			<div class="mb-4">
+				<div class="col-md-3">
+				    <div class="card-box">
+				        <h6>승인 대기</h6>
+				        <div class="stat-number" th:text="${waitingCnt}"></div>
+				    </div>
+				</div>
+			</div>
+				    
 		    <!-- 승인 관리 검색 -->
 			<div class="table-box mb-3">
 			
@@ -57,7 +57,7 @@
 			            </div>
 			
 			            <div class="col-md-2">
-			                <button class="btn btn-primary">검색</button>
+			                <button type="submit" class="btn btn-primary">검색</button>
 			            </div>
 			
 			        </div>
@@ -65,55 +65,67 @@
 			    </form>
 			
 			</div>
+						
+		    <h4>광고 승인 관리</h4>
 		
-		    <table class="table">
-			    <tr>
-			        <th>번호</th>
-			        <th>이미지</th>
-			        <th>광고명</th>
-			        <th>유형</th>
-			        <th>상태</th>
-			        <th>기간</th>
-			        <th>관리</th>
-			    </tr>
+		    <table class="table table-hover align-middle">
+			    <thead>
+				    <tr>
+				        <th>번호</th>
+				        <th>이미지</th>
+				        <th>광고명</th>
+				        <th>유형</th>
+				        <th>상태</th>
+				        <th>기간</th>
+				        <th>관리</th>
+				    </tr>
+			    </thead>
 			
-			    <tr th:each="ad, stat : ${list}">
-			        
-			        <!-- 번호 -->
-			        <td th:text="${totalCnt - ((dto.page - 1) * dto.size + stat.index)}"></td>
-			
-			        <!-- 이미지 -->
-			        <td>
-			            <img th:if="${ad.imageUrl != null}"
-			                 th:src="${ad.imageUrl}"
-			                 style="width:70px;height:45px;object-fit:cover;border-radius:6px;"/>
-			        </td>
-			
-			        <!-- 광고명 -->
-			        <td th:text="${ad.title}"></td>
-			
-			        <!-- 유형 -->
-			        <td th:text="${ad.adChannel}"></td>
-			
-			        <!-- 상태 -->
-			        <td th:text="${ad.approvalStatus}"></td>
-			
-			        <!-- 기간 -->
-			        <td>
-			            <span th:text="${ad.startDatetime}"></span>
-			            ~
-			            <span th:text="${ad.endDatetime}"></span>
-			        </td>
-			
-			        <!-- 관리 (승인 버튼) -->
-			        <td>
-			            <form th:action="@{/admin/advertisement/approve}" method="post">
-			                <input type="hidden" name="adId" th:value="${ad.adId}"/>
-			                <button class="btn btn-sm btn-success">승인</button>
-			            </form>
-			        </td>
-			
-			    </tr>
+				<tbody>
+				    <tr th:each="ad, stat : ${list}">
+				        
+				        <!-- 번호 -->
+				        <td th:text="${totalCnt - ((dto.page - 1) * dto.size + stat.index)}"></td>
+				
+				        <!-- 이미지 -->
+				        <td>
+						    <img th:if="${ad.imageList != null and !#lists.isEmpty(ad.imageList)}"
+						         th:src="${ad.imageList[0].imageUrl}"
+						         style="width:70px;height:45px;object-fit:cover;border-radius:6px;">
+						</td>
+				
+				        <!-- 광고명 -->
+				        <td th:text="${ad.title}"></td>
+				
+				        <!-- 유형 -->
+				        <td th:text="${ad.adChannel}"></td>
+				
+				        <!-- 상태 -->
+				        <td th:text="${ad.approvalStatus}"></td>
+				
+				        <!-- 기간 -->
+				        <td>
+				            <span th:text="${ad.startDatetime}"></span>
+				            ~
+				            <span th:text="${ad.endDatetime}"></span>
+				        </td>
+				
+				        <!-- 관리 (승인 버튼) -->
+				        <td>
+				        	<div class="d-flex gap-1">
+						        <a class="btn btn-sm btn-primary"
+						           th:href="@{/admin/advertisement/approvalDetail(adId=${ad.adId}, mode='approval')}">
+						            상세
+						        </a>
+					            <form th:action="@{/admin/advertisement/approve}" method="post">
+					                <input type="hidden" name="adId" th:value="${ad.adId}"/>
+					                <button type="submit" class="btn btn-sm btn-success">승인</button>
+					            </form>
+				            </div>
+				        </td>
+				
+				    </tr>
+			    </tbody>
 			</table>
 		
 		</div>
@@ -127,7 +139,7 @@
 	        <div class="col-md-3">
 	            <div class="card-box">
 	                <h6>전체 광고</h6>
-	                <div class="stat-number" th:text="${totalAdCnt}"></div>
+	                <div class="stat-number" th:text="${totalAdCnt}">0</div>
 	            </div>
 	        </div>
 	
@@ -173,14 +185,14 @@
 	                    <div class="col-md-3">
 	                        <select name="status" class="form-select">
 	                            <option value="">전체</option>
-	                            <option value="OPEN">OPEN</option>
+	                            <option value="OPEN" th:selected="${param.status=='OPEN'}">OPEN</option>
 	                            <option value="PENDING">PENDING</option>
 	                            <option value="CLOSED">CLOSED</option>
 	                        </select>
 	                    </div>
 	
 	                    <div class="col-md-2">
-	                        <button class="btn btn-primary">검색</button>
+	                        <button type="submit" class="btn btn-primary">검색</button>
 	                    </div>
 	
 	                </div>
@@ -192,82 +204,88 @@
 	        
 		    <h4>광고 게시 관리</h4>
 		
-		    <table class="table">
-			    <tr>
-			        <th>번호</th>
-			        <th>이미지</th>
-			        <th>광고명</th>
-			        <th>유형</th>
-			        <th>상태</th>
-			        <th>기간</th>
-			        <th>노출수</th>
-			        <th>클릭수</th>
-			        <th>관리</th>
-			    </tr>
+		    <table class="table table-hover align-middle">
+		    	<thead>
+				    <tr>
+				        <th>번호</th>
+				        <th>이미지</th>
+				        <th>광고명</th>
+				        <th>유형</th>
+				        <th>상태</th>
+				        <th>기간</th>
+				        <th>노출수</th>
+				        <th>클릭수</th>
+				        <th>관리</th>
+				    </tr>
+				</thead>
 			
-			    <tr th:each="ad, stat : ${list}">
-			
-			        <!-- 번호 -->
-			        <td th:text="${totalCnt - ((dto.page - 1) * dto.size + stat.index)}"></td>
-			
-			        <!-- 이미지 -->
-			        <td>
-			            <img th:if="${ad.imageUrl != null}"
-			                 th:src="${ad.imageUrl}"
-			                 style="width:70px;height:45px;object-fit:cover;border-radius:6px;"/>
-			        </td>
-			
-			        <!-- 광고명 -->
-			        <td th:text="${ad.title}"></td>
-			
-			        <!-- 유형 -->
-			        <td th:text="${ad.adChannel}"></td>
-			
-			        <!-- 상태 -->
-			        <td>
-			            <span th:if="${ad.approvalStatus == 'APPROVED'} and ${ad.startDatetime.isAfter(now)}">
-			                PENDING
-			            </span>
-			
-			            <span th:if="${ad.approvalStatus == 'APPROVED'} 
-			                        and ${ad.startDatetime.isBefore(now)} 
-			                        and ${ad.endDatetime.isAfter(now)}">
-			                OPEN
-			            </span>
-			
-			            <span th:if="${ad.endDatetime.isBefore(now)}">
-			                CLOSED
-			            </span>
-			        </td>
-			
-			        <!-- 기간 -->
-			        <td>
-			            <span th:text="${ad.startDatetime}"></span>
-			            ~
-			            <span th:text="${ad.endDatetime}"></span>
-			        </td>
-			
-			        <!-- 노출수 -->
-			        <td th:text="${ad.impressions}"></td>
-			
-			        <!-- 클릭수 -->
-			        <td th:text="${ad.clicks}"></td>
-			
-			        <!-- 관리 (상세 버튼) -->
-			        <td>
-			            <a class="btn btn-sm btn-primary"
-			               th:href="@{/admin/advertisement/manageDetail(adId=${ad.adId})}">
-			                상세
-			            </a>
-			        </td>
-			
-			    </tr>
+				<tbody>
+				    <tr th:each="ad, stat : ${list}">
+				
+				        <!-- 번호 -->
+				        <td th:text="${totalCnt - ((dto.page - 1) * dto.size + stat.index)}"></td>
+				
+				        <!-- 이미지 -->
+				        <td>
+						    <img th:if="${ad.imageList != null and !#lists.isEmpty(ad.imageList)}"
+						         th:src="${ad.imageList[0].imageUrl}"
+						         style="width:70px;height:45px;object-fit:cover;border-radius:6px;">
+						</td>
+				
+				        <!-- 광고명 -->
+				        <td th:text="${ad.title}"></td>
+				
+				        <!-- 유형 -->
+				        <td th:text="${ad.adChannel}"></td>
+				
+				        <!-- 상태 -->
+				        <td>
+				            <span th:if="${ad.approvalStatus == 'APPROVED'
+    										and ad.startDatetime.isAfter(now)}">
+				                PENDING
+				            </span>
+				
+				            <span th:if="${ad.approvalStatus == 'APPROVED'
+							    and ad.startDatetime.isBefore(now)
+							    and ad.endDatetime.isAfter(now)}">
+							    OPEN
+				            </span>
+				
+				            <span th:if="${ad.approvalStatus == 'APPROVED'
+							    and ad.endDatetime.isBefore(now)}">
+							    CLOSED
+							</span>
+				        </td>
+				
+				        <!-- 기간 -->
+				        <td>
+				            <span th:text="${ad.startDatetime}"></span>
+				            ~
+				            <span th:text="${ad.endDatetime}"></span>
+				        </td>
+				
+				        <!-- 노출수 -->
+				        <td th:text="${ad.impressions}"></td>
+				
+				        <!-- 클릭수 -->
+				        <td th:text="${ad.clicks}"></td>
+				
+				        <!-- 관리 (상세 버튼) -->
+				        <td>
+				            <a class="btn btn-sm btn-primary"
+				               th:href="@{/admin/advertisement/manageDetail(adId=${ad.adId}, mode='manage')}">
+				                상세
+				            </a>
+				        </td>
+				
+				    </tr>
+				</tbody>
 			</table>
 		
 		</div>
 		
 		<!-- 페이징 (JSP 스타일 유지) -->
-	    <nav class="mt-4">
+	    <nav class="mt-4" th:if="${totalPage > 0}">
 	        <ul class="pagination justify-content-center">
 	
 	            <li class="page-item" th:classappend="${dto.page <= 1} ? 'disabled'">

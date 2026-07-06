@@ -22,9 +22,9 @@ public interface AdvertisementMapper {
 	int selectAdminAdvertisementTotalCnt(AdvertisementSearchDto dto);
 
 	// 승인 목록
-	List<AdvertisementDto> searchApprovalList(AdvertisementSearchDto dto);
+	List<AdvertisementDto> searchWaitingList(AdvertisementSearchDto dto);
 
-	int selectApprovalAdvertisementTotalCnt(AdvertisementSearchDto dto);
+	int selectWaitingTotalCnt(AdvertisementSearchDto dto);
 
     // 상세 조회
     AdvertisementDto selectAdvertisementOne(int adId);

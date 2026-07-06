@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Controller
-@RequestMapping("/advertisement")
+@RequestMapping("/user/advertisement")
 public class AdvertisementController {
 
     private final AdvertisementService advertisementService;
@@ -40,7 +40,7 @@ public class AdvertisementController {
                 (Integer) session.getAttribute("loginMemberId");
 
         if (loginMemberId == null) {
-            loginMemberId = 3;
+            loginMemberId = 12;
             //  return "redirect:/member/login"; // 로그인 연동시 변경
         }
 
@@ -65,15 +65,16 @@ public class AdvertisementController {
         model.addAttribute("dto", dto);
         model.addAttribute("totalCnt", totalCnt);
         model.addAttribute("totalPage", totalPage);
+        model.addAttribute("menu", "advertisement");
 
-        return "advertisement/list";
+        return "user/advertisement/adList";
     }
 
     // 등록 화면
     @GetMapping("/write")
     public String write() {
 
-        return "advertisement/write";
+    	return "user/advertisement/adWrite";
 
     }
 
@@ -92,7 +93,7 @@ public class AdvertisementController {
                     (Integer) session.getAttribute("loginMemberId");
 
             if (loginMemberId == null) {
-                loginMemberId = 3;
+                loginMemberId = 12;
                 // return "redirect:/member/login";
             }
 
@@ -139,7 +140,7 @@ public class AdvertisementController {
             throw new RuntimeException(e);
         }
 
-        return "redirect:/advertisement/list";
+        return "redirect:/user/advertisement/adList";
     }
 
  // 상세 조회
@@ -159,25 +160,21 @@ public class AdvertisementController {
                 (Integer) session.getAttribute("loginMemberId");
 
         if (loginMemberId == null) {
-            loginMemberId = 3;
+            loginMemberId = 12;
             // return "redirect:/member/login";
         }
 
         if (dto == null) {
-            return "redirect:/advertisement/list";
+            return "redirect:/user/advertisement/adList";
         }
 
         if (dto.getAdvertiserId() != loginMemberId) {
-            return "redirect:/advertisement/list";
+            return "redirect:/user/advertisement/adList";
         }
 
         model.addAttribute("dto", dto);
 
-        model.addAttribute(
-                "imageList",
-                advertisementService.selectAdvertisementImageList(adId));
-
-        return "advertisement/detail";
+        return "user/advertisement/adDetail";
     }
     
     // 수정 화면
@@ -194,25 +191,21 @@ public class AdvertisementController {
                 (Integer) session.getAttribute("loginMemberId");
 
         if (loginMemberId == null) {
-            loginMemberId = 3;
+            loginMemberId = 12;
             // return "redirect:/member/login";
         }
 
         if (dto == null) {
-            return "redirect:/advertisement/list";
+            return "redirect:/user/advertisement/adList";
         }
 
         if (dto.getAdvertiserId() != loginMemberId) {
-            return "redirect:/advertisement/list";
+            return "redirect:/user/advertisement/adList";
         }
 
         model.addAttribute("dto", dto);
 
-        model.addAttribute(
-                "imageList",
-                advertisementService.selectAdvertisementImageList(adId));
-
-        return "advertisement/edit";
+        return "user/advertisement/adEdit";
     }
 
     // 수정
@@ -238,16 +231,16 @@ public class AdvertisementController {
                     (Integer) session.getAttribute("loginMemberId");
 
             if (loginMemberId == null) {
-                loginMemberId = 3;
+                loginMemberId = 12;
                 // return "redirect:/member/login";
             }
 
             if (origin == null) {
-                return "redirect:/advertisement/list";
+                return "redirect:/user/advertisement/adList";
             }
 
             if (origin.getAdvertiserId() != loginMemberId) {
-                return "redirect:/advertisement/list";
+                return "redirect:/user/advertisement/adList";
             }
 
             dto.setAdvertiserId(loginMemberId);
@@ -320,7 +313,7 @@ public class AdvertisementController {
             throw new RuntimeException(e);
         }
 
-        return "redirect:/advertisement/detail?adId=" + dto.getAdId();
+        return "redirect:/user/advertisement/adDetail?adId=" + dto.getAdId();
     }
 
     // 삭제
@@ -336,17 +329,17 @@ public class AdvertisementController {
                 (Integer) session.getAttribute("loginMemberId");
 
         if (loginMemberId == null) {
-            loginMemberId = 3;
+            loginMemberId = 12;
             // return "redirect:/member/login";
         }
 
         // 권한 체크
         if (dto == null) {
-            return "redirect:/advertisement/list";
+            return "redirect:/user/advertisement/adList";
         }
 
         if (dto.getAdvertiserId() != loginMemberId) {
-            return "redirect:/advertisement/list";
+            return "redirect:/user/advertisement/adList";
         }
 
         // 기존 이미지 조회
@@ -377,7 +370,7 @@ public class AdvertisementController {
         // 광고 삭제(논리삭제)
         advertisementService.deleteAdvertisement(adId);
 
-        return "redirect:/advertisement/list";
+        return "redirect:/user/advertisement/adList";
     }
 
     // 광고 클릭
