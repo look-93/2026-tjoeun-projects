@@ -26,23 +26,24 @@
     </div>
 
     <!-- 우측 그룹 -->
-    <div class="right-group">
+    
 
         <div class="header-slogan">
             <span>우리들의 취향 맞춤 소모임 플랫폼</span>
         </div>
-
+        
+		<div class="header-right">
         <nav>
 
             <!-- 로그인 안한 상태 -->
             <div sec:authorize="isAnonymous()">
                 <a class="nav-link inquiry-btn"
-                   th:href="@{/users/login}">
+                   th:href="@{/user/login}">
                     로그인
                 </a>
 
                 <a class="nav-link inquiry-btn"
-                   th:href="@{/users/join}">
+                   th:href="@{/user/join}">
                     회원가입
                 </a>
             </div>
@@ -87,7 +88,7 @@
                 </a>
 
                 <!-- 로그아웃 -->
-                <form th:action="@{/users/logout}" method="post">
+                <form th:action="@{/user/logout}" method="post">
                     <input type="hidden"
                            th:name="${_csrf.parameterName}"
                            th:value="${_csrf.token}">
