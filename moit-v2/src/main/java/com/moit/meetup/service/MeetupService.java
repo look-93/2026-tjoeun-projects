@@ -2,7 +2,9 @@ package com.moit.meetup.service;
 
 import java.util.List;
 
+import com.moit.meetup.dto.MeetupApplicationDto;
 import com.moit.meetup.dto.MeetupDto;
+import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
 import com.moit.meetup.dto.common.CategoryDto;
 import com.moit.meetup.dto.common.SidoDto;
@@ -20,4 +22,19 @@ public interface MeetupService {
 	//카테고리
 	public List<CategoryDto> findAllCategory();
 	public List<CategoryDto> findAllChildCategory();
+	
+	//좋아요기능
+	public boolean insertMeetupLike(MeetupLikeDto meetupLikeDto);
+	public int deleteMeetupLike(MeetupLikeDto meetupLikeDto);
+	public MeetupLikeDto selectMeetupLike(MeetupLikeDto meetupLikeDto);
+	public int countMeetupLike(MeetupLikeDto meetupLikeDto);	
+	
+	//사용자 - 모임 상세조회 - 모임 상세조회
+	public MeetupDto selectMeetupDetail(int meetupId);
+	//사용자 - 모임 신청정보
+	public MeetupApplicationDto findApplyInfo(MeetupApplicationDto meetupApplicationsDto);
+	//모임 신청
+	public int insertApplication(MeetupApplicationDto meetupApplicationDto);
+	//모임 신청 취소
+	public int cancelApplyMeetup(MeetupApplicationDto meetupApplicationDto);	
 }

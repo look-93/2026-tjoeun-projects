@@ -6,8 +6,7 @@
 
 			<h3>카테고리</h3>
 
-			<div class="category meetupList-category" id="meetupList-category">
-			</div>
+			<div class="category meetupList-category" id="meetupList-category"></div>
 
 			<div class="sidebar-ad meetupList-sidebar-ad">
 				<div class="ad-tag">ADVERTISEMENT</div>
@@ -19,23 +18,12 @@
 				</p>
 				<a href="#"> 지금 확인하기 </a>
 			</div>
+			
+			<div class="sidebar-ad meetupList-sidebar-ad" style="height:120px">
+				<p> 타겟층에게 홍보 하세요 </p>
+				<a href="#" style="height:40px">광고 신청하기</a>
+			</div>
 		</aside>
- 	<script>
-	function makeCategory(categorys){
-		const category = document.getElementById("meetupList-category");
-
-		let html = '<a href="#" class="active" categoryId="0">전체</a>';
-		categorys.forEach(data=>{
-			html +=`
-				<a href="#" categoryId="${categoryId}">${data.categoryName}</a>
-			`;
-		}) 
-		
-		document.getElementById("meetupList-category").innerHTML=html;
-	}
-	
-	</script>
 	</th:block>
 </body>
 </html>
-

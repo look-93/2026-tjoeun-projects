@@ -444,6 +444,54 @@ SECTION
     text-decoration: none;
 }
 
+/* =========================
+   MEETUP CREATE BUTTON / SEARCH MEETUP
+========================= */
+.btn-search-meetup {
+    background: var(--c4);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+
+    font-weight: 600;
+
+    transition: all 0.2s ease;
+}
+
+/* hover */
+.btn-search-meetup:hover {
+    background: #5367f0;
+    box-shadow: 0 6px 15px rgba(83, 103, 240, 0.25);
+}
+
+.btn-create-meetup {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 12px 18px;
+    border-radius: 12px;
+
+    background: linear-gradient(135deg, var(--c4), var(--c3));
+    color: white;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    text-decoration: none;
+
+    box-shadow: var(--shadow);
+
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+/* hover */
+.btn-create-meetup:hover {
+    background: linear-gradient(135deg, #5367f0, var(--c4));
+}
 
 /* ==================================================
    MAIN CONTENT AREA (main- 접두사 추가 파트)
