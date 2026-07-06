@@ -74,17 +74,17 @@
 	</select>
 
 	<!-- 문의글 작성 -->
-	<insert id="insertQuestion"
-        parameterType="QuestionDto"
-        useGeneratedKeys="true"
-        keyProperty="questionId"
-        keyColumn="question_id">
-
+	<insert id="insertQuestion" parameterType="QuestionDto">
+	<selectKey keyProperty="questionId"
+               resultType="int"
+               order="BEFORE">
+        SELECT question_seq.NEXTVAL FROM dual
+    </selectKey>
     INSERT INTO questions
-    (parent_id, member_id, category, title, content,
+    (question_id, parent_id, member_id, category, title, content,
      is_public, delete_yn)
     VALUES
-    (#{parentId}, #{memberId}, #{category},
+    (#{questionId}, #{parentId}, #{memberId}, #{category},
      #{title}, #{content},
      #{isPublic}, #{deleteYn})
 	</insert>
