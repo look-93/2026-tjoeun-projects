@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.moit.dao.AdvertiserMapper">
+
+    <!-- 광고주 자동완성 -->
+    <select id="searchAdvertiserByNickname"
+            resultType="com.moit.dto.AdvertiserDto">
+
+        SELECT
+            m.member_id,
+            m.nickname
+        FROM members m
+        JOIN member_type mt
+            ON m.member_type_id = mt.member_type_id
+        WHERE m.delete_yn = 'N'
+          AND mt.type_name = 'ROLE_PARTNER'
+          AND m.nickname LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY m.nickname ASC
+        LIMIT 10
+
+    </select>
+
+</mapper>

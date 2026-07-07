@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layouts/adminLayout}">
+
+<head>
+    <title>광고 상세</title>
+</head>
+
+<section layout:fragment="content">
+
+<div class="container-fluid">
+
+    <h1 class="page-title">광고 상세</h1>
+
+    <div class="card-box">
+
+        
+
+        <!-- 통계 -->
+        <div class="row mb-4">
+
+            <div class="col-md-4">
+                <div class="card-box text-center">
+                    <div class="info-title">노출수</div>
+                    <div class="stat-number" th:text="${dto.impressions}">0</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card-box text-center">
+                    <div class="info-title">클릭수</div>
+                    <div class="stat-number" th:text="${dto.clicks}">0</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card-box text-center">
+                    <div class="info-title">CTR</div>
+
+                    <div class="stat-number">
+                        <span th:if="${dto.impressions > 0}"
+                              th:text="${#numbers.formatDecimal(dto.clicks * 100.0 / dto.impressions, 1, 2)} + '%'"></span>
+
+                        <span th:if="${dto.impressions == 0}">
+                            0.00%
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- 이미지 리스트 -->
+		<div class="ad-image mb-4"
+		     th:if="${dto.imageList != null and !#lists.isEmpty(dto.imageList)}">
+		
+		    <div th:each="img : ${dto.imageList}"
+		         style="margin-bottom:10px;">
+		
+		        <img th:src="${img.imageUrl}"
+		             style="width:100%;height:300px;object-fit:cover;border-radius:10px;">
+		    </div>
+		
+		</div>
+		
+		<!-- 이미지 없을 때 -->
+		<div class="ad-image mb-4"
+		     th:if="${dto.imageList == null or #lists.isEmpty(dto.imageList)}">
+		
+		    <img src="/upload/no-image.png"
+		         style="width:100%;height:300px;object-fit:cover;border-radius:10px;">
+		</div>
+
+        <!-- 정보 -->
+        <div class="row g-3">
+
+            <div class="col-md-3">
+                <div class="info-box">
+                    <div class="info-title">광고명</div>
+                    <div class="info-value" th:text="${dto.title}"></div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="info-box">
+                    <div class="info-title">광고유형</div>
+                    <div class="info-value" th:text="${dto.adType}"></div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="info-box">
+                    <div class="info-title">상태</div>
+                    <div class="info-value" th:text="${dto.status}"></div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="info-box">
+                    <div class="info-title">위치</div>
+                    <div class="info-value" th:text="${dto.position}"></div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="info-box">
+                    <div class="info-title">광고채널</div>
+                    <div class="info-value" th:text="${dto.adChannel}"></div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="info-box">
+                    <div class="info-title">시작일</div>
+                    <div class="info-value" th:text="${dto.startDatetime}"></div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="info-box">
+                    <div class="info-title">종료일</div>
+                    <div class="info-value" th:text="${dto.endDatetime}"></div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="info-box">
+                    <div class="info-title">우선순위</div>
+                    <div class="info-value" th:text="${dto.priorityScore}"></div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="info-box">
+                    <div class="info-title">예산</div>
+                    <div class="info-value" th:text="${dto.totalBudget}"></div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="info-box">
+                    <div class="info-title">등록일</div>
+                    <div class="info-value" th:text="${dto.createdAt}"></div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="info-box">
+                    <div class="info-title">수정일</div>
+                    <div class="info-value" th:text="${dto.updatedAt}"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <hr class="my-4">
+
+        <!-- 내용 -->
+        <h5>광고 내용</h5>
+        <p th:text="${dto.content}"></p>
+
+        <hr class="my-4">
+
+        <!-- 링크 -->
+        <h5>외부 링크</h5>
+        <a th:href="${dto.landingUrl}" target="_blank"
+           th:text="${dto.landingUrl}"></a>
+
+        <hr class="my-4">
+
+        <!-- ========================= -->
+        <!-- 🔥 모드별 버튼 영역 -->
+        <!-- ========================= -->
+
+        <div class="btn-area mt-4">
+
+            <!-- 목록 -->
+            <a th:href="@{/admin/advertisement/manageList}"
+               class="btn btn-secondary">
+                목록
+            </a>
+
+            <!-- ========================= -->
+            <!-- 승인 모드 -->
+            <!-- ========================= -->
+            <div th:if="${mode == 'approval'}" style="display:inline;">
+
+                <form th:action="@{/admin/advertisement/approve}"
+                      method="post"
+                      style="display:inline;">
+
+                    <input type="hidden" name="adId" th:value="${dto.adId}"/>
+
+                    <button type="submit" class="btn btn-success">
+                        승인
+                    </button>
+
+                </form>
+
+                <form th:action="@{/admin/advertisement/reject}"
+                      method="post"
+                      style="display:inline;">
+
+                    <input type="hidden" name="adId" th:value="${dto.adId}"/>
+
+                    <input type="text" name="rejectReason"
+                           placeholder="반려 사유"
+                           class="form-control d-inline-block"
+                           style="width:200px;">
+
+                    <button type="submit" class="btn btn-danger">
+                        반려
+                    </button>
+
+                </form>
+
+            </div>
+
+            <!-- ========================= -->
+            <!-- 운영 모드 -->
+            <!-- ========================= -->
+            <div th:if="${mode == 'manage'}" style="display:inline;">
+
+                <form th:action="@{/admin/advertisement/status}"
+                      method="post"
+                      style="display:inline;">
+
+                    <input type="hidden" name="adId" th:value="${dto.adId}"/>
+
+                    <select name="status" class="form-select d-inline-block"
+                            style="width:150px; display:inline;">
+                        <option value="OPEN">OPEN</option>
+                        <option value="CLOSED">CLOSED</option>
+                        <option value="PAUSED">PAUSED</option>
+                    </select>
+
+                    <button type="submit" class="btn btn-primary">
+                        상태 변경
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+</section>
+</html>

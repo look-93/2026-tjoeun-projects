@@ -23,6 +23,8 @@
       <security:intercept-url  pattern="/security/all"     access="permitAll" />
       <security:intercept-url  pattern="/security/member"  access="hasRole('ROLE_MEMBER')" />
       
+      <security:intercept-url pattern="/users/checkLoginId" access="permitAll"/>
+	  <security:intercept-url pattern="/users/checkNickname" access="permitAll"/>
       <security:intercept-url  pattern="/users/join"     access="permitAll" />
       <security:intercept-url  pattern="/users/login"    access="permitAll" />
       <security:intercept-url  pattern="/users/**"       access="isAuthenticated()" />
@@ -38,12 +40,21 @@
 						 invalidate-session="true"   />
       
    </security:http>
+   
+<!--     <bean id="customAuthenticationProvider" class="com.moit.security.CustomAuthenticationProvider">
+	    <property name="userDetailsService" ref="customUserDetailsService"/>
+	    <property name="passwordEncoder" ref="passwordEncoder"/>
+	</bean>
+
+	<security:authentication-manager>
+	    <security:authentication-provider ref="customAuthenticationProvider"/>
+	</security:authentication-manager> -->
     
    <security:authentication-manager>
       <security:authentication-provider   user-service-ref="customUserDetailsService">
          <security:password-encoder      ref="passwordEncoder"/>
       </security:authentication-provider>
-   </security:authentication-manager>
+   </security:authentication-manager> 
 
 </beans>
 

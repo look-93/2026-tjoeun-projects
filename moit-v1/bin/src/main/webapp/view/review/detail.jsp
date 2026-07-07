@@ -335,6 +335,104 @@ nav a{
     color:#666;
 }
 
+.report-btn{
+    border:none;
+    background:#ffeded;
+    color:#e53935;
+    padding:6px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:12px;
+    font-weight:600;
+}
+
+.report-btn:hover{
+    background:#ffd6d6;
+}
+
+.content-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:15px;
+}
+
+.comment-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:5px;
+}
+
+.inquiry-btn{
+    width:100%;
+    margin-top:12px;
+    border:none;
+    background:var(--c2);
+    color:#222;
+    padding:12px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+/* SIDEBAR AD */
+
+.sidebar-ad{
+    margin-top:25px;
+    min-height:450px;
+
+    background:linear-gradient(
+        180deg,
+        var(--c4),
+        var(--c3)
+    );
+
+    border-radius:20px;
+    padding:25px;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+
+    text-align:center;
+    color:white;
+
+    box-shadow:var(--shadow);
+}
+
+.sidebar-ad .ad-tag{
+    background:rgba(255,255,255,.2);
+    padding:5px 12px;
+    border-radius:20px;
+    margin-bottom:15px;
+    font-size:12px;
+}
+
+.sidebar-ad h3{
+    font-size:24px;
+    margin-bottom:15px;
+    line-height:1.4;
+}
+
+.sidebar-ad p{
+    margin-bottom:20px;
+    line-height:1.6;
+}
+
+.sidebar-ad a{
+    background:white;
+    color:var(--c4);
+
+    text-decoration:none;
+
+    padding:12px 20px;
+    border-radius:12px;
+
+    font-weight:bold;
+}
+
 </style>
 </head>
 
@@ -393,7 +491,10 @@ nav a{
     </div>
 
     <div class="content-box">
-        <div class="badge">모집중</div>
+        <div class="content-top">
+            <div class="badge">모집중</div>
+            <button class="report-btn">🚨 모임 신고</button>
+        </div>
         <h1 class="title">등산 좋아하는 사람 모여라!</h1>
 
         <div class="tags">
@@ -414,6 +515,7 @@ nav a{
             <div class="tab-btn active" onclick="showTab(0)">상세정보</div>
             <div class="tab-btn" onclick="showTab(1)">신청자</div>
             <div class="tab-btn" onclick="showTab(2)">후기</div>
+            <div class="tab-btn" onclick="showTab(3)">Q&A</div>
         </div>
 
         <div class="tab-content">
@@ -426,7 +528,9 @@ nav a{
             <div class="tab-panel">
                 <p>홍길동 외 7명</p>
             </div>
-
+            
+            
+<!-- 내부분 -->
             <div class="tab-panel">
 
                 <div class="rating-box">
@@ -465,8 +569,14 @@ nav a{
 
                 <!-- COMMENTS -->
                 <div class="comment">
-                    <div class="comment-name">김모잇</div>
-                    <div class="comment-date">2026.06.15</div>
+                    <div class="comment-top">
+                        <div>
+                            <div class="comment-name">김모잇</div>
+                            <div class="comment-date">2026.06.15</div>
+                        </div>
+
+                        <button class="report-btn">신고</button>
+                    </div>
 
                     <div class="comment-images">
                         <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=150&q=80">
@@ -478,14 +588,40 @@ nav a{
                 </div>
 
                 <div class="comment">
-                    <div class="comment-name">이모임</div>
-                    <div class="comment-date">2026.06.12</div>
+                    <div class="comment-top">
+                        <div>
+                            <div class="comment-name">이모임</div>
+                            <div class="comment-date">2026.06.12</div>
+                        </div>
+
+                        <button class="report-btn">신고</button>
+                    </div>
                     <p>초보도 부담 없이 참여 가능</p>
                 </div>
 
             </div>
 
+            <div class="tab-panel">
+
+                <h3>Q&A</h3>
+
+                <div class="comment">
+                    <div class="comment-name">익명</div>
+                    <div class="comment-date">2026.06.18</div>
+                    <p>초보인데 참여 가능할까요?</p>
+                </div>
+
+                <div class="comment">
+                    <div class="comment-name">작성자</div>
+                    <div class="comment-date">2026.06.18</div>
+                    <p>네 초보도 환영입니다!</p>
+                </div>
+
+            </div>
+
         </div>
+<!-- 내부분 -->
+
 
     </div>
 
@@ -506,6 +642,10 @@ nav a{
     <div class="side-box">
         <h3>작성자</h3>
         <p>홍길동</p>
+
+        <button class="inquiry-btn">
+            💬 모임글 문의하기
+        </button>
     </div>
 
     <!-- ✅ 추천모임 복구 -->
@@ -527,6 +667,28 @@ nav a{
                 <div class="recommend-tag">경기</div>
             </div>
         </div>
+
+    </div>
+
+    <div class="sidebar-ad">
+
+        <div class="ad-tag">
+            ADVERTISEMENT
+        </div>
+
+        <h3>
+            프리미엄<br>
+            모임 홍보
+        </h3>
+
+        <p>
+            내 모임을 메인 화면에<br>
+            노출해 보세요
+        </p>
+
+        <a href="#">
+            광고 신청
+        </a>
 
     </div>
 

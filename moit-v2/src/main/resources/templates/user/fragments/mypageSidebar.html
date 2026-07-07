@@ -5,6 +5,7 @@
 		<aside class="sidebar">
 		    <div class="menu">
 		        <a href="#">내 정보</a>
+
 		        
 		        <a href="/mypage/myMeetupInfo"
 		           class="menu-link"
@@ -22,6 +23,12 @@
 		        <a href="#">내 문의내역</a>
 		        <a href="#">내 작성후기</a>
 		        <a href="#">내 신고내역</a>        
+
+		        <a th:href="@{/user/advertisement/list}"
+	               th:classappend="${menu == 'advertisement'} ? ' active'">
+	                내 광고내역(제휴용)
+	            </a>         
+
 		    </div>
 		</aside>
 		
