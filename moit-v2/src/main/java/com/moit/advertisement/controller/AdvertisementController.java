@@ -17,6 +17,7 @@ import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.service.AdvertisementService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
@@ -328,18 +329,31 @@ public class AdvertisementController {
 
     // 광고 클릭
     @GetMapping("/click")
-    public String click(@RequestParam int adId) {
+    public String click(
+            @RequestParam int adId,
+            HttpServletRequest request,
+            HttpSession session) {
+
 
         advertisementService.updateAdvertisementClick(adId);
+
+
+//        advertisementService.insertClickLog(
+//                adId,
+//                request,
+//                session
+//        );
+
 
         AdvertisementDto dto =
                 advertisementService.selectAdvertisementOne(adId);
 
-        if (dto == null || dto.getLandingUrl() == null) {
+
+        if(dto == null || dto.getLandingUrl() == null){
             return "redirect:/";
         }
 
+
         return "redirect:" + dto.getLandingUrl();
     }
-
 }

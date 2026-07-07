@@ -5,7 +5,7 @@
 <mapper namespace="com.moit.member.dao.UserMapper">
   
   <!-- 로그인 -->	
-  <select id="readByLoginId" parameterType="map" resultType="UserDto">
+  <select id="readByLoginId" parameterType="string" resultType="AuthUserDto">
      SELECT m.login_id, m.password, mt.type_name, m.nickname,m.profile_url
         FROM members m
         JOIN member_type mt ON m.member_type_id = mt.member_type_id
@@ -14,7 +14,16 @@
   
   <!-- 마이페이지 -->
   <select id="findByLoginId" resultType="UserDto" parameterType="UserDto">
-		select * from appuser where login_id = #{loginId}
+		SELECT
+	    m.member_id, m.login_id, m.mobile, m.nickname, m.email, m.password, m.profile_url, m.member_type_id, m.status_id,	
+	    mi.gender, mi.birth, mi.point, mi.trust_score, mi.login_ip, mi.join_ip, mi.ai_summary
+	
+		FROM members m
+		JOIN member_info mi
+		ON m.member_id = mi.member_id
+		
+		WHERE m.login_id = #{loginId}
+		AND m.delete_yn='N'
   </select>
   
   <!-- 회원가입 -->
@@ -22,7 +31,7 @@
         INSERT INTO members (
             member_id,login_id, mobile, nickname, email, password, member_type_id, status_id, profile_url
         ) VALUES (
-            #{memberId},#{loginId}, #{mobile}, #{nickname}, #{email}, #{password}, #{memberTypeId}, #{statusId}, #{profileUrl}
+            members_seq.nextval,#{loginId}, #{mobile}, #{nickname}, #{email}, #{password}, #{memberTypeId}, #{statusId}, #{profileUrl}
         )
   </insert>
   

@@ -6,13 +6,16 @@ import java.util.Map;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.moit.member.dto.AuthUserDto;
+import com.moit.member.dto.MyPageDto;
 import com.moit.member.dto.UserDto;
+import com.moit.member.dto.UserJoinDto;
 
 @Mapper
 public interface UserMapper {
 	// 1. 회원가입 (일반, 제휴업체, 관리자 공통 사용 가능)
     int insert(UserDto dto);
-
+    int insertInfo(UserJoinDto dto);
+    
     // 2. 로그인 인증 정보 조회
     AuthUserDto readAuth(Map<String,Object> map);
 
@@ -38,5 +41,5 @@ public interface UserMapper {
     
     /* security */
     // 로그인
-    AuthUserDto readByLoginId(UserDto dto);
+    AuthUserDto readByLoginId(String username);
 }
