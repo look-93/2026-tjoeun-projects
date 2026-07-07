@@ -1,6 +1,9 @@
 package com.moit.advertisement.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
@@ -8,6 +11,11 @@ import com.moit.advertisement.dto.AdvertisementSearchDto;
 
 public interface AdvertisementService {
 
+	// 스케쥴러
+	void updateAdvertisementStatus();
+	
+	int updatePriorityScore();
+	
 	// 제휴사용자 목록
 	List<AdvertisementDto> searchMyAdvertisement(AdvertisementSearchDto dto);
 
@@ -33,7 +41,10 @@ public interface AdvertisementService {
     int insertAdvertisement(AdvertisementDto dto);
 
     // 광고 수정
-    int updateAdvertisement(AdvertisementDto dto);
+    int updateAdvertisement(
+            AdvertisementDto dto,
+            List<MultipartFile> imageFiles,
+            List<String> imageTypes);
 
     // 광고 삭제
     int deleteAdvertisement(int adId);
@@ -43,6 +54,12 @@ public interface AdvertisementService {
     
     // 상태 변경
     int updateAdvertisementStatus(AdvertisementDto dto);
+
+    // 우선도 설정
+	int updateAdGrade(int adId, String adGrade);
+	
+	// 기간 변경
+    void updatePeriod(Long adId, LocalDateTime start, LocalDateTime end);
     
     // 이미지 등록
     int insertAdvertisementImage(AdvertisementImageDto dto);
@@ -70,5 +87,7 @@ public interface AdvertisementService {
     int selectPendingAdvertisementCnt();
 
     int selectClosedAdvertisementCnt();
+
+
 
 }

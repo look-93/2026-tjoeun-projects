@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{user/layouts/layout}">
 <head>
 <meta charset="UTF-8">
 
@@ -28,14 +29,13 @@ padding:12px 28px;border-radius:8px;border:1px solid #d9dfea;cursor:pointer;
 
 </head>
 <body>
-
-<div th:replace="~{user/fragments/header :: header}"></div>
+<div layout:fragment="content">
 
 <div class="inquiry-wrap">
     <div class="page-card">
-        <h1 class="page-title">모임 1:1 문의 등록</h1>
-        <div class="breadcrumb">1:1 문의 &gt; 문의 등록</div>
-
+        <h1 class="page-title" th:text="${category == 'MEETUP'} ? '모임 1:1 문의 등록' : '관리자 1:1 문의 등록'"></h1>
+        <div class="breadcrumb"> <span th:text="${category == 'MEETUP'} ? '모임글 1:1 문의' : '관리자 1:1 문의'"></span> &gt; 문의 등록 </div>
+		
         <form th:action="@{/questions/write}" method="post"
               onsubmit="return ck()">
 
@@ -43,7 +43,7 @@ padding:12px 28px;border-radius:8px;border:1px solid #d9dfea;cursor:pointer;
             <!-- 임시 -->
             <input type="hidden" name="memberId" value="1">
             <input type="hidden" name="parentId" value="1">
-            <input type="hidden" name="category" value="MEETUP">
+            <input type="hidden" name="category" th:value="${category}">
             <input type="hidden" name="deleteYn" value="N">
 
             <div class="form-group">
@@ -77,6 +77,7 @@ padding:12px 28px;border-radius:8px;border:1px solid #d9dfea;cursor:pointer;
     </div>
 </div>
 
+
 <script>
 	document.getElementById("privateChk")
 	    .addEventListener("change", function(){
@@ -93,8 +94,6 @@ padding:12px 28px;border-radius:8px;border:1px solid #d9dfea;cursor:pointer;
 	    return confirm("문의를 등록하시겠습니까?");
 	}
 </script>
-
-<div th:replace="~{user/fragments/footer :: footer}"></div>
-
+</div>
 </body>
 </html>

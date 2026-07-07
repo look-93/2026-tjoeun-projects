@@ -49,9 +49,12 @@ public class AdvertisementDto {
 
     // 운영
     private int priorityScore;
-    private Integer totalBudget;
+    private Long totalBudget;
 
     private Double fatigueScore;
+    
+    // 일반 / 프리미엄 구분
+    private String adGrade;
 
     // AI 검수
     private Double reviewScore;

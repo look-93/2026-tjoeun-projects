@@ -1,8 +1,14 @@
 package com.moit.advertisement.service;
 
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.advertisement.dao.AdvertisementMapper;
 import com.moit.advertisement.dto.AdvertisementDto;
@@ -16,7 +22,27 @@ import lombok.RequiredArgsConstructor;
 public class AdvertisementServiceImpl implements AdvertisementService {
 
 	private final AdvertisementMapper advertisementMapper;
+	private static final String UPLOAD_PATH = "C:/upload/ad";
 
+	// 스케쥴러
+	@Override
+	@Transactional
+	public void updateAdvertisementStatus() {
+
+		int openCnt = advertisementMapper.updatePendingToOpen();
+		int closeCnt = advertisementMapper.updateOpenToClosed();
+
+		System.out.println("OPEN 변경 : " + openCnt);
+	    System.out.println("CLOSED 변경 : " + closeCnt);
+	}
+	
+	@Override
+	public int updatePriorityScore() {
+
+	    return advertisementMapper.updatePriorityScore();
+
+	}
+	
 	// 제휴사용자 목록
 	@Override
 	public List<AdvertisementDto> searchMyAdvertisement(AdvertisementSearchDto dto) {
@@ -95,26 +121,158 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
 	// 광고 수정
 	@Override
-	public int updateAdvertisement(AdvertisementDto dto) {
-		return advertisementMapper.updateAdvertisement(dto);
+	@Transactional
+	public int updateAdvertisement(
+	        AdvertisementDto dto,
+	        List<MultipartFile> imageFiles,
+	        List<String> imageTypes) {
+
+	    // 광고 수정
+	    advertisementMapper.updateAdvertisement(dto);
+
+	    if (imageFiles == null || imageTypes == null) {
+	        return 1;
+	    }
+
+	    boolean hasNewImage = imageFiles.stream()
+	            .anyMatch(file -> file != null && !file.isEmpty());
+
+	    if (!hasNewImage) {
+	        return 1;
+	    }
+
+	    // 기존 이미지 조회
+	    List<AdvertisementImageDto> oldImages =
+	            advertisementMapper.selectAdvertisementImageList(dto.getAdId());
+
+	    // 실제 파일 삭제
+	    for (AdvertisementImageDto image : oldImages) {
+
+	        if (image.getImageUrl() == null)
+	            continue;
+
+	        String fileName =
+	                image.getImageUrl().replace("/upload/ad/", "");
+
+	        File oldFile =
+	                new File(UPLOAD_PATH, fileName);
+
+	        if (oldFile.exists()) {
+	            oldFile.delete();
+	        }
+	    }
+
+	    // DB 삭제
+	    advertisementMapper.deleteAdvertisementImages(dto.getAdId());
+
+	    File dir = new File(UPLOAD_PATH);
+
+	    if (!dir.exists()) {
+	        dir.mkdirs();
+	    }
+
+	    for (int i = 0; i < imageFiles.size(); i++) {
+
+	        MultipartFile file = imageFiles.get(i);
+
+	        if (file == null || file.isEmpty()) {
+	            continue;
+	        }
+
+	        String saveName =
+	                UUID.randomUUID()
+	                + "_"
+	                + file.getOriginalFilename();
+
+	        try {
+	            file.transferTo(new File(dir, saveName));
+	        } catch (IOException e) {
+	            throw new RuntimeException(e);
+	        }
+
+	        AdvertisementImageDto imageDto =
+	                new AdvertisementImageDto();
+
+	        imageDto.setAdId(dto.getAdId());
+	        imageDto.setImageType(imageTypes.get(i));
+	        imageDto.setImageUrl("/upload/ad/" + saveName);
+
+	        advertisementMapper.insertAdvertisementImage(imageDto);
+	    }
+
+	    return 1;
 	}
 
 	// 광고 삭제
 	@Override
+	@Transactional
 	public int deleteAdvertisement(int adId) {
-		return advertisementMapper.deleteAdvertisement(adId);
-	}
 
-	// 승인 상태 변경
-	@Override
-	public int updateApprovalStatus(AdvertisementDto dto) {
-		return advertisementMapper.updateApprovalStatus(dto);
+	    List<AdvertisementImageDto> imageList =
+	            advertisementMapper.selectAdvertisementImageList(adId);
+
+	    for (AdvertisementImageDto image : imageList) {
+
+	        if (image.getImageUrl() == null) {
+	            continue;
+	        }
+
+	        String fileName =
+	                image.getImageUrl().replace("/upload/ad/", "");
+
+	        File file =
+	                new File(UPLOAD_PATH, fileName);
+
+	        if (file.exists()) {
+	            file.delete();
+	        }
+	    }
+
+	    advertisementMapper.deleteAdvertisementImages(adId);
+
+	    return advertisementMapper.deleteAdvertisement(adId);
 	}
 
 	// 상태 변경
 	@Override
 	public int updateAdvertisementStatus(AdvertisementDto dto) {
 		return advertisementMapper.updateAdvertisementStatus(dto);
+	}
+	
+	// 승인 설정
+	@Override
+	public int updateApprovalStatus(AdvertisementDto dto) {
+
+	    if ("APPROVED".equals(dto.getApprovalStatus())) {
+
+	    	 return advertisementMapper.approveAd(dto);
+
+	    } else if ("REJECTED".equals(dto.getApprovalStatus())) {
+
+	    	return advertisementMapper.rejectAd(dto);
+	    }
+
+	    throw new IllegalArgumentException("잘못된 상태값");
+	}
+	
+	// 우선도 선택
+	@Override
+	public int updateAdGrade(
+	        int adId,
+	        String adGrade) {
+
+
+	    return advertisementMapper.updateAdGrade(
+	            adId,
+	            adGrade
+	    );
+
+	}
+	
+	// 기간변경
+	@Override
+	public void updatePeriod(Long adId, LocalDateTime start, LocalDateTime end) {
+	    advertisementMapper.updatePeriod(adId, start, end);
 	}
 
 	// 이미지 등록
@@ -132,7 +290,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	// 이미지 삭제
 	@Override
 	public int deleteAdvertisementImage(int adId) {
-		return advertisementMapper.deleteAdvertisementImage(adId);
+		return advertisementMapper.deleteAdvertisementImages(adId);
 	}
 
 	// 노출 수 증가

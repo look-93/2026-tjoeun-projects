@@ -18,10 +18,12 @@ public interface AdvertisementImageMapper {
     // 이미지 수정
     int updateAdvertisementImage(AdvertisementImageDto dto);
 
-    // 이미지 삭제
+    // 단일 이미지 삭제
     int deleteAdvertisementImage(int imageId);
 
-    // 광고 이미지 전체 삭제
+    // 광고기준 이미지 전체 삭제
     int deleteAdvertisementImages(int adId);
+
+    
 
 }
