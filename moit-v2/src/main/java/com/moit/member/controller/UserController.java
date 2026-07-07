@@ -1,96 +1,108 @@
 package com.moit.member.controller;
 
-import java.security.Principal;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.moit.member.dto.UserDto;
 import com.moit.member.service.UserService;
+import com.moit.security.CustomUserDetails;
 
 
 @Controller
+@RequestMapping("/user/member")
 public class UserController {
 
-	@Autowired  UserService service;
+	@Autowired UserService service;
 	
-	@RequestMapping( "/" )
-	public String index() {  return "user/main"; }
-
-	 
-	///////////////////////////////////////
-	@RequestMapping( value="/user/join" , method=RequestMethod.GET  )
-	public String join() {  return "user/join"; }
+	// 메인페이지
+	@GetMapping("/")
+	public String index() {  return "/main"; }
 	
-	@RequestMapping( value="/user/join" , method=RequestMethod.POST  )
+	// 회원가입
+	@GetMapping("/join")
+	public String join() {  return "user/member/join"; }
+		
+	@PostMapping("/join")
 	public String join_post(UserDto dto, RedirectAttributes rttr) {  
 		
 		int result = service.insert(dto);
 		
 		if(result==1) {
 			rttr.addFlashAttribute("msg", "회원가입이 완료되었습니다.");
-			return "redirect:/user/login"; 
+			return "redirect:/user/member/login"; 
 		}
 		else if(result==0) {
 			rttr.addFlashAttribute("msg", "이미 사용중인 아이디입니다.");
-			return "redirect:/user/join"; 
+			return "redirect:/user/member/join"; 
 		}
 		else if(result==-1){
 			rttr.addFlashAttribute("msg", "이미 사용중인 닉네임입니다.");
-			return "redirect:/user/join"; 
+			return "redirect:/user/member/join"; 
 		}
 		
 		rttr.addFlashAttribute("msg", "회원가입에 실패했습니다.");	
-		return "redirect:/user/join"; 
+		return "redirect:/user/member/join"; 
 	}
+	
 	// 아이디 중복검사
 	@ResponseBody
-	@RequestMapping(value="/users/checkLoginId",method=RequestMethod.GET)
-	public Map<String,Object> checkLoginId(@RequestParam String loginId){
-		
-		
-		Map<String,Object> map = new HashMap<>();
-		map.put("loginId", loginId);
-		
-		UserDto dto = service.findMember(map);
-		
-		Map<String,Object> result = new HashMap<>();
-		result.put("exists", dto != null);
-		
-		return result;
-	}
+	@GetMapping("/checkLoginId")
+	public Map<String, Boolean> checkLoginId(@RequestParam String loginId) {
+
+        UserDto dto = service.findUser(
+                Map.of("loginId", loginId));
+
+        return Map.of("exists", dto != null);
+    }
 	
+	// 닉네임 중복검사
 	@ResponseBody
-	@RequestMapping(value="/user/checkNickname", method=RequestMethod.GET)
-	public Map<String,Object> checkNickname(@RequestParam String nickname){
+	@GetMapping("/checkNickname")
+	public Map<String, Boolean> checkNickname(@RequestParam String nickname) {
 
-	    Map<String,Object> map=new HashMap<>();
-	    map.put("nickname",nickname);
+        UserDto dto = service.findUser(
+                Map.of("nickname", nickname));
 
-	    UserDto dto=service.findMember(map);
-
-	    Map<String,Object> result=new HashMap<>();
-	    result.put("exists", dto!=null);
-
-	    return result;
-	}
+        return Map.of("exists", dto != null);
+    }
 	
-	@RequestMapping( value="/user/login" , method=RequestMethod.GET  )
-	public String login() {  return "user/login"; }
+	// 로그인
+	@GetMapping("/login")
+	public String login() {  return "user/member/login"; }
 
-	/*
-	 * @RequestMapping(value="/users/mypage", method = RequestMethod.GET) public
-	 * String mypage(Model model, Principal principal) {
-	 * model.addAttribute("dto",service.findByLoginId(principal.getName())); return
-	 * "users/mypage"; }
-	 */		
+	@GetMapping("/fail") public String fail(Model model) {
+		model.addAttribute("errorMessage","로그인 실패 : 아이디 또는 비밀번호를 확인해주세요.");
+		return "redirect:/user/member/join";
+	}	
+	
+	@PreAuthorize("isAuthenticated()")
+	@GetMapping("/mypage") public String  mypage( Authentication   authentication , Model model  ) {  
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			
+		} 
+		System.out.println(".........."+user);
+		System.out.println(".........."+loginId);
+		model.addAttribute("dto" , user); 
+		return "user/member/mypage"; 
+	} 
+	
 }

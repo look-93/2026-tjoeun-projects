@@ -16,4 +16,5 @@ public class MyPageDto {
 	private Integer trustScore;
 	private LocalDate birth;
 	private String gender;
+	private String provider;
 }
