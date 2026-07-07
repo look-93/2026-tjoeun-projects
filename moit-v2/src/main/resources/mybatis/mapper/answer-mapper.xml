@@ -10,9 +10,9 @@
 	<!-- 답변 등록 -->
 	<insert id="insertAnswer">
 		insert into answers
-		( question_id, member_id, content, delete_yn )
+		( answer_id, question_id, member_id, content, delete_yn )
 		values
-		( #{questionId}, #{memberId}, #{content}, 'N' )
+		( answer_seq.NEXTVAL, #{questionId}, #{memberId}, #{content}, 'N' )
 	</insert>
 
 	<!-- 답변 수정 -->
