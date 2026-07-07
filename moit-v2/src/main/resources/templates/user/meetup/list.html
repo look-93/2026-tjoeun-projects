@@ -37,7 +37,7 @@
 						</select>
 	
 						<button type="submit" class="btn-search-meetup">검색</button>
-						<a th:href="@{/meetup/detail}" class="btn-create-meetup">+ 모임등록</a>
+						<a th:href="@{/meetup/write}" class="btn-create-meetup">+ 모임등록</a>
 					</div>
 				</form>
 
@@ -48,8 +48,8 @@
 		<!-- 스크립트 영역 -->
 		<script th:inline="javascript">
 		//csrf 토큰
-		const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-		const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+/* 		const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+		const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content; */
 		
 		let currentPage = 1;
 		

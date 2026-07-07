@@ -36,5 +36,22 @@ public interface MeetupService {
 	//모임 신청
 	public int insertApplication(MeetupApplicationDto meetupApplicationDto);
 	//모임 신청 취소
-	public int cancelApplyMeetup(MeetupApplicationDto meetupApplicationDto);	
+	public int cancelApplyMeetup(MeetupApplicationDto meetupApplicationDto);
+	
+	//모집글수정
+	public int updateMeetup(MeetupDto meetupDto);
+	
+	//마이페이지 내 모집글
+	public List<MeetupDto> selectMyMeetup(int pstartno,MeetupDto meetupDto);
+	public int selectMyMeetupTotalCnt(MeetupDto meetupDto);
+	public MeetupDto selectMyPageStats(int memberId);
+	
+	//마이페이지 내 신청글
+	public List<MeetupDto> selectMyMeetupApply(int pstartno,MeetupDto meetupDto);
+	public int selectMyMeetupApplyTotalCnt(MeetupDto meetupDto);
+	
+	//마이페이지 내모집글 - 신청자목록조회
+	public List<MeetupDto> selectMeetupApplyMember(int meetupId);
+	//마이페이지 내모집글 - 신청자목록조회 - 신청,거절
+	public int changeMeetupApplyStatus(MeetupApplicationDto meetupApplicationDto);	
 }

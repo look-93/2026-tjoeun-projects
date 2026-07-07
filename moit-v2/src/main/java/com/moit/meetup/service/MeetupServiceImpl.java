@@ -32,6 +32,95 @@ public class MeetupServiceImpl implements MeetupService{
 		return meetupMapper.findAllMeetupCountBy(meetupSearchDto);
 	}
 	
+	//모집신청 정보조회
+	@Override
+	public MeetupApplicationDto findApplyInfo(MeetupApplicationDto meetupApplicationDto) {
+		return meetupMapper.findApplyInfo(meetupApplicationDto);
+	}	
+	
+	//모집상세조회
+	@Override
+	public MeetupDto selectMeetupDetail(int meetupId) {
+		MeetupDto dto = meetupMapper.selectMeetupDetail(meetupId);
+
+		//System.out.println(dto + "??????????????????????????????????????");
+
+		return dto;
+	}
+	
+	//모집 - 신청
+	@Override
+	public int insertApplication(MeetupApplicationDto meetupApplicationsDto) {
+		System.out.println(meetupApplicationsDto.getMemberId());
+		System.out.println(meetupApplicationsDto.getMeetupId());
+		MeetupApplicationDto find = this.findApplyInfo(meetupApplicationsDto);
+		
+		if(find != null) {
+			return meetupMapper.updateApplication(find);	
+		}else {
+			return meetupMapper.insertApplication(meetupApplicationsDto);
+		}
+	}
+	
+	//모집 - 신청취소
+	@Override
+	public int cancelApplyMeetup(MeetupApplicationDto meetupApplicationDto) {
+		return meetupMapper.cancelApplyMeetup(meetupApplicationDto);
+	}
+	
+	//모집글수정
+	@Override
+	public int updateMeetup(MeetupDto meetupDto) {
+		return meetupMapper.updateMeetup(meetupDto);
+	}
+	
+	//마이페이지 내 모집글 조회 + paging
+	@Override
+	public List<MeetupDto> selectMyMeetup(int pstartno,MeetupDto meetupDto) {
+		meetupDto.setEnd(10);
+		meetupDto.setStart((pstartno-1)*10);		
+		return meetupMapper.selectMyMeetup(meetupDto);
+	}	
+	
+	//마이페이지 내 모집글 조회 + paging
+	@Override
+	public int selectMyMeetupTotalCnt(MeetupDto meetupDto) {
+		return meetupMapper.selectMyMeetupTotalCnt(meetupDto);
+	}
+
+	//마이페이지 내 모집글 통계
+	@Override
+	public MeetupDto selectMyPageStats(int memberId) {
+		return meetupMapper.selectMyPageStats(memberId);
+	}
+	
+	//마이페이지 내 신청글 조회 + paging
+	@Override
+	public List<MeetupDto> selectMyMeetupApply(int pstartno, MeetupDto meetupDto) {
+		meetupDto.setEnd(10);
+		meetupDto.setStart((pstartno-1)*10);
+		return meetupMapper.selectMyMeetupApply(meetupDto);
+	}
+	
+	//마이페이지 내 신청글 조회 + paging
+	@Override
+	public int selectMyMeetupApplyTotalCnt(MeetupDto meetupDto) {
+		return meetupMapper.selectMyMeetupApplyTotalCnt(meetupDto);
+	}
+	
+	//마이페이지 내모집글 - 신청자목록조회
+	@Override
+	public List<MeetupDto> selectMeetupApplyMember(int meetupId) {
+		return meetupMapper.selectMeetupApplyMember(meetupId);
+	}
+
+	//마이페이지 내모집글 - 신청자목록조회 - 신청,거절
+	@Override
+	public int changeMeetupApplyStatus(MeetupApplicationDto meetupApplicationDto) {
+		return meetupMapper.changeMeetupApplyStatus(meetupApplicationDto);
+	}
+	
+	
 	//좋아요기능
 	@Override
 	public boolean insertMeetupLike(MeetupLikeDto meetupLikeDto) {
@@ -83,38 +172,6 @@ public class MeetupServiceImpl implements MeetupService{
 	@Override
 	public List<CategoryDto> findAllChildCategory() {
 		return meetupMapper.findAllChildCategory();
-	}
-
-	//모집신청 정보조회
-	@Override
-	public MeetupApplicationDto findApplyInfo(MeetupApplicationDto meetupApplicationDto) {
-		return meetupMapper.findApplyInfo(meetupApplicationDto);
 	}	
-	
-	//모집상세조회
-	@Override
-	public MeetupDto selectMeetupDetail(int meetupId) {
-		//System.out.println(meetupId);
-		return meetupMapper.selectMeetupDetail(meetupId);
-	}
-	
-	//모집신청
-	@Override
-	public int insertApplication(MeetupApplicationDto meetupApplicationsDto) {
-		System.out.println(meetupApplicationsDto.getMemberId());
-		System.out.println(meetupApplicationsDto.getMeetupId());
-		MeetupApplicationDto find = this.findApplyInfo(meetupApplicationsDto);
-		
-		if(find != null) {
-			return meetupMapper.updateApplication(find);	
-		}else {
-			return meetupMapper.insertApplication(meetupApplicationsDto);
-		}
-	}
-	
-	@Override
-	public int cancelApplyMeetup(MeetupApplicationDto meetupApplicationDto) {
-		return meetupMapper.cancelApplyMeetup(meetupApplicationDto);
-	}
 
 }

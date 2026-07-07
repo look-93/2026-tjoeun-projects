@@ -24,6 +24,33 @@ public interface MeetupMapper {
 	//관리자 - 모임 리스트 삭제
 	public int updateMeetupDeleteYn(int meetupId);	
 	
+	//사용자 - 모임 상세조회
+	public MeetupDto selectMeetupDetail(int meetupId);
+	
+	//사용자 - 모임 신청정보
+	public MeetupApplicationDto findApplyInfo(MeetupApplicationDto meetupApplicationDto);
+	public int insertApplication(MeetupApplicationDto meetupApplicationDto);
+	public int cancelApplyMeetup(MeetupApplicationDto meetupApplicationDto);
+	public int updateApplication(MeetupApplicationDto meetupApplicationDto);
+	
+	//모집글수정
+	public int updateMeetup(MeetupDto meetupDto);
+	
+	//마이페이지 내 모집글 조회 + paging
+	public List<MeetupDto> selectMyMeetup(MeetupDto meetupDto);
+	public int selectMyMeetupTotalCnt(MeetupDto meetupDto);
+	//마이페이지 내 모집글 통계
+	public MeetupDto selectMyPageStats(int memberId);
+	
+	//마이페이지 내 신청글 조회 + paging
+	public List<MeetupDto> selectMyMeetupApply(MeetupDto meetupDto);
+	public int selectMyMeetupApplyTotalCnt(MeetupDto meetupDto);
+	
+	//마이페이지 내모집글 - 신청자목록조회
+	public List<MeetupDto> selectMeetupApplyMember(int meetupId);
+	//마이페이지 내모집글 - 신청자목록조회 - 신청,거절
+	public int changeMeetupApplyStatus(MeetupApplicationDto meetupApplicationDto);
+	
 	//시도, 시군구
 	public List<SidoDto> findAllSido();
 	public List<SigunguDto> findAllSigungu();
@@ -38,12 +65,5 @@ public interface MeetupMapper {
 	public MeetupLikeDto selectMeetupLike(MeetupLikeDto meetupLikeDto);
 	public int countMeetupLike(MeetupLikeDto meetupLikeDto);	
 	
-	//사용자 - 모임 상세조회
-	public MeetupDto selectMeetupDetail(int meetupId);
-	//사용자 - 모임 신청정보
-	public MeetupApplicationDto findApplyInfo(MeetupApplicationDto meetupApplicationDto);
-	public int insertApplication(MeetupApplicationDto meetupApplicationDto);
-	public int cancelApplyMeetup(MeetupApplicationDto meetupApplicationDto);
-	public int updateApplication(MeetupApplicationDto meetupApplicationDto);
 
 }
