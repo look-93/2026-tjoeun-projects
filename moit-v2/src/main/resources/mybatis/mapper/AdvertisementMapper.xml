@@ -502,27 +502,62 @@
         WHERE ad_id = #{adId}
 
     </update>
+    
+    
+    <resultMap id="AdvertisementWithImageMap"
+           type="com.moit.advertisement.dto.AdvertisementDto">
 
-    <!-- 메인 광고 조회 -->
-    <select id="selectTopAdvertisement"
-        resultType="com.moit.advertisement.dto.AdvertisementDto">
+	    <id property="adId" column="ad_id"/>
+	
+	    <result property="title" column="title"/>
+	    <result property="content" column="content"/>
+	    <result property="landingUrl" column="landing_url"/>
+	
+	    <collection property="imageList"
+	                ofType="com.moit.advertisement.dto.AdvertisementImageDto">
+	
+	        <id property="imageId" column="image_id"/>
+	        <result property="imageType" column="image_type"/>
+	        <result property="imageUrl" column="image_url"/>
+	
+	    </collection>
+	
+	</resultMap>
 
-        SELECT *
-        FROM
-        (
-            SELECT *
-            FROM advertisements
-            WHERE delete_yn = 'N'
-              AND approval_status = 'APPROVED'
-              AND CURRENT_TIMESTAMP BETWEEN start_datetime AND end_datetime
-              AND status = 'OPEN'
-            ORDER BY
-                priority_score DESC,
-                DBMS_RANDOM.VALUE
-        )
-        WHERE ROWNUM = 1
+   <!-- 위치별 광고 조회 -->
+	<select id="selectAdvertisementByPosition"
+        parameterType="String"
+        resultMap="AdvertisementWithImageMap">
 
-    </select>
+	    SELECT 
+	        a.*,
+	        ai.image_id,
+	        ai.image_type,
+	        ai.image_url
+	
+	    FROM advertisements a
+	
+	    LEFT JOIN advertisement_images ai
+	        ON a.ad_id = ai.ad_id
+	       AND ai.image_type = #{position}
+	
+	    WHERE a.delete_yn = 'N'
+	      AND a.approval_status = 'APPROVED'
+	      AND a.status = 'OPEN'
+	      AND a.position = #{position}
+	      AND CURRENT_TIMESTAMP BETWEEN a.start_datetime 
+	                                AND a.end_datetime
+	
+	    ORDER BY
+	        a.priority_score DESC,
+	        DBMS_RANDOM.VALUE
+	
+	    FETCH FIRST 1 ROW ONLY
+	
+	</select>
+	
+	
+	
 
     <!-- 전체 광고 수 -->
     <select id="selectTotalAdvertisementCnt"
