@@ -2063,7 +2063,7 @@ textarea.mw-form-input {
 	}
 }
 
-/*===================mypage 모달 ========================*/
+/*===================mypage달 달 ========================
 /* MODAL STYLES */
 .modal-overlay {
     position: fixed;
@@ -2136,84 +2136,65 @@ textarea.mw-form-input {
 }
 
 .modal-table {
-=======
-@charset "UTF-8";
 
-/* ==============================
-   사용자 - 신고 작성
-============================== */
-.write-page * {
-   box-sizing: border-box;
+    border-collapse: collapse;
 }
 
-.write-page {
-   max-width: 980px;
-   margin: 0 auto;
-   padding: 32px 24px 56px;
-   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-      "Noto Sans KR", Arial, sans-serif;
-   color: #172033;
+.modal-table th {
+    background: #ffffff;
+    color: #1e293b;
+    font-weight: 600;
+    border-bottom: 2px solid #f1f5f9;
+    padding: 12px 8px;
 }
 
-.write-layout {
-   display: grid;
-   grid-template-columns: 1fr;
-   gap: 24px;
+.modal-table td {
+    padding: 14px 8px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 14px;
+    vertical-align: middle;
 }
 
-.write-card {
-   background: #ffffff;
-   border: 1px solid #dbe1ea;
-   border-radius: 8px;
+.download-btn {
+    background: #64748b;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
 }
 
-.write-form-card {
-   padding: 28px;
+.download-btn:hover { background: #475569; }
+.btn-approve {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 4px;
 }
+.btn-approve:hover { background: #059669; }
 
-.write-card-title {
-   display: flex;
-   align-items: center;
-   gap: 10px;
-   margin-bottom: 22px;
+.btn-reject {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
 }
+.btn-reject:hover { background: #dc2626; }
 
-.write-heading {
-   margin: 0;
-   font-size: 22px;
-}
-
-.write-field {
-   margin-bottom: 24px;
-}
-
-.write-label {
-   display: block;
-   margin-bottom: 12px;
-   font-weight: 700;
-   font-size: 16px;
-}
-
-.write-required {
-   color: #ff4d4f;
-   font-size: 14px;
-}
-
-.write-optional {
-   color: #7b8798;
-   font-size: 14px;
-}
-
-.write-reasons {
-   display: grid;
-   grid-template-columns: repeat(2, minmax(0, 1fr));
-   gap: 12px;
-}
-
-.write-reason {
-   display: flex;
-   align-items: center;
-   gap: 10px;
+.state-text-wait { color: #64748b; font-weight: 500; }
+.state-text-pass { color: #10b981; font-weight: 600; }x;
    border: 1px solid #e1e8f5;
    border-radius: 8px;
    padding: 14px 15px;
