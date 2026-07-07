@@ -179,3 +179,59 @@ body{
 .table-hover tbody tr:hover {
     background: #f1f5ff;
 }
+/*  광고 상태 색상  */
+.status-select {
+	width: 80px;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    background-color: #fff;
+    transition: all 0.2s ease;
+    
+    background-image: none;
+}
+
+.status-select.status-open {
+    border: 1px solid #28a745;
+    color: #28a745;
+}
+
+.status-select.status-pending {
+    border: 1px solid #fd7e14;
+    color: #fd7e14;
+}
+
+.status-select.status-closed {
+    border: 1px solid #dc3545;
+    color: #dc3545;
+}
+
+/* hover 느낌 */
+.status-select:hover {
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+    cursor: pointer;
+}
+
+
+/* ==== 광고 상세 === */
+.info-box {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 12px 14px;
+    height: 100%;
+}
+
+.info-title {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 6px;
+}
+
+.info-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #222;
+    word-break: break-word;
+}

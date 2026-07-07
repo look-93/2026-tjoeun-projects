@@ -11,7 +11,7 @@
 
 <div class="container-fluid">
 
-    <h1 class="page-title">광고 상세</h1>
+    <h1 class="page-title">내 광고 상세</h1>
 
     <div class="card-box">
 
@@ -55,13 +55,12 @@
         <!-- 이미지 리스트 -->
 		<div class="ad-image mb-4"
 		     th:if="${dto.imageList != null and !#lists.isEmpty(dto.imageList)}">
-			<div class="row">
-			    <div class="col-md-6 mb-3"
-			         th:each="img : ${dto.imageList}">
 		
-			        <img th:src="${img.imageUrl}"
-					     style=" width:100%; max-height:500px; object-fit:contain; border-radius:10px; ">
-			    </div>
+		    <div th:each="img : ${dto.imageList}"
+		         style="margin-bottom:10px;">
+		
+		        <img th:src="${img.imageUrl}"
+		             style="width:100%;height:300px;object-fit:contain;border-radius:10px;">
 		    </div>
 		
 		</div>
@@ -139,17 +138,6 @@
                     <div class="info-value" th:text="${#temporals.format(dto.updatedAt, 'yyyy-MM-dd HH:mm:ss')}"></div>
                 </div>
             </div>
-            
-            <div class="col-md-3">
-			    <div class="info-box">
-			        <div class="info-title">우선도</div>
-			        <div class="info-value">
-			            <span th:text="${dto.priorityScore}"></span>
-			            점
-			        </div>
-			    </div>
-			</div>
-
         </div>
 
         <hr class="my-4">
@@ -165,100 +153,37 @@
         <a th:href="${dto.landingUrl}" target="_blank"
            th:text="${dto.landingUrl}"></a>
 
-
-        <hr class="my-4">
-        
-		<!-- ========================= -->
-		<!-- 게시 관리 모드 (status) -->
-		<!-- ========================= -->
-		<div th:if="${mode == 'status'}" class="mb-4">
-		    <h5>기간 수정</h5>
-		    
-		    <form th:action="@{/admin/advertisement/updatePeriod}" method="post" class="row g-2 align-items-center">
-		        <input type="hidden" name="adId" th:value="${dto.adId}"/>
-		        <div class="col-md-3">
-		            <label class="form-label">시작일</label>
-		            <input type="date" name="start" class="form-control" th:value="${#temporals.format(dto.startDatetime, 'yyyy-MM-dd')}" />
-		        </div>
-		        <div class="col-md-3">
-		            <label class="form-label">종료일</label>
-		            <input type="date" name="end" class="form-control" th:value="${#temporals.format(dto.endDatetime, 'yyyy-MM-dd')}" />
-		        </div>
-		        <div class="col-md-2 align-self-end">
-		            <button type="submit" class="btn btn-primary w-100">기간 수정</button>
-		        </div>
-		    </form>
-		    
-		    <hr class="my-4">
-		    
-		    <div class="row g-3">
-		        <!-- 등급 변경 -->
-		        <div class="col-md-6">
-		            <form th:action="@{/admin/advertisement/updateGrade}" method="post" class="d-flex gap-2 align-items-center">      
-		                <input type="hidden" name="adId" th:value="${dto.adId}"/>
-		                <select name="adGrade" class="form-select" style="max-width:200px;">
-		                    <option value="GENERAL" th:selected="${dto.adGrade == 'GENERAL'}">일반 광고</option>
-		                    <option value="PREMIUM" th:selected="${dto.adGrade == 'PREMIUM'}">프리미엄 광고</option>
-		                </select>
-		                <button type="submit" class="btn btn-primary text-nowrap">등급 변경</button>
-		            </form>
-		        </div>
-		        
-		        <!-- 상태 변경 -->
-		        <div class="col-md-6">
-		            <form th:action="@{/admin/advertisement/status/detail}" method="post" class="d-flex gap-2 align-items-center">
-		                <input type="hidden" name="adId" th:value="${dto.adId}"/>
-		                <select name="status" class="form-select" style="max-width:200px;">
-		                    <option value="OPEN" th:selected="${dto.status == 'OPEN'}">OPEN</option>
-		                    <option value="CLOSED" th:selected="${dto.status == 'CLOSED'}">CLOSED</option>
-		                    <option value="PENDING" th:selected="${dto.status == 'PENDING'}">PENDING</option>
-		                </select>
-		                <button type="submit" class="btn btn-primary text-nowrap">상태 변경</button>
-		            </form>
-		        </div>
-		    </div>
-		</div> <!-- 여기서 mode == 'status' 영역이 정확히 끝납니다 -->
-		
-		
-		<!-- ========================= -->
-		<!-- 승인 모드 (approval) -->
-		<!-- ========================= -->
-		<div th:if="${mode == 'approval'}" class="pt-2">
-		    <div class="d-flex flex-wrap gap-3 align-items-center">
-		        <!-- 승인 -->
-		        <form th:action="@{/admin/advertisement/approve}" method="post" class="d-inline">
-		            <input type="hidden" name="adId" th:value="${dto.adId}"/>
-		            <button type="submit" class="btn btn-success">승인</button>
-		        </form>
-		
-		        <!-- 반려 -->
-		        <form th:action="@{/admin/advertisement/reject}" method="post" class="d-flex gap-2 align-items-center">
-		            <input type="hidden" name="adId" th:value="${dto.adId}"/>
-		            <input type="text" name="rejectReason" placeholder="반려 사유" class="form-control" style="max-width:250px;" required>
-		            <button type="submit" class="btn btn-danger text-nowrap">반려</button>
-		        </form>
-		    </div>
-		</div> 
-
 		<hr class="my-4">
-
-        <!-- ========================= -->
-        <!-- 🔥 모드별 버튼 영역 -->
-        <!-- ========================= -->
 
         <div class="btn-area mt-4">
 
-            <!-- 목록 -->
-            <a th:href="@{/admin/advertisement/manageList}"
-               class="btn btn-secondary">
-                목록
-            </a>
-
-            
-            
-        </div>
+		    <!-- 목록 -->
+		    <a th:href="@{/user/advertisement/list}"
+		       class="btn btn-secondary">
+		        목록
+		    </a>
+		
+		    <!-- 수정 -->
+		    <a th:href="@{/user/advertisement/edit(adId=${dto.adId})}"
+		       class="btn btn-primary">
+		        수정
+		    </a>
+		
+		    <!-- 삭제 -->
+		    <form th:action="@{/user/advertisement/delete}" method="post" style="display:inline;">
+		        <input type="hidden" name="adId" th:value="${dto.adId}"/>
+		
+		        <button type="submit"
+		                class="btn btn-danger"
+		                onclick="return confirm('정말 삭제하시겠습니까?');">
+		            삭제
+		        </button>
+		    </form>
+		
+		</div>
 
     </div>
 </div>
+
 </section>
 </html>
