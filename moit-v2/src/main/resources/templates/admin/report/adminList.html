@@ -38,19 +38,19 @@
 							전체
 						</a>
 
-						<a th:href="@{/admin/report/adminList(targetType='MEETUP')}"
+						<a th:href="@{/admin/report/adminList(targetType='MEETUP', deleteYn='N')}"
 							class="admin-list-filter-btn"
 							th:classappend="${targetType == 'MEETUP' ? 'active' : ''}">
 							MEETUP
 						</a>
 
-						<a th:href="@{/admin/report/adminList(targetType='REVIEW')}"
+						<a th:href="@{/admin/report/adminList(targetType='REVIEW', deleteYn='N')}"
 							class="admin-list-filter-btn"
 							th:classappend="${targetType == 'REVIEW' ? 'active' : ''}">
 							REVIEW
 						</a>
 
-						<a th:href="@{/admin/report/adminList(status='PENDING')}"
+						<a th:href="@{/admin/report/adminList(status='PENDING', deleteYn='N')}"
 							class="admin-list-filter-btn"
 							th:classappend="${status == 'PENDING' ? 'active' : ''}">
 							PENDING
@@ -63,6 +63,23 @@
 						</a>
 					</div>
 				</div>
+				
+				
+				<!-- 신고 검색(작성자, 사유, 날짜) - 관리자 -->
+				<form th:action="@{/admin/report/adminList}" method="get" class="admin-list-search-form">
+					<div class="admin-list-option">
+						<select id="searchType" name="searchType" title="검색 유형">
+							<option value="memberId" th:selected="${searchType == 'memberId'}">작성자</option>
+							<option value="reasonCode" th:selected="${searchType == 'reasonCode'}">사유</option>
+							<option value="createdAt" th:selected="${searchType == 'createdAt'}">날짜</option>
+						</select>
+					</div>
+					
+					<input type="text" id="keyword" name="keyword" class="admin-list-keyword" th:value="${keyword}" placeholder="검색어를 입력해주세요.">
+					<button type="submit" class="admin-list-btn btn-primary">검색</button>
+				</form>
+
+
 
 				<div class="admin-list-table-wrap">
 					<table class="admin-list-table">

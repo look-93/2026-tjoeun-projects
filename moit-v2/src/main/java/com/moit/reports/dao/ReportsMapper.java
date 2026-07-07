@@ -29,7 +29,14 @@ public interface ReportsMapper {
 	
 	// 사용자 본인이 작성한 신고 내역 상세 조회
 	public ReportsDto selectUserReportDetail(ReportsDto dto);
-
+	
+	//	중복 신고 방지
+	public int doubleReport(ReportsDto dto);
+	
+	// 신고 난사 방지
+	public int TodayReport(ReportsDto dto);
+	
+	
 	
     // ===== admin =====
     public int updateAdmin(ReportsDto dto);

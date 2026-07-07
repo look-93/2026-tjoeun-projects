@@ -103,18 +103,18 @@ nav a {
     color: white !important;
 }
 
-.nav-btn-primary:hover {
+.nav--primary:hover {
     background: #5367f0;
 }
 
 /* 관리자문의 버튼 (아웃라인 스타일) */
-.nav-btn-secondary {
+.nav--secondary {
     background: transparent;
     color: #444 !important;
     border: 1px solid #ddd;
 }
 
-.nav-btn-secondary:hover {
+.nav--secondary:hover {
     background: #f1f5f9;
     border-color: #ccc;
 }
@@ -187,7 +187,7 @@ AD
     margin-bottom:10px;
 }
 
-.ad-btn{
+.ad-{
     background:var(--c4);
     color:white;
     padding:10px 20px;
@@ -436,7 +436,7 @@ SECTION
     margin-bottom: 10px;
 }
 
-.meetupList-top-ad-btn {
+.meetupList-top-ad- {
     background: var(--c4);
     color: white;
     padding: 12px 20px;
@@ -472,12 +472,12 @@ SECTION
     margin-bottom: 25px;
 }
 
-.main-hero-btn {
+.main-hero- {
     display: flex;
     gap: 15px;
 }
 
-.main-btn {
+.main- {
     border: none;
     padding: 14px 28px;
     border-radius: 50px;
@@ -485,12 +485,12 @@ SECTION
     font-weight: 600;
 }
 
-.main-btn-primary {
+.main--primary {
     background: var(--c4);
     color: white;
 }
 
-.main-btn-light {
+.main--light {
     background: white;
     color: var(--text);
 }
@@ -1880,6 +1880,16 @@ footer {
    margin-top: 28px;
 }
 
+.write-result-alert-message {
+    margin: 15px 0;
+    padding: 12px 16px;
+    border: 1px solid #f5c2c7;
+    border-radius: 6px;
+    background-color: #f8d7da;
+    color: #842029;
+    font-size: 18px;
+}
+
 .write-btn {
    min-width: 124px;
    border: 1px solid #d9e1ef;
@@ -2827,3 +2837,40 @@ footer {
    background: #ffe5e5;
    color: #d32f2f;
 }
+
+/* 관리자 신고 검색 */
+.admin-list-search-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0;
+    padding: 14px;
+}
+
+.admin-list-option select {
+    width: 120px;
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.admin-list-keyword {
+    width: 300px;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    flex: 1;
+}
+
+.admin-list-btn {
+    height: 38px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 6px;
+    background-color: #1d5bd7;
+    color: #fff;
+    cursor: pointer;
+}
+

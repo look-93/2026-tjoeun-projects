@@ -89,11 +89,14 @@ public class ReportController {
 		int result_TargetType = -1;
 		String result = "신고등록 실패";
 
-		if ( "MEETUP".equals(dto.getTargetType()) ) {
-			result_TargetType = service.insertUserReport(dto);
-		} else if ( "REVIEW".equals(dto.getTargetType()) ) {
-			result_TargetType = service.insertUserReport(dto);
-		}
+//		if ( "MEETUP".equals(dto.getTargetType()) ) {
+//			result_TargetType = service.insertUserReport(dto);
+//		} else if ( "REVIEW".equals(dto.getTargetType()) ) {
+//			result_TargetType = service.insertUserReport(dto);
+//		}
+		if ("MEETUP".equals(dto.getTargetType()) || "REVIEW".equals(dto.getTargetType())) {
+	        result_TargetType = service.insertUserReport(dto);
+	    }
 		
 		if (result_TargetType > 0) {
 			result = "신고등록 완료";
@@ -102,8 +105,23 @@ public class ReportController {
 			return "redirect:/user/meetup/report/mylist";
 		}
 		
-		rttr.addFlashAttribute("result", result);
-		return "redirect:/user/meetup/report/write?targetType=" + dto.getTargetType() + "&targetId=" + dto.getTargetId();
+		// 중복 신고 케이스 (서비스에서 -1을 보냈을 때)
+	    if (result_TargetType == -1) {
+	        result = "이미 신고 내역이 존재합니다.";
+	    } else {
+	        result = "신고 등록 중 오류가 발생했습니다. 다시 시도해주세요.";
+	    }
+	    
+	    // 신고 작성 횟수 제한 (서비스에서 -2를 보냈을 때)
+	    if (result_TargetType == -2) {
+	    	result = "5회 이상의 신고 내역이 존재합니다. 다음 날 다시 시도해주세요.";
+	    } else {
+	    	result = "신고 등록 중 오류가 발생했습니다. 다시 시도해주세요.";
+	    }
+	    
+		
+    	rttr.addFlashAttribute("result", result);
+    	return "redirect:/user/meetup/report/write?targetType=" + dto.getTargetType() + "&targetId=" + dto.getTargetId();
 	}
 	
 	// 내 신고 상세 화면 detail
@@ -170,6 +188,9 @@ public class ReportController {
 							@RequestParam(value="targetType", required=false) String targetType,
 							@RequestParam(value="status", required=false) String status,
 							@RequestParam(value="deleteYn", required=false) String deleteYn,
+							
+							@RequestParam(value="searchType", required=false) String searchType,
+							@RequestParam(value="keyword", required=false) String keyword,
 							Model model) {
 		
 		HashMap<String, Object> map = new HashMap<>();
@@ -177,6 +198,9 @@ public class ReportController {
 		map.put("targetType", targetType);
 		map.put("status", status);
 		map.put("deleteYn", deleteYn);
+
+		map.put("searchType", searchType);
+		map.put("keyword", keyword);
 		
 		map.put("start", (pstartno-1)*10);
 		map.put("end", 10);
@@ -188,6 +212,13 @@ public class ReportController {
 		model.addAttribute("targetType", targetType); // meetup, review
 		model.addAttribute("status", status); // pendding
 		model.addAttribute("deleteYn", deleteYn); // delete
+
+		if( keyword != null ) {
+			keyword = keyword.trim();
+		}
+		model.addAttribute("searchType", searchType); // 검색 옵션
+		model.addAttribute("keyword", keyword); // 작성자, 사유, 날짜
+		
 
 		return "admin/report/adminList";
 	}

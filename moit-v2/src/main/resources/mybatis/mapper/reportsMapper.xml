@@ -47,6 +47,21 @@
 		where report_id = #{reportId} and member_id = #{memberId} and delete_yn = 'N'
 	</select>
 	
+	<!-- 중복 신고 방지 -->
+	<select id="doubleReport" resultType="int" parameterType="ReportsDto">
+		select count(*)
+		from reports
+		where member_id = #{memberId} and target_type = #{targetType} and target_id = #{targetId} and delete_yn = 'N'
+	</select>
+	
+	<!-- 신고 난사 방지 -->
+	<select id="TodayReport" resultType="int" parameterType="ReportsDto">
+		select count(*)
+		from reports
+		where member_id = #{memberId} and delete_yn = 'N'
+	</select>
+	
+	
 
 	
 	<!-- ===== admin ===== -->
@@ -58,7 +73,6 @@
 	    where report_id = #{reportId}
 	    and status = 'PENDING'
 	</update>
-	
 	<!-- members table에 report_id로 email 찾기 -->
 	<select id="selectEmail" resultType="String" parameterType="ReportsDto">
 		select m.email
@@ -84,7 +98,6 @@
 	<select id="selectAdminReports" resultType="ReportsDto" parameterType="java.util.HashMap">
 	    select *
 	    from reports
-	    
 	    <where>
 	    	<if test="deleteYn != null and deleteYn != ''">
 	    		and delete_yn = #{deleteYn}
@@ -98,17 +111,18 @@
 	        <if test="targetType != null and targetType != ''">
 	            and target_type = #{targetType}
 	        </if>
-	        <if test="memberId != null">
-	            and member_id = #{memberId}
-	        </if>
-	        <if test="reasonCode != null and reasonCode != ''">
-	            and reason_code = #{reasonCode}
-	        </if>
-	        <if test="createdAt != null and createdAt != ''">
-	            and date(created_at) = #{createdAt}
-	        </if>
+	        <choose>
+		        <when test="searchType == 'memberId' and memberId != '' and keyword != null and keyword != ''">
+		            and member_id = #{keyword}
+		        </when>
+		        <when test="searchType == 'reasonCode' and reasonCode != '' and keyword != null and keyword != ''">
+		            and reason_code = #{keyword}
+		        </when>
+		        <when test="searchType == 'createdAt' and createdAt != '' and keyword != null and keyword != ''">
+		            and date(created_at) = #{keyword}
+		        </when>
+	        </choose>
 	    </where>
-	        
 	    order by report_id desc
 	    <if test="start != null and end != null">
 	        offset #{start} rows fetch next #{end} rows only

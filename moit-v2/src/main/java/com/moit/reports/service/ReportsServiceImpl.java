@@ -10,10 +10,13 @@ import com.moit.reports.api.ApiEmail;
 import com.moit.reports.dao.ReportsMapper;
 import com.moit.reports.dto.ReportsDto;
 
+import javassist.compiler.ast.Keyword;
+
 @Service
 public class ReportsServiceImpl implements ReportsService {
 	@Autowired ReportsMapper dao;
 	@Autowired ApiEmail apiEmail;
+	@Autowired ReportsMapper mapper;
 
 	@Override // 사용자 본인이 작성한 신고 내역 조회 & 유저 - 페이징
 	public List<ReportsDto> selectUserReport(int pstartno, int memberId) {
@@ -37,6 +40,17 @@ public class ReportsServiceImpl implements ReportsService {
 
 	@Override // 신고 작성 기능
 	public int insertUserReport(ReportsDto dto) {
+
+		// 중복 신고 select count(*) 쿼리 호출
+		int count = dao.doubleReport(dto);
+		// 이미 신고가 존재하면 insert를 하지 않고 -1(또는 특정 에러코드) 반환
+		if (count > 0) { return -1; }
+
+		// 신고 난사 select count(*) 쿼리 호출
+		int todayCnt = dao.TodayReport(dto);
+		// 5회 이상 신고하면 insert를 하지 않고 -2 반환
+		if (todayCnt > 0) { return -2; }
+		
 		return dao.insertUserReport(dto);
 	}
 
@@ -50,6 +64,8 @@ public class ReportsServiceImpl implements ReportsService {
 		return dao.deleteUserReport(dto);
 	}
 
+
+	
 	
 
 	// ===== admin =====
@@ -77,20 +93,23 @@ public class ReportsServiceImpl implements ReportsService {
 	public int deleteAdmin(int reportId) {
 		
 		ReportsDto dto = new ReportsDto();
-		int result = dao.deleteAdmin(reportId);
-		
+		dto.setReportId(reportId);
+
 		// apiEmail Email
 		String email = dao.selectEmail(dto);
-			
-		if( result > 0 ) {
-			// apiEmail content
-			String content="삭제되지 않음.";
-			if( dao.deleteAdmin(reportId) > 0 ) {
-				content = "신고 글이 삭제 되었습니다.";
+		
+		// apiEmail content
+		String content="삭제되지 않음.";
+		int result = dao.deleteAdmin(reportId);
 
-			}
-			//메일 test
-			//apiEmail.sendMail(content, email);
+		if( result > 0 ) {
+			content = "신고 글이 삭제 되었습니다.";
+			
+			if( email != null ) {
+				//메일 test
+				//apiEmail.sendMail(content, email);
+
+			} else { System.out.println("메일 전송 실패..."); }
 		}
 		
 		return result;
@@ -105,6 +124,8 @@ public class ReportsServiceImpl implements ReportsService {
 	public int selectAdminReportsCnt(HashMap<String, Object> map) {
 		return dao.selectAdminReportsCnt(map);
 	}
+
+	
 
 	
 
