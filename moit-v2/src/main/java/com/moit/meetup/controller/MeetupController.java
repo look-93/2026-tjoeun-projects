@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.moit.advertisement.dto.AdvertisementDto;
+import com.moit.advertisement.service.AdvertisementService;
 import com.moit.meetup.dto.MeetupApplicationDto;
 import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupLikeDto;
@@ -26,6 +28,7 @@ import com.moit.util.UtilPaging;
 @Controller
 public class MeetupController {
 	@Autowired MeetupService meetupService;
+	@Autowired AdvertisementService advertisementService;
 	
 	/*1. 사용자 - 모임 리스트 화면(HTML) 호출*/
 	@GetMapping("/meetup/list")
@@ -36,13 +39,38 @@ public class MeetupController {
 	/*2. 사용자 - 모임 리스트 데이터(JSON) 호출*/
 	@GetMapping("/meetup/list/data")
 	@ResponseBody
-	public Map<String, Object> listData(MeetupSearchDto meetupSearchDto){
+	public Map<String, Object> listData(MeetupSearchDto meetupSearchDto, Model model){
 		Integer pstartno = meetupSearchDto.getPstartno();
 		
 		if(pstartno == null || pstartno <= 0) {
 			pstartno = 1;
 			meetupSearchDto.setPstartno(1);
 		}
+		
+		AdvertisementDto mainAd =
+			    advertisementService.selectTopAdvertisement("MAIN");
+
+		model.addAttribute("mainAd", mainAd);
+
+
+		AdvertisementDto bannerAd =
+		    advertisementService.selectTopAdvertisement("MEETUP_LIST_BANNER");
+
+		model.addAttribute("bannerAd", bannerAd);
+
+
+		AdvertisementDto sidebarAd =
+		    advertisementService.selectTopAdvertisement("MEETUP_LIST_SIDEBAR");
+
+		model.addAttribute("sidebarAd", sidebarAd);
+
+
+		AdvertisementDto detailAd =
+		    advertisementService.selectTopAdvertisement("MEETUP_DETAIL_SIDEBAR");
+
+		model.addAttribute("detailAd", detailAd);
+
+		
 		//System.out.println(meetupSearchDto.getCategoryId());
 		Map<String, Object> map = new HashMap<>();
 		map.put("paging", new UtilPaging(meetupService.findAllMeetupCountBy(meetupSearchDto), pstartno));

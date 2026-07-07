@@ -39,7 +39,11 @@
 				<div class="meetup-detail-content-box">
 					<div class="meetup-detail-content-top">
 						<div class="meetup-detail-badge" th:text="${detail.status == 'RECRUITING' ? '모집중' : '모집마감'}"></div>
-						<button class="meetup-detail-report-btn">🚨 모임 신고</button>
+						<!-- <button class="meetup-detail-report-btn" >🚨 모임 신고</button> -->
+						<a th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${param.meetupId})}"
+						               class="btn btn-outline-primary" type="button">
+						                모임 신고
+						</a>						
 					</div>
 					<h1 class="meetup-detail-title" th:text="${detail.title}"></h1>
 

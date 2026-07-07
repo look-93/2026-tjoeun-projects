@@ -77,7 +77,7 @@ public interface AdvertisementService {
     int updateAdvertisementClick(int adId);
 
     // 메인 광고 조회
-    AdvertisementDto selectTopAdvertisement();
+    AdvertisementDto selectTopAdvertisement(String string);
 
     // 통계
     int selectTotalAdvertisementCnt();

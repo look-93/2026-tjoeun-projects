@@ -2063,7 +2063,7 @@ textarea.mw-form-input {
 	}
 }
 
-/*===================mypage 모달 ========================*/
+/*===================mypage달 달 ========================
 /* MODAL STYLES */
 .modal-overlay {
     position: fixed;
@@ -2136,7 +2136,131 @@ textarea.mw-form-input {
 }
 
 .modal-table {
-=======
+
+    border-collapse: collapse;
+}
+
+.modal-table th {
+    background: #ffffff;
+    color: #1e293b;
+    font-weight: 600;
+    border-bottom: 2px solid #f1f5f9;
+    padding: 12px 8px;
+}
+
+.modal-table td {
+    padding: 14px 8px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.download-btn {
+    background: #64748b;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.download-btn:hover { background: #475569; }
+.btn-approve {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 4px;
+}
+.btn-approve:hover { background: #059669; }
+
+.btn-reject {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-reject:hover { background: #dc2626; }
+
+.state-text-wait { color: #64748b; font-weight: 500; }
+.state-text-pass { color: #10b981; font-weight: 600; }x;
+   border: 1px solid #e1e8f5;
+   border-radius: 8px;
+   padding: 14px 15px;
+   background: #fff;
+   cursor: pointer;
+}
+
+.write-radio {
+   width: 18px;
+   height: 18px;
+   accent-color: #1f6fff;
+}
+
+.write-textarea {
+   width: 100%;
+   min-height: 160px;
+   resize: vertical;
+   border: 1px solid #d9e1ef;
+   border-radius: 8px;
+   padding: 16px;
+   font: inherit;
+   outline: none;
+   background: #fff;
+}
+
+.write-textarea:focus {
+   border-color: #1f6fff;
+}
+
+.write-counter {
+   text-align: right;
+   margin-top: 8px;
+   color: #8491a5;
+   font-size: 13px;
+}
+
+.write-actions {
+   display: flex;
+   justify-content: flex-end;
+   gap: 12px;
+   margin-top: 28px;
+}
+
+.write-btn {
+   min-width: 124px;
+   border: 1px solid #d9e1ef;
+   border-radius: 8px;
+   padding: 13px 20px;
+   background: #fff;
+   color: #435066;
+   font-weight: 700;
+   cursor: pointer;
+}
+
+.write-btn-primary {
+   border-color: #1f6fff;
+   background: #1f6fff;
+   color: #fff;
+}
+
+@media (max-width: 860px) {
+   .write-reasons {
+      grid-template-columns: 1fr;
+   }
+}
+
 @charset "UTF-8";
 
 /* ==============================
@@ -2255,6 +2379,16 @@ textarea.mw-form-input {
    justify-content: flex-end;
    gap: 12px;
    margin-top: 28px;
+}
+
+.write-result-alert-message {
+    margin: 15px 0;
+    padding: 12px 16px;
+    border: 1px solid #f5c2c7;
+    border-radius: 6px;
+    background-color: #f8d7da;
+    color: #842029;
+    font-size: 18px;
 }
 
 .write-btn {
@@ -3203,6 +3337,43 @@ textarea.mw-form-input {
 .admin-detail-status.rejected {
    background: #ffe5e5;
    color: #d32f2f;
+}
+
+/* 관리자 신고 검색 */
+.admin-list-search-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0;
+    padding: 14px;
+}
+
+.admin-list-option select {
+    width: 120px;
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.admin-list-keyword {
+    width: 300px;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    flex: 1;
+}
+
+.admin-list-btn {
+    height: 38px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 6px;
+    background-color: #1d5bd7;
+    color: #fff;
+    cursor: pointer;
+}
 
 /* ========== Advertisement List ========== */
 /* ========== 광고 관리 ========== */
