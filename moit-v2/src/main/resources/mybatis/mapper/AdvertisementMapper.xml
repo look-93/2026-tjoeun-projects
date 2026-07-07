@@ -598,15 +598,15 @@
 	            +	
 	            CASE
 	                WHEN impressions >= 100
-	                AND (clicks * 100.0 / impressions) >= 5
+	                AND (clicks * 100.0 / DECODE(impressions, 0, 1, impressions)) >= 5
 	                THEN 3
 	
 	                WHEN impressions >= 100
-	                AND (clicks * 100.0 / impressions) >= 3
+	                AND (clicks * 100.0 / DECODE(impressions, 0, 1, impressions)) >= 3
 	                THEN 2
 	
 	                WHEN impressions >= 100
-	                AND (clicks * 100.0 / impressions) >= 1
+	                AND (clicks * 100.0 / DECODE(impressions, 0, 1, impressions)) >= 1
 	                THEN 1
 	
 	                ELSE 0
@@ -626,8 +626,7 @@
 	
 	    WHERE delete_yn = 'N'
 	      AND approval_status = 'APPROVED'
-	
-	
+
 	</update>
 
     <!-- OPEN 광고 수 -->
