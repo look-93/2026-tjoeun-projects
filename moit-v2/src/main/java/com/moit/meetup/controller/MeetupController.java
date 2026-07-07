@@ -214,7 +214,7 @@ public class MeetupController {
 		meetupdto.setMemberId(2);
 		boolean result = meetupService.updateMeetup(meetupdto) > 0;		
 		rttr.addFlashAttribute("result", result);		
-		return "redirect:/user/mypage/meetup/meetupInfo";
+		return "redirect:/mypage/myMeetupInfo";
 	}		
 
 	//마이페이지 내 신청글 조회

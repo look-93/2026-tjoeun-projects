@@ -157,6 +157,7 @@
 	    	fetch('/mypage/meetupMember?meetupId=' + meetupId)
 	    	.then(res => res.json())
 	    	.then(data => {
+	    	
 	    		const tbody = document.getElementById("modalBody")
 				const list = data.list;
 	    		let html= '';

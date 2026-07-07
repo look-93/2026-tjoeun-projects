@@ -235,11 +235,10 @@
  		   SET title 			 = #{title},
  		   	   content 			 = #{content},
  		   	   max_participants  = #{maxParticipants},
- 		   	   min_participants  = #{minParticipants},
- 		   	   address 		 	 = #{address},
+ 		   	   min_participants  = #{minParticipants}, 		   	 
  		   	   category_id 		 = #{categoryId},
  		   	   sigungu_id        = #{sigunguId},
- 		   	   meetup_at 	 	 = #{meetupAt},
+ 		   	   meetup_at 	 	 = TO_DATE(#{meetupAt}, 'YYYY-MM-DD"T"HH24:MI'),
  		   	   status			 = #{status} 		   	   
  		 WHERE meetup_id = #{meetupId}
  	</update> 	 	 	
