@@ -30,9 +30,33 @@ public class MeetupController {
 	@Autowired MeetupService meetupService;
 	@Autowired AdvertisementService advertisementService;
 	
+	/* 메인페이지 광고 */
+	@GetMapping("/main")
+    public String main(Model model) {
+
+        AdvertisementDto mainAd =
+                advertisementService.selectTopAdvertisement("MAIN");
+
+        // 광고가 존재하면 노출 증가
+        if(mainAd != null) {
+            advertisementService.updateImpressions(mainAd.getAdId());
+        }
+        
+        model.addAttribute("mainAd", mainAd);
+
+        return "user/main";
+    }
+	
 	/*1. 사용자 - 모임 리스트 화면(HTML) 호출*/
 	@GetMapping("/meetup/list")
-	public String listPage() {
+	public String listPage(Model model) {
+
+	    AdvertisementDto banner = advertisementService.selectTopAdvertisement( "MEETUP_LIST_BANNER" );  
+	    AdvertisementDto sidebar = advertisementService.selectTopAdvertisement( "MEETUP_LIST_SIDEBAR" );
+
+	    model.addAttribute("bannerAd", banner);
+	    model.addAttribute("sidebarAd", sidebar);
+	    
 		return "/user/meetup/list";
 	}
 	
@@ -46,30 +70,6 @@ public class MeetupController {
 			pstartno = 1;
 			meetupSearchDto.setPstartno(1);
 		}
-		
-		AdvertisementDto mainAd =
-			    advertisementService.selectTopAdvertisement("MAIN");
-
-		model.addAttribute("mainAd", mainAd);
-
-
-		AdvertisementDto bannerAd =
-		    advertisementService.selectTopAdvertisement("MEETUP_LIST_BANNER");
-
-		model.addAttribute("bannerAd", bannerAd);
-
-
-		AdvertisementDto sidebarAd =
-		    advertisementService.selectTopAdvertisement("MEETUP_LIST_SIDEBAR");
-
-		model.addAttribute("sidebarAd", sidebarAd);
-
-
-		AdvertisementDto detailAd =
-		    advertisementService.selectTopAdvertisement("MEETUP_DETAIL_SIDEBAR");
-
-		model.addAttribute("detailAd", detailAd);
-
 		
 		//System.out.println(meetupSearchDto.getCategoryId());
 		Map<String, Object> map = new HashMap<>();
@@ -110,7 +110,10 @@ public class MeetupController {
 //		int memberId = userMeetupService.findByMamberId(user.getUsername());
 //		meetupApplicationsDto.setMemberId(memberId);
 		
+		AdvertisementDto sidebar = advertisementService.selectTopAdvertisement( "MEETUP_DETAIL_SIDEBAR" );
+
 		meetupApplicationDto.setMemberId(2);
+		model.addAttribute("sidebarAd", sidebar);
 		
 		meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
 		model.addAttribute("applyInfo",meetupService.findApplyInfo(meetupApplicationDto));

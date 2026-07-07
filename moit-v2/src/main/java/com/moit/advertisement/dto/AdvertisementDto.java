@@ -1,6 +1,7 @@
 package com.moit.advertisement.dto;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Data;
@@ -14,7 +15,7 @@ public class AdvertisementDto {
     // 기본 정보
     private String title;
     private String content;
-    private List<AdvertisementImageDto> imageList;
+    private List<AdvertisementImageDto> imageList = new ArrayList<>();
     private String landingUrl;
 
     // 유형/노출
