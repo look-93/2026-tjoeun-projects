@@ -13,6 +13,13 @@ import com.moit.advertisement.dto.AdvertisementSearchDto;
 @Mapper
 public interface AdvertisementMapper {
 
+	
+	int updatePendingToOpen();
+
+    int updateOpenToClosed();
+    
+    int updatePriorityScore();
+    
 	// 제휴사용자 목록
 	List<AdvertisementDto> searchMyAdvertisement(AdvertisementSearchDto dto);
 
@@ -46,11 +53,17 @@ public interface AdvertisementMapper {
     // 상태 변경
     int updateAdvertisementStatus(AdvertisementDto dto);
         
-    int approveAd(int adId, int approvedBy);
+    int approveAd(AdvertisementDto dto);
 
-    int rejectAd(int adId, int approvedBy, String rejectReason);
+    int rejectAd(AdvertisementDto dto);
     
+    // 우선도 설정
+    int updateAdGrade(
+            @Param("adId") int adId,
+            @Param("adGrade") String adGrade
+    );
     
+    // 기간 변경
     void updatePeriod(@Param("adId") Long adId,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);

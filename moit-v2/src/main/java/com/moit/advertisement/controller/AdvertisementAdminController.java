@@ -4,7 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +28,13 @@ public class AdvertisementAdminController {
 
     private final AdvertisementService advertisementService;
 
+    // 스케줄러
+    @EnableScheduling
+    @SpringBootApplication
+    public class MoitApplication {
+
+    }
+    
     // 승인 대기 목록
     @GetMapping("/approvalList")
     public String approvalList(AdvertisementSearchDto dto, Model model) {
@@ -82,6 +91,7 @@ public class AdvertisementAdminController {
 
         model.addAttribute("list", list);
         model.addAttribute("dto", dto);
+        model.addAttribute("search", dto);
         model.addAttribute("totalCnt", totalCnt);
         model.addAttribute("totalPage", totalPage);
         model.addAttribute("tab", tab);
@@ -126,6 +136,7 @@ public class AdvertisementAdminController {
         AdvertisementDto dto = new AdvertisementDto();
         dto.setAdId(adId);
         dto.setApprovalStatus("APPROVED");
+        dto.setStatus("PENDING");
         dto.setApprovedBy(loginMemberId);
         dto.setApprovedAt(LocalDateTime.now());
 
@@ -154,7 +165,7 @@ public class AdvertisementAdminController {
         return "redirect:/admin/advertisement/manageList?tab=approval";
     }
 
-    // 상태 변경 
+    // 목록 상태 변경 
     @PostMapping("/status")
     public String status(@RequestParam int adId,
                          @RequestParam String status,
@@ -173,6 +184,23 @@ public class AdvertisementAdminController {
         return "redirect:/admin/advertisement/manageList?tab=status";
     }
     
+    // 우선도 선택(일반 / 프리미엄)
+    @PostMapping("/updateGrade")
+    public String updateGrade(
+            @RequestParam int adId,
+            @RequestParam String adGrade) {
+
+
+        advertisementService.updateAdGrade(
+                adId,
+                adGrade
+        );
+
+
+        return "redirect:/admin/advertisement/detail?adId=" + adId + "&mode=manage";
+    }
+    
+    // 기간 변경
     @PostMapping("updatePeriod")
     public String updatePeriod(
             @RequestParam Long adId,
@@ -183,6 +211,7 @@ public class AdvertisementAdminController {
         return "redirect:/admin/advertisement/detail?adId=" + adId + "&mode=manage";
     }
     
+    // 상세에서 상태 변경
     @PostMapping("/status/detail")
     public String statusFromDetail(@RequestParam int adId,
 		            @RequestParam String status,

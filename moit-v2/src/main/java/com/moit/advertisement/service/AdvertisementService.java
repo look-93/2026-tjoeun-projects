@@ -11,6 +11,11 @@ import com.moit.advertisement.dto.AdvertisementSearchDto;
 
 public interface AdvertisementService {
 
+	// 스케쥴러
+	void updateAdvertisementStatus();
+	
+	int updatePriorityScore();
+	
 	// 제휴사용자 목록
 	List<AdvertisementDto> searchMyAdvertisement(AdvertisementSearchDto dto);
 
@@ -49,7 +54,11 @@ public interface AdvertisementService {
     
     // 상태 변경
     int updateAdvertisementStatus(AdvertisementDto dto);
-    
+
+    // 우선도 설정
+	int updateAdGrade(int adId, String adGrade);
+	
+	// 기간 변경
     void updatePeriod(Long adId, LocalDateTime start, LocalDateTime end);
     
     // 이미지 등록
@@ -78,5 +87,7 @@ public interface AdvertisementService {
     int selectPendingAdvertisementCnt();
 
     int selectClosedAdvertisementCnt();
+
+
 
 }

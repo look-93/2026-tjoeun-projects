@@ -40,6 +40,45 @@
                         </button>
 					</div>
                 </div>
+                
+                <div class="col-md-3 my-3">
+		
+					    <select class="form-select"
+					            name="sort"
+					            onchange="this.form.submit()">
+					
+					        <option value=""
+					            th:selected="${search.sort == null or search.sort == ''}">
+					            최신 등록순
+					        </option>
+					
+					
+					        <option value="start"
+					            th:selected="${search.sort == 'start'}">
+					            시작 예정순
+					        </option>
+					
+					
+					        <option value="status"
+					            th:selected="${search.sort == 'status'}">
+					            진행 중 우선
+					        </option>
+					
+					
+					        <option value="end"
+					            th:selected="${search.sort == 'end'}">
+					            종료 임박순
+					        </option>
+					
+					
+					        <option value="budget"
+					            th:selected="${search.sort == 'budget'}">
+					            예산 높은순
+					        </option>
+					
+					    </select>
+					
+					</div>
 
             </form>
     </div>
@@ -84,7 +123,7 @@
                 <tr th:each="ad, stat : ${list}">
 
                     <!-- 번호 -->
-                    <td th:text="${totalCnt - ((dto.page - 1) * dto.size + stat.index)}"></td>
+                    <td th:text="${(dto.page - 1) * dto.size + stat.index + 1}"></td>
 
                     <!-- 이미지 -->
                     <td>

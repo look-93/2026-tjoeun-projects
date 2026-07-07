@@ -60,7 +60,7 @@
 		         style="margin-bottom:10px;">
 		
 		        <img th:src="${img.imageUrl}"
-		             style="width:100%;height:300px;object-fit:cover;border-radius:10px;">
+		             style="width:100%;height:300px;object-fit:contain;border-radius:10px;">
 		    </div>
 		
 		</div>
@@ -76,77 +76,63 @@
         <!-- 정보 -->
         <div class="row g-3">
 
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="info-box">
                     <div class="info-title">광고명</div>
                     <div class="info-value" th:text="${dto.title}"></div>
                 </div>
             </div>
 
-            <div class="col-md-3">
-                <div class="info-box">
-                    <div class="info-title">광고유형</div>
-                    <div class="info-value" th:text="${dto.adType}"></div>
-                </div>
-            </div>
-
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="info-box">
                     <div class="info-title">상태</div>
                     <div class="info-value" th:text="${dto.status}"></div>
                 </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="info-box">
-                    <div class="info-title">위치</div>
-                    <div class="info-value" th:text="${dto.position}"></div>
+                    <div class="info-title">디바이스</div>
+                    <div class="info-value" th:text="${dto.deviceType}"></div>
                 </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="info-box">
                     <div class="info-title">광고채널</div>
                     <div class="info-value" th:text="${dto.adChannel}"></div>
                 </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="info-box">
                     <div class="info-title">시작일</div>
                     <div class="info-value" th:text="${#temporals.format(dto.startDatetime, 'yyyy-MM-dd HH:mm:ss')}"></div>
                 </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="info-box">
                     <div class="info-title">종료일</div>
                     <div class="info-value" th:text="${#temporals.format(dto.endDatetime, 'yyyy-MM-dd HH:mm:ss')}"></div>
                 </div>
             </div>
 
-            <div class="col-md-3">
-                <div class="info-box">
-                    <div class="info-title">우선순위</div>
-                    <div class="info-value" th:text="${dto.priorityScore}"></div>
-                </div>
-            </div>
-
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="info-box">
                     <div class="info-title">예산</div>
                     <div class="info-value" th:text="${dto.totalBudget}"></div>
                 </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="info-box">
                     <div class="info-title">등록일</div>
                     <div class="info-value" th:text="${#temporals.format(dto.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></div>
                 </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="info-box">
                     <div class="info-title">수정일</div>
                     <div class="info-value" th:text="${#temporals.format(dto.updatedAt, 'yyyy-MM-dd HH:mm:ss')}"></div>

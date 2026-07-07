@@ -24,6 +24,25 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	private final AdvertisementMapper advertisementMapper;
 	private static final String UPLOAD_PATH = "C:/upload/ad";
 
+	// 스케쥴러
+	@Override
+	@Transactional
+	public void updateAdvertisementStatus() {
+
+		int openCnt = advertisementMapper.updatePendingToOpen();
+		int closeCnt = advertisementMapper.updateOpenToClosed();
+
+		System.out.println("OPEN 변경 : " + openCnt);
+	    System.out.println("CLOSED 변경 : " + closeCnt);
+	}
+	
+	@Override
+	public int updatePriorityScore() {
+
+	    return advertisementMapper.updatePriorityScore();
+
+	}
+	
 	// 제휴사용자 목록
 	@Override
 	public List<AdvertisementDto> searchMyAdvertisement(AdvertisementSearchDto dto) {
@@ -226,21 +245,28 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
 	    if ("APPROVED".equals(dto.getApprovalStatus())) {
 
-	        return advertisementMapper.approveAd(
-	                dto.getAdId(),
-	                dto.getApprovedBy()
-	        );
+	    	 return advertisementMapper.approveAd(dto);
 
 	    } else if ("REJECTED".equals(dto.getApprovalStatus())) {
 
-	        return advertisementMapper.rejectAd(
-	                dto.getAdId(),
-	                dto.getApprovedBy(),
-	                dto.getRejectReason() != null ? dto.getRejectReason() : ""
-	        );
+	    	return advertisementMapper.rejectAd(dto);
 	    }
 
 	    throw new IllegalArgumentException("잘못된 상태값");
+	}
+	
+	// 우선도 선택
+	@Override
+	public int updateAdGrade(
+	        int adId,
+	        String adGrade) {
+
+
+	    return advertisementMapper.updateAdGrade(
+	            adId,
+	            adGrade
+	    );
+
 	}
 	
 	// 기간변경

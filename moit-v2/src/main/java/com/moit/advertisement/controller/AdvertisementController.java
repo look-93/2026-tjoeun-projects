@@ -62,6 +62,7 @@ public class AdvertisementController {
 
         model.addAttribute("list", list);
         model.addAttribute("dto", dto);
+        model.addAttribute("search", dto);
         model.addAttribute("totalCnt", totalCnt);
         model.addAttribute("totalPage", totalPage);
         model.addAttribute("menu", "advertisement");
