@@ -196,7 +196,7 @@
 	<update id="updateMeetupDeleteYn" parameterType="int">
 		UPDATE meetups
 		SET delete_yn = 'Y',
-			ststus = 'DELETED'
+			status = 'DELETED'
 		WHERE meetup_id = #{meetupId}	
 	</update>		
 	
@@ -216,6 +216,18 @@
 		  LEFT JOIN sidos 		F ON F.sido_id = E.sido_id
 		 WHERE A.meetup_id = #{meetupId}
  	</select>	
+ 	
+	<!-- 모집저장 -->	
+ 	<insert id="insertMeetup" parameterType="MeetupDto">
+ 	<selectKey keyProperty="meetupId"
+               resultType="int"
+               order="BEFORE">
+        SELECT MEETUPS_SEQ.NEXTVAL
+        FROM DUAL
+    </selectKey>
+		INSERT INTO meetups(meetup_id, member_id, title, content, max_participants, min_participants, sigungu_id, category_id, meetup_at)
+		values(#{meetupId}, #{memberId}, #{title}, #{content}, #{maxParticipants}, #{minParticipants}, #{sigunguId}, #{categoryId}, TO_DATE(#{meetupAt}, 'YYYY-MM-DD"T"HH24:MI'))
+ 	</insert>	
  	
  	<!-- 모집수정 -->
  	<update id="updateMeetup" parameterType="MeetupDto">

@@ -33,6 +33,9 @@ public interface MeetupMapper {
 	public int cancelApplyMeetup(MeetupApplicationDto meetupApplicationDto);
 	public int updateApplication(MeetupApplicationDto meetupApplicationDto);
 	
+	//모집글등록
+	public int insertMeetup(MeetupDto meetupDto);
+	
 	//모집글수정
 	public int updateMeetup(MeetupDto meetupDto);
 	

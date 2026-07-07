@@ -12,7 +12,7 @@
 		<div layout:fragment="content">
 			<div class="mw-main-content">
 				<div class="mw-write-container"> 
-					<form th:action="${meetup == null} ? @{/meetup/user/write.do} : @{/meetup/mypage/update.do}" method="post" enctype="multipart/form-data">
+					<form th:action="${meetup == null} ? @{/meetup/write} : @{/mypage/update}" method="post" enctype="multipart/form-data">
 						
 						<input type="hidden" name="meetupId" th:value="${meetup != null} ? ${meetup.meetupId} : '0'" />
 						

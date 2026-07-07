@@ -68,12 +68,23 @@ public class MeetupServiceImpl implements MeetupService{
 		return meetupMapper.cancelApplyMeetup(meetupApplicationDto);
 	}
 	
+	//모집글 등록
+	@Override
+	public int insertMeetup(MeetupDto meetupDto) {
+		return meetupMapper.insertMeetup(meetupDto);
+	}
+	
 	//모집글수정
 	@Override
 	public int updateMeetup(MeetupDto meetupDto) {
 		return meetupMapper.updateMeetup(meetupDto);
 	}
 	
+	//모집글삭제
+	@Override
+	public int updateMeetupDeleteYn(int meetupId) {
+		return meetupMapper.updateMeetupDeleteYn(meetupId);
+	}
 	//마이페이지 내 모집글 조회 + paging
 	@Override
 	public List<MeetupDto> selectMyMeetup(int pstartno,MeetupDto meetupDto) {
