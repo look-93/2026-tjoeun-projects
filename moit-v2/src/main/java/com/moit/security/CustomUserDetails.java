@@ -51,8 +51,9 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 	public Integer getAppUserId() { return user.getMemberId(); }
 	public String  getEmail()     { return user.getEmail(); }
 	public String  getProvider()  { return user.getProvider(); }
-
-
+	
+	public String getNickname() { return user.getNickname(); }
+	public String getTypeName() { return authDto.getTypeName(); }
     // ★ 중요
     @Override public String getPassword() {  return authDto.getPassword();  }
 

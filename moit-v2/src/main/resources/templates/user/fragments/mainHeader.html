@@ -58,15 +58,16 @@
                     <div class="profile">
 
                         <div class="profile-img"
-                             th:text="${#strings.substring(#authentication.principal.dto.nickname,0,1)}">
+                        	 th:if="${#authentication.authenticated}"
+                             th:text="${#strings.substring(#authentication.principal.nickname,0,1)}">
                         </div>
 
                         <div class="profile-info">
 
-                            <strong th:text="${#authentication.principal.dto.nickname + '님'}">
+                            <strong th:text="${#authentication.principal.nickname + '님'}">
                             </strong>
 
-                            <span th:switch="${#authentication.principal.dto.typeName}">
+                            <span th:switch="${#authentication.principal.typeName}">
 
                                 <span th:case="'ROLE_MEMBER'">
                                     일반회원
@@ -81,7 +82,7 @@
                                 </span>
 
                                 <span th:case="*"
-                                      th:text="${#authentication.principal.dto.typeName}">
+                                      th:text="${#authentication.principal.typeName}">
                                 </span>
 
                             </span>
