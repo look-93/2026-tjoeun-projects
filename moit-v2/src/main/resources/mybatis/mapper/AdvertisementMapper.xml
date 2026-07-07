@@ -525,7 +525,7 @@
 	</resultMap>
 
    <!-- 위치별 광고 조회 -->
-	<select id="selectAdvertisementByPosition"
+	<select id="selectTopAdvertisement"
         parameterType="String"
         resultMap="AdvertisementWithImageMap">
 
