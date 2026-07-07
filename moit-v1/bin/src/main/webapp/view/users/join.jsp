@@ -1,119 +1,126 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-	pageEncoding="UTF-8"%>
-<%@include file="../inc/header.jsp"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@include file="../inc/userHeader.jsp" %>
 
-<div class="container my-5">
-	<h3>회원가입</h3>
-	<form action="${pageContext.request.contextPath}/users/join"
-		method="post" onsubmit="return checkForm()">
-		<input type="hidden" name="${_csrf.parameterName}"
-			value="${_csrf.token}" />
-		<div class="my-3">
-			<label for="nickname" class="form-label">닉네임</label> <input
-				type="text" class="form-control" id="nickname" name="nickname" />
-		</div>
-		<div class="my-3  alert  alert-warning  tnickname">닉네임 중복검사는
-			필수입니다.</div>
 
-		<div class="my-3">
-			<label for="bpass" class="form-label">비밀번호</label> <input
-				type="password" class="form-control" id="bpass" name="bpass" />
-		</div>
-		<div class="my-3">
-			<label for="email" class="form-label">이메일</label> <input type="email"
-				class="form-control" id="email" name="email" />
-		</div>
-		<div class="my-3  alert  alert-warning  target">아이디 중복검사는 필수입니다.
-		</div>
+<div class="signup-box">
+  <h2>회원가입</h2>
+  <form id="joinForm" action="${pageContext.request.contextPath}/users/join" method="post">
+  <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" >
+    <div class="form-group-inline">
+      <input type="text" id="loginId" name="loginId" placeholder="아이디" required>
+      <!-- <button type="button" class="btn">중복확인</button> -->
+    </div>
+    <div id="idCheck" class="target"></div>
+    <script>
+    	window.addEventListener("load",function(){
+    		
+    		let loginId = document.getElementById("loginId");
+    		let target = document.getElementById("idCheck");
+    		
+    		loginId.addEventListener("keyup",function(e){
+    			
+    			let value = e.target.value.trim();
+    			
+    			if(value==""){
+    				target.textContent="아이디를 입력해주세요.";
+    				target.className="target text-warning";
+    				return;
+    			}
+    			fetch("${pageContext.request.contextPath}/users/checkLoginId?loginId="+encodeURIComponent(value))
+    			.then(response=>response.json())
+    			.then(data=>{
+    				if(data.exists){
+    					target.textContent="이미 사용중인 아이디입니다.";
+    					target.className="target text-danger";
+    				}
+    				else{
+    					target.textContent="사용 가능한 아이디입니다.";
+    					target.className="target text-success";
+    				}
+    			})
+    			.catch(error=>{
+    				target.textContent="서버 오류가 발생했습니다.";
+    				target.className="target text-warning"
+    			});
+    			
+    		});
+    		
+    	});
+    </script>
+    
+    <div class="form-group"><input type="password" id="password" name="password" placeholder="비밀번호" required></div>
+    <div class="form-group"><input type="password" id="passwordCheck" placeholder="비밀번호 확인" required></div>
+    <div id="passCheck"></div>
+    
+    <div class="form-group-inline">
+      <input type="text" id="nickname" name="nickname" placeholder="닉네임" required>
+      <!-- <button type="button" class="btn">중복확인</button> -->
+    </div>
+    <div id="nickCheck" class="target"></div>
+    <script>
+    	window.addEventListener("load",function(){
+    		
+    		let nickname = document.getElementById("nickname");
+    		let target = document.getElementById("nickCheck");
+    		
+    		nickname.addEventListener("keyup",function(e){
+    			
+    			let value = e.target.value.trim();
+    			
+    			if(value==""){
+    				target.textContent="닉네임을 입력해주세요.";
+    				target.className="target text-warning";
+    				return;
+    			}
+    			fetch("${pageContext.request.contextPath}/users/checkNickname?nickname="+encodeURIComponent(value))
+    			.then(response=>response.json())
+    			.then(data=>{
+    				if(data.exists){
+    					target.textContent="이미 사용중인 닉네임입니다.";
+    					target.className="target text-danger";
+    				}
+    				else{
+    					target.textContent="사용 가능한 닉네임입니다.";
+    					target.className="target text-success";
+    				}
+    			})
+    			.catch(error=>{
+    				target.textContent="서버 오류가 발생했습니다.";
+    				target.className="target text-warning"
+    			});
+    			
+    		});
+    		
+    	});
+    </script>
+    
+    <div class="form-group"><input type="email" id="email" name="email" placeholder="이메일" required></div>
+    <div class="form-group">
+      <input type="tel" id="mobile" name="mobile" placeholder="전화번호" required>
+      <div class="hint">'-'없이 숫자만 입력해주세요</div>
+    </div>
 
-		<div class="my-3">
-			<label for="mobile" class="form-label">휴대폰</label> <input type="text"
-				class="form-control" id="mobile" name="mobile" />
-		</div>
-		<div class="text-end">
-			<button type="reset" class="btn btn-outline-primary">취소</button>
-			<button type="submit" class="btn btn-primary">가입하기</button>
-		</div>
-	</form>
+    <!-- 회원가입 유형 선택 -->
+    <div class="form-options member-type">
+      <label><input type="radio" name="memberTypeId" value="1" checked> 일반회원</label>
+      <label><input type="radio" name="memberTypeId" value="2"> 제휴업체</label>
+    </div>
 
+    <!-- 약관 동의 -->
+    <div class="form-options">
+      <label><input type="checkbox" id="agree" required> 약관 및 개인정보처리방침 동의</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">회원가입</button>
+  </form>
 </div>
-<script>
-	window.addEventListener("load", function(){
-		let nickname = document.querySelector("#nickname");
-		let tnickname = document.querySelector(".tnickname");
-
-		let email = document.querySelector("#email");
-		let target = document.querySelector(".target");
-		
-	    nickname.addEventListener("keyup", function(e){
-	        let value = e.target.value.trim();
-
-	        if(value !== ""){
-	            fetch("${pageContext.request.contextPath}/duplicateNickname?nickname=" + encodeURIComponent(value))
-	            .then(response => response.json())
-	            .then(data => {
-	                if(data.exists){
-	                    tnickname.textContent = "이미 사용중인 닉네임입니다.";
-	                    tnickname.className = "my-3 alert alert-danger tnickname";
-	                }else{
-	                    tnickname.textContent = "사용가능한 닉네임입니다.";
-	                    tnickname.className = "my-3 alert alert-success tnickname";
-	                }
-	            })
-	            .catch(err => {
-	                tnickname.textContent = "서버오류입니다.";
-	                tnickname.className = "my-3 alert alert-info tnickname";
-	            });
-	        }else{
-	            tnickname.textContent = "닉네임 중복검사는 필수입니다.";
-	            tnickname.className = "my-3 alert alert-warning tnickname";
-	        }
-	    });
-	    
-	    email.addEventListener("keyup", function(e){
-	        let value = e.target.value.trim();
-
-	        if(value !== ""){
-	            fetch("${pageContext.request.contextPath}/duplicateEmail?email=" + encodeURIComponent(value))
-	            .then(response => response.json())
-	            .then(data => {
-	                if(data.exists){
-	                	target.textContent = "이미 사용중인 이메일입니다.";
-	                	target.className = "my-3 alert alert-danger target";
-	                }else{
-	                	target.textContent = "사용가능한 이메일입니다.";
-	                	target.className = "my-3 alert alert-success target";
-	                }
-	            })
-	            .catch(err => {
-	            	target.textContent = "서버오류입니다.";
-	            	target.className = "my-3 alert alert-info target";
-	            });
-	        }else{
-	        	target.textContent = "이메일 중복검사는 필수입니다.";
-	        	target.className = "my-3 alert alert-warning target";
-	        }
-	    });	    
-	});
-	
-	
-
-</script>
 
 
 <script>
-function checkForm(){
-  let nickname = document.getElementById("nickname");
-  let bpass = document.getElementById("bpass");
-  let email = document.getElementById("email");
-  let mobile = document.getElementById("mobile");
-
-  if(nickname.value.trim()==""){ alert("닉네임을 입력하세요"); nickname.focus(); return false; }
-  if(bpass.value.trim()==""){ alert("비밀번호를 입력하세요"); bpass.focus(); return false; }
-  if(email.value.trim()==""){ alert("이메일을 입력하세요"); email.focus(); return false; }
-  if(mobile.value.trim()==""){ alert("휴대폰 번호를 입력하세요"); mobile.focus(); return false; }
-  return true;
+function signupComplete(){
+  alert("회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.");
+  window.location.href = "login.html"; // 로그인 페이지로 이동
+  return false;
 }
 </script>
-
-<%@include file="../inc/footer.jsp"%>
+<%@include file="../inc/userFooter.jsp" %>

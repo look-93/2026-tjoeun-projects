@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layouts/adminLayout}"> <!-- 1. th:replace 대신 layout:decorate 사용 -->
+<head>
+    <title>광고 관리</title>
+</head>
+<body>
+
+    <!-- 2. 레이아웃의 content 자리에 들어갈 본문 내용을 정의 -->
+    <div layout:fragment="content">
+
+		<h2>광고 관리</h2>
+		
+		<!-- 탭 -->
+		<div class="mb-3">
+		    <a class="btn btn-sm"
+			   th:classappend="${tab == 'approval'} ? 'btn-primary' : 'btn-secondary'"
+			   th:href="@{/admin/advertisement/manageList(tab='approval')}">
+			    승인 관리
+			</a>
+			
+			<a class="btn btn-sm"
+			   th:classappend="${tab == 'status'} ? 'btn-primary' : 'btn-secondary'"
+			   th:href="@{/admin/advertisement/manageList(tab='status')}">
+			    운영 관리
+			</a>
+		</div>
+		
+		<!-- 승인 관리 탭 -->
+		<div th:if="${tab == 'approval'}">
+		
+			<div class="mb-4">
+				<div class="col-md-3">
+				    <div class="card-box">
+				        <h6>승인 대기</h6>
+				        <div class="stat-number" th:text="${waitingCnt}"></div>
+				    </div>
+				</div>
+			</div>
+				    
+		    <!-- 승인 관리 검색 -->
+			<div class="table-box mb-3">
+			
+			    <form method="get" th:action="@{/admin/advertisement/manageList}">
+			
+			        <input type="hidden" name="tab" value="approval"/>
+			
+			        <div class="row">
+			
+			            <div class="col-md-5">
+			                <input type="text"
+			                       name="searchText"
+			                       class="form-control"
+			                       placeholder="광고명 검색"
+			                       th:value="${dto.searchText}">
+			            </div>
+			
+			            <div class="col-md-2">
+			                <button type="submit" class="btn btn-primary">검색</button>
+			            </div>
+			
+			        </div>
+			
+			    </form>
+			
+			</div>
+						
+		    <h4>광고 승인 관리</h4>
+		
+		    <table class="table table-hover align-middle">
+			    <thead>
+				    <tr>
+				        <th>번호</th>
+				        <th>이미지</th>
+				        <th>광고명</th>
+				        <th>유형</th>
+				        <th>상태</th>
+				        <th>기간</th>
+				        <th>관리</th>
+				    </tr>
+			    </thead>
+			
+				<tbody>
+				    <tr th:each="ad, stat : ${list}">
+				        
+				        <!-- 번호 -->
+				        <td th:text="${totalCnt - ((dto.page - 1) * dto.size + stat.index)}"></td>
+				
+				        <!-- 이미지 -->
+				        <td>
+						    <img th:if="${ad.imageList != null and !#lists.isEmpty(ad.imageList)}"
+						         th:src="${ad.imageList[0].imageUrl}"
+						         style="width:70px;height:45px;object-fit:cover;border-radius:6px;">
+						</td>
+				
+				        <!-- 광고명 -->
+				        <td th:text="${ad.title}"></td>
+				
+				        <!-- 유형 -->
+				        <td th:text="${ad.adChannel}"></td>
+				
+				        <!-- 상태 -->
+				        <td th:text="${ad.approvalStatus}"></td>
+				
+				        <!-- 기간 -->
+				        <td>
+				            <span th:text="${ad.startDatetime}"></span>
+				            ~
+				            <span th:text="${ad.endDatetime}"></span>
+				        </td>
+				
+				        <!-- 관리 (승인 버튼) -->
+				        <td>
+				        	<div class="d-flex gap-1">
+						        <a class="btn btn-sm btn-primary"
+						           th:href="@{/admin/advertisement/approvalDetail(adId=${ad.adId}, mode='approval')}">
+						            상세
+						        </a>
+					            <form th:action="@{/admin/advertisement/approve}" method="post">
+					                <input type="hidden" name="adId" th:value="${ad.adId}"/>
+					                <button type="submit" class="btn btn-sm btn-success">승인</button>
+					            </form>
+				            </div>
+				        </td>
+				
+				    </tr>
+			    </tbody>
+			</table>
+		
+		</div>
+		
+		<!-- 운영 관리 탭 -->
+		<div th:if="${tab == 'status'}">
+		
+		<!-- 통계 -->
+	    <div class="row mb-4">
+	
+	        <div class="col-md-3">
+	            <div class="card-box">
+	                <h6>전체 광고</h6>
+	                <div class="stat-number" th:text="${totalAdCnt}">0</div>
+	            </div>
+	        </div>
+	
+	        <div class="col-md-3">
+	            <div class="card-box">
+	                <h6>진행중</h6>
+	                <div class="stat-number" th:text="${openCnt}"></div>
+	            </div>
+	        </div>
+	
+	        <div class="col-md-3">
+	            <div class="card-box">
+	                <h6>대기</h6>
+	                <div class="stat-number" th:text="${pendingCnt}"></div>
+	            </div>
+	        </div>
+	
+	        <div class="col-md-3">
+	            <div class="card-box">
+	                <h6>종료</h6>
+	                <div class="stat-number" th:text="${closedCnt}"></div>
+	            </div>
+	        </div>
+	
+	    </div>		
+		    <!-- 검색 -->
+	        <div class="table-box mb-3">
+	
+	            <form method="get" th:action="@{/admin/advertisement/manageList}">
+	
+	                <input type="hidden" name="tab" value="status"/>
+	
+	                <div class="row">
+	
+	                    <div class="col-md-5">
+	                        <input type="text"
+	                               name="searchText"
+	                               class="form-control"
+	                               placeholder="광고명 검색"
+	                               th:value="${dto.searchText}">
+	                    </div>
+	
+	                    <div class="col-md-3">
+	                        <select name="status" class="form-select">
+	                            <option value="">전체</option>
+	                            <option value="OPEN" th:selected="${param.status=='OPEN'}">OPEN</option>
+	                            <option value="PENDING">PENDING</option>
+	                            <option value="CLOSED">CLOSED</option>
+	                        </select>
+	                    </div>
+	
+	                    <div class="col-md-2">
+	                        <button type="submit" class="btn btn-primary">검색</button>
+	                    </div>
+	
+	                </div>
+	
+	            </form>
+	
+	        </div>
+	        
+	        
+		    <h4>광고 게시 관리</h4>
+		
+		    <table class="table table-hover align-middle">
+		    	<thead>
+				    <tr>
+				        <th>번호</th>
+				        <th>이미지</th>
+				        <th>광고명</th>
+				        <th>유형</th>
+				        <th>상태</th>
+				        <th>기간</th>
+				        <th>노출수</th>
+				        <th>클릭수</th>
+				        <th>관리</th>
+				    </tr>
+				</thead>
+			
+				<tbody>
+				    <tr th:each="ad, stat : ${list}">
+				
+				        <!-- 번호 -->
+				        <td th:text="${totalCnt - ((dto.page - 1) * dto.size + stat.index)}"></td>
+				
+				        <!-- 이미지 -->
+				        <td>
+						    <img th:if="${ad.imageList != null and !#lists.isEmpty(ad.imageList)}"
+						         th:src="${ad.imageList[0].imageUrl}"
+						         style="width:70px;height:45px;object-fit:cover;border-radius:6px;">
+						</td>
+				
+				        <!-- 광고명 -->
+				        <td th:text="${ad.title}"></td>
+				
+				        <!-- 유형 -->
+				        <td th:text="${ad.adChannel}"></td>
+				
+				        <!-- 상태 -->
+				        <td>
+				            <span th:if="${ad.approvalStatus == 'APPROVED'
+    										and ad.startDatetime.isAfter(now)}">
+				                PENDING
+				            </span>
+				
+				            <span th:if="${ad.approvalStatus == 'APPROVED'
+							    and ad.startDatetime.isBefore(now)
+							    and ad.endDatetime.isAfter(now)}">
+							    OPEN
+				            </span>
+				
+				            <span th:if="${ad.approvalStatus == 'APPROVED'
+							    and ad.endDatetime.isBefore(now)}">
+							    CLOSED
+							</span>
+				        </td>
+				
+				        <!-- 기간 -->
+				        <td>
+				            <span th:text="${ad.startDatetime}"></span>
+				            ~
+				            <span th:text="${ad.endDatetime}"></span>
+				        </td>
+				
+				        <!-- 노출수 -->
+				        <td th:text="${ad.impressions}"></td>
+				
+				        <!-- 클릭수 -->
+				        <td th:text="${ad.clicks}"></td>
+				
+				        <!-- 관리 (상세 버튼) -->
+				        <td>
+				            <a class="btn btn-sm btn-primary"
+				               th:href="@{/admin/advertisement/manageDetail(adId=${ad.adId}, mode='manage')}">
+				                상세
+				            </a>
+				        </td>
+				
+				    </tr>
+				</tbody>
+			</table>
+		
+		</div>
+		
+		<!-- 페이징 (JSP 스타일 유지) -->
+	    <nav class="mt-4" th:if="${totalPage > 0}">
+	        <ul class="pagination justify-content-center">
+	
+	            <li class="page-item" th:classappend="${dto.page <= 1} ? 'disabled'">
+	                <a class="page-link"
+	                   th:href="@{/admin/advertisement/manageList(page=${dto.page - 1}, tab=${tab})}">
+	                    이전
+	                </a>
+	            </li>
+	
+	            <li class="page-item"
+	                th:each="i : ${#numbers.sequence(1, totalPage)}"
+	                th:classappend="${dto.page == i} ? 'active'">
+	
+	                <a class="page-link"
+	                   th:text="${i}"
+	                   th:href="@{/admin/advertisement/manageList(page=${i}, tab=${tab})}">
+	                </a>
+	
+	            </li>
+	
+	            <li class="page-item" th:classappend="${dto.page >= totalPage} ? 'disabled'">
+	                <a class="page-link"
+	                   th:href="@{/admin/advertisement/manageList(page=${dto.page + 1}, tab=${tab})}">
+	                    다음
+	                </a>
+	            </li>
+	
+	        </ul>
+	    </nav>
+		
+	</div>
+</body>
+</html>
