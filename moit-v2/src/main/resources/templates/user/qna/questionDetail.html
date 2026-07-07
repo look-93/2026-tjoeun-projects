@@ -186,7 +186,7 @@
             </tr>
             <tr>
                 <th>등록일</th>
-                <td th:text="${data.createdAt != null ? #dates.format(data.createdAt,'yyyy.MM.dd HH:mm:ss') : '-'}"></td>
+                <td th:text="${#dates.format(data.createdAt,'yyyy.MM.dd HH:mm:ss')}"></td>
             </tr>
             <tr>
                 <th>답변상태</th>
@@ -206,7 +206,7 @@
 				        비공개 상태입니다. 🔒
 				    </th:block>
 				    <th:block th:unless="${data.isPublic == 'N'}">
-				        공개 상태입니다.
+				        공개 상태입니다. 🔓
 				    </th:block>
 				</td>
             </tr>
@@ -233,7 +233,7 @@
 	            </div>
 	        </div>
 	        <div class="answer-content" th:text="${data.answer.content}"></div>
-	        <div class="answer-date">답변일 <span th:text="${#dates.format(data.answer.createdAt, 'yyyy.MM.dd HH:mm:ss')}"></span></div>
+	        <div class="answer-date">답변일 <span th:text="${data.answer != null ? #dates.format(data.answer.createdAt,'yyyy.MM.dd HH:mm:ss') : '-'}"></span></div>
 	    </div>
 	    <div class="list-btn-area"
 	    	 th:onclick="|location.href='@{/questions}'|">

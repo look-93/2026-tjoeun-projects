@@ -237,10 +237,10 @@
                         <th>번호</th>
                         <th>문의구분</th>
                         <th>제목</th>
+                        <th>공개여부</th>
                         <th>답변상태</th>
                         <th>등록일</th>
                         <th>답변일</th>
-                        <th></th>
                     </tr>
                 </thead>
 
@@ -256,6 +256,7 @@
                         <td th:text="${q.questionId}"></td>
                         <td th:text="${q.category == 'MEETUP'} ? '모임 문의' : '관리자 문의'"></td>
                         <td th:text="${q.title}"></td>
+                        <td>🔓🔒</td>
                         <td>
 
                             <span class="badge waiting" th:if="${q.status == 'PENDING'}">
@@ -267,9 +268,7 @@
 
                         </td>
                         <td th:text="${#dates.format(q.createdAt, 'yyyy.MM.dd HH:mm:ss')}"></td>
-                        <td th:text="${q.status == 'ANSWERED'} ? '완료' : '-'"></td>
-                        <td>›</td>
-
+                        <td th:text="${q.answer != null ? #dates.format(q.answer.createdAt,'yyyy.MM.dd HH:mm:ss') : '-'}"></td>	
                     </tr>
 
                 </tbody>

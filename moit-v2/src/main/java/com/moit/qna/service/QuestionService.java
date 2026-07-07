@@ -79,7 +79,7 @@ public class QuestionService {
         return questionMapper.findTodayCnt();
     }
     
-    // 사용자 문의 목록 페이징
+    // 사용자 문의 목록 페이징 조회
     public List<QuestionDto> getMyQuestions(
             int memberId,
             int start,
@@ -91,7 +91,14 @@ public class QuestionService {
         map.put("start", start);
         map.put("end", end);
 
-        return questionMapper.findMyQuestions(map);
+        List<QuestionDto> list = questionMapper.findMyQuestions(map);
+        // 답변 정보 추가
+        for (QuestionDto q : list) {
+            AnswerDto answer = answerMapper.findByQuestionId(q.getQuestionId());
+            q.setAnswer(answer);
+        }
+
+        return list;
     }
     
     // 내 문의 총 개수 조회
