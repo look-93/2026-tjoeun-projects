@@ -194,7 +194,7 @@
 				<div class="meetup-detail-side-box">
 					<h3>작성자</h3>
 					<p class="meetup-detail-author" th:text="${detail.nickname}"></p>
-					<button class="meetup-detail-inquiry-btn">💬 모임글 문의하기</button>
+					<a type = "button" class="meetup-detail-inquiry-btn" th:href="@{/questions/write(meetupId=${detail.meetupId})}" >💬 모임글 문의하기</a>
 				</div>
 
 				<div class="meetup-detail-side-box">
