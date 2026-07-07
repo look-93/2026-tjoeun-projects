@@ -35,8 +35,20 @@ public class MeetupDto {
     private String sidoName;
     private String sigunguName;
     private String statusName;
+    private Integer start;
+    private Integer end;
+    private String fomatMeetupAt;
+    private String fomatcreatedAt;
+    private Integer meetupTotalCount;
+    
+    /*통계*/
+    private Integer meetupCount;
+    private Integer reviewCount;
+    private Integer likeCount;
+    private Integer applicationCount;
+    
+    
 }
-
 /*
 status In(
 	'RECRUITING',       -- 모집 중

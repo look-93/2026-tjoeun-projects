@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layouts/adminLayout}">
+
+<head>
+    <title th:text="${mode == 'write'} ? '광고 등록' : '광고 수정'"></title>
+</head>
+
+<section layout:fragment="content">
+
+<div class="container-fluid">
+
+    <h1 class="page-title"
+        th:text="${mode == 'write'} ? '광고 등록' : '광고 수정'"></h1>
+
+    <form class="card-box"
+          method="post"
+          enctype="multipart/form-data"
+          th:action="${mode=='write'}
+		        ? @{/user/advertisement/write}
+		        : @{/user/advertisement/edit}">
+
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <input type="hidden" name="adId" th:value="${dto.adId}">
+        <input type="hidden" name="advertiserId" th:value="${dto.advertiserId}">
+
+        <!-- ===================== -->
+        <!-- 기본 정보 -->
+        <!-- ===================== -->
+
+        <div class="mb-3">
+            <label class="form-label">광고명</label>
+
+            <input type="text"
+                   name="title"
+                   class="form-control"
+                   th:value="${dto.title}"
+                   required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">내용</label>
+
+            <textarea name="content"
+                      class="form-control"
+                      rows="5"
+                      required
+                      th:text="${dto.content}"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">랜딩 URL</label>
+
+            <input type="url"
+                   name="landingUrl"
+                   class="form-control"
+                   th:value="${dto.landingUrl}"
+                   required>
+        </div>
+        
+        <hr class="my-4">
+		<h5>타겟 설정</h5>
+		
+		<div class="row g-3">
+		
+		    <div class="col-md-6">
+		        <label class="form-label">최소 연령</label>
+		        <input type="number"
+		               class="form-control"
+		               name="targetAgeMin"
+		               th:value="${dto.targetAgeMin}"
+		               required>
+		    </div>
+		
+		    <div class="col-md-6">
+		        <label class="form-label">최대 연령</label>
+		        <input type="number"
+		               class="form-control"
+		               name="targetAgeMax"
+		               th:value="${dto.targetAgeMax}"
+		               required>
+		    </div>
+		
+		    <div class="col-md-6">
+		        <label class="form-label">성별</label>
+		        <select class="form-select"
+		                name="targetGender">
+		
+		            <option value="ALL"
+		                th:selected="${dto.targetGender == 'ALL'}">
+		                전체
+		            </option>
+		
+		            <option value="MALE"
+		                th:selected="${dto.targetGender == 'MALE'}">
+		                남성
+		            </option>
+		
+		            <option value="FEMALE"
+		                th:selected="${dto.targetGender == 'FEMALE'}">
+		                여성
+		            </option>
+		
+		        </select>
+		    </div>
+		
+		    <div class="col-md-6">
+		        <label class="form-label">디바이스</label>
+		        <select class="form-select"
+		                name="deviceType">
+		
+		            <option value="ALL"
+		                th:selected="${dto.deviceType == 'ALL'}">
+		                전체
+		            </option>
+		
+		            <option value="PC"
+		                th:selected="${dto.deviceType == 'PC'}">
+		                PC
+		            </option>
+		
+		            <option value="MOBILE"
+		                th:selected="${dto.deviceType == 'MOBILE'}">
+		                모바일
+		            </option>
+		
+		        </select>
+		    </div>
+		
+		    <div class="col-md-6">
+		        <label class="form-label">광고 채널</label>
+		        <input type="text"
+		               class="form-control"
+		               name="adChannel"
+		               th:value="${dto.adChannel}">
+		    </div>
+		
+		    <div class="col-md-6">
+		        <label class="form-label">예산</label>
+		        <input type="number"
+		               class="form-control"
+		               name="totalBudget"
+		               th:value="${dto.totalBudget}"
+		               required
+		               max="10000000000">
+		    </div>
+		    
+		    <label>광고 등급</label>
+
+			<select name="adGrade" class="form-select">
+			
+			    <option value="GENERAL">
+			        일반 광고
+			    </option>
+			
+			    <option value="PREMIUM">
+			        프리미엄 광고
+			    </option>
+			
+			</select>
+		
+		</div>
+
+        <!-- ===================== -->
+        <!-- 이미지 (position별) -->
+        <!-- ===================== -->
+
+        <hr class="my-4">
+        <h5>이미지 설정</h5>
+
+        <!-- MAIN (필수) -->
+       	<div class="mb-4">
+
+            <label class="form-label text-danger">
+                MAIN 이미지
+            </label>
+
+            <div class="preview-box mb-2">
+                <img id="preview0"
+                     th:src="${mainImage}"
+                     onerror="this.src='/upload/no-image.png'">
+            </div>
+
+            <input type="hidden"
+                   name="imageTypes"
+                   value="MAIN">
+
+            <input type="file"
+                   name="imageFiles"
+                   class="form-control"
+                   accept="image/*"
+                   th:required="${mode=='write'}">
+        </div>
+
+        <!-- LIST BANNER -->
+       	<div class="mb-4">
+
+            <label class="form-label">
+                MEETUP LIST BANNER
+            </label>
+
+            <div class="preview-box mb-2">
+                <img id="preview1"
+                     th:src="${bannerImage}"
+                     onerror="this.src='/upload/no-image.png'">
+            </div>
+
+            <input type="hidden"
+                   name="imageTypes"
+                   value="MEETUP_LIST_BANNER">
+
+            <input type="file"
+                   name="imageFiles"
+                   class="form-control"
+                   accept="image/*">
+        </div>
+
+        <!-- LIST SIDEBAR -->
+        <div class="mb-4">
+
+            <label class="form-label">
+                MEETUP LIST SIDEBAR
+            </label>
+
+            <div class="preview-box mb-2">
+                <img id="preview2"
+                     th:src="${listSidebarImage}"
+                     onerror="this.src='/upload/no-image.png'">
+            </div>
+
+            <input type="hidden"
+                   name="imageTypes"
+                   value="MEETUP_LIST_SIDEBAR">
+
+            <input type="file"
+                   name="imageFiles"
+                   class="form-control"
+                   accept="image/*">
+        </div>
+
+        <!-- DETAIL SIDEBAR -->
+        <div class="mb-4">
+
+            <label class="form-label">
+                MEETUP DETAIL SIDEBAR
+            </label>
+
+            <div class="preview-box mb-2">
+                <img id="preview3"
+                     th:src="${detailSidebarImage}"
+                     onerror="this.src='/upload/no-image.png'">
+            </div>
+
+            <input type="hidden"
+                   name="imageTypes"
+                   value="MEETUP_DETAIL_SIDEBAR">
+
+            <input type="file"
+                   name="imageFiles"
+                   class="form-control"
+                   accept="image/*">
+        </div>
+
+        <!--   날짜   -->
+        <hr class="my-4">
+
+        <div class="row g-3">
+
+            <div class="col-md-6">
+
+                <label class="form-label">
+                    시작일
+                </label>
+
+                <input type="datetime-local"
+                       class="form-control"
+                       name="startDatetime"
+                       th:value="${dto.startDatetime != null ?
+                           #temporals.format(dto.startDatetime,'yyyy-MM-dd''T''HH:mm') : ''}"
+                           required>
+            </div>
+
+            <div class="col-md-6">
+
+                <label class="form-label">
+                    종료일
+                </label>
+
+                <input type="datetime-local"
+                       class="form-control"
+                       name="endDatetime"
+                       th:value="${dto.endDatetime != null ?
+                           #temporals.format(dto.endDatetime,'yyyy-MM-dd''T''HH:mm') : ''}"
+                           required>
+            </div>
+
+        </div>
+
+        <input type="hidden" name="advertiserId" th:value="${dto.advertiserId}">
+
+        <!-- 버튼 -->
+        <div class="mt-4 d-flex justify-content-end gap-2">
+
+            <a th:href="@{/user/advertisement/list}"
+               class="btn btn-secondary">
+                취소
+            </a>
+
+            <button type="submit"
+                    class="btn btn-primary"
+                    th:text="${mode=='write'} ? '등록' : '수정'">
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+
+	document.querySelectorAll("input[name='imageFiles']")
+	.forEach(function(input, index){
+	
+	    input.addEventListener("change", function(){
+	
+	        if(this.files.length==0){
+	            return;
+	        }
+	
+	        const reader = new FileReader();
+	
+	        reader.onload=function(e){
+	
+	            document.getElementById("preview"+index).src =
+	                e.target.result;
+	
+	        }
+	
+	        reader.readAsDataURL(this.files[0]);
+	
+	    });
+	
+	});
+
+</script>
+
+</section>
+
+</html>

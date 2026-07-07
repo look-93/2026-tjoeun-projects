@@ -1,14 +1,11 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@ include file="../../inc/userHeader.jsp" %>
-
-<c:if test="${not empty msg}">
-<script>
-    alert("${msg}");
-</script>
-</c:if>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{user/layouts/layout}">
+<head>
+<meta charset="UTF-8">
 
 <style>
+
 .inquiry-wrap{
     max-width:1100px;
     margin:40px auto;
@@ -89,11 +86,21 @@
     border-bottom:1px solid #e5e7eb;
 }
 
-.status{
+.status-wait{
     display:inline-block;
     padding:6px 12px;
     border:1px solid #fb923c;
     color:#f97316;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:600;
+}
+
+.status-done{
+    display:inline-block;
+    padding:6px 12px;
+    border:1px solid #22c55e;
+    color:#16a34a;
     border-radius:8px;
     font-size:13px;
     font-weight:600;
@@ -148,18 +155,22 @@
 }
 </style>
 
+</head>
+<body>
+<div layout:fragment="content">
+
 <div class="inquiry-wrap">
 
-    <h1 class="page-title">모임 1:1 문의 상세보기</h1>
-    <div class="breadcrumb">1:1 문의 > 문의 상세보기</div>
+    <h1 class="page-title" th:text="${data.category == 'MEETUP'} ? '모임 1:1 문의 상세보기' : '관리자 1:1 문의 상세보기'"> </h1>
+    <div class="breadcrumb"> <span th:text="${data.category == 'MEETUP'} ? '모임 1:1 문의' : '관리자 1:1 문의'"></span> &gt; 문의 상세보기 </div>
 
     <div class="top-btn-area">
         <button class="btn btn-answer"
-        		onclick="location.href='${pageContext.request.contextPath}/questions/answer/write/${data.questionId}'">답변등록</button>
+        		th:onclick="|location.href='@{/questions/answer/write/{id}(id=${data.questionId})}'|">답변등록</button>
         <button class="btn btn-edit"
-   				onclick="location.href='${pageContext.request.contextPath}/questions/edit/${data.questionId}'"> 수정 </button>
+   				th:onclick="|location.href='@{/questions/edit/{id}(id=${data.questionId})}'|"> 수정 </button>
 		<button class="btn btn-delete"
-        		onclick="deleteQuestion(${data.questionId})"> 삭제 </button>
+        		th:onclick="|deleteQuestion(${data.questionId})|"> 삭제 </button>
     </div>
 
     <div class="card">
@@ -167,40 +178,36 @@
         <table class="info-table">
             <tr>
                 <th>제목</th>
-                <td>${data.title}</td>
+                <td th:text="${data.title}"></td>
             </tr>
             <tr>
                 <th>작성자</th>
-                <td>${data.memberId}</td>
+                <td th:text="${data.memberId}"></td>
             </tr>
             <tr>
                 <th>등록일</th>
-                <td>${data.createdAt}</td>
+                <td th:text="${data.createdAt != null ? #dates.format(data.createdAt,'yyyy.MM.dd HH:mm:ss') : '-'}"></td>
             </tr>
             <tr>
                 <th>답변상태</th>
                 <td>
-                	<c:choose>
-                		<c:when test="${data.status eq 'ANSWERED'}">
-	                   		<span class="status">답변 완료</span>
-	                    </c:when>
-	                    <c:otherwise>
-	                    	<span class="status">답변 대기</span>
-	                    </c:otherwise>
-                    </c:choose>
+                	<th:block th:if="${data.status == 'ANSWERED'}">
+	                   	<span class="status-done">답변 완료</span>
+	                </th:block>
+	                <th:block th:unless="${data.status == 'ANSWERED'}">
+	                    <span class="status-wait">답변 대기</span>
+	                </th:block>
                 </td>
             </tr>
             <tr>
                 <th>공개여부</th>
                 <td>
-				    <c:choose>
-				        <c:when test="${data.isPublic eq 'N'}">
-				            비공개 상태입니다. 🔒
-				        </c:when>
-				        <c:otherwise>
-				            공개 상태입니다.
-				        </c:otherwise>
-				    </c:choose>
+				    <th:block th:if="${data.isPublic == 'N'}">
+				        비공개 상태입니다. 🔒
+				    </th:block>
+				    <th:block th:unless="${data.isPublic == 'N'}">
+				        공개 상태입니다.
+				    </th:block>
 				</td>
             </tr>
         </table>
@@ -208,40 +215,47 @@
 
     <div class="card">
         <div class="card-title">문의 내용</div>
-        <div class="content-box">
-        	${data.content}
+        <div class="content-box"
+        	 th:text="${data.content}">
         </div>
     </div>
     
-	<c:if test="${not empty data.answer}">
+	<div th:if="${data.answer != null}">
 	    <div class="card">
 	        <div class="answer-header">
 	        <div class="card-title">답변 내용</div>
 	        
 	            <div class="answer-btns">
 	                <button class="btn btn-answer-edit"
-						onclick="location.href='${pageContext.request.contextPath}/questions/answer/edit/${data.questionId}'"> 답변수정 </button>
+						th:onclick="|location.href='@{/questions/answer/edit/{id}(id=${data.questionId})}'|"> 답변수정 </button>
 	                <button class="btn btn-answer-delete"
-						onclick="deleteAnswer(${data.answer.answerId}, ${data.questionId})"> 답변삭제 </button>
+						th:onclick="|deleteAnswer(${data.answer.answerId}, ${data.questionId})|"> 답변삭제 </button>
 	            </div>
 	        </div>
-	        <div class="answer-content"> ${data.answer.content} </div>
-	        <div class="answer-date">답변일 ${data.answer.createdAt}</div>
+	        <div class="answer-content" th:text="${data.answer.content}"></div>
+	        <div class="answer-date">답변일 <span th:text="${#dates.format(data.answer.createdAt, 'yyyy.MM.dd HH:mm:ss')}"></span></div>
 	    </div>
-	    <div class="list-btn-area" onclick="location.href='${pageContext.request.contextPath}/questions'">
+	    <div class="list-btn-area"
+	    	 th:onclick="|location.href='@{/questions}'|">
 	        <button class="btn btn-list">목록으로</button>
 	    </div>
-	</c:if>
-	<script>
-		function deleteQuestion(questionId){
-		    if(confirm("정말 삭제하시겠습니까?")){
-		        location.href = "${pageContext.request.contextPath}/questions/delete/" + questionId; }
-		}
-		function deleteAnswer(answerId, questionId){
-		    if(confirm("답변을 삭제하시겠습니까?")){
-		        location.href = "${pageContext.request.contextPath}/questions/answer/delete/" + answerId + "/" + questionId; }
-		}
-	</script>
+	</div>
 </div>
 
-<%@ include file="../../inc/userFooter.jsp" %>
+
+<script>
+	function deleteQuestion(questionId){
+	    if(confirm("정말 삭제하시겠습니까?")){
+	        location.href = "/questions/delete/" + questionId;
+	    }
+	}
+
+	function deleteAnswer(answerId, questionId){
+	    if(confirm("답변을 삭제하시겠습니까?")){
+	        location.href = "/questions/answer/delete/" + answerId + "/" + questionId;
+	    }
+	}
+</script>
+</div>
+</body>
+</html>

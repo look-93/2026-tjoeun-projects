@@ -26,4 +26,7 @@ public class AdvertisementSearchDto {
     public int getOffset() {
         return (page - 1) * size;
     }
+    
+    // 정렬용
+    private String sort;
 }
