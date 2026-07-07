@@ -1,10 +1,71 @@
 <!DOCTYPE html>
-<html>
-<head>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{user/meetup/layouts/meetupDetailLayout}">
+<head lang="ko">
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<title>후기 상세</title>
 </head>
+
 <body>
+
+	<div layout:fragment="content">
+
+		<div class="meetup-detail-wrap">
+
+			<div class="meetup-detail-left">
+
+				<!-- 목록으로 -->
+				<a href="javascript:history.back();" class="meetup-detail-back-link">
+					<span class="back-arrow">←</span> 후기 목록
+				</a>
+
+				<!-- 후기 상세 -->
+				<div class="meetup-detail-content-box">
+
+					<div class="meetup-detail-rating-header">
+						<h2>후기 상세</h2>
+					</div>
+
+					<div class="meetup-detail-comment">
+
+						<div class="meetup-detail-comment-top">
+							<div class="meetup-detail-comment-user">
+								<div class="meetup-detail-comment-name">김모잇</div>
+								<div class="meetup-detail-comment-date">2026.06.15</div>
+							</div>
+							<button class="meetup-detail-report-btn">신고</button>
+						</div>
+
+						<div class="meetup-detail-stars" style="margin: 15px 0;">
+							★★★★★</div>
+
+						<div class="meetup-detail-comment-imgs">
+							<img
+								src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=150&q=80">
+							<img
+								src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=150&q=80">
+							<img
+								src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=150&q=80">
+						</div>
+
+						<p class="meetup-detail-comment-text"
+							style="margin-top: 20px; line-height: 1.8;">
+							이번 모임 정말 만족스러웠습니다.<br>
+							<br> 처음 참여하는 모임이라 조금 긴장했는데 운영자분이 친절하게 안내해 주셔서 금방 적응할 수 있었어요.<br>
+							<br> 분위기도 좋았고 참가자분들도 다들 적극적이라 즐겁게 활동했습니다.<br>
+							<br> 다음 모임에도 꼭 다시 참여하고 싶습니다.
+						</p>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
 
 </body>
 </html>

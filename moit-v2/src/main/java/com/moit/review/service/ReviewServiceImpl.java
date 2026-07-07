@@ -37,8 +37,8 @@ public class ReviewServiceImpl implements ReviewService {
 
 	@Override
 	@Transactional
-	public int deletUserReview(ReviewDto dto) {
-		return reviewmapper.deletUserReview(dto);
+	public int deleteUserReview(ReviewDto dto) {
+		return reviewmapper.deleteUserReview(dto);
 	}
 
 	@Override
@@ -121,5 +121,13 @@ public class ReviewServiceImpl implements ReviewService {
 	public int adminDeleteReview(int id) {
 		return reviewmapper.adminDeleteReview(id);
 	}
+
+	@Override
+	public ReviewDto selectReviewById(int reviewId) {
+		
+		return reviewmapper.selectReviewById(reviewId);
+	}
+
+	
 
 }

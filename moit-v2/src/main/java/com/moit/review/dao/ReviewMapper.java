@@ -16,10 +16,11 @@ public interface ReviewMapper {
 	public List<ReviewDto> selectUserReview(@Param("meetupId") int meetupId, @Param("sort") String sort);
 	//public List<ReviewDto>selectReviewPopular();
 	public int updateUserReview(ReviewDto dto);
-	public int deletUserReview(ReviewDto dto);
+	public int deleteUserReview(ReviewDto dto);
 	public int updateUserReviewHide(ReviewDto dto);
 	public List<ReviewDto> selectReviewByMemberId(@Param("memberId")int memberId,@Param("sort")String sort);
 	public List<ReviewDto> selectReviewByContent(String Keyword);
+	
 	
 	//좋아요 기능
 	public int  checkLikeExists(Map<String,Object>params);
@@ -28,6 +29,7 @@ public interface ReviewMapper {
 	public void incrementLikeCount(int reviewId);
 	public void decrementLikeCount(int reviewId);
 	public int  getLikeCount(int reviewId);
+	public ReviewDto selectReviewById(int reviewId);
 	
 	//관리자
     public List<ReviewDto>adminSelectReviewList(int memberId);
@@ -35,6 +37,7 @@ public interface ReviewMapper {
 	public List<ReviewDto>adminSearchReviewByWriter (int memberId);
 	public int adminHideReview(int id);
 	public int adminDeleteReview(int id);
+	
 
 	
 	

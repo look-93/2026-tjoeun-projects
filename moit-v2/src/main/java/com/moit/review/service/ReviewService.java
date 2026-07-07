@@ -11,11 +11,12 @@ public interface ReviewService {
 	int insertUserReview(ReviewDto dto);
 	List<ReviewDto> selectUserReview(int meetupId, String sort);
 	int updateUserReview(ReviewDto dto);
-	int deletUserReview(ReviewDto dto);
+	int deleteUserReview(ReviewDto dto);
 	int updateUserReviewHide(ReviewDto dto);
 	List<ReviewDto> selectReviewByMemberId(int memberId, String sort);
     List<ReviewDto> selectReviewByContent(String keyword);
-    
+    ReviewDto selectReviewById(int reviewId);
+  
     //좋아요
     int checkLikeExists(Map<String, Object> params);
     void insertLike(Map<String, Object> params);
@@ -30,7 +31,10 @@ public interface ReviewService {
     List<ReviewDto> adminSearchReviewByWriter(int memberId);
     int adminHideReview(int id);
     int adminDeleteReview(int id);
-
+	
+	
+	
+	
 	
 	
 }
