@@ -59,6 +59,7 @@
 		select count(*)
 		from reports
 		where member_id = #{memberId} and delete_yn = 'N'
+			and created_at >= trunc(sysdate) and created_at <= trunc(sysdate) +1
 	</select>
 	
 	
