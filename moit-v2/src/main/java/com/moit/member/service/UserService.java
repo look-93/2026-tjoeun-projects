@@ -26,4 +26,5 @@ public interface UserService {
 	
 	/* security login */
 	public AuthUserDto readByLoginId(UserDto dto); //로그인
+	public void completeSocialJoin(UserDto dto);
 }

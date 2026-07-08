@@ -230,3 +230,46 @@ footer{margin-top:50px;background:white;padding:30px;text-align:center;}
     font-size: inherit;
     color: inherit;
 }
+
+/* ===========================
+   소셜 로그인
+=========================== */
+
+.social-login{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.social-login img{
+    width:160px;
+    height:auto;
+}
+
+.social-divider{
+    text-align:center;
+    margin:25px 0 15px;
+    color:#888;
+    font-size:14px;
+    position:relative;
+}
+
+.social-divider::before,
+.social-divider::after{
+    content:"";
+    position:absolute;
+    top:50%;
+    width:35%;
+    height:1px;
+    background:#ddd;
+}
+
+.social-divider::before{
+    left:0;
+}
+
+.social-divider::after{
+    right:0;
+}

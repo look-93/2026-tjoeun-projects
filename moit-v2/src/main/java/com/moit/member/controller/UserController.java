@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,6 +19,7 @@ import com.moit.member.dto.UserDto;
 import com.moit.member.service.UserService;
 import com.moit.security.CustomUserDetails;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 
@@ -32,11 +34,15 @@ public class UserController {
 //	public String index() {  return "/main"; }
 	
 	// 회원가입
+	@PreAuthorize("isAnonymous()")
 	@GetMapping("/join")
 	public String join() {  return "user/member/join"; }
-		
+	
+	@PreAuthorize("isAnonymous()")
 	@PostMapping("/join")
-	public String join_post(UserDto dto, RedirectAttributes rttr) {  
+	public String join_post(UserDto dto, HttpServletRequest request, RedirectAttributes rttr) {  
+		
+		dto.setJoinIp(getClientIp(request));
 		
 		int result = service.insert(dto);
 		
@@ -80,13 +86,35 @@ public class UserController {
     }
 	
 	// 로그인
+	@PreAuthorize("isAnonymous()")
 	@GetMapping("/login")
 	public String login() {  return "user/member/login"; }
 
 	@GetMapping("/fail") public String fail(Model model) {
 		model.addAttribute("errorMessage","로그인 실패 : 아이디 또는 비밀번호를 확인해주세요.");
 		return "redirect:/user/member/join";
-	}	
+	}
+	
+	// 소셜 로그인
+	@GetMapping("/social-info")
+    public String socialInfoForm() {
+        return "user/member/social-info";
+    }
+
+    @PostMapping("/social-info")
+    public String socialInfoSave(
+            @ModelAttribute UserDto dto,
+            Authentication authentication) {
+
+        CustomUserDetails user =
+                (CustomUserDetails) authentication.getPrincipal();
+
+        dto.setMemberId(user.getAppUserId());
+
+        service.completeSocialJoin(dto);
+
+        return "redirect:/user/member/mypage";
+    }
 	
 	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/mypage") public String  mypage( Authentication   authentication , Model model  ) {  
@@ -108,8 +136,10 @@ public class UserController {
 	}
 	
 	// 아이디 찾기
+	@PreAuthorize("isAnonymous()")
 	@GetMapping("/findId") public String findIdPage() { return "user/member/findId"; }
 	
+	@PreAuthorize("isAnonymous()")
 	@PostMapping("/findId")
 	public String findId(UserDto dto , Model model) {
 		UserDto user = service.findId(dto);
@@ -120,8 +150,10 @@ public class UserController {
 	}
 	
 	// 비밀번호 찾기
+	@PreAuthorize("isAnonymous()")
 	@GetMapping("/findPassword") public String findPasswordPage() { return "user/member/findPassword"; }
 	
+	@PreAuthorize("isAnonymous()")
 	@PostMapping("/findPassword")
 	public String findPassword(UserDto dto, Model model,HttpSession session) {
 		
@@ -138,6 +170,7 @@ public class UserController {
 	}
 	
 	// 비밀번호 재발급
+	@PreAuthorize("isAnonymous()")
 	@PostMapping("/changePassword")
 	public String changePassword(UserDto dto, HttpSession session,
 	                             RedirectAttributes rttr) {
@@ -156,6 +189,17 @@ public class UserController {
 	    rttr.addFlashAttribute("message", "비밀번호가 변경되었습니다.");
 
 	    return "redirect:/user/member/login";
+	}
+	
+	// 회원가입 시 IP 조회
+	private String getClientIp(HttpServletRequest request) {
+
+		 String ip = request.getHeader("X-Forwarded-For");
+	
+		    if (ip == null || ip.isEmpty()) {
+		        ip = request.getRemoteAddr();
+		    }	
+		    return ip;
 	}
 	
 }

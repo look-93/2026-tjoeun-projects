@@ -36,7 +36,7 @@ public interface UserMapper {
     
     int deleteYn(String loginId);
     
-    //8. 마이페이지
+    //8. 마이페이지(회원조회)
     UserDto findByLoginId(UserDto dto);
     
     //9. 아이디 찾기
@@ -51,4 +51,14 @@ public interface UserMapper {
     /* security */
     // 로그인
     AuthUserDto readByLoginId(String username);
+    
+    
+    /* social */
+    int connectProvider(UserDto dto);
+    UserDto findByEmail(String email);
+    UserDto findByProvider(UserDto dto);
+    UserDto insertSocial(UserDto dto);
+    UserDto insertSocialInfo(UserDto dto);
+    void updateSocialInfo(UserDto dto);
+    void updateMemberInfo(UserDto dto);
 }

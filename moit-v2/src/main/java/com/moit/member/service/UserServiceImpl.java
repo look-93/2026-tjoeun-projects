@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.moit.member.dao.UserMapper;
 import com.moit.member.dto.AuthUserDto;
@@ -87,6 +88,13 @@ public class UserServiceImpl  implements UserService{
 		dao.changePassword(dto);
 		
 		return true;
+	}
+	
+	@Transactional
+	@Override
+	public void completeSocialJoin(UserDto dto) {
+		dao.updateSocialInfo(dto);
+        dao.updateMemberInfo(dto);
 	}
 
 	

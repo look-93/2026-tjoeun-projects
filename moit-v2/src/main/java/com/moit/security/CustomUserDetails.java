@@ -25,6 +25,8 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 	private UserDto user;
 	private AuthUserDto authDto;
 	private Map<String,Object> attirubutes = new HashMap<>(); //##
+
+	private Integer statusId;
 	
 	////////////////////////////////////// 1. 일반 로그인
 	public CustomUserDetails(UserDto user, AuthUserDto authDto) {
@@ -32,7 +34,8 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 		this.user = user;
 		this.authDto = authDto;
 		this.attirubutes.put("loginId", user.getLoginId());
-//		this.attirubutes.put("provider", user.getProvider());
+		this.attirubutes.put("provider", user.getProvider());
+		this.statusId = authDto.getStatusId();
 	} 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -54,6 +57,7 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 	
 	public String getNickname() { return user.getNickname(); }
 	public String getTypeName() { return authDto.getTypeName(); }
+	public Integer getStatusId(){ return statusId; }
     // ★ 중요
     @Override public String getPassword() {  return authDto.getPassword();  }
 
