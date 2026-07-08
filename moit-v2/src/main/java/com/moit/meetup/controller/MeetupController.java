@@ -182,7 +182,7 @@ public class MeetupController {
 		
 		meetupdto.setMemberId(2);
 		//SystSystem.out.println(meetupdto.getMeetupId());em.out.println(meetupService.selectMyMeetup(pstartno,meetupdto));
-		System.out.println(meetupdto.getMeetupId());
+		//System.out.println(meetupdto.getMeetupId());
 		model.addAttribute("meetupStats", meetupService.selectMyPageStats(meetupdto.getMemberId())); //통계
 		model.addAttribute("meetupList", meetupService.selectMyMeetup(pstartno,meetupdto));
 		model.addAttribute("paging", new UtilPaging(meetupService.selectMyMeetupTotalCnt(meetupdto), pstartno));
@@ -215,7 +215,30 @@ public class MeetupController {
 		boolean insert = meetupService.changeMeetupApplyStatus(meetupApplicationDto) > 0;	
 		result.put("insert", insert);
 		return result;
-	}		
+	}			
+	
+	//모임 - 작성
+	@GetMapping("/meetup/write")
+	public String write(Model model) {
+		model.addAttribute("childCategoryList", meetupService.findAllChildCategory());
+		model.addAttribute("sigunguList", meetupService.findAllSigungu());
+		return "user/meetup/write";
+	}
+	
+	@PostMapping("/meetup/write")
+	public String createMeetup(Model model, MeetupDto meetupdto, RedirectAttributes rttr, Authentication authentication) {
+		// 멤버완료 취합 후 적용
+//		CustomUser user = (CustomUser) authentication.getPrincipal();		
+//		int memberId = userMeetupService.findByMamberId(user.getUsername());		
+//		meetupdto.setMemberId(memberId);
+		
+		meetupdto.setMemberId(2);
+		//System.out.println(meetupdto.getMeetupId());
+		boolean result = meetupService.insertMeetup(meetupdto) > 0;		
+		rttr.addFlashAttribute("result", result);
+		
+		return "redirect:/meetup/detail?meetupId=" + meetupdto.getMeetupId();
+	}	
 	
 	//모집글 수정 조회	
 	@GetMapping("/mypage/update")
@@ -239,11 +262,9 @@ public class MeetupController {
 		meetupdto.setMemberId(2);
 		boolean result = meetupService.updateMeetup(meetupdto) > 0;		
 		rttr.addFlashAttribute("result", result);		
-		return "redirect:/user/mypage/meetup/meetupInfo";
+		return "redirect:/mypage/myMeetupInfo";
 	}		
-	
-	
-	
+
 	//마이페이지 내 신청글 조회
 	@GetMapping("/mypage/meetupApplyInfo")
 		public String myMeetupApplyList(Model model, MeetupDto meetupdto, Authentication authentication, @RequestParam(value="pstartno", defaultValue="1") int pstartno) {
@@ -259,11 +280,15 @@ public class MeetupController {
 			//model.addAttribute("menu", "meetupApply");
 			
 			return "user/mypage/meetup/meetupApplicationInfo";
-		}	
+		}
 	
-	//모임 - 작성
-	@GetMapping("/meetup/write")
-	public String write() {
-		return "user/meetup/write";
-	}	
+	//마이페이지 - 모집글 삭제
+	@PostMapping("/mypage/meetup/delete")
+	public String deleteByAdmin(int meetupId, int pstartno, RedirectAttributes rttr) {
+		//System.out.println(meetupId + "dddddddddddddddddddddddddddddddd");
+		meetupService.updateMeetupDeleteYn(meetupId);
+		
+		return "redirect:/mypage/myMeetupInfo?pstartno=" + pstartno;
+	}
+
 }
