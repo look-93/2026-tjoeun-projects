@@ -88,6 +88,9 @@ public class AdvertisementAdminController {
         }
 
         int totalPage = (int) Math.ceil((double) totalCnt / dto.getSize());
+        
+     // 데이터가 없어서 totalPage가 0이 나오더라도 최소 1페이지로 고정
+        if (totalPage == 0) { totalPage = 1; }
 
         model.addAttribute("list", list);
         model.addAttribute("dto", dto);

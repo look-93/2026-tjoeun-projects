@@ -94,5 +94,10 @@ public interface AdvertisementMapper {
 
     int selectClosedAdvertisementCnt();
     
-
+    void insertClickLog(
+            @Param("adId") int adId,
+            @Param("memberId") Integer memberId,
+            @Param("clickIp") String clickIp,
+            @Param("userAgent") String userAgent
+    );
 }

@@ -3971,100 +3971,318 @@ textarea.mw-form-input {
 
 /* ========== Advertisement Write ========== */
 /* ========== 광고 등록 ========== */
-.ad-write-container {
-    max-width: 1000px;
-    margin: 40px auto;
+
+.member-ad-write-container {
+    max-width:1000px;
+    margin:40px auto;
+    padding:20px;
 }
 
-.ad-card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 30px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+.member-ad-write-title {
+    font-size:28px;
+    font-weight:700;
+    margin-bottom:30px;
 }
 
-.ad-section-title {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid #f2f2f2;
+.member-ad-write-card {
+    background:white;
+    border-radius:16px;
+    padding:35px;
+
+    box-shadow:
+    0 4px 15px rgba(0,0,0,.08);
 }
 
-.image-upload-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+/* section */
+
+.member-ad-write-section {
+    font-size:20px;
+    font-weight:700;
+    margin:30px 0 20px;
+    padding-bottom:10px;
+    border-bottom:
+    2px solid #f1f5f9;
 }
 
-.image-item {
-    border: 1px solid #e5e5e5;
-    border-radius: 12px;
-    padding: 16px;
-    background: #fafafa;
+/* form */
+.member-ad-write-group {
+    margin-bottom:20px;
 }
 
-.image-item h5 {
-    margin-bottom: 12px;
-    font-size: 15px;
-    font-weight: 600;
+.member-ad-write-label {
+    display:block;
+    font-size:14px;
+    font-weight:600;
+    margin-bottom:8px;
+    color:#374151;
 }
 
-.preview-box {
-    width: 100%;
-    height: 180px;
-    border: 2px dashed #ddd;
-    border-radius: 10px;
-    background: #fff;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    overflow: hidden;
-    margin-bottom: 12px;
+.member-ad-write-input,
+.member-ad-write-select,
+.member-ad-write-textarea {
+    width:100%;
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:12px;
+    font-size:14px;
 }
 
-.preview-box img {
-    max-width: 100%;
-    max-height: 100%;
-    display: none;
+.member-ad-write-textarea {
+    min-height:150px;
+    resize:vertical;
 }
 
-.required::after {
-    content: " *";
-    color: red;
+/* target 영역 */
+.member-ad-write-grid {
+    display:grid;
+    grid-template-columns:
+    	repeat(2,1fr);
+    gap:20px;
 }
 
-.form-bottom {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 30px;
+/* 이미지 */
+.member-ad-write-image-area {
+    margin-top:30px;
 }
 
-.image-help {
-    font-size: 13px;
-    color: #777;
-    margin-top: 5px;
+.member-ad-write-image-item {
+    border:
+    	1px solid #e5e7eb;
+    background:#fafafa;
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:20px;
 }
 
-.ad-period {
-    display: flex;
-    gap: 20px;
+.member-ad-write-image-title {
+    font-size:15px;
+    font-weight:700;
+    margin-bottom:12px;
 }
 
-.ad-period > div {
-    flex: 1;
+.member-ad-write-preview {
+    width:100%;
+    height:200px;
+    border:
+	    2px dashed #d1d5db;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    background:white;
+    margin-bottom:15px;
 }
 
-@media (max-width:768px){
+.member-ad-write-preview img {
+    max-width:100%;
+    max-height:100%;
+}
 
-    .image-upload-grid{
-        grid-template-columns:1fr;
-    }
 
-    .ad-period{
-        flex-direction:column;
-    }
+
+.member-ad-write-file {
+    width:100%;
+}
+
+
+/* 날짜 */
+.member-ad-write-period {
+    display:flex;
+    gap:20px;
+}
+
+.member-ad-write-period > div {
+    flex:1;
+}
+
+/* 버튼 */
+.member-ad-write-btn-area {
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:30px;
+}
+
+.member-ad-write-btn {
+    padding:12px 25px;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.member-ad-write-btn-cancel {
+    background:#64748b;
+    color:white;
+}
+
+.member-ad-write-btn-submit {
+    background:#2563eb;
+    color:white;
+}
+
+@media(max-width:768px){
+	
+	.member-ad-write-grid {
+	    grid-template-columns:1fr;	
+	}
+	.member-ad-write-period {	
+	    flex-direction:column;	
+	}
+	.member-ad-write-container {	
+	    padding:10px;	
+	}
+
+}
+
+/* =========== 회원 광고 상세 =========== */
+
+.member-ad-detail-container {
+    padding:30px;
+}
+
+.member-ad-detail-title {
+    font-size:28px;
+    font-weight:700;
+    margin-bottom:30px;
+}
+
+.member-ad-detail-card {
+    background:white;
+    padding:30px;
+    border-radius:16px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+/* 통계 */
+.member-ad-stat-wrap {
+    display:flex;
+    gap:20px;
+    margin-bottom:30px;
+}
+
+.member-ad-stat-card {
+    flex:1;
+    padding:25px;
+    text-align:center;
+    border-radius:14px;
+    background:#f8fafc;
+}
+
+.member-ad-label {
+    font-size:14px;
+    color:#64748b;
+    margin-bottom:10px;
+}
+
+.member-ad-stat-number {
+    font-size:32px;
+    font-weight:700;
+    color:#5896f1;
+}
+
+
+/* 이미지 */
+.member-ad-image-area {
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+}
+
+
+
+.member-ad-image-box {
+    width:48%;
+}
+
+
+
+.member-ad-image {
+    width:100%;
+    height:400px;
+    object-fit:contain;
+    border-radius:12px;
+    background:#f8fafc;
+}
+
+
+
+.member-ad-no-image img {
+    width:300px;
+}
+
+/* 정보 */
+.member-ad-info-wrap {
+    margin-top:30px;
+    display:grid;
+    grid-template-columns:
+    repeat(3,1fr);
+    gap:20px;
+}
+
+.member-ad-info-box {
+    background:#f8fafc;
+    padding:20px;
+    border-radius:12px;
+}
+
+.member-ad-value {
+    font-weight:600;
+}
+
+/* 내용 */
+.member-ad-divider {
+    margin:30px 0;
+    border:none;
+    border-top:1px solid #ddd;
+}
+
+.member-ad-content p {
+    line-height:1.8;
+    white-space:pre-line;
+}
+
+/* 버튼 */
+.member-ad-btn-area {
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+}
+
+.member-ad-btn {
+    padding:10px 20px;
+    border-radius:8px;
+    color:white;
+    border:none;
+    cursor:pointer;
+}
+
+.member-ad-btn-blue {
+    background:#2563eb;
+}
+
+.member-ad-btn-gray {
+    background:#64748b;
+}
+
+.member-ad-btn-red {
+    background:#dc2626;
+}
+
+@media(max-width:900px){
+
+	.member-ad-stat-wrap,
+	.member-ad-info-wrap{
+	    display:block;
+	}
+	
+	.member-ad-stat-card,
+	.member-ad-info-box{
+	    margin-bottom:15px;
+	}
+	
+	.member-ad-image-box{
+	    width:100%;
+	}
 }

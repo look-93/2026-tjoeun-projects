@@ -9,6 +9,9 @@ import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+
 public interface AdvertisementService {
 
 	// 스케쥴러
@@ -87,6 +90,9 @@ public interface AdvertisementService {
     int selectPendingAdvertisementCnt();
 
     int selectClosedAdvertisementCnt();
+
+    // 클릭 로그
+	void insertClickLog(int adId, HttpServletRequest request, HttpSession session);
 
 
 
