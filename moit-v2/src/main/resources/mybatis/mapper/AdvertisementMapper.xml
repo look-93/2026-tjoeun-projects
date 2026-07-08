@@ -537,22 +537,21 @@
 	
 	    FROM advertisements a
 	
-	    LEFT JOIN advertisement_images ai
+	    INNER JOIN advertisement_images ai
 	        ON a.ad_id = ai.ad_id
 	       AND ai.image_type = #{position}
 	
 	    WHERE a.delete_yn = 'N'
 	      AND a.approval_status = 'APPROVED'
 	      AND a.status = 'OPEN'
-	      AND a.position = #{position}
 	      AND CURRENT_TIMESTAMP BETWEEN a.start_datetime 
 	                                AND a.end_datetime
 	
-	    ORDER BY
-	        a.priority_score DESC,
-	        DBMS_RANDOM.VALUE
+	      ORDER BY
+	          a.priority_score DESC,
+	          DBMS_RANDOM.VALUE
 	
-	    FETCH FIRST 1 ROW ONLY
+	      FETCH FIRST 1 ROW ONLY
 	
 	</select>
 	
