@@ -25,9 +25,9 @@ public class UserController {
 
 	@Autowired UserService service;
 	
-	// 메인페이지
-	@GetMapping("/")
-	public String index() {  return "/main"; }
+//	// 메인페이지
+//	@GetMapping("/")
+//	public String index() {  return "/main"; }
 	
 	// 회원가입
 	@GetMapping("/join")
@@ -103,6 +103,14 @@ public class UserController {
 		System.out.println(".........."+loginId);
 		model.addAttribute("dto" , user); 
 		return "user/member/mypage"; 
-	} 
+	}
+	
+	// 아이디 찾기
+	@GetMapping("/findId")
+	public String findId() {
+		return "user/member/findId";
+	}
+	
+	
 	
 }
