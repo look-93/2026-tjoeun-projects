@@ -16,33 +16,72 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.moit.advertisement.dto.AdvertisementDto;
+import com.moit.advertisement.service.AdvertisementService;
 import com.moit.meetup.dto.MeetupApplicationDto;
 import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
 import com.moit.meetup.service.MeetupService;
+import com.moit.review.dto.ReviewDto;
+import com.moit.review.service.ReviewService;
 import com.moit.util.UtilPaging;
 
 @Controller
 public class MeetupController {
 	@Autowired MeetupService meetupService;
+	@Autowired AdvertisementService advertisementService;
+	@Autowired ReviewService reviewService;
+	
+	/* 메인페이지 광고 */
+	@GetMapping("/main")
+    public String main(Model model) {
+
+        AdvertisementDto mainAd =
+                advertisementService.selectTopAdvertisement("MAIN");
+        //System.out.println(mainAd + "dddddddddddddddddddddddddddddddddddddddddddd");
+        // 광고가 존재하면 노출 증가
+        if(mainAd != null) {        	
+            advertisementService.updateImpressions(mainAd.getAdId());
+        }
+        
+        model.addAttribute("mainAd", mainAd);
+        
+
+        return "user/main";
+    }
 	
 	/*1. 사용자 - 모임 리스트 화면(HTML) 호출*/
 	@GetMapping("/meetup/list")
-	public String listPage() {
+	public String listPage(Model model) {
+
+	    AdvertisementDto banner = advertisementService.selectTopAdvertisement( "MEETUP_LIST_BANNER" );  
+	    AdvertisementDto sidebar = advertisementService.selectTopAdvertisement( "MEETUP_LIST_SIDEBAR" );
+
+	    model.addAttribute("bannerAd", banner);
+	    model.addAttribute("sidebarAd", sidebar);
+	    // 광고가 존재하면 노출 증가
+        if(banner != null) {        	
+            advertisementService.updateImpressions(banner.getAdId());
+        }
+        if(sidebar != null) {        	
+            advertisementService.updateImpressions(sidebar.getAdId());
+        }
+	    
 		return "/user/meetup/list";
 	}
 	
 	/*2. 사용자 - 모임 리스트 데이터(JSON) 호출*/
 	@GetMapping("/meetup/list/data")
 	@ResponseBody
-	public Map<String, Object> listData(MeetupSearchDto meetupSearchDto){
+	public Map<String, Object> listData(MeetupSearchDto meetupSearchDto, Model model){
 		Integer pstartno = meetupSearchDto.getPstartno();
 		
 		if(pstartno == null || pstartno <= 0) {
 			pstartno = 1;
 			meetupSearchDto.setPstartno(1);
 		}
+		
 		//System.out.println(meetupSearchDto.getCategoryId());
 		Map<String, Object> map = new HashMap<>();
 		map.put("paging", new UtilPaging(meetupService.findAllMeetupCountBy(meetupSearchDto), pstartno));
@@ -76,18 +115,27 @@ public class MeetupController {
 	
 	/*사옹자 - 모임상세조회*/
 	@GetMapping("/meetup/detail")
-	public String detail(Model model, Authentication authentication, MeetupApplicationDto meetupApplicationDto) {
+	public String detail(Model model, Authentication authentication, MeetupApplicationDto meetupApplicationDto, @RequestParam(value = "sort", required = false, defaultValue = "latest")  String sort) {
 		
 //		CustomUser user = (CustomUser) authentication.getPrincipal(); 
 //		int memberId = userMeetupService.findByMamberId(user.getUsername());
 //		meetupApplicationsDto.setMemberId(memberId);
 		
+		AdvertisementDto desidebar = advertisementService.selectTopAdvertisement( "MEETUP_DETAIL_SIDEBAR" );
+
 		meetupApplicationDto.setMemberId(2);
+		model.addAttribute("desidebarAd", desidebar);
+		// 광고가 존재하면 노출 증가
+        if(desidebar != null) {        	
+            advertisementService.updateImpressions(desidebar.getAdId());
+        }
 		
 		meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
 		model.addAttribute("applyInfo",meetupService.findApplyInfo(meetupApplicationDto));
 		model.addAttribute("detail", meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
-		System.out.println(meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
+		//System.out.println(meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
+		List<ReviewDto> reviewList = reviewService.selectUserReview(meetupApplicationDto.getMeetupId(), sort);
+		model.addAttribute("reviews", reviewList);
 		
 		return "user/meetup/detail";
 	}
@@ -134,7 +182,7 @@ public class MeetupController {
 		
 		meetupdto.setMemberId(2);
 		//SystSystem.out.println(meetupdto.getMeetupId());em.out.println(meetupService.selectMyMeetup(pstartno,meetupdto));
-		System.out.println(meetupdto.getMeetupId());
+		//System.out.println(meetupdto.getMeetupId());
 		model.addAttribute("meetupStats", meetupService.selectMyPageStats(meetupdto.getMemberId())); //통계
 		model.addAttribute("meetupList", meetupService.selectMyMeetup(pstartno,meetupdto));
 		model.addAttribute("paging", new UtilPaging(meetupService.selectMyMeetupTotalCnt(meetupdto), pstartno));
@@ -167,7 +215,30 @@ public class MeetupController {
 		boolean insert = meetupService.changeMeetupApplyStatus(meetupApplicationDto) > 0;	
 		result.put("insert", insert);
 		return result;
-	}		
+	}			
+	
+	//모임 - 작성
+	@GetMapping("/meetup/write")
+	public String write(Model model) {
+		model.addAttribute("childCategoryList", meetupService.findAllChildCategory());
+		model.addAttribute("sigunguList", meetupService.findAllSigungu());
+		return "user/meetup/write";
+	}
+	
+	@PostMapping("/meetup/write")
+	public String createMeetup(Model model, MeetupDto meetupdto, RedirectAttributes rttr, Authentication authentication) {
+		// 멤버완료 취합 후 적용
+//		CustomUser user = (CustomUser) authentication.getPrincipal();		
+//		int memberId = userMeetupService.findByMamberId(user.getUsername());		
+//		meetupdto.setMemberId(memberId);
+		
+		meetupdto.setMemberId(2);
+		//System.out.println(meetupdto.getMeetupId());
+		boolean result = meetupService.insertMeetup(meetupdto) > 0;		
+		rttr.addFlashAttribute("result", result);
+		
+		return "redirect:/meetup/detail?meetupId=" + meetupdto.getMeetupId();
+	}	
 	
 	//모집글 수정 조회	
 	@GetMapping("/mypage/update")
@@ -191,11 +262,9 @@ public class MeetupController {
 		meetupdto.setMemberId(2);
 		boolean result = meetupService.updateMeetup(meetupdto) > 0;		
 		rttr.addFlashAttribute("result", result);		
-		return "redirect:/user/mypage/meetup/meetupInfo";
+		return "redirect:/mypage/myMeetupInfo";
 	}		
-	
-	
-	
+
 	//마이페이지 내 신청글 조회
 	@GetMapping("/mypage/meetupApplyInfo")
 		public String myMeetupApplyList(Model model, MeetupDto meetupdto, Authentication authentication, @RequestParam(value="pstartno", defaultValue="1") int pstartno) {
@@ -211,11 +280,15 @@ public class MeetupController {
 			//model.addAttribute("menu", "meetupApply");
 			
 			return "user/mypage/meetup/meetupApplicationInfo";
-		}	
+		}
 	
-	//모임 - 작성
-	@GetMapping("/meetup/write")
-	public String write() {
-		return "user/meetup/write";
-	}	
+	//마이페이지 - 모집글 삭제
+	@PostMapping("/mypage/meetup/delete")
+	public String deleteByAdmin(int meetupId, int pstartno, RedirectAttributes rttr) {
+		//System.out.println(meetupId + "dddddddddddddddddddddddddddddddd");
+		meetupService.updateMeetupDeleteYn(meetupId);
+		
+		return "redirect:/mypage/myMeetupInfo?pstartno=" + pstartno;
+	}
+
 }

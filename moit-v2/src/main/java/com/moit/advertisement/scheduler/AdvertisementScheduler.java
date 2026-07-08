@@ -35,7 +35,7 @@ public class AdvertisementScheduler {
 
         System.out.println(
             "광고 우선도 갱신 : " + count
-        );
+       );
 
     }
 }

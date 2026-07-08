@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html xmlns:th="http://www.thymeleaf.org"
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{user/layouts/layout}">
+<!--    #1. layout 렌더링    -->
 <head lang="ko">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- <title>MOIT | 모집글 목록</title> -->
-<title>MOIT</title>
-<link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 	<th:block th:replace="~{user/fragments/header :: header}" />
@@ -103,6 +102,7 @@
 	</section>
 </main>
 
+</div>
 <script>
 	const reasonDetail = document.getElementById('reasonDetail');
 	const detailCount = document.getElementById('detailCount');
@@ -125,9 +125,7 @@
 //})
 
 </script>
-
-			</div>
-	</div>
-	<th:block th:replace="~{user/fragments/footer :: footer}" />
+    </div>
 </body>
 </html>
+

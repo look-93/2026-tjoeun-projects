@@ -12,17 +12,27 @@
 			<!-- 각자파트 -->
 		
 			<section class="content">
-				<div class="top-ad meetupList-top-ad">
-
-					<div class="top-ad-left meetupList-top-ad-left">
-						<h3>🔥 신규 제휴업체 오픈</h3>
-						<p>가입 회원 대상 20% 할인 쿠폰 지급</p>
-					</div>
-
-					<a href="#" class="top-ad-btn meetupList-top-ad-btn"> 바로가기 </a>
-
-				</div>
-
+				<!-- 광고 -->
+				<section class="ad-banner"
+				         th:if="${bannerAd != null}"
+				         th:classappend="${bannerAd.imageList != null and !bannerAd.imageList.isEmpty()} ? ' has-image' : ''">
+				
+				    <a th:href="@{/user/advertisement/click(adId=${bannerAd.adId})}">
+				
+				        <img th:if="${bannerAd.imageList != null 
+				                     and !bannerAd.imageList.isEmpty()}"
+				             th:src="@{${bannerAd.imageList[0].imageUrl}}"
+				             alt="광고">
+				             
+			             <div th:if="${bannerAd.imageList == null 
+	                     			or bannerAd.imageList.size() == 0}">
+				            광고 이미지 준비중
+				        </div>
+				
+				    </a>
+				
+				</section>
+				<!-- 광고 -->
 				<form id="searchForm">
 					<div class="filter-box">
 					
@@ -238,6 +248,9 @@
 		    .catch(err => console.error(err));
 		}
 		</script>
+		
+		<!-- 우측 사이드 -->
+		
 		</div>
 		<!-- 각자파트 -->
 

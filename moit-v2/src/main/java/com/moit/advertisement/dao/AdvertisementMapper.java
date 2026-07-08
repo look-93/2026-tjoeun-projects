@@ -83,7 +83,7 @@ public interface AdvertisementMapper {
     int updateAdvertisementClick(int adId);
 
     // 사용자 광고 1건
-    AdvertisementDto selectTopAdvertisement();
+    AdvertisementDto selectTopAdvertisement( @Param("position") String position );
 
     // 통계
     int selectTotalAdvertisementCnt();

@@ -25,6 +25,8 @@ public class MeetupDto {
     private String deleteYn;
     private String createdAt;
     private String updatedAt;
+    private String applyAt;
+    private String applyStatus;
     
     private String nickname;
     private Integer totalParticipants;	// 총 참가 인원

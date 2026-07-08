@@ -71,7 +71,9 @@
 						        <button type="button" class="applicant-btn" th:onclick="|openModal('${meetup.meetupId}')|">신청자 조회</button>
 						        <button type="button" class="edit-btn" th:onclick="|goDetail('${meetup.meetupId}')|">수정</button>
 						        
-						        <form th:action="@{/meetup/mypage/delete.do(meetupId=${meetup.meetupId})}" method="post" style="display: inline-block; margin: 0;">
+						        <form th:action="@{/mypage/meetup/delete}" method="post" style="display: inline-block; margin: 0;">
+						            <input type="hidden" name="meetupId" th:value="${meetup.meetupId}">
+    								<input type="hidden" name="pstartno" th:value="${paging.pstartno}">
 						            <button type="submit" class="delete-btn">삭제</button>
 						        </form>                                             
 						    </div>
@@ -155,6 +157,7 @@
 	    	fetch('/mypage/meetupMember?meetupId=' + meetupId)
 	    	.then(res => res.json())
 	    	.then(data => {
+	    	
 	    		const tbody = document.getElementById("modalBody")
 				const list = data.list;
 	    		let html= '';

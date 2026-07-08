@@ -307,8 +307,8 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
 	// 메인 광고 조회
 	@Override
-	public AdvertisementDto selectTopAdvertisement() {
-		return advertisementMapper.selectTopAdvertisement();
+	public AdvertisementDto selectTopAdvertisement(String position) {
+		return advertisementMapper.selectTopAdvertisement(position);
 	}
 
 	// 통계
