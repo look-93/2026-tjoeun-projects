@@ -1,7 +1,8 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@ include file="../../inc/userHeader.jsp" %>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{user/mypage/layouts/mypageLayout}">
+<head>
+<meta charset="UTF-8">
 
 <style>
 
@@ -191,15 +192,19 @@
 
 </style>
 
+</head>
+<body>
+<div layout:fragment="content">
+
 <main class="container inquiry-wrap">
 
     <div class="page-header">
         <div>
-            <h1>모임 문의</h1>
+            <h1>내 문의 내역</h1>
             <p>내가 작성한 문의 내역을 확인할 수 있습니다.</p>
         </div>
 
-        <a href="${pageContext.request.contextPath}/view/meetup/admin/moquestion.jsp"
+        <a th:href="@{/questions/write(category=${category})}"
            class="write-btn">
             ✎ 문의 등록
         </a>
@@ -211,6 +216,7 @@
 
     <div class="content-layout">
         <div class="list-section">
+
             <form class="search-box">
                 <select name="type">
                     <option value="title">제목</option>
@@ -220,6 +226,7 @@
                 <input type="text"
                        name="keyword"
                        placeholder="검색어를 입력하세요">
+
                 <button type="submit">검색</button>
             </form>
 
@@ -236,80 +243,63 @@
                         <th></th>
                     </tr>
                 </thead>
-                
+
                 <tbody>
-                    <c:choose>
-                        <c:when test="${empty list}">
-                            <tr>
-                                <td colspan="7"> 등록된 문의가 없습니다. </td>
-                            </tr>
-                        </c:when>
 
-                        <c:otherwise>
-                            <c:forEach var="q" items="${list}">
-                                <tr onclick="location.href='${pageContext.request.contextPath}/questions/${q.questionId}'">
-                                    <td>${q.questionId}</td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${q.category eq 'MEETUP'}"> 모임 문의 </c:when>
-                                            <c:otherwise> 관리자 문의 </c:otherwise>
-                                        </c:choose>
-                                    </td>
+                    <tr th:if="${#lists.isEmpty(list)}">
+                        <td colspan="7">등록된 문의가 없습니다.</td>
+                    </tr>
 
-                                    <td>${q.title}</td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${q.status eq 'PENDING'}">
-                                                <span class="badge waiting"> 답변 대기 </span>
-                                            </c:when>
+                    <tr th:each="q : ${list}"
+                        th:unless="${#lists.isEmpty(list)}"
+                        th:onclick="|location.href='@{/questions/{id}(id=${q.questionId})}'|">
+                        <td th:text="${q.questionId}"></td>
+                        <td th:text="${q.category == 'MEETUP'} ? '모임 문의' : '관리자 문의'"></td>
+                        <td th:text="${q.title}"></td>
+                        <td>
 
-                                            <c:otherwise>
-                                                <span class="badge complete"> 답변 완료 </span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
+                            <span class="badge waiting" th:if="${q.status == 'PENDING'}">
+                                답변 대기
+                            </span>
+                            <span class="badge complete" th:if="${q.status == 'ANSWERED'}">
+                                답변 완료
+                            </span>
 
-                                    <td>${q.createdAt}</td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${q.status eq 'ANSWERED'}"> 완료 </c:when>
-                                            <c:otherwise> - </c:otherwise>
-                                        </c:choose>
-                                    </td>
+                        </td>
+                        <td th:text="${#dates.format(q.createdAt, 'yyyy.MM.dd HH:mm:ss')}"></td>
+                        <td th:text="${q.status == 'ANSWERED'} ? '완료' : '-'"></td>
+                        <td>›</td>
 
-                                    <td>›</td>
-                                </tr>
-
-                            </c:forEach>
-
-                        </c:otherwise>
-
-                    </c:choose>
+                    </tr>
 
                 </tbody>
 
             </table>
 
             <div class="paging">
-                <c:if test="${page > 1}">
-                    <a href="?page=${page-1}">‹</a>
-                </c:if>
 
-                <c:forEach begin="1" end="${totalPage}" var="i">
-                    <a href="?page=${i}"
-                       class="${page eq i ? 'active' : ''}">
-                        ${i}
-                    </a>
-                </c:forEach>
+                <a th:if="${page > 1}"
+                   th:href="@{/questions(page=${page-1})}">
+                    ‹
+                </a>
 
-                <c:if test="${page < totalPage}">
-                    <a href="?page=${page+1}">›</a>
-                </c:if>
+                <a th:each="i : ${#numbers.sequence(1,totalPage)}"
+                   th:href="@{/questions(page=${i})}"
+                   th:text="${i}"
+                   th:classappend="${page == i} ? ' active'">
+                </a>
+
+                <a th:if="${page < totalPage}"
+                   th:href="@{/questions(page=${page+1})}">
+                    ›
+                </a>
+
             </div>
 
         </div>
 
         <aside class="guide-box">
+
             <h3>이용 가이드</h3>
 
             <div class="guide-item">
@@ -342,4 +332,6 @@
 
 </main>
 
-<%@ include file="../../inc/userFooter.jsp" %>
+</div>
+</body>
+</html>

@@ -61,6 +61,32 @@
 			            </div>
 			
 			        </div>
+			        
+			        <div class="col-md-3 my-3">
+		
+					    <select class="form-select"
+					            name="sort"
+					            onchange="this.form.submit()">
+					
+					        <option value=""
+					            th:selected="${search.sort == null or search.sort == ''}">
+					            최신 등록순
+					        </option>
+					
+					
+					        <option value="start"
+					            th:selected="${search.sort == 'start'}">
+					            시작 예정순
+					        </option>					
+					
+					        <option value="budget"
+					            th:selected="${search.sort == 'budget'}">
+					            예산 높은순
+					        </option>
+					
+					    </select>
+					
+					</div>
 			
 			    </form>
 			
@@ -71,13 +97,13 @@
 		    <table class="table table-hover align-middle">
 			    <thead>
 				    <tr>
-				        <th>번호</th>
-				        <th>이미지</th>
-				        <th>광고명</th>
-				        <th>유형</th>
-				        <th>상태</th>
-				        <th>기간</th>
-				        <th>관리</th>
+				        <th style="width:8%;">번호</th>
+				        <th style="width:10%;">이미지</th>
+				        <th style="width:25%;">광고명</th>
+				        <th style="width:10%;">유형</th>
+				        <th style="width:10%;">상태</th>
+				        <th style="width:15%;">기간</th>
+				        <th style="width:10%;">관리</th>
 				    </tr>
 			    </thead>
 			
@@ -85,7 +111,7 @@
 				    <tr th:each="ad, stat : ${list}">
 				        
 				        <!-- 번호 -->
-				        <td th:text="${totalCnt - ((dto.page - 1) * dto.size + stat.index)}"></td>
+				        <td th:text="${(dto.page - 1) * dto.size + stat.index + 1}"></td>
 				
 				        <!-- 이미지 -->
 				        <td>
@@ -105,16 +131,16 @@
 				
 				        <!-- 기간 -->
 				        <td>
-				            <span th:text="${ad.startDatetime}"></span>
+				            <span th:text="${#temporals.format(ad.startDatetime,'yyyy-MM-dd')}"></span>
 				            ~
-				            <span th:text="${ad.endDatetime}"></span>
+				            <span th:text="${#temporals.format(ad.endDatetime,'yyyy-MM-dd')}"></span>
 				        </td>
 				
 				        <!-- 관리 (승인 버튼) -->
 				        <td>
 				        	<div class="d-flex gap-1">
 						        <a class="btn btn-sm btn-primary"
-						           th:href="@{/admin/advertisement/approvalDetail(adId=${ad.adId}, mode='approval')}">
+						           th:href="@{/admin/advertisement/detail(adId=${ad.adId}, mode='approval')}">
 						            상세
 						        </a>
 					            <form th:action="@{/admin/advertisement/approve}" method="post">
@@ -196,11 +222,52 @@
 	                    </div>
 	
 	                </div>
+	                
+	                
+	                
+			        <div class="col-md-3 my-3">
+		
+					    <select class="form-select"
+					            name="sort"
+					            onchange="this.form.submit()">
+					
+					        <option value=""
+					            th:selected="${search.sort == null or search.sort == ''}">
+					            최신 등록순
+					        </option>
+					
+					
+					        <option value="start"
+					            th:selected="${search.sort == 'start'}">
+					            시작 예정순
+					        </option>
+					
+					
+					        <option value="status"
+					            th:selected="${search.sort == 'status'}">
+					            진행 중 우선
+					        </option>
+					
+					
+					        <option value="end"
+					            th:selected="${search.sort == 'end'}">
+					            종료 임박순
+					        </option>
+					
+					
+					        <option value="budget"
+					            th:selected="${search.sort == 'budget'}">
+					            예산 높은순
+					        </option>
+					
+					    </select>
+					
+					</div>
 	
 	            </form>
 	
 	        </div>
-	        
+	        	        
 	        
 		    <h4>광고 게시 관리</h4>
 		
@@ -223,7 +290,7 @@
 				    <tr th:each="ad, stat : ${list}">
 				
 				        <!-- 번호 -->
-				        <td th:text="${totalCnt - ((dto.page - 1) * dto.size + stat.index)}"></td>
+				        <td th:text="${(dto.page - 1) * dto.size + stat.index + 1}"></td>
 				
 				        <!-- 이미지 -->
 				        <td>
@@ -240,28 +307,42 @@
 				
 				        <!-- 상태 -->
 				        <td>
-				            <span th:if="${ad.approvalStatus == 'APPROVED'
-    										and ad.startDatetime.isAfter(now)}">
-				                PENDING
-				            </span>
-				
-				            <span th:if="${ad.approvalStatus == 'APPROVED'
-							    and ad.startDatetime.isBefore(now)
-							    and ad.endDatetime.isAfter(now)}">
-							    OPEN
-				            </span>
-				
-				            <span th:if="${ad.approvalStatus == 'APPROVED'
-							    and ad.endDatetime.isBefore(now)}">
-							    CLOSED
-							</span>
-				        </td>
+						    <form th:action="@{/admin/advertisement/status}" method="post">
+						
+						        <input type="hidden" name="adId" th:value="${ad.adId}"/>
+						
+						        <select name="status"
+						                class="form-select form-select-sm status-select"
+						                th:classappend="${ad.status == 'OPEN'} ? ' status-open' :
+						                               (${ad.status == 'PENDING'} ? ' status-pending' :
+						                               ' status-closed')"
+						                onchange="this.form.submit()">
+						
+						            <option value="OPEN"
+						                    th:selected="${ad.status == 'OPEN'}">
+						                OPEN
+						            </option>
+						
+						            <option value="PENDING"
+						                    th:selected="${ad.status == 'PENDING'}">
+						                PENDING
+						            </option>
+						
+						            <option value="CLOSED"
+						                    th:selected="${ad.status == 'CLOSED'}">
+						                CLOSED
+						            </option>
+						
+						        </select>
+						
+						    </form>
+						</td>
 				
 				        <!-- 기간 -->
 				        <td>
-				            <span th:text="${ad.startDatetime}"></span>
+				            <span th:text="${#temporals.format(ad.startDatetime,'yyyy-MM-dd')}"></span>
 				            ~
-				            <span th:text="${ad.endDatetime}"></span>
+				            <span th:text="${#temporals.format(ad.endDatetime,'yyyy-MM-dd')}"></span>
 				        </td>
 				
 				        <!-- 노출수 -->
@@ -273,7 +354,7 @@
 				        <!-- 관리 (상세 버튼) -->
 				        <td>
 				            <a class="btn btn-sm btn-primary"
-				               th:href="@{/admin/advertisement/manageDetail(adId=${ad.adId}, mode='manage')}">
+				               th:href="@{/admin/advertisement/detail(adId=${ad.adId}, mode='status')}">
 				                상세
 				            </a>
 				        </td>

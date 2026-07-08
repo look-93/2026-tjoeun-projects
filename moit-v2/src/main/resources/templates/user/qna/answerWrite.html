@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{user/layouts/layout}">
 <head>
 <meta charset="UTF-8">
 
@@ -139,18 +140,17 @@ textarea{
 
 </head>
 <body>
-
-<div th:replace="~{user/fragments/header :: header}"></div>
+<div layout:fragment="content">
 
 <div class="answer-wrap">
-    <h1 class="page-title">모임글 1:1 문의 답변 등록</h1>
+    <h1 class="page-title" th:text="${data.category == 'MEETUP'} ? '모임글 1:1 문의 답변 등록' : '관리자 1:1 문의 답변 등록'"></h1>
     <div class="breadcrumb">
-        1:1 문의
-        <span>></span>
-        문의 상세보기
-        <span>></span>
-        답변 등록
-    </div>
+	    <span th:text="${data.category == 'MEETUP'} ? '모임글 1:1 문의' : '관리자 1:1 문의'"></span>
+	    <span>></span>
+	    문의 상세보기
+	    <span>></span>
+	    답변 등록
+	</div>
 
     <!-- 문의 정보 -->
     <div class="card">
@@ -169,7 +169,7 @@ textarea{
 
             <div class="info-row">
                 <div class="info-label">등록일</div>
-                <div class="info-value" th:text="${data.createdAt}"></div>
+                <div class="info-value" th:text="${data.createdAt != null ? #dates.format(data.createdAt,'yyyy.MM.dd HH:mm:ss') : '-'}"></div>
             </div>
 
             <div class="info-row">
@@ -198,7 +198,7 @@ textarea{
 	        <input type="hidden" name="memberId" value="1">
 	        <div class="form-group">
 	            <label> 답변 내용 <span class="required">*</span> </label>
-	            <textarea id="content" name="content" placeholder="답변 내용을 입력하세요."></textarea>
+	            <textarea id="content" name="content" maxlength="1000" placeholder="답변 내용을 입력하세요."></textarea>
 	            <div class="text-count"> <span id="count">0</span> / 1000 </div>
 	        </div>
 	
@@ -210,6 +210,8 @@ textarea{
 	    </form>
 	</div>
 </div>
+
+
 	<script>
 	const textarea = document.getElementById("content");
 	textarea.addEventListener("input", function(){
@@ -225,8 +227,6 @@ textarea{
 	    return confirm("답변을 등록하시겠습니까?");
 	}
 	</script>
-
-<div th:replace="~{user/fragments/footer :: footer}"></div>
-
+</div>
 </body>
 </html>

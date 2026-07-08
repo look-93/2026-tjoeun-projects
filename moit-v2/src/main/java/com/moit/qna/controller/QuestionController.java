@@ -29,8 +29,34 @@ public class QuestionController {
 
     private final QuestionService questionService;
     private final AnswerService answerService;
+    
+    // 내가 쓴 문의 목록
+    @GetMapping("/myQuestion")
+    public String myQuestion(@RequestParam(defaultValue="1") int page,
+            HttpSession session,Model model) {
+    	//MemberDto loginUser = (MemberDto)session.getAttribute("loginUser");
+        
+        //int memberId = loginUser.getMemberId();
+        int memberId = 1; // 임시 나중에 삭제
+        int pageSize = 10;
+        int start = (page - 1) * pageSize;
+        List<QuestionDto> list =
+                questionService.getMyQuestions(
+                        memberId,
+                        start,
+                        pageSize);
+        int totalCnt =
+                questionService.getMyQuestionCnt(memberId);
+        int totalPage =
+                (int)Math.ceil((double)totalCnt / pageSize);
 
- // 문의 목록 화면
+        model.addAttribute("list", list);
+        model.addAttribute("page", page);
+        model.addAttribute("totalPage", totalPage);
+
+        return "user/qna/questionList";
+    }
+    // 관리자가 보는 전체 문의 내역
     @GetMapping
     public String list( @RequestParam(defaultValue = "1") int page, Model model) {
         int pageSize = 10;
@@ -53,53 +79,36 @@ public class QuestionController {
         model.addAttribute("answeredCnt", questionService.getAnsweredCnt());
         // 오늘 등록된 문의 수
         model.addAttribute("todayCnt", questionService.getTodayCnt());
-        return "user/qna/answerList";
-    }
-
-    // 모임글 문의 등록
-    @GetMapping("/write")
-    public String write(QuestionDto dto) {
-        //questionService.register(dto);
-        return "user/qna/moquestion1";
+        return "user/qna/qnaList";
     }
     
     // 모임글 문의 등록
+    @GetMapping("/write")
+    public String write(QuestionDto dto,
+                        @RequestParam(defaultValue="MEETUP") String category, Model model) {
+        model.addAttribute("category", category);
+        return "user/qna/questionWrite";
+    }
+   
     @PostMapping("/write")
     public String writePost(QuestionDto dto, RedirectAttributes rttr) {
-    	
         questionService.register(dto);
         rttr.addFlashAttribute("msg", "문의가 등록되었습니다.");
         return "redirect:/questions/" + dto.getQuestionId();
     }
     
-    // 관리자 문의 등록
-    @GetMapping("/adminWrite")
-    public String adminWrite(QuestionDto dto) {
-        //questionService.register(dto);
-        return "user/qna/adquestion1";
-    }
-    
-    // 관리자 문의 등록
-    @PostMapping("/adminWrite")
-    public String adminWritePost(QuestionDto dto, RedirectAttributes rttr) {
-    	
-        questionService.register(dto);
-        rttr.addFlashAttribute("msg", "문의가 등록되었습니다.");
-        return "redirect:/questions/adquestion2";
-    }   
-    
     // 문의 상세 화면 + 답변 조회
     @GetMapping("/{id}")
     public String detail(@PathVariable int id, Model model) {
         model.addAttribute("data", questionService.getDetail(id));
-        return "user/qna/moquestion2";
+        return "user/qna/questionDetail";
     }
 
     // 문의 수정 화면 이동
     @GetMapping("/edit/{id}")
     public String editForm(@PathVariable int id, Model model) {
         model.addAttribute("data", questionService.getDetail(id));
-        return "user/qna/moquestion3";
+        return "user/qna/questionEdit";
     }
 
     // 문의 수정 처리
@@ -113,7 +122,7 @@ public class QuestionController {
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable int id) {
         questionService.deleteQuestion(id);
-        return "redirect:/questions";
+        return "redirect:/questions/myQuestion";
     }
 
     // 답변 등록 (관리자 전용)
@@ -128,7 +137,7 @@ public class QuestionController {
     @GetMapping("/answer/write/{id}")
     public String answerForm(@PathVariable int id, Model model) {
         model.addAttribute("data", questionService.getDetail(id));
-        return "user/qna/moanswer1";
+        return "user/qna/answerWrite";
     }
     
     // 답변 수정 화면
@@ -136,7 +145,7 @@ public class QuestionController {
     public String answerEditForm(@PathVariable int questionId, Model model) {
     	 model.addAttribute("data", questionService.getDetail(questionId));
     	 model.addAttribute("answer", answerService.getAnswer(questionId));
-        return "user/qna/moanswer2";
+        return "user/qna/answerEdit";
     }
 
     // 답변 수정 처리
@@ -152,31 +161,5 @@ public class QuestionController {
     	answerService.delete(answerId, questionId);
         return "redirect:/questions/" + questionId;
     }
-    
-    // 사용자측 페이징
-    @GetMapping("/myQuestion")
-    public String myQuestion(@RequestParam(defaultValue="1") int page,
-            HttpSession session,Model model) {
-        QuestionDto loginUser = (QuestionDto)session.getAttribute("loginUser");
-        
-        //int memberId = loginUser.getMemberId();
-        int memberId = 1; // 임시
-        int pageSize = 10;
-        int start = (page - 1) * pageSize;
-        List<QuestionDto> list =
-                questionService.getMyQuestions(
-                        memberId,
-                        start,
-                        pageSize);
-        int totalCnt =
-                questionService.getMyQuestionCnt(memberId);
-        int totalPage =
-                (int)Math.ceil((double)totalCnt / pageSize);
 
-        model.addAttribute("list", list);
-        model.addAttribute("page", page);
-        model.addAttribute("totalPage", totalPage);
-
-        return "user/qna/moquestion2";
-    }
 }
