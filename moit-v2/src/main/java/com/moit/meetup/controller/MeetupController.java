@@ -36,13 +36,14 @@ public class MeetupController {
 
         AdvertisementDto mainAd =
                 advertisementService.selectTopAdvertisement("MAIN");
-
+        System.out.println(mainAd + "dddddddddddddddddddddddddddddddddddddddddddd");
         // 광고가 존재하면 노출 증가
-        if(mainAd != null) {
+        if(mainAd != null) {        	
             advertisementService.updateImpressions(mainAd.getAdId());
         }
         
         model.addAttribute("mainAd", mainAd);
+        
 
         return "user/main";
     }
@@ -56,6 +57,13 @@ public class MeetupController {
 
 	    model.addAttribute("bannerAd", banner);
 	    model.addAttribute("sidebarAd", sidebar);
+	    // 광고가 존재하면 노출 증가
+        if(banner != null) {        	
+            advertisementService.updateImpressions(banner.getAdId());
+        }
+        if(sidebar != null) {        	
+            advertisementService.updateImpressions(sidebar.getAdId());
+        }
 	    
 		return "/user/meetup/list";
 	}
@@ -110,10 +118,14 @@ public class MeetupController {
 //		int memberId = userMeetupService.findByMamberId(user.getUsername());
 //		meetupApplicationsDto.setMemberId(memberId);
 		
-		AdvertisementDto sidebar = advertisementService.selectTopAdvertisement( "MEETUP_DETAIL_SIDEBAR" );
+		AdvertisementDto desidebar = advertisementService.selectTopAdvertisement( "MEETUP_DETAIL_SIDEBAR" );
 
 		meetupApplicationDto.setMemberId(2);
-		model.addAttribute("sidebarAd", sidebar);
+		model.addAttribute("desidebarAd", desidebar);
+		// 광고가 존재하면 노출 증가
+        if(desidebar != null) {        	
+            advertisementService.updateImpressions(desidebar.getAdId());
+        }
 		
 		meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
 		model.addAttribute("applyInfo",meetupService.findApplyInfo(meetupApplicationDto));

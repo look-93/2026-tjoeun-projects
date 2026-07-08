@@ -41,7 +41,7 @@ public class AdvertisementController {
                 (Integer) session.getAttribute("loginMemberId");
 
         if (loginMemberId == null) {
-            loginMemberId = 12;
+            loginMemberId = 3;
         }
 
         dto.setAdvertiserId(loginMemberId);
@@ -101,7 +101,7 @@ public class AdvertisementController {
                     (Integer) session.getAttribute("loginMemberId");
 
             if (loginMemberId == null) {
-                loginMemberId = 12;
+                loginMemberId = 3;
             }
 
             dto.setAdvertiserId(loginMemberId);
@@ -163,7 +163,7 @@ public class AdvertisementController {
                 (Integer) session.getAttribute("loginMemberId");
 
         if (loginMemberId == null) {
-            loginMemberId = 12;
+            loginMemberId = 3;
         }
 
         if (dto == null) {
@@ -193,7 +193,7 @@ public class AdvertisementController {
                 (Integer) session.getAttribute("loginMemberId");
 
         if (loginMemberId == null) {
-            loginMemberId = 12;
+            loginMemberId = 3;
         }
 
         if (dto == null) {
@@ -230,7 +230,7 @@ public class AdvertisementController {
                 (Integer) session.getAttribute("loginMemberId");
 
         if (loginMemberId == null) {
-            loginMemberId = 12;
+            loginMemberId = 3;
         }
 
         AdvertisementDto origin =
@@ -307,7 +307,7 @@ public class AdvertisementController {
                 (Integer) session.getAttribute("loginMemberId");
 
         if (loginMemberId == null) {
-            loginMemberId = 12;
+            loginMemberId = 3;
             // return "redirect:/member/login";
         }
 

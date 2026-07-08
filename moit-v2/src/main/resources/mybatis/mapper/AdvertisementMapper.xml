@@ -547,11 +547,7 @@
 	      AND CURRENT_TIMESTAMP BETWEEN a.start_datetime 
 	                                AND a.end_datetime
 	
-	      ORDER BY
-	          a.priority_score DESC,
-	          DBMS_RANDOM.VALUE
-	
-	      FETCH FIRST 1 ROW ONLY
+	      AND a.ad_id = 85
 	
 	</select>
 	
