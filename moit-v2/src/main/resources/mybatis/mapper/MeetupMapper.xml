@@ -318,32 +318,32 @@
  	</select> 	
  	
  	<!-- 내모집글 통계 -->
-<select id="selectMyPageStats" resultType="MeetupDto" parameterType="int">
-    SELECT 
-        (SELECT COUNT(*) 
-           FROM meetups 
-          WHERE member_id = #{memberId} 
-            AND delete_yn = 'N' 
-            AND status != 'DELETED'
-         ) AS meetupCount,
-         
-        (SELECT COUNT(*) 
-           FROM reviews 
-          WHERE member_id = #{memberId} 
-            AND delete_yn = 'N'
-         ) AS reviewCount,
-         
-        (SELECT COUNT(*) 
-           FROM meetup_likes   
-          WHERE member_id = #{memberId}
-         ) AS likeCount,
-         
-        (SELECT COUNT(*) 
-           FROM meetup_applications 
-          WHERE member_id = #{memberId} 
-            AND status IN ('APPROVED', 'PENDING')
-         ) AS applicationCount
-    FROM DUAL 
+	<select id="selectMyPageStats" resultType="MeetupDto" parameterType="int">
+	    SELECT 
+	        (SELECT COUNT(*) 
+	           FROM meetups 
+	          WHERE member_id = #{memberId} 
+	            AND delete_yn = 'N' 
+	            AND status != 'DELETED'
+	         ) AS meetupCount,
+	         
+	        (SELECT COUNT(*) 
+	           FROM reviews 
+	          WHERE member_id = #{memberId} 
+	            AND delete_yn = 'N'
+	         ) AS reviewCount,
+	         
+	        (SELECT COUNT(*) 
+	           FROM meetup_likes   
+	          WHERE member_id = #{memberId}
+	         ) AS likeCount,
+	         
+	        (SELECT COUNT(*) 
+	           FROM meetup_applications 
+	          WHERE member_id = #{memberId} 
+	            AND status IN ('APPROVED', 'PENDING')
+	         ) AS applicationCount
+	    FROM DUAL 
    </select>
 
 	<!-- 마이페이지 내 모집신청 조회 -->
@@ -399,26 +399,58 @@
 	<!-- 마이페이지 신청자 목록조회 - 승인/거절 -->
 	<update id="changeMeetupApplyStatus" parameterType="MeetupApplicationDto">
 		UPDATE meetup_applications
-		SET status = #{status}
+		SET status = #{status},
+			reject_reason = #{rejectReason, jdbcType=VARCHAR}
 		WHERE 1=1
 		AND application_id = #{applicationId}
 	</update>	 
 	
-	<!-- 이미지 저장 -->
+	<!-- meetup_images 이미지 저장 -->
 	<insert id="insertMeetupImages" parameterType="java.util.Map">
 	    INSERT INTO meetup_images (meetup_id, image_id) 
-	    VALUES
-	    <foreach collection="imageIds" item="id" separator=",">
-	        (#{meetupId}, #{id})
+	    <foreach collection="imageIds" item="id" separator="UNION ALL">
+	        SELECT #{meetupId}, #{id, jdbcType=INTEGER} FROM dual
 	    </foreach>
-	</insert>	
+	</insert>
 	
-	<!-- 이미지 파일 경로 저장 -->
-	<insert id="insertImages" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="imageId">
-		INSERT INTO images ( image_id, image_path) 
-		VALUES
-		<foreach collection="list" item="img" separator=",">
-			(#{img.imageId}, #{img.imagePath, jdbcType=VARCHAR})
-		</foreach>
-	</insert>		
+	<!-- images 파일 경로 저장 -->
+	<insert id="insertImages" parameterType="java.util.List">
+	    INSERT INTO images (image_id, image_path)
+	    SELECT IMAGES_SEQ.NEXTVAL, A.imagePath
+	    FROM (
+	        <foreach collection="list" item="img" separator="UNION ALL">
+	            SELECT #{img.imagePath} AS imagePath FROM dual
+	        </foreach>
+	    ) A
+	</insert>
+	
+	<!-- 현재 시퀀스의 가장 마지막 값(CURRVAL)을 매퍼에서 가져오기 -->
+	<select id="getLastImageSequence" resultType="int">
+	    SELECT IMAGES_SEQ.CURRVAL FROM dual
+	</select>
+	
+	<!-- 이미지 조회 -->
+	<select id="findMeetupImage" parameterType="int" resultType="MeetupImageDto">
+		SELECT *
+		FROM meetup_images A
+		JOIN images B ON B.IMAGE_ID = A.IMAGE_ID
+		WHERE A.MEETUP_ID = #{meetupId}
+	</select>
+	
+	<!-- 이미지 삭제 -->
+	
+	<delete id="deleteMeetupImages" parameterType="int">
+		DELETE FROM meetup_images WHERE meetup_id = #{meetupId}
+	</delete>
+	
+	<delete id="deleteImages" parameterType="java.util.List">
+	    DELETE FROM images
+	    WHERE image_id IN
+	    <foreach collection="list" item="img" open="(" separator="," close=")">
+	        #{img.imageId, jdbcType=INTEGER}
+	    </foreach>
+	</delete>
+		
+	<!-- 이미지 삭제 -->
+	
 </mapper>

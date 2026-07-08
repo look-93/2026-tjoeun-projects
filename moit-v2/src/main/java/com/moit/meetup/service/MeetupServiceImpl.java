@@ -1,6 +1,8 @@
 package com.moit.meetup.service;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +24,9 @@ import com.moit.meetup.dto.common.SidoDto;
 import com.moit.meetup.dto.common.SigunguDto;
 import com.moit.util.UtilUpload;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class MeetupServiceImpl implements MeetupService{
 	@Autowired MeetupMapper meetupMapper; 
@@ -53,10 +58,13 @@ public class MeetupServiceImpl implements MeetupService{
 	@Override
 	public MeetupDto selectMeetupDetail(int meetupId) {
 		MeetupDto dto = meetupMapper.selectMeetupDetail(meetupId);
-
-		//System.out.println(dto + "??????????????????????????????????????");
-
 		return dto;
+	}
+	
+	//모임 상세조회 - 이미지 조회
+	@Override
+	public List<MeetupImageDto> findMeetupImage(int MeetupId) {
+		return meetupMapper.findMeetupImage(MeetupId);
 	}
 	
 	//모집 - 신청
@@ -83,45 +91,52 @@ public class MeetupServiceImpl implements MeetupService{
 	@Override
 	@Transactional
 	public int insertMeetup(MeetupDto meetupDto, List<MultipartFile> files) {
-		//1. 모집글 데이터 insert
-		int result = meetupMapper.insertMeetup(meetupDto);
-		
-		//2. 업로드 된 파일이 존재하면 저장 실행
-		if(files != null && !files.isEmpty()) {
-			List<MeetupImageDto> imageList = new ArrayList<>();			
-			try {
-			for(MultipartFile file : files) {
-				if(!file.isEmpty()) {
-					
-						String savedFileName = upload.fileUpload(file, UPLOAD_PATH);
-						
-						MeetupImageDto meetupImageDto = new MeetupImageDto();
-						meetupImageDto.setImagePath(savedFileName);
-						imageList.add(meetupImageDto);
-					} 
-				}
-				
-				if(!imageList.isEmpty()) {
-					// 이미지 테이블에 insert
-					meetupMapper.insertImages(imageList);
-					
-					//이미지 id 뽑아서 리스트로 만들기
-					List<Integer> imageIds = new ArrayList<>();					
-					for(MeetupImageDto dto : imageList) {
-						imageIds.add(dto.getImageId());
-					}
-					// meetup_images map 조립 insert
-					Map<String, Object> map = new HashMap<>();
-					map.put("meetupId", meetupDto.getMeetupId());
-					map.put("imageId", imageIds);
-					
-					meetupMapper.insertMeetupImages(map);					
-				}
-			}catch (IOException e) {
-				e.printStackTrace();
-			}		
-		}	
-		return result;
+	    // 1. 모집글 데이터 insert
+	    int result = meetupMapper.insertMeetup(meetupDto);
+	    
+	    // 2. 업로드 된 파일이 존재하면 저장 실행
+	    if (files != null && !files.isEmpty()) {
+	        List<MeetupImageDto> imageList = new ArrayList<>();         
+	        try {
+	            for (MultipartFile file : files) {
+	                if (!file.isEmpty()) {
+	                    String savedFileName = upload.fileUpload(file, UPLOAD_PATH);
+	                    MeetupImageDto meetupImageDto = new MeetupImageDto();
+	                    meetupImageDto.setImagePath(savedFileName);
+	                    imageList.add(meetupImageDto);
+	                } 
+	            }
+	            if (!imageList.isEmpty()) {
+	                // [연결 1단계] images 테이블에 다중 인서트 (UNION ALL 방식)
+	                meetupMapper.insertImages(imageList);
+	                
+	                // [연결 2단계] Oracle 시퀀스 번호들을 역산해서 imageIds 리스트 생성
+	                // Oracle에서 복합 다중 인서트를 성공시키기 위한 핵심 자바 로직입니다.
+	                List<Integer> imageIds = new ArrayList<>();
+	                int totalCount = imageList.size();
+	                
+	                // 현재 시퀀스의 가장 마지막 값(CURRVAL)을 매퍼에서 가져옵니다.
+	                int lastSequence = meetupMapper.getLastImageSequence(); 
+	                
+	                // 들어간 개수만큼 역산하여 각각의 고유 ID를 리스트에 담아줍니다.
+	                for (int i = totalCount - 1; i >= 0; i--) {
+	                    imageIds.add(lastSequence - i);
+	                }
+	                
+	                // [연결 3단계] meetup_images 매핑 테이블용 Map 조립
+	                Map<String, Object> map = new HashMap<>();
+	                map.put("meetupId", meetupDto.getMeetupId());
+	                map.put("imageIds", imageIds); // 역산해서 알아낸 고유 ID 리스트 주입
+	                
+	                // [연결 4단계] meetup_images 매핑 테이블 다중 인서트 호출 (UNION ALL 방식)
+	                meetupMapper.insertMeetupImages(map);
+	            }
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	            throw new RuntimeException("파일 저장 실패", e);
+	        }       
+	    }   
+	    return result;
 	}
 	
 	//모집글 등록 - 이이지 저장
@@ -134,17 +149,131 @@ public class MeetupServiceImpl implements MeetupService{
 		return meetupMapper.insertMeetupImages(map);
 	}
 	
-	//모집글수정
 	@Override
-	public int updateMeetup(MeetupDto meetupDto) {
-		return meetupMapper.updateMeetup(meetupDto);
+	@Transactional(rollbackFor = Exception.class) // 모든 예외에 대해 롤백 보장
+	public int updateMeetup(MeetupDto meetupDto, List<MultipartFile> files) {
+	    
+	    // 1. 새 파일이 실제로 존재하는지 엄격하게 검증
+	    boolean hasNewFiles = files != null && files.stream().anyMatch(file -> !file.isEmpty());
+	    
+	    if (hasNewFiles) {
+	        // 기존 이미지 정보 미리 조회 (삭제는 새 파일 저장이 성공한 뒤에 진행)
+	        List<MeetupImageDto> oldImages = meetupMapper.findMeetupImage(meetupDto.getMeetupId());
+	        
+	        List<MeetupImageDto> imageList = new ArrayList<>();         
+	        List<String> savedFileNames = new ArrayList<>(); // 롤백 대비용 기록장
+	        
+	        try {
+	            // 2. 새 파일들을 서버에 먼저 저장
+	            for (MultipartFile file : files) {
+	                if (!file.isEmpty()) {
+	                    String savedFileName = upload.fileUpload(file, UPLOAD_PATH);
+	                    savedFileNames.add(savedFileName); // 저장된 파일명 기록
+	                    
+	                    MeetupImageDto meetupImageDto = new MeetupImageDto();
+	                    meetupImageDto.setImagePath(savedFileName);
+	                    imageList.add(meetupImageDto);
+	                } 
+	            }
+	            
+	            // 3. DB 작업 수행
+	            if (!imageList.isEmpty()) {
+	                // 기존 DB 매핑 및 이미지 삭제
+	                meetupMapper.deleteMeetupImages(meetupDto.getMeetupId());
+	                if (!oldImages.isEmpty()) {
+	                    meetupMapper.deleteImages(oldImages);
+	                }
+	                
+	                // [연결 1단계] 새 이미지 다중 인서트
+	                meetupMapper.insertImages(imageList);
+	                
+	                // [연결 2~4단계] 시퀀스 번호 역산 및 매핑 테이블 저장
+	                List<Integer> imageIds = new ArrayList<>();
+	                int totalCount = imageList.size();
+	                int lastSequence = meetupMapper.getLastImageSequence(); 
+	                
+	                for (int i = totalCount - 1; i >= 0; i--) {
+	                    imageIds.add(lastSequence - i);
+	                }
+	                
+	                Map<String, Object> map = new HashMap<>();
+	                map.put("meetupId", meetupDto.getMeetupId());
+	                map.put("imageIds", imageIds);
+	                
+	                meetupMapper.insertMeetupImages(map);
+	            }
+	            
+	            // 4. DB 작업까지 모두 성공했다면, 그때 기존의 진짜 '옛날 파일'들을 서버에서 지움
+	            for (MeetupImageDto img : oldImages) {
+	                try {
+	                    Files.deleteIfExists(Path.of(UPLOAD_PATH, img.getImagePath()));
+	                } catch (IOException e) {
+	                    // 구 파일 삭제 실패는 비즈니스 로직을 중단할 만큼 치명적이지 않으므로 로그만 남김
+	                    log.error("기존 파일 삭제 실패: {}", img.getImagePath(), e);
+	                }
+	            }
+	            
+	        } catch (Exception e) {
+	            // DB 작업 중 에러 발생 시, 방금 서버에 저장했던 새 파일들을 지워주는 롤백 처리
+	            for (String fileName : savedFileNames) {
+	                try {
+	                    Files.deleteIfExists(Path.of(UPLOAD_PATH, fileName));
+	                } catch (IOException ex) {
+	                    log.error("새로 업로드된 파일 롤백 실패: {}", fileName, ex);
+	                }
+	            }
+	            throw new RuntimeException("모집글 수정 중 오류가 발생하여 작업을 취소합니다.", e);
+	        }       
+	    }   
+	    
+	    // 5. 최종 모집글 정보 수정
+	    return meetupMapper.updateMeetup(meetupDto);
 	}
 	
-	//모집글삭제
+	/*이미지 삭제*/
 	@Override
-	public int updateMeetupDeleteYn(int meetupId) {
-		return meetupMapper.updateMeetupDeleteYn(meetupId);
+	@Transactional(rollbackFor = Exception.class) // 모든 예외에 대해 롤백 보장
+	public int deleteMeetupImages(int meetupId) {
+		return meetupMapper.deleteMeetupImages(meetupId);
 	}
+	@Override
+	public int deleteImages(List<MeetupImageDto> files) {
+		return meetupMapper.deleteImages(files);
+	}
+	/*이미지 삭제*/
+	
+	//모집글 삭제
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public int updateMeetupDeleteYn(int meetupId) {
+
+	    // 기존 이미지 조회
+	    List<MeetupImageDto> oldImages = meetupMapper.findMeetupImage(meetupId);
+
+	    // 모집글 삭제 처리
+	    int result = meetupMapper.updateMeetupDeleteYn(meetupId);
+
+	    // meetup_images  삭제
+	    meetupMapper.deleteMeetupImages(meetupId);
+
+	    // images 삭제
+	    if(oldImages != null && !oldImages.isEmpty()) {
+	        meetupMapper.deleteImages(oldImages);
+	    }
+
+	    // 실제 파일 삭제
+	    for(MeetupImageDto img : oldImages) {
+	        try {
+	            Files.deleteIfExists(
+	                Path.of(UPLOAD_PATH, img.getImagePath())
+	            );
+	        } catch(IOException e) {
+	            log.error("기존 파일 삭제 실패 : {}", img.getImagePath(), e);
+	        }
+	    }
+	    return result;
+	}
+	
 	//마이페이지 내 모집글 조회 + paging
 	@Override
 	public List<MeetupDto> selectMyMeetup(int pstartno,MeetupDto meetupDto) {

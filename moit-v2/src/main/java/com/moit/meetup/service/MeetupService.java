@@ -33,26 +33,40 @@ public interface MeetupService {
 	public MeetupLikeDto selectMeetupLike(MeetupLikeDto meetupLikeDto);
 	public int countMeetupLike(MeetupLikeDto meetupLikeDto);	
 	
-	//사용자 - 모임 상세조회 - 모임 상세조회
+	//모임 상세조회
 	public MeetupDto selectMeetupDetail(int meetupId);
-	//사용자 - 모임 신청정보
+	
+	//모임 상세조회 - 이미지 조회
+	public List<MeetupImageDto> findMeetupImage(int MeetupId);
+
+	//모임 신청정보
 	public MeetupApplicationDto findApplyInfo(MeetupApplicationDto meetupApplicationsDto);
+	
 	//모임 신청
 	public int insertApplication(MeetupApplicationDto meetupApplicationDto);
+	
 	//모임 신청 취소
 	public int cancelApplyMeetup(MeetupApplicationDto meetupApplicationDto);
 	
 	//모집글등록
 	public int insertMeetup(MeetupDto meetupDto, List<MultipartFile> files);
-	//모집글 등록 - 이미지 저장
+	
+	//모집글 등록 - images 파일 경로 저장 
 	public int insertImages(List<MeetupImageDto> list);
+	
+	//모집글 등록 - meetup_images 이미지 저장
 	public int insertMeetupImages(Map<String, Object> map);
 	
 	//모집글수정
-	public int updateMeetup(MeetupDto meetupDto);
+	public int updateMeetup(MeetupDto meetupDto, List<MultipartFile> files);
 	
 	//모집글 삭제
 	public int updateMeetupDeleteYn(int meetupId);
+	
+	/* 이미지 삭제 */
+	public int deleteMeetupImages(int meetupId);	
+	public int deleteImages(List<MeetupImageDto> files);
+	/* 이미지 삭제 */		
 	
 	//마이페이지 내 모집글
 	public List<MeetupDto> selectMyMeetup(int pstartno,MeetupDto meetupDto);
@@ -65,6 +79,7 @@ public interface MeetupService {
 	
 	//마이페이지 내모집글 - 신청자목록조회
 	public List<MeetupDto> selectMeetupApplyMember(int meetupId);
+	
 	//마이페이지 내모집글 - 신청자목록조회 - 신청,거절
 	public int changeMeetupApplyStatus(MeetupApplicationDto meetupApplicationDto);	
 }

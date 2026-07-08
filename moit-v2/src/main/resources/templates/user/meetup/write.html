@@ -22,22 +22,38 @@
 								<!-- 이미지등록 -->
 								<div class="mw-image-box" style="position: relative;">
 								    <div style="position: relative; width: 100%;">
-								        
-								        <button type="button" id="prevBtn" onclick="moveSlide(-1)" 
-								                style="display: none; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); z-index: 10; background: rgba(0,0,0,0.5); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; font-weight: bold;">〈</button>
-								        
-								        <button type="button" id="nextBtn" onclick="moveSlide(1)" 
-								                style="display: none; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); z-index: 10; background: rgba(0,0,0,0.5); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; font-weight: bold;">〉</button>
 								
-								        <div class="mw-main-image" id="mwMainImage">
-								            <span style="color:#999; margin: 0 auto;" id="placeholderText">대표 이미지를 등록해주세요</span>
+								        <button type="button" id="prevBtn" onclick="moveSlide(-1)"
+								            th:style="${images != null and images.size() > 1} ? 'display: block; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); z-index: 10; background: rgba(0,0,0,0.5); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; font-weight: bold;' : 'display: none;'">
+								            〈</button>
+								
+								        <button type="button" id="nextBtn" onclick="moveSlide(1)"
+								            th:style="${images != null and images.size() > 1} ? 'display: block; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); z-index: 10; background: rgba(0,0,0,0.5); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; font-weight: bold;' : 'display: none;'">
+								            〉</button>
+								
+								        <div class="mw-main-image" id="mwMainImage" 
+								             style="width: 100%; height: 350px; border-radius: var(--radius); overflow-x: hidden; background: #f5f5f5; display: flex; align-items: center; scroll-snap-type: x mandatory; scroll-behavior: smooth;">
+								
+								            <span id="placeholderText"
+								                  th:if="${images == null or #lists.isEmpty(images)}"
+								                  style="color: #999; margin: auto;"> 대표 이미지를 등록해주세요 </span>
+								
+								            <th:block th:if="${images != null and !images.isEmpty()}">
+								                <img th:each="img : ${images}"
+								                     th:src="@{|/upload/meetup/${img.imagePath}|}"
+								                     alt="저장된 모집글 이미지"
+								                     style="width: 100%; max-width: 100%; height: 100%; object-fit: cover; border-radius: 5px; flex-shrink: 0; scroll-snap-align: start;">
+								                     </th:block>
+								            
 								        </div>
-								    </div>
 								
-								    <div class="mw-thumb-list">
+								    </div>
+								    
+								    <div class="mw-thumb-list" style="margin-top: 15px;">
 								        <input type="file" name="files" id="imageInput" multiple style="width:100%;" onchange="previewFiles(event)">
 								    </div>
-								</div>
+								</div>				
+								
 			                    <!-- 이미지등록 -->
 			                    
 								<div class="mw-content-box">

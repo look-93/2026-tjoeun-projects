@@ -26,26 +26,48 @@ public interface MeetupMapper {
 	//관리자 - 모임 리스트 삭제
 	public int updateMeetupDeleteYn(int meetupId);	
 	
-	//사용자 - 모임 상세조회
+	//모임 상세조회
 	public MeetupDto selectMeetupDetail(int meetupId);
 	
-	//사용자 - 모임 신청정보
+	//모임 상세조회 - 이미지 조회
+	public List<MeetupImageDto> findMeetupImage(int MeetupId);	
+	
+	//모임 신청정보
 	public MeetupApplicationDto findApplyInfo(MeetupApplicationDto meetupApplicationDto);
+	
+	//모임 신청
 	public int insertApplication(MeetupApplicationDto meetupApplicationDto);
+	
+	//모임 신청 취소
 	public int cancelApplyMeetup(MeetupApplicationDto meetupApplicationDto);
+	
+	//신청 있으면 업데이트
 	public int updateApplication(MeetupApplicationDto meetupApplicationDto);
 	
 	//모집글등록
 	public int insertMeetup(MeetupDto meetupDto);
+	
+	//모집글 등록 - images 파일 경로 저장
 	public int insertImages(List<MeetupImageDto> list);
+	
+	//모집글 등록 - meetup_images 이미지 저장
 	public int insertMeetupImages(Map<String, Object> map);
-
+	
+	//현재 시퀀스의 가장 마지막 값(CURRVAL)을 매퍼에서 가져오기
+	public int getLastImageSequence();
+	
+	/* 이미지 삭제 */
+	public int deleteMeetupImages(int meetupId);	
+	public int deleteImages(List<MeetupImageDto> list);
+	/* 이미지 삭제 */
+	
 	//모집글수정
 	public int updateMeetup(MeetupDto meetupDto);
 	
 	//마이페이지 내 모집글 조회 + paging
 	public List<MeetupDto> selectMyMeetup(MeetupDto meetupDto);
 	public int selectMyMeetupTotalCnt(MeetupDto meetupDto);
+	
 	//마이페이지 내 모집글 통계
 	public MeetupDto selectMyPageStats(int memberId);
 	
