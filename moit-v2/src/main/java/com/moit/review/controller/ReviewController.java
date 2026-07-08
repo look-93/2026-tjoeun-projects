@@ -16,13 +16,13 @@ import com.moit.review.dto.ReviewDto;
 import com.moit.review.service.ReviewService;
 
 @Controller
-@RequestMapping("/meetup/review")
+//@RequestMapping("")
 public class ReviewController {
    @Autowired
    ReviewService reviewService;
    
    //후기 작성(get)
-   @GetMapping("/insert")
+   @GetMapping("/meetup/review/insert")
    public String insertUserReview_get() {
 
        return "user/meetup/review/reviewInsert";
@@ -31,30 +31,31 @@ public class ReviewController {
    
    
    
-   @PostMapping("/insert")
+   @PostMapping("/meetup/review/insert")
    public String insertUserReview_post(ReviewDto dto) {
 
        dto.setMemberId(2);
+       System.out.println(dto.getMeetupId());
        reviewService.insertUserReview(dto);
 
-       return "redirect:/meetup/review/meetup/" + dto.getMeetupId();
+       return "redirect:/meetup/detail?meetupId=" + dto.getMeetupId();
    }
    
    
     //후기 모임별 목록
-   @GetMapping("/meetup/{meetupId}")
+   @GetMapping("/meetup/review/meetup/{meetupId}")
    public String selectUserReview(@PathVariable int meetupId,
          @RequestParam(value = "sort", required = false, defaultValue = "latest") String sort, Model model) {
       List<ReviewDto> reviewList = reviewService.selectUserReview(meetupId, sort);
       model.addAttribute("reviews", reviewList);
       model.addAttribute("meetupId", meetupId);
 
-      return "user/meetup/review/reviewList";
+      return "user/meetup/detail";
 
    }
 
    // 마이페이지 리뷰 조회
-   @GetMapping("/mypage")
+   @GetMapping("/meetup/review/mypage")
    public String selectReviewByMemberId(@RequestParam int memberId,
          @RequestParam(value = "sort", required = false, defaultValue = "latest") String sort, Model model) {
 
@@ -65,7 +66,7 @@ public class ReviewController {
    }
 
    // 키워드 검색
-   @GetMapping("/search")
+   @GetMapping("/meetup/review/search")
    public String selectReviewByContent(@RequestParam String keyword, Model model) {
       List<ReviewDto> searchResult = reviewService.selectReviewByContent(keyword);
       model.addAttribute("reviews", searchResult);
@@ -73,9 +74,9 @@ public class ReviewController {
       return "user/meetup/review/reviewList";
    }
    //후기 수정(get)
-   @GetMapping("/update/{reviewId}")
+   @GetMapping("/meetup/review/update/{reviewId}")
    public String updateUserReview_get(
-           @PathVariable int reviewId,
+           @PathVariable int reviewId, @RequestParam int meetupId,
            Model model) {
        
       
@@ -90,7 +91,7 @@ public class ReviewController {
    }
    
    //후기 수정 post
-   @PostMapping("/update")
+   @PostMapping("/meetup/review/update")
    public String updateUserReview_post(ReviewDto dto) {  //ReviewDto dto
 
        // 후기 수정
@@ -98,21 +99,21 @@ public class ReviewController {
 
        // 수정한 모임 후기 목록으로 이동
        //return "redirect:/meetup/review/reviewList/" +reviewDto.getMeetupId();
-       return "redirect:/meetup/review/meetup/" + dto.getMeetupId();
+       return "redirect:/meetup/detail?meetupId=" + dto.getMeetupId();
    }
    
    //후기 삭제 get
-   @GetMapping("/delete/{reviewId}")
+   @GetMapping("/meetup/review/delete/{reviewId}")
    public String deleteUserReview_get(ReviewDto dto,RedirectAttributes rttr) {
       
       
       reviewService.deleteUserReview(dto);
       rttr.addFlashAttribute("deleteResult", "success");
-      return "redirect:/meetup/review/meetup/" + dto.getMeetupId();
+      return "redirect:/meetup/detail?meetupId=" + dto.getMeetupId();
    }
    
    // 후기 삭제
-   @PostMapping("/delete")
+   @PostMapping("/meetup/review/delete")
    public String deleteUserReview(ReviewDto dto,RedirectAttributes rttr,
          @RequestParam(value="from", required=false) String from) {
       boolean result =reviewService.deleteUserReview(dto)==1;
