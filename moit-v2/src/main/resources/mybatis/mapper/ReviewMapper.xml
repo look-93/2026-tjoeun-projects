@@ -73,7 +73,7 @@
 	</update>
 
 	<!-- 사용자:논리삭제 -->
-	<update id="deletUserReview" parameterType="ReviewDto">
+	<update id="deleteUserReview" parameterType="ReviewDto">
 		update reviews
 		set
 		delete_yn = 'Y',
@@ -81,6 +81,7 @@
 		where review_id =
 		#{reviewId}
 	</update>
+	
 
 	<!-- 사용자:리뷰 비공개설정 -->
 	<update id="updateUserReviewHide" parameterType="ReviewDto">
