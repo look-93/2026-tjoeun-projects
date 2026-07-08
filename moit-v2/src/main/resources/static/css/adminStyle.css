@@ -83,3 +83,155 @@ body{
 }
 
 /* 관리자화면 css */
+
+/* ==== 광고 === */
+.badge-status {
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-waiting {
+    background: #ffc107;
+    color: #000;
+}
+
+.badge-approved {
+    background: #198754;
+    color: #fff;
+}
+
+.badge-rejected {
+    background: #dc3545;
+    color: #fff;
+}
+
+.badge-pending {
+    background: #6c757d;
+    color: #fff;
+}
+
+.badge-open {
+    background: #0d6efd;
+    color: #fff;
+}
+
+.badge-closed {
+    background: #343a40;
+    color: #fff;
+}
+
+.ad-tab {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.ad-tab button {
+    border: none;
+    background: #fff;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #dee2e6;
+}
+
+.ad-tab button.active {
+    background: #4a7dff;
+    color: white;
+    border-color: #4a7dff;
+}
+
+.table-ad {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table-ad th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+.table-ad td {
+    vertical-align: middle;
+}
+
+.preview-box {
+    width: 100%;
+    height: 180px;
+    background: #f1f3f5;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.preview-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+}
+
+.table-hover tbody tr:hover {
+    background: #f1f5ff;
+}
+/*  광고 상태 색상  */
+.status-select {
+	width: 80px;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    background-color: #fff;
+    transition: all 0.2s ease;
+    
+    background-image: none;
+}
+
+.status-select.status-open {
+    border: 1px solid #28a745;
+    color: #28a745;
+}
+
+.status-select.status-pending {
+    border: 1px solid #fd7e14;
+    color: #fd7e14;
+}
+
+.status-select.status-closed {
+    border: 1px solid #dc3545;
+    color: #dc3545;
+}
+
+/* hover 느낌 */
+.status-select:hover {
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+    cursor: pointer;
+}
+
+
+/* ==== 광고 상세 === */
+.info-box {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 12px 14px;
+    height: 100%;
+}
+
+.info-title {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 6px;
+}
+
+.info-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #222;
+    word-break: break-word;
+}

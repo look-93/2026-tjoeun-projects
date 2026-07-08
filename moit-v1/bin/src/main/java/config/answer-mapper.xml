@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moit.dao.AnswerMapper"> 
+  
+	<!-- 문의글 답변 조회 -->
+    <select id="findByQuestionId" resultType="AnswerDto">
+        select * from answers where question_id = #{questionId} and delete_yn = 'N'
+    </select>
+
+    <!-- 답변 등록 -->
+    <insert id="insertAnswer">
+        insert into answers
+        ( question_id, member_id, content, delete_yn )
+        values
+        ( #{questionId}, #{memberId}, #{content}, 'N' )
+    </insert>
+
+    <!-- 답변 수정 -->
+    <update id="updateAnswer">
+        update answers
+        set content = #{content}, updated_at = now()
+        where answer_id = #{answerId}
+    </update>
+
+    <!-- 답변 삭제(논리삭제) -->
+    <update id="deleteAnswer">
+        update answers
+        set delete_yn = 'Y', updated_at = now()
+        where answer_id = #{answerId}
+    </update>
+    
+    <!-- 삭제된 답변 찾기 -->
+    <select id="findByQuestionIdAll" resultType="AnswerDto">
+	    select *
+	    from answers
+	    where question_id = #{questionId}
+	</select>
+	
+	<!-- 삭제된 답변 복구용 -->
+	<update id="restoreAnswer">
+	    update answers
+	    set content = #{content},
+	        delete_yn = 'N',
+	        updated_at = now()
+	    where question_id = #{questionId}
+	</update>
+
+</mapper>
+
