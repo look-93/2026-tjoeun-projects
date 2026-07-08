@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{user/layouts/layout}">
+<head>
+<meta charset="UTF-8">
+
+<style>
+
+.inquiry-wrap{
+    max-width:1100px;
+    margin:40px auto;
+    padding:0 20px;
+}
+
+.page-title{
+    font-size:34px;
+    font-weight:700;
+    margin-bottom:12px;
+}
+
+.breadcrumb{
+    color:#667085;
+    margin-bottom:30px;
+}
+
+.top-btn-area{
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+    margin-bottom:20px;
+}
+
+.btn{
+    padding:12px 28px;
+    border-radius:10px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.btn-answer{
+    background:#2563eb;
+    color:#fff;
+    border:none;
+}
+
+.btn-edit{
+    background:#fff;
+    border:1px solid #d0d5dd;
+}
+
+.btn-delete{
+    background:#fff;
+    border:1px solid #ef4444;
+    color:#ef4444;
+}
+
+.card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:16px;
+    padding:28px;
+    margin-bottom:24px;
+}
+
+.card-title{
+    font-size:28px;
+    font-weight:700;
+    margin-bottom:24px;
+}
+
+.info-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.info-table th{
+    width:140px;
+    text-align:left;
+    padding:18px 12px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.info-table td{
+    padding:18px 12px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.status-wait{
+    display:inline-block;
+    padding:6px 12px;
+    border:1px solid #fb923c;
+    color:#f97316;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:600;
+}
+
+.status-done{
+    display:inline-block;
+    padding:6px 12px;
+    border:1px solid #22c55e;
+    color:#16a34a;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:600;
+}
+
+.content-box{
+    line-height:2;
+    min-height:180px;
+}
+
+.answer-header{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:20px;
+}
+
+.answer-btns{
+    display:flex;
+    gap:10px;
+}
+
+.btn-answer-edit{
+    border:1px solid #2563eb;
+    background:#fff;
+    color:#2563eb;
+}
+
+.btn-answer-delete{
+    border:1px solid #ef4444;
+    background:#fff;
+    color:#ef4444;
+}
+
+.answer-content{
+    line-height:2.2;
+    min-height:220px;
+}
+
+.answer-date{
+    margin-top:30px;
+    font-weight:600;
+}
+
+.list-btn-area{
+    text-align:center;
+    margin-top:30px;
+}
+
+.btn-list{
+    border:1px solid #d0d5dd;
+    background:#fff;
+}
+</style>
+
+</head>
+<body>
+<div layout:fragment="content">
+
+<div class="inquiry-wrap">
+
+    <h1 class="page-title" th:text="${data.category == 'MEETUP'} ? '모임 1:1 문의 상세보기' : '관리자 1:1 문의 상세보기'"> </h1>
+    <div class="breadcrumb"> <span th:text="${data.category == 'MEETUP'} ? '모임 1:1 문의' : '관리자 1:1 문의'"></span> &gt; 문의 상세보기 </div>
+
+    <div class="top-btn-area">
+        <button class="btn btn-answer"
+        		th:onclick="|location.href='@{/questions/answer/write/{id}(id=${data.questionId})}'|">답변등록</button>
+        <button class="btn btn-edit"
+   				th:onclick="|location.href='@{/questions/edit/{id}(id=${data.questionId})}'|"> 수정 </button>
+		<button class="btn btn-delete"
+        		th:onclick="|deleteQuestion(${data.questionId})|"> 삭제 </button>
+    </div>
+
+    <div class="card">
+        <div class="card-title">문의 정보</div>
+        <table class="info-table">
+            <tr>
+                <th>제목</th>
+                <td th:text="${data.title}"></td>
+            </tr>
+            <tr>
+                <th>작성자</th>
+                <td th:text="${data.memberId}"></td>
+            </tr>
+            <tr>
+                <th>등록일</th>
+                <td th:text="${data.createdAt != null ? #dates.format(data.createdAt,'yyyy.MM.dd HH:mm:ss') : '-'}"></td>
+            </tr>
+            <tr>
+                <th>답변상태</th>
+                <td>
+                	<th:block th:if="${data.status == 'ANSWERED'}">
+	                   	<span class="status-done">답변 완료</span>
+	                </th:block>
+	                <th:block th:unless="${data.status == 'ANSWERED'}">
+	                    <span class="status-wait">답변 대기</span>
+	                </th:block>
+                </td>
+            </tr>
+            <tr>
+                <th>공개여부</th>
+                <td>
+				    <th:block th:if="${data.isPublic == 'N'}">
+				        비공개 상태입니다. 🔒
+				    </th:block>
+				    <th:block th:unless="${data.isPublic == 'N'}">
+				        공개 상태입니다.
+				    </th:block>
+				</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="card-title">문의 내용</div>
+        <div class="content-box"
+        	 th:text="${data.content}">
+        </div>
+    </div>
+    
+	<div th:if="${data.answer != null}">
+	    <div class="card">
+	        <div class="answer-header">
+	        <div class="card-title">답변 내용</div>
+	        
+	            <div class="answer-btns">
+	                <button class="btn btn-answer-edit"
+						th:onclick="|location.href='@{/questions/answer/edit/{id}(id=${data.questionId})}'|"> 답변수정 </button>
+	                <button class="btn btn-answer-delete"
+						th:onclick="|deleteAnswer(${data.answer.answerId}, ${data.questionId})|"> 답변삭제 </button>
+	            </div>
+	        </div>
+	        <div class="answer-content" th:text="${data.answer.content}"></div>
+	        <div class="answer-date">답변일 <span th:text="${#dates.format(data.answer.createdAt, 'yyyy.MM.dd HH:mm:ss')}"></span></div>
+	    </div>
+	    <div class="list-btn-area"
+	    	 th:onclick="|location.href='@{/questions}'|">
+	        <button class="btn btn-list">목록으로</button>
+	    </div>
+	</div>
+</div>
+
+
+<script>
+	function deleteQuestion(questionId){
+	    if(confirm("정말 삭제하시겠습니까?")){
+	        location.href = "/questions/delete/" + questionId;
+	    }
+	}
+
+	function deleteAnswer(answerId, questionId){
+	    if(confirm("답변을 삭제하시겠습니까?")){
+	        location.href = "/questions/answer/delete/" + answerId + "/" + questionId;
+	    }
+	}
+</script>
+</div>
+</body>
+</html>

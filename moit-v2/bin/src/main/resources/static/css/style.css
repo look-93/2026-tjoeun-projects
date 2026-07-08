@@ -1,0 +1,1757 @@
+:root {
+    --c1: #B6FFFA;
+    --c2: #98E4FF;
+    --c3: #80B3FF;
+    --c4: #687EFF;
+
+    --bg: #f7faff;
+    --white: #fff;
+    --text: #222;
+    --gray: #777;
+
+    --radius: 20px;
+    --shadow: 0 5px 15px rgba(0,0,0,.07);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 푸터 하단 고정을 위해 body 구조 개편 */
+body {
+    font-family: sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* 화면 높이를 최소 100% 확보 */
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.container {
+    width: 1200px;
+    max-width: 95%;
+    margin: auto;
+}
+
+/* HEADER 3단 레이아웃 수정 */
+header {
+    background: white;
+    height: 80px;
+    box-shadow: var(--shadow);
+    flex-shrink: 0; /* 헤더 크기 변형 방지 */
+    
+    position: sticky;    /* 스크롤 시 화면에 고정 */
+    top: 0;              /* 화면 최상단에 밀착 */
+    z-index: 1000;
+}
+
+.header-inner {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr; /* 좌(로고), 중(슬로건), 우(메뉴) 3등분 */
+    align-items: center;
+}
+
+.logo {
+    font-size: 30px;
+    font-weight: bold;
+    color: var(--c4);
+}
+
+/* 슬로건 중앙 고정 */
+.header-slogan {
+    color: var(--gray);
+    font-size: 14px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* 오른쪽 메뉴 및 회원 정보 전체 정렬 */
+.header-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 25px;
+}
+
+nav {
+    display: flex;
+    gap: 12px; /* 버튼 사이 간격 */
+    align-items: center;
+}
+
+/* 네비게이션 버튼 공통 스타일 */
+nav a {
+    text-decoration: none;
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+/* 모집찾기 버튼 (채우기 스타일) */
+.nav-btn-primary {
+    background: var(--c4);
+    color: white !important;
+}
+
+.nav-btn-primary:hover {
+    background: #5367f0;
+}
+
+/* 관리자문의 버튼 (아웃라인 스타일) */
+.nav-btn-secondary {
+    background: transparent;
+    color: #444 !important;
+    border: 1px solid #ddd;
+}
+
+.nav-btn-secondary:hover {
+    background: #f1f5f9;
+    border-color: #ccc;
+}
+
+.user-box {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.alarm {
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border-radius: 30px;
+    padding: 8px 15px;
+    border: 1px solid #eee;
+}
+
+.profile-img {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: var(--c4);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-info strong {
+    font-size: 14px;
+}
+
+.profile-info span {
+    font-size: 12px;
+    color: var(--gray);
+}
+
+
+/* ==================
+AD
+================== */
+
+.ad-banner{
+    margin-top:25px;
+    background:white;
+    border:2px dashed var(--c3);
+    border-radius:20px;
+    padding:25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:var(--shadow);
+}
+
+.ad-left h3{
+    margin-bottom:10px;
+}
+
+.ad-btn{
+    background:var(--c4);
+    color:white;
+    padding:10px 20px;
+    border-radius:50px;
+}
+
+/* ==================
+SECTION
+================== */
+
+.section{
+    margin-top:40px;
+}
+
+.section-title{
+    margin-bottom:20px;
+    font-size:24px;
+}
+
+/* PAGE */
+.page {
+    margin-top: 30px;
+    /* margin-bottom: 10px; */
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 25px;
+}
+
+/* SIDEBAR */
+.sidebar {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: var(--shadow);
+    height: fit-content;
+}
+
+.sidebar h3 {
+    margin-bottom: 20px;
+}
+
+.category {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.meetupList-category a {
+    padding: 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #333;
+}
+
+.meetupList-category a:hover,
+.meetupList-category .active {
+    background: var(--c2);
+}
+
+/* CONTENT */
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.filter-box {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-box input,
+.filter-box select {
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+}
+
+.filter-box button {
+    background: var(--c4);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+}
+
+/* CARD */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: .3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-img {
+    height: 180px;
+    background: linear-gradient(135deg, var(--c2), var(--c3));
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.badge {
+    display: inline-block;
+    background: #dfffe4;
+    color: #009933;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+
+.badge-close {
+    background: #ffe5e5;
+    color: red;
+}
+
+.card h4 {
+    margin-bottom: 10px;
+}
+
+.card p {
+    color: var(--gray);
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.card-body h4{
+    margin-bottom:10px;
+}
+
+.card-info{
+    color:var(--gray);
+    font-size:14px;
+}
+.card-footer {
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.like {
+    color: var(--c4);
+}
+
+
+/* PAGINATION */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.pagination a {
+    width: 40px;
+    height: 40px;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #333;
+}
+
+.pagination .active {
+    background: var(--c4);
+    color: white;
+}
+
+/* MEEUPLIST SIDEBAR AD */
+.meetupList-sidebar-ad {
+    margin-top: 25px;
+    height: 320px;
+    background: linear-gradient(180deg, var(--c4), var(--c3));
+    border-radius: 20px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    box-shadow: var(--shadow);
+}
+
+.meetupList-sidebar-ad .ad-tag {
+    background: rgba(255, 255, 255, .2);
+    padding: 5px 12px;
+    border-radius: 20px;
+    margin-bottom: 15px;
+    font-size: 12px;
+}
+
+.meetupList-sidebar-ad h3 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
+.meetupList-sidebar-ad p {
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.meetupList-sidebar-ad a {
+    background: white;
+    color: var(--c4);
+    text-decoration: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: bold;
+}
+
+/* TOP AD */
+.meetupList-top-ad {
+    background: linear-gradient(135deg, var(--c1), var(--c2));
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: var(--shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.meetupList-top-ad-left h3 {
+    margin-bottom: 10px;
+}
+
+.meetupList-top-ad-btn {
+    background: var(--c4);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    text-decoration: none;
+}
+
+
+/* ==================================================
+   MAIN CONTENT AREA (main- 접두사 추가 파트)
+   ================================================== */
+
+/* HERO */
+.main-hero {
+    margin-top: 30px;
+    background: linear-gradient(135deg, var(--c1), var(--c2));
+    border-radius: 30px;
+    padding: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    overflow: hidden;
+}
+
+.main-hero h1 {
+    font-size: 52px;
+    line-height: 1.3;
+    margin-bottom: 20px;
+}
+
+.main-hero p {
+    color: var(--gray);
+    margin-bottom: 25px;
+}
+
+.main-hero-btn {
+    display: flex;
+    gap: 15px;
+}
+
+.main-btn {
+    border: none;
+    padding: 14px 28px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.main-btn-primary {
+    background: var(--c4);
+    color: white;
+}
+
+.main-btn-light {
+    background: white;
+    color: var(--text);
+}
+
+.main-hero-image {
+    font-size: 180px;
+}
+
+/* CATEGORY */
+.main-category {
+    margin-top: 25px;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 15px;
+}
+
+.main-category-card {
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+
+.main-category-card span {
+    display: block;
+    margin-top: 10px;
+}
+
+/* CARD WRAP */
+.main-card-wrap {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+/* RECOMMEND */
+.main-recommend {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.main-recommend-box {
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+}
+
+.main-recommend-box:nth-child(1) { background: #eafcff; }
+.main-recommend-box:nth-child(2) { background: #fffceb; }
+.main-recommend-box:nth-child(3) { background: #f0fff5; }
+
+/* BOTTOM GRID */
+.main-bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.main-notice,
+.main-review {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+}
+
+.main-notice li,
+.main-review li {
+    list-style: none;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+
+/* ================= FOOTER ================= */
+footer {
+    background-color: #f8fafc;
+    border-top: 1px solid #eaeef5;
+    padding: 30px 0;
+    width: 100%;
+    margin-top: 40px !important; /* 무조건 80px 여백 강제 */
+    margin-bottom: 0;
+    flex-shrink: 0;
+    font-size: 12px;
+}
+
+.footer-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 중앙 정렬 */
+    gap: 12px;
+}
+
+/* 가로 링크바 스타일 */
+.footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+}
+
+.footer-links a {
+    text-decoration: none;
+    color: #666;
+    padding: 0 10px;
+    line-height: 1;
+    border-right: 1px solid #dcdcdc; /* 글자 사이 회색 구분선 */
+    transition: color 0.2s ease;
+}
+
+/* 마지막 링크는 오른쪽 구분선 제거 */
+.footer-links a:last-child {
+    border-right: none;
+}
+
+.footer-links a:hover {
+    color: var(--c4); /* 마우스 올리면 브랜드 컬러 적용 */
+    text-decoration: underline;
+}
+
+/* 개인정보처리방침 강조 */
+.footer-links .policy-bold {
+    font-weight: bold;
+    color: #333;
+}
+
+/* 카피라이트 스타일 */
+.footer-bottom {
+    text-align: center;
+}
+
+.footer-bottom p {
+    font-size: 11px;
+    color: #999;
+    font-weight: 500;
+}
+
+/* ==================================================
+   MYPAGE CONTENT AREA (마이페이지 전용 스타일 추가)
+   ================================================== */
+
+/* 1. 상단 프로필 카드 */
+.mypage-profile-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 30px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    margin-top: 30px;
+    margin-bottom: 25px;
+}
+
+.mypage-profile-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--c2), var(--c4));
+    flex-shrink: 0;
+}
+
+.mypage-profile-card h2 {
+    font-size: 22px;
+    margin-bottom: 5px;
+    color: var(--text);
+}
+
+.mypage-profile-card p {
+    font-size: 14px;
+    color: var(--gray);
+    margin-bottom: 8px;
+}
+
+/* 2. 마이페이지 메인 레이아웃 (사이드바 + 본문) */
+.mypage-wrap {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 25px;
+    align-items: start;
+    margin-bottom: 40px;
+}
+
+/* 3. 사이드바 메뉴 스타일 내부 세부 정렬 */
+.mypage-wrap .sidebar .menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mypage-wrap .sidebar .menu a {
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #444;
+    transition: all 0.2s ease;
+}
+
+.mypage-wrap .sidebar .menu a:hover {
+    background: #f1f5f9;
+    color: var(--c4);
+}
+
+.mypage-wrap .sidebar .menu a.active {
+    background: var(--c4);
+    color: var(--white);
+    font-weight: 600;
+}
+
+/* 4. 마이페이지 대시보드 (4개 통계 카드) */
+.mypage-main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.mypage-dashboard {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.mypage-stat-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    font-size: 24px; /* 이모지 크기 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.mypage-stat-card h3 {
+    font-size: 26px;
+    color: var(--text);
+    font-weight: bold;
+}
+
+.mypage-stat-card p {
+    font-size: 14px;
+    color: var(--gray);
+}
+
+/* 5. 사용자 상세 정보 섹션 */
+.mypage-user-info {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 30px;
+    box-shadow: var(--shadow);
+}
+
+.mypage-user-info h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.mypage-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.mypage-info-box {
+    background: #f8fafc;
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 1px solid #edf2f7;
+}
+
+.mypage-info-title {
+    font-size: 13px;
+    color: var(--gray);
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.mypage-info-box div:last-child {
+    font-size: 15px;
+    color: var(--text);
+    font-weight: 500;
+}
+
+/* ==================================================
+   MYPAGE TABLE & SECTION AREA (테이블 영역 추가 스타일)
+   ================================================== */
+
+/* 마이페이지 전용 섹션 박스 */
+.mypage-table-section {
+    background: var(--white);
+    padding: 25px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-top: 25px;
+}
+
+.mypage-table-section h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: var(--text);
+}
+
+/* 마이페이지 전용 테이블 구조 */
+.mypage-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    font-size: 14px;
+}
+
+.mypage-table th {
+    background: #f8fafc;
+    color: var(--gray);
+    font-weight: 600;
+    padding: 14px;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.mypage-table td {
+    padding: 16px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #444;
+    vertical-align: middle;
+}
+
+/* 모임명은 왼쪽 정렬 및 강조 */
+.mypage-table-title {
+    text-align: center;
+    font-weight: 600;
+    color: var(--text) !important;
+}
+
+/* 상태 배지 스타일 (종료 / 진행중) */
+.mypage-status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.mypage-status.status-end {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.mypage-status.status-progress {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+/* 후기 버튼 공통 스타일 */
+.mypage-btn {
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* 후기 작성 버튼 (브랜드 색상 채우기) */
+.mypage-btn-review {
+    background: var(--c4);
+    color: var(--white);
+}
+
+.mypage-btn-review:hover {
+    background: #5367f0;
+}
+
+/* 작성 완료 버튼 (비활성화 및 연한 스타일) */
+.mypage-btn-complete {
+    background: #f0fdf4;
+    color: #16a34a;
+    cursor: default;
+}
+
+/* 테이블 모바일 반응형 처리 */
+@media (max-width: 768px) {
+    .mypage-table th, 
+    .mypage-table td {
+        padding: 10px 6px;
+        font-size: 13px;
+    }
+    .mypage-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
+
+/* ==================================================
+   마이페이지 반응형 미디어 쿼리 (768px 이하)
+   ================================================== */
+@media (max-width: 768px) {
+    .mypage-profile-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .mypage-wrap {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .mypage-dashboard {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .mypage-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ================= RESPONSIVE MEDIA QUERIES ================= */
+
+/* 1. 노트북 / 태블릿 구간 (화면 폭 1200px 이하일 때) */
+@media (max-width: 1200px) {
+    .header-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .header-slogan {
+        display: none; 
+    }
+}
+
+/* 2. 모바일 구간 (화면 폭 768px 이하일 때) */
+@media (max-width: 768px) {
+    header {
+        height: auto;
+        padding: 15px 0;
+    }
+    
+    .header-inner {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .header-right {
+        width: 100%;
+        justify-content: center;
+        flex-direction: column-reverse;
+        gap: 15px;
+    }
+
+    nav {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    nav a {
+        flex: 1;
+        text-align: center;
+    }
+
+    .page {
+        grid-template-columns: 1fr;
+    }
+    
+    footer {
+        padding: 40px 0 20px 0;
+        margin-top: 60px; /* 모바일에서는 간격 현실화 */
+    }
+    
+    .footer-inner {
+        flex-direction: column;
+        gap: 30px;
+    }
+    
+    .footer-links {
+        row-gap: 8px; /* 모바일에서 줄바꿈 될 때 위아래 간격 확보 */
+        justify-content: center;
+    }
+    .footer-links a {
+        border-right: none; /* 모바일에서는 구분선 대신 여백 처리 */
+        padding: 0 8px;
+    }
+    
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    /* 메인 콘텐츠 영역 반응형 병합 */
+    .main-hero {
+        flex-direction: column;
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .main-hero h1 {
+        font-size: 32px;
+    }
+
+    .main-hero-image {
+        font-size: 100px;
+        margin-top: 20px;
+    }
+
+    .main-category {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .main-card-wrap {
+        grid-template-columns: 1fr;
+    }
+
+    .main-recommend {
+        grid-template-columns: 1fr;
+    }
+
+    .main-bottom-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==================================================
+   MEETUP DETAIL PAGE AREA (상세페이지 전용 단독 스타일)
+   ================================================== */
+
+.meetup-detail-wrap {
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 25px;
+}
+
+.meetup-detail-left {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.meetup-detail-right {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* IMAGE BOX */
+.meetup-detail-img-box {
+    background: white;
+    padding: 20px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.meetup-detail-main-img {
+    height: 450px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: white;
+}
+
+.meetup-detail-thumb-list {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.meetup-detail-thumb {
+    flex: 1;
+    height: 80px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* CONTENT BOX */
+.meetup-detail-content-box {
+    background: white;
+    padding: 30px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.meetup-detail-content-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.meetup-detail-badge {
+    display: inline-block;
+    padding: 7px 15px;
+    background: #dfffe4;
+    color: #009933;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.meetup-detail-title {
+    font-size: 32px;
+    margin-bottom: 20px;
+    color: var(--text);
+}
+
+.meetup-detail-tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.meetup-detail-tag {
+    background: #eef7ff;
+    color: var(--c4);
+    padding: 8px 12px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.meetup-detail-desc {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+}
+
+/* SIDE BOX */
+.meetup-detail-side-box {
+    background: white;
+    padding: 25px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+.meetup-detail-side-box h3 {
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: var(--text);
+}
+
+.meetup-detail-info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-size: 15px;
+}
+
+.meetup-detail-author {
+    font-size: 16px;
+    color: var(--text);
+    font-weight: 500;
+}
+
+/* BUTTONS */
+.meetup-detail-btn {
+    width: 100%;
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 15px;
+    transition: background 0.2s;
+}
+
+.meetup-detail-btn-primary {
+    background: var(--c4);
+    color: white;
+}
+
+.meetup-detail-btn-primary:hover {
+    background: #5367f0;
+}
+
+.meetup-detail-btn-outline {
+    margin-top: 10px;
+    background: white;
+    border: 2px solid var(--c4);
+    color: var(--c4);
+}
+
+.meetup-detail-btn-outline:hover {
+    background: #f4f6ff;
+}
+
+.meetup-detail-inquiry-btn {
+    width: 100%;
+    margin-top: 12px;
+    border: none;
+    background: var(--c2);
+    color: #222;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.meetup-detail-report-btn {
+    border: none;
+    background: #ffeded;
+    color: #e53935;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.meetup-detail-report-btn:hover {
+    background: #ffd6d6;
+}
+
+/* ================= TABS ================= */
+.meetup-detail-tabs {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.meetup-detail-tab-header {
+    display: flex;
+    border-bottom: 1px solid #eee;
+}
+
+.meetup-detail-tab-btn {
+    flex: 1;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    font-size: 16px;
+    color: var(--gray);
+    font-weight: 500;
+}
+
+.meetup-detail-tab-btn.active {
+    border-color: var(--c4);
+    color: var(--c4);
+    font-weight: bold;
+}
+
+.meetup-detail-tab-content {
+    padding: 25px;
+}
+
+.meetup-detail-tab-panel {
+    display: none;
+}
+
+.meetup-detail-tab-panel.active {
+    display: block;
+}
+
+.meetup-detail-tab-panel h3 {
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+/* REVIEW HEADER & BUTTON (추가된 부분) */
+.meetup-detail-rating-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.meetup-detail-rating-header h3 {
+    margin-bottom: 0 !important; /* 내부 레이아웃 정렬을 위해 마진 상쇄 */
+}
+
+.meetup-detail-btn-review {
+    background: var(--c4);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.meetup-detail-btn-review:hover {
+    background: #5367f0;
+    transform: translateY(-1px);
+}
+
+.meetup-detail-btn-review:active {
+    transform: translateY(0);
+}
+
+/* RATINGS */
+.meetup-detail-rating-box {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 25px;
+    align-items: center;
+}
+
+.meetup-detail-rating-score h1 {
+    font-size: 60px;
+    color: var(--c4);
+    line-height: 1;
+    margin-bottom: 5px;
+}
+
+.meetup-detail-stars {
+    color: gold;
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.meetup-detail-rating-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.meetup-detail-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #555;
+}
+
+.meetup-detail-bar-label {
+    width: 30px;
+}
+
+.meetup-detail-bar-line {
+    width: 200px;
+    height: 8px;
+    background: #eee;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.meetup-detail-bar-fill {
+    height: 100%;
+    background: orange;
+}
+
+.meetup-detail-bar-count {
+    width: 20px;
+    text-align: right;
+}
+
+/* COMMENTS */
+.meetup-detail-comment {
+    padding: 20px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.meetup-detail-comment:last-child {
+    border-bottom: none;
+}
+
+.meetup-detail-comment-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.meetup-detail-comment-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.meetup-detail-comment-name {
+    font-weight: bold;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.meetup-detail-comment-date {
+    font-size: 12px;
+    color: var(--gray);
+}
+
+.meetup-detail-comment-text {
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+}
+
+.meetup-detail-comment-imgs {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.meetup-detail-comment-imgs img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+/* RECOMMEND CARD */
+.meetup-detail-recom-card {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.meetup-detail-recom-card:last-child {
+    margin-bottom: 0;
+}
+
+.meetup-detail-recom-card img {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.meetup-detail-recom-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.meetup-detail-recom-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--text);
+}
+
+.meetup-detail-recom-tag {
+    font-size: 12px;
+    color: var(--gray);
+}
+
+/* SIDEBAR AD */
+.meetup-detail-side-ad {
+    margin-top: 5px;
+    min-height: 450px;
+    background: linear-gradient(180deg, var(--c4), var(--c3));
+    border-radius: var(--radius);
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    box-shadow: var(--shadow);
+}
+
+.meetup-detail-side-ad .meetup-detail-ad-tag {
+    background: rgba(255, 255, 255, .2);
+    padding: 5px 12px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+
+.meetup-detail-side-ad h3 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
+.meetup-detail-side-ad p {
+    margin-bottom: 25px;
+    line-height: 1.6;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.meetup-detail-side-ad a {
+    background: white;
+    color: var(--c4);
+    text-decoration: none;
+    padding: 12px 25px;
+    border-radius: 12px;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.meetup-detail-side-ad a:hover {
+    background: #f5f5f5;
+}
+
+/* ================= RESPONSIVE MEDIA QUERIES ================= */
+@media (max-width: 768px) {
+    .meetup-detail-wrap {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    .meetup-detail-main-img {
+        height: 300px;
+    }
+    .meetup-detail-title {
+        font-size: 24px;
+    }
+    .meetup-detail-rating-box {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    .meetup-detail-btn-review {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+}
+
+/* ==================================================
+   MEETUP DETAIL MODAL STYLE (후기 작성 모달)
+   ================================================== */
+
+/* 모달 배경 (오버레이) */
+.meetup-detail-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000; /* 네비게이션바보다 위에 위치하도록 설정 */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.meetup-detail-modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* 모달 컨텐츠 박스 */
+.meetup-detail-modal-content {
+    background: white;
+    width: 100%;
+    max-width: 500px;
+    border-radius: var(--radius);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    padding: 25px;
+    transform: translateY(-20px);
+    transition: transform 0.25s ease;
+}
+
+.meetup-detail-modal-overlay.active .meetup-detail-modal-content {
+    transform: translateY(0);
+}
+
+/* 모달 헤더 */
+.meetup-detail-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.meetup-detail-modal-header h2 {
+    font-size: 20px;
+    color: var(--text);
+    margin: 0;
+}
+
+.meetup-detail-modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--gray);
+    line-height: 1;
+}
+
+/* 폼 그룹 */
+.meetup-detail-modal-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.meetup-detail-modal-group label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+}
+
+.meetup-detail-modal-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.meetup-detail-modal-group textarea:focus {
+    border-color: var(--c4);
+}
+
+/* 별점 라디오 커스텀 (오른쪽에서 왼쪽으로 채워지는 방식) */
+.meetup-detail-modal-stars {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.meetup-detail-modal-stars input[type="radio"] {
+    display: none;
+}
+
+.meetup-detail-modal-stars label {
+    font-size: 32px;
+    color: #ddd;
+    cursor: pointer;
+    transition: color 0.1s;
+}
+
+.meetup-detail-modal-stars input[type="radio"]:checked ~ label,
+.meetup-detail-modal-stars label:hover,
+.meetup-detail-modal-stars label:hover ~ label {
+    color: gold;
+}
+
+/* 사진 업로드 버튼 및 미리보기 */
+.meetup-detail-file-btn {
+    border: 2px dashed #ddd;
+    padding: 15px;
+    text-align: center;
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--gray);
+    font-size: 14px;
+    font-weight: 500;
+    background: #fafafa;
+    transition: background 0.2s;
+}
+
+.meetup-detail-file-btn:hover {
+    background: #f0f4ff;
+    border-color: var(--c4);
+    color: var(--c4);
+}
+
+.meetup-detail-preview-container {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.meetup-detail-preview-container img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+/* 모달 하단 푸터 버튼 세트 */
+.meetup-detail-modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 25px;
+}
+
+.meetup-detail-modal-btn {
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+
+.meetup-detail-modal-btn.cancel {
+    background: #eee;
+    color: #666;
+}
+
+.meetup-detail-modal-btn.submit {
+    background: var(--c4);
+    color: white;
+}
+
+.meetup-detail-modal-btn.submit:hover {
+    background: #5367f0;
+}
+
+/* 반응형 크기 조절 */
+@media (max-width: 576px) {
+    .meetup-detail-modal-content {
+        width: 90%;
+        padding: 20px;
+    }
+}
+/* 뒤로가기 */
+/* ================= BACK BUTTON STYLE ================= */
+.meetup-detail-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    background: white;
+    color: #555;
+    padding: 8px 16px;
+    border: 1px solid #e1e4e6;
+    border-radius: 30px; /* 알약 모양의 깔끔한 라운드 */
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* 은은한 그림자 */
+    transition: all 0.2s ease;
+    margin-bottom: -5px; /* 아래 박스와의 간격 최적화 */
+    width: fit-content;
+}
+
+/* 화살표 아이콘 부분 스타일 */
+.meetup-detail-back-link .back-arrow {
+    font-size: 14px;
+    transition: transform 0.2s ease;
+}
+
+/* 마우스 올렸을 때 효과 */
+.meetup-detail-back-link:hover {
+    color: var(--c4); /* 본문 포인트 컬러 */
+    border-color: var(--c4);
+    background: #f8f9ff; /* 부드러운 배경색 전환 */
+    box-shadow: 0 4px 12px rgba(83, 103, 240, 0.1); /* 포인트 컬러 그림자 */
+}
+
+/* 마우스 올리면 화살표만 왼쪽으로 슬쩍 밀리는 효과 (UX 디테일) */
+.meetup-detail-back-link:hover .back-arrow {
+    transform: translateX(-3px);
+}
+
+/* 클릭했을 때 살짝 눌리는 느낌 */
+.meetup-detail-back-link:active {
+    transform: scale(0.97);
+}

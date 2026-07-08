@@ -6,26 +6,30 @@
 
 			<h3>카테고리</h3>
 
-			<div class="category meetupList-category">
-				<a href="#" class="active">전체</a> 
-				<a href="#">운동/스포츠</a> 
-				<a href="#">문화/예술</a>
-				<a href="#">스터디</a> 
-				<a href="#">봉사활동</a> 
-				<a href="#">게임</a> 
-				<a href="#">여행</a> 
-				<a href="#">음악</a>
-			</div>
+			<div class="category meetupList-category" id="meetupList-category"></div>
 
-			<div class="sidebar-ad meetupList-sidebar-ad">
-				<div class="ad-tag">ADVERTISEMENT</div>
-				<h3>
-					신규 회원<br> 특별 혜택
-				</h3>
-				<p>
-					가입만 해도<br> 할인 쿠폰 지급
-				</p>
-				<a href="#"> 지금 확인하기 </a>
+			<section class="side-ad"
+		             th:if="${sidebarAd != null}"
+		             th:classappend="${sidebarAd.imageList != null and !sidebarAd.imageList.isEmpty()} ? ' has-image' : ''">
+		
+		        <a th:href="@{/user/advertisement/click(adId=${sidebarAd.adId})}">
+		
+		            <img th:if="${sidebarAd.imageList != null 
+		                         and !sidebarAd.imageList.isEmpty()}"
+		                 th:src="@{${sidebarAd.imageList[0].imageUrl}}"
+		                 alt="광고">
+		
+		            <div th:if="${sidebarAd.imageList == null or sidebarAd.imageList.size() == 0}">
+		                광고 이미지 준비중
+		            </div>
+		
+		        </a>
+		
+		    </section>
+			
+			<div class="sidebar-ad meetupList-sidebar-ad" style="height:120px">
+				<p> 타겟층에게 홍보 하세요 </p>
+				<a href="#" style="height:40px">광고 신청하기</a>
 			</div>
 		</aside>
 	</th:block>

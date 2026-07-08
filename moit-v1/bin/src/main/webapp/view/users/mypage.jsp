@@ -12,9 +12,7 @@
       <tr> <th scope="row">휴대폰</th> <td>${dto.mobile }</td> </tr>
       <tr> <th scope="row">가입일</th> <td>${dto.udate }</td> </tr>
       <tr> <th scope="row">가입IP</th> <td>${dto.bip }</td> </tr>
-    </tbody>
-    
-    
+    </tbody>    
   </table>
 </div>
 

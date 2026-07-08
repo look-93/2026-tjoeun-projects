@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head lang="ko">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +10,7 @@
 <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-	<th:block th:replace="~{user/fragments/header :: header}" />
+	<th:block th:replace="~{user/fragments/mainHeader :: mainHeader}" />
 	<div class="container">
 		<th:block th:replace="~{user/fragments/mypageSubHeader :: mypageSubHeader}" />
 		<div class="mypage-wrap">
