@@ -64,84 +64,98 @@
                   <div class="meetup-detail-tab-btn" onclick="showTab(3)">Q&A</div>
                </div>
 
-               <div class="meetup-detail-tab-content">
+				<div class="meetup-detail-tab-content">
                         <div class="meetup-detail-tab-panel active">
                      <h3>모임 안내</h3>
                      <p th:text="${detail.content}"></p>
-                  </div>
+				</div>
+				
+				<div class="meetup-detail-tab-panel">
+				   <p th:text="${detail.nickname + ' 외 ' + (detail.totalParticipants == null || detail.totalParticipants == 0 ? 0 : detail.totalParticipants - 1 ) + '명'}"></p>
+				</div>
+				
+				<!-- 후기  -->
+				<div class="meetup-detail-tab-panel">
+				
+					<div class="meetup-detail-rating-header">
+						<!-- <p>
+							<span th:text="${detail.meetupId}"></span>
+						</p> -->
+						<button
+							th:onclick="|location.href='/meetup/review/insert?meetupId=${detail.meetupId}'|">
+							후기 작성하기
+						</button>
+					</div>
+					
+					<div class="meetup-detail-rating-box">
+						<div class="meetup-detail-rating-score">
+							<h1 th:text="${#numbers.formatDecimal(avgRating, 1, 1)}">4.8</h1>
+							<div class="meetup-detail-stars">★★★★★</div>
+							<p>
+								총 후기 <span th:text="${#lists.size(reviews)}">0</span>개
+							</p>
+						</div>
+					
+						<div class="meetup-detail-rating-bars">
+							<div class="meetup-detail-bar">
+								<span class="meetup-detail-bar-label">5점</span>
+								<div class="meetup-detail-bar-line">
+									<div class="meetup-detail-bar-fill" style="width: 80%"></div>
+							</div>
+							<span class="meetup-detail-bar-count">10</span>
+						</div>
+						<div class="meetup-detail-bar">
+							<span class="meetup-detail-bar-label">4점</span>
+							<div class="meetup-detail-bar-line">
+								<div class="meetup-detail-bar-fill" style="width: 20%"></div>
+							</div>
+							<span class="meetup-detail-bar-count">2</span>
+						</div>
+						<div class="meetup-detail-bar">
+							<span class="meetup-detail-bar-label">3점</span>
+							<div class="meetup-detail-bar-line">
+								<div class="meetup-detail-bar-fill" style="width: 0%"></div>
+								</div>
+								<span class="meetup-detail-bar-count">0</span>
+							</div>
+						</div>
+					</div>
+					
+					<div class="meetup-detail-comment" th:each="review : ${reviews}">
+						<div class="meetup-detail-comment-top">
+							<div class="meetup-detail-comment-user">
+								<div class="meetup-detail-comment-name"
+									th:text="${review.memberId}">회원</div>
+								<div class="meetup-detail-comment-date"
+									th:text="${review.createdAt}">2026.06.15</div>
+							</div>
+					
+							<div>
+								<button class="meetup-detail-report-btn">신고</button>
+								<button class="meetup-detail-report-btn"
+									style="background-color: #FBBF24; color: #1F2937; border: none; border-radius: 4px; padding: 4px 10px; font-weight: bold; cursor: pointer;"
+								 th:onclick="|location.href='/meetup/review/update/${review.reviewId}?meetupId=${detail.meetupId}'|">
+								수정</button>
+					
+							<a class="meetup-detail-report-btn"
+								th:href="@{/meetup/review/delete/{reviewId}(reviewId=${review.reviewId}, meetupId=${detail.meetupId})}"
+								onclick="return confirm('정말 이 후기를 삭제하시겠습니까?');"> 삭제 </a>
+							</div>
+						</div>
+					
+						<div class="meetup-detail-stars">
+							<span th:each="star : ${#numbers.sequence(1,5)}"
+								th:text="${star <= review.rating ? '★' : '☆'}"> </span>
+						</div>
+					
+						<p class="meetup-detail-comment-text"
+							th:text="${review.content}">후기 내용</p>
+					</div>
+				    
+				</div>
+				<!-- 후기  -->
 
-                        <div class="meetup-detail-tab-panel">
-                     <p th:text="${detail.nickname + ' 외 ' + (detail.totalParticipants == null || detail.totalParticipants == 0 ? 0 : detail.totalParticipants - 1 ) + '명'}"></p>
-                  </div>
-
-                        <div class="meetup-detail-tab-panel">
-                     <div class="meetup-detail-rating-header">
-                                <h3>멤버들의 후기</h3>
-                        <button class="meetup-detail-btn-review" onclick="openReviewModal()">후기 작성하기</button>
-                     </div>
-
-                     <div class="meetup-detail-rating-box">
-                        <div class="meetup-detail-rating-score">
-                           <h1>4.8</h1>
-                           <div class="meetup-detail-stars">★★★★★</div>
-                           <p>총 후기 12개</p>
-                        </div>
-
-                        <div class="meetup-detail-rating-bars">
-                           <div class="meetup-detail-bar">
-                              <span class="meetup-detail-bar-label">5점</span>
-                              <div class="meetup-detail-bar-line">
-                                 <div class="meetup-detail-bar-fill" style="width: 80%"></div>
-                              </div>
-                              <span class="meetup-detail-bar-count">10</span>
-                           </div>
-                           <div class="meetup-detail-bar">
-                              <span class="meetup-detail-bar-label">4점</span>
-                              <div class="meetup-detail-bar-line">
-                                 <div class="meetup-detail-bar-fill" style="width: 20%"></div>
-                              </div>
-                              <span class="meetup-detail-bar-count">2</span>
-                           </div>
-                           <div class="meetup-detail-bar">
-                              <span class="meetup-detail-bar-label">3점</span>
-                              <div class="meetup-detail-bar-line">
-                                 <div class="meetup-detail-bar-fill" style="width: 0%"></div>
-                              </div>
-                              <span class="meetup-detail-bar-count">0</span>
-                           </div>
-                        </div>
-                     </div>
-
-                     <div class="meetup-detail-comment">
-                        <div class="meetup-detail-comment-top">
-                           <div class="meetup-detail-comment-user">
-                              <div class="meetup-detail-comment-name">김모잇</div>
-                              <div class="meetup-detail-comment-date">2026.06.15</div>
-                           </div>
-                           <button class="meetup-detail-report-btn">신고</button>
-                        </div>
-
-                        <div class="meetup-detail-comment-imgs">
-                           <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=150&q=80">
-                           <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=150&q=80">
-                           <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=150&q=80">
-                        </div>
-                        <p class="meetup-detail-comment-text">분위기 너무 좋았어요!</p>
-                     </div>
-
-                     <div class="meetup-detail-comment">
-                        <div class="meetup-detail-comment-top">
-                           <div class="meetup-detail-comment-user">
-                              <div class="meetup-detail-comment-name">이모임</div>
-                              <div class="meetup-detail-comment-date">2026.06.12</div>
-                           </div>
-                           <button class="meetup-detail-report-btn">신고</button>
-                        </div>
-                        <p class="meetup-detail-comment-text">초보도 부담 없이 참여 가능</p>
-                     </div>
-                  </div>
-
-                        <div class="meetup-detail-tab-panel">
+                   <div class="meetup-detail-tab-panel">
                      <h3>Q&A</h3>
                      <div class="meetup-detail-comment">
                         <div class="meetup-detail-comment-user">
