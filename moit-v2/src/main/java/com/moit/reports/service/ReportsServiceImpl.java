@@ -42,14 +42,14 @@ public class ReportsServiceImpl implements ReportsService {
 	public int insertUserReport(ReportsDto dto) {
 
 		// 중복 신고 select count(*) 쿼리 호출
-		int count = dao.doubleReport(dto);
+//		int count = dao.doubleReport(dto);
 		// 이미 신고가 존재하면 insert를 하지 않고 -1(또는 특정 에러코드) 반환
-		if (count > 0) { return -1; }
+//		if (count > 0) { return -1; }
 
 		// 신고 난사 select count(*) 쿼리 호출
-		int todayCnt = dao.TodayReport(dto);
+//		int todayCnt = dao.TodayReport(dto);
 		// 5회 이상 신고하면 insert를 하지 않고 -2 반환
-		if (todayCnt > 0) { return -2; }
+//		if (todayCnt > 0) { return -2; }
 		
 		return dao.insertUserReport(dto);
 	}
@@ -73,6 +73,10 @@ public class ReportsServiceImpl implements ReportsService {
 	@Override
 	public int updateAdmin(ReportsDto dto) {
 		
+		// 신뢰도 점수, 뱃지
+		
+		
+		///////////////////////////////////////////////////
 		// apiEmail content
 		String content = "신고 처리되지 않음.";
 		if( "APPROVED".equals(dto.getStatus()) ) {
@@ -84,8 +88,7 @@ public class ReportsServiceImpl implements ReportsService {
 		// apiEmail Email
 		String email = dao.selectEmail(dto);
 		
-		//메일 test
-		//apiEmail.sendMail(content, email);
+		apiEmail.sendMail(content, email); //메일 test
 		return dao.updateAdmin(dto);
 	}
 	
@@ -106,8 +109,7 @@ public class ReportsServiceImpl implements ReportsService {
 			content = "신고 글이 삭제 되었습니다.";
 			
 			if( email != null ) {
-				//메일 test
-				//apiEmail.sendMail(content, email);
+				apiEmail.sendMail(content, email); //메일 test
 
 			} else { System.out.println("메일 전송 실패..."); }
 		}

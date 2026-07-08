@@ -32,7 +32,6 @@ public interface ReportsMapper {
 	
 	//	중복 신고 방지
 	public int doubleReport(ReportsDto dto);
-	
 	// 신고 난사 방지
 	public int TodayReport(ReportsDto dto);
 	

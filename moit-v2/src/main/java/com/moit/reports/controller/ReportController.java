@@ -38,14 +38,13 @@ public class ReportController {
 								Model model,
 								Principal principal) {
 		
-		int memberId = 1;
+		int memberId = 1; // 신고자
 		
 //		HashMap<String, Object> map = new HashMap<>();
 //		map.put("start", 0);
 //		map.put("end", 10);
 //		map.put("memberId", memberId); // 로그인 회원 번호 test
 		
-//		model.addAttribute("paging", new PagingUtil( service.selectUserCnt(dto.getMemberId()), pstartno ));
 		model.addAttribute("paging", new UtilPaging( service.selectUserCnt(memberId), pstartno ));
 		model.addAttribute("list", service.selectUserReport(pstartno, memberId));
 		model.addAttribute("menu", "myReport");
@@ -130,7 +129,7 @@ public class ReportController {
 		
 		ReportsDto dto = new ReportsDto();
 		dto.setReportId(reportId);
-		dto.setMemberId(1);
+		dto.setMemberId(1); // 신고자
 		
 		model.addAttribute("dto", service.selectUserReportDetail(dto));
 		
@@ -143,7 +142,7 @@ public class ReportController {
 
 		ReportsDto dto = new ReportsDto();
 		dto.setReportId(reportId);
-		dto.setMemberId(1);
+		dto.setMemberId(1); // 신고자
 		
 		model.addAttribute("dto", service.selectUserReportDetail(dto));
 		return "user/meetup/report/update";
@@ -153,7 +152,7 @@ public class ReportController {
 	@PostMapping("/user/meetup/report/update")
 	public String reportUpdate_post(ReportsDto dto, RedirectAttributes rttr) {
 		
-		dto.setMemberId(1);
+		dto.setMemberId(1); // 신고자
 		
 		String result="신고수정 실패";
 		
@@ -169,7 +168,7 @@ public class ReportController {
 	@PostMapping("/user/meetup/report/delete")
 	public String reportDelete_post(ReportsDto dto, RedirectAttributes rttr) {
 		
-		dto.setMemberId(1); 
+		dto.setMemberId(1); // 신고자
 		
 		String result="신고삭제 실패";
 		

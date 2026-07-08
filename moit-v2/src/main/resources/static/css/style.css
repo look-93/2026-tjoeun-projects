@@ -29,11 +29,6 @@ body {
     min-height: 100vh; /* 화면 높이를 최소 100% 확보 */
 }
 
-html {
-    /* 스크롤바가 사라져도 화면 튕김을 방지하는 마법의 속성 */
-    scrollbar-gutter: stable;
-}
-
 a {
     text-decoration: none;
     color: inherit;
@@ -449,54 +444,6 @@ SECTION
     text-decoration: none;
 }
 
-/* =========================
-   MEETUP CREATE BUTTON / SEARCH MEETUP
-========================= */
-.btn-search-meetup {
-    background: var(--c4);
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 12px;
-    cursor: pointer;
-
-    font-weight: 600;
-
-    transition: all 0.2s ease;
-}
-
-/* hover */
-.btn-search-meetup:hover {
-    background: #5367f0;
-    box-shadow: 0 6px 15px rgba(83, 103, 240, 0.25);
-}
-
-.btn-create-meetup {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 12px 18px;
-    border-radius: 12px;
-
-    background: linear-gradient(135deg, var(--c4), var(--c3));
-    color: white;
-
-    font-size: 14px;
-    font-weight: 700;
-
-    text-decoration: none;
-
-    box-shadow: var(--shadow);
-
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-
-/* hover */
-.btn-create-meetup:hover {
-    background: linear-gradient(135deg, #5367f0, var(--c4));
-}
 
 /* ==================================================
    MAIN CONTENT AREA (main- 접두사 추가 파트)
@@ -1809,334 +1756,6 @@ footer {
     transform: scale(0.97);
 }
 
-
-/* 모임등록 */
-/* 본문 및 컨테이너 */
-.mw-main-content {
-    flex: 1;
-    padding-top: 80px;
-    padding-bottom: 80px;
-    box-sizing: border-box;
-    background: var(--mw-bg);
-    font-family: sans-serif;
-}
-
-.mw-write-container {
-    width: 1300px;
-    max-width: 95%;
-    margin: auto;
-}
-
-/* 레이아웃 구조 */
-.mw-detail-wrap {
-    margin-top: 30px;
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 25px;
-}
-
-.mw-left-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-}
-
-/* 입력 박스 공통 구조 */
-.mw-content-box, .mw-side-box {
-    background: white;
-    border-radius: 20px;
-    box-shadow: var(--mw-shadow);
-}
-
-.mw-content-box {
-    padding: 30px;
-}
-
-.mw-side-box {
-    padding: 25px;
-    margin-bottom: 20px;
-}
-
-/* 요소별 스타일 */
-.mw-detail-badge {
-    display: inline-block;
-    padding: 7px 15px;
-    background: #dfffe4;
-    color: #009933;
-    border-radius: 50px;
-    margin-bottom: 15px;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.mw-form-group {
-    margin-bottom: 20px;
-}
-
-.mw-form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #333;
-}
-
-/* 폼 입력 필드 */
-.mw-form-input, .mw-form-select {
-    width: 100%;
-    padding: 14px;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    font-size: 14px;
-    box-sizing: border-box;
-    background: white;
-}
-
-.mw-form-input:focus, .mw-form-select:focus {
-    outline: none;
-    border-color: var(--mw-c4);
-    box-shadow: 0 0 0 3px rgba(104,126,255,.15);
-}
-
-textarea.mw-form-input {
-    resize: vertical;
-    min-height: 200px;
-}
-
-/* 버튼 */
-.mw-btn-submit {
-    width: 100%;
-    border: none;
-    padding: 15px;
-    border-radius: 12px;
-    cursor: pointer;
-    background: var(--mw-c4);
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    transition: background 0.2s;
-}
-
-.mw-btn-submit:hover {
-    background: #5066f0;
-}
-
-/* 가이드 텍스트 */
-.mw-guide-text {
-    line-height: 1.8;
-    color: #666;
-    font-size: 14px;
-}
-
-/*모임등록 */
-
-/* ==========================================
-	   마이페이지 전용 관리 버튼 및 액션 레이아웃 CSS 
- ========================================== */
-
-/* 1. 관리 열 내부 버튼 그룹 정렬 */
-.action-btn-wrap {
-	display: flex;
-	gap: 8px;
-	justify-content: center;
-	align-items: center;
-}
-
-/* 2. 버튼 공통 베이스 스타일 */
-.action-btn-wrap button, 
-.action-btn-wrap .delete-btn {
-	border: 1px solid transparent;
-	padding: 7px 14px;
-	font-size: 13px;
-	font-weight: 500;
-	border-radius: 6px;
-	cursor: pointer;
-	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-	white-space: nowrap;
-	box-sizing: border-box;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-/* 3. 신청자 조회 버튼 (신뢰감을 주는 블루 테마) */
-.applicant-btn {
-	background-color: #f0f6ff;
-	color: #2563eb;
-	border-color: #dbeafe !important;
-}
-.applicant-btn:hover {
-	background-color: #2563eb;
-	color: #ffffff;
-	border-color: #2563eb !important;
-	box-shadow: 0 4px 6px -1px rgba(37, 99, 154, 0.2);
-}
-
-/* 4. 수정 버튼 (모던하고 차분한 슬레이트 그레이 테마) */
-.edit-btn {
-	background-color: #f8fafc;
-	color: #475569;
-	border-color: #e2e8f0 !important;
-}
-.edit-btn:hover {
-	background-color: #475569;
-	color: #ffffff;
-	border-color: #475569 !important;
-	box-shadow: 0 4px 6px -1px rgba(71, 85, 105, 0.2);
-}
-
-/* 5. 삭제 버튼 (경고를 나타내는 소프트 레드 테마) */
-.delete-btn {
-	background-color: #fff5f5;
-	color: #dc2626;
-	border-color: #fee2e2 !important;
-}
-.delete-btn:hover {
-	background-color: #dc2626;
-	color: #ffffff;
-	border-color: #dc2626 !important;
-	box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.2);
-}
-
-/* 6. 모달(신청자 목록) 내부 승인/거절 전용 미니 버튼 */
-.btn-approve {
-	background-color: #f0fdf4;
-	color: #16a34a;
-	border: 1px solid #bbf7d0;
-	padding: 5px 11px;
-	font-size: 12px;
-	font-weight: 500;
-	border-radius: 4px;
-	cursor: pointer;
-	margin-right: 4px;
-	transition: all 0.15s ease;
-}
-.btn-approve:hover {
-	background-color: #16a34a;
-	color: #ffffff;
-	border-color: #16a34a;
-}
-
-.btn-reject {
-	background-color: #fff1f2;
-	color: #e11d48;
-	border: 1px solid #fecdd3;
-	padding: 5px 11px;
-	font-size: 12px;
-	font-weight: 500;
-	border-radius: 4px;
-	cursor: pointer;
-	transition: all 0.15s ease;
-}
-.btn-reject:hover {
-	background-color: #e11d48;
-	color: #ffffff;
-	border-color: #e11d48;
-}
-/* ==========================================
-	📢 [추가] 화면이 줄어들었을 때 (태블릿 & 모바일 반응형 대응)
-========================================== */
-@media screen and (max-width: 992px) {
-	/* 태블릿 등에서 공간이 부족해지면 세로 배열로 자연스럽게 전환 */
-.action-btn-wrap {
-	flex-direction: column;
-	gap: 4px;
-	padding: 4px 0;
-}
-
-.action-btn-wrap button, 
-.action-btn-wrap form,
-.action-btn-wrap .delete-btn {
-	width: 100%; /* 버튼이 부모 셀 너비에 맞게 꽉 차도록 설정 */
-	text-align: center;
-}
-
-.action-btn-wrap button, 
-.action-btn-wrap .delete-btn {
-	padding: 6px 10px; /* 좁은 화면에 맞춰 여백 살짝 축소 */
-		font-size: 12px;
-	}
-}
-
-@media screen and (max-width: 576px) {
-	/* 모바일 초소형 화면에서 테이블 스크롤이 생긴다면 폰트 추가 축소 */
-	.mypage-table th, .mypage-table td {
-		padding: 8px 4px;
-		font-size: 12px;
-	}
-}
-
-/*===================mypage 모달 ========================*/
-/* MODAL STYLES */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-}
-
-.modal-overlay.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-.modal-window {
-    background: white;
-    width: 750px;
-    max-width: 90%;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    overflow: hidden;
-    transform: translateY(-20px);
-    transition: transform 0.3s ease;
-}
-
-.modal-overlay.active .modal-window {
-    transform: translateY(0);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid #f1f5f9;
-}
-
-.modal-header h3 {
-    font-size: 18px;
-    color: #1e293b;
-    font-weight: 600;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 24px;
-    color: #94a3b8;
-    cursor: pointer;
-    transition: color 0.2s;
-    line-height: 1;
-}
-
-.modal-close:hover {
-    color: #64748b;
-}
-
-.modal-body {
-    padding: 24px;
-    max-height: 450px;
-    overflow-y: auto;
-}
-
-.modal-table {
-=======
 @charset "UTF-8";
 
 /* ==============================
@@ -3302,63 +2921,6 @@ textarea.mw-form-input {
     border-collapse: collapse;
 }
 
-
-.modal-table th {
-    background: #ffffff;
-    color: #1e293b;
-    font-weight: 600;
-    border-bottom: 2px solid #f1f5f9;
-    padding: 12px 8px;
-}
-
-.modal-table td {
-    padding: 14px 8px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #334155;
-    font-size: 14px;
-    vertical-align: middle;
-}
-
-.download-btn {
-    background: #64748b;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.download-btn:hover { background: #475569; }
-.btn-approve {
-    background: #10b981;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-right: 4px;
-}
-.btn-approve:hover { background: #059669; }
-
-.btn-reject {
-    background: #ef4444;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-}
-.btn-reject:hover { background: #dc2626; }
-
-.state-text-wait { color: #64748b; font-weight: 500; }
-.state-text-pass { color: #10b981; font-weight: 600; }
-=======
 .table th {
     background: #f7f7f7;
     border-top: 2px solid #444;
@@ -3481,47 +3043,38 @@ textarea.mw-form-input {
 
 /* 페이징 */
 
-/* ========== Advertisement Pagination (NEW) ========== */
-
-.ad-pagination {
+.pagination {
     display: flex;
     justify-content: center;
     list-style: none;
     gap: 6px;
     margin-top: 30px;
     padding: 0;
-    margin: 0;
 }
 
-.ad-page-item .ad-page-link {
+.page-item .page-link {
     display: block;
     padding: 8px 14px;
     border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 6px;
     text-decoration: none;
     color: #333;
     background: #fff;
-    font-size: 14px;
-    white-space: nowrap; /* 글씨 튀어나오는 문제 해결 */
 }
 
-.ad-page-item.active .ad-page-link {
-    background: var(--c4);
+.page-item.active .page-link {
+    background: #0d6efd;
     color: #fff;
-    border-color: var(--c4);
-    font-weight: 600;
+    border-color: #0d6efd;
 }
 
-.ad-page-item.disabled .ad-page-link {
-    opacity: .4;
+.page-item.disabled .page-link {
+    opacity: .5;
     pointer-events: none;
 }
 
-.ad-pagination-wrap {
-    margin-top: 30px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
+.pagination-wrap{
+    margin-top:30px;
 }
 
 /* 빈 목록 */

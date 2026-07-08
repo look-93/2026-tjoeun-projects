@@ -1,17 +1,15 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html xmlns:th="http://www.thymeleaf.org"
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{admin/layouts/adminLayout}">
+<!--    #1. layout 렌더링    -->
 <head lang="ko">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- <title>MOIT | 모집글 목록</title> -->
-<title>MOIT</title>
 <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-	<th:block th:replace="~{user/fragments/header :: header}" />
-	<div class="container">
-			<div layout:fragment="content">
-				<!-- 페이지 내용 -->
+	<div layout:fragment="content">
+		<!-- 각자파트 -->
 
 <div class="container-fluid">
 
@@ -76,7 +74,7 @@
 					</div>
 					
 					<input type="text" id="keyword" name="keyword" class="admin-list-keyword" th:value="${keyword}" placeholder="검색어를 입력해주세요.">
-					<button type="submit" class="admin-list-btn btn-primary">검색</button>
+					<button type="submit" class="admin-list-btn">검색</button>
 				</form>
 
 

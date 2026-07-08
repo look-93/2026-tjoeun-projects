@@ -59,7 +59,7 @@
 		select count(*)
 		from reports
 		where member_id = #{memberId} and delete_yn = 'N'
-			and created_at >= trunc(sysdate) and created_at <= trunc(sysdate) +1
+			and created_at >= trunc(sysdate) and created_at &lt; trunc(sysdate) +1
 	</select>
 	
 	
@@ -67,6 +67,42 @@
 	
 	<!-- ===== admin ===== -->
 	<!-- ===== admin ===== -->
+	
+	<!-- 신고당한 글 작성자 찾기 (targetMemberId)
+	reports.target_id = 신고당한 글 번호
+	meetup.meetup_id = 모임 글 번호
+	meetup.member_id = 그 모임 글 작성자
+	-->
+	<!-- APPROVED 승인 건수 조회 (MEETUP) -->
+	<select id="approvedCnt" resultType="int" parameterType="ReportsDto">
+		select count(*)
+		from reports r		join meetups mt		on r.target_id = mt.meetup_id
+		where r.target_type = 'MEETUP' and r.status = 'APPROVED' and mt.member_id = #{targetMemberId}
+	</select>
+	
+	<!-- 신뢰도 점수 계산 -->
+	<select id="trustScore" resultType="int" parameterType="ReportsDto">
+		select 100 - (count(*) * 10)
+		from reports r		join meetups mt		on r.target_id = mt.meetup_id
+		where r.target_type = 'MEETUP' and r.status = 'APPROVED' and mt.member_id = #{targetMemberId}
+	</select>
+	
+	<!-- member_info 테이블에 신뢰도 점수(trust_score) update -->
+	<update id="trustScoreUpdate" parameterType="ReportsDto">
+		update member_info
+		set trust_score = (
+			select 100 - (count(*) * 10)
+			from reports r join meetups mt
+				on r.target_id = mt.meetup_id
+			where r.target_type = 'MEETUP'
+				and r.status = 'APPROVED'
+				and mt.member_id = #{targetMemberId}
+		)
+		where member_id = #{targetMemberId}
+	</update>
+	
+	
+	
 	<!-- 신고 상태 변경 - PENDING(처리대기) or APPROVED(신고완료) -->
 	<update id="updateAdmin" parameterType="ReportsDto">
 	    update reports
