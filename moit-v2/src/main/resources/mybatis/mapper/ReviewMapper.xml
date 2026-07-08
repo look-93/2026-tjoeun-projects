@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.moit.review.dao.ReviewMapper">
+
+	<!-- 사용자:리뷰 등록 -->
+	<insert id="insertUserReview" parameterType="ReviewDto">
+		insert into reviews
+		(
+		meetup_id, member_id, content, rating
+		) values (
+		#{meetupId},
+		#{memberId}, #{content}, #{rating}
+		)
+	</insert>
+
+	<!-- 사용자:특정모임의 리뷰 목록 조회 -->
+	<select id="selectUserReview" resultType="ReviewDto">
+		select
+		review_id as reviewId,
+		meetup_id as meetupId,
+		member_id as
+		memberId,
+		content,
+		rating,
+		likes_count as likesCount,
+		views_count as
+		viewsCount,
+		is_public as isPublic,
+		case when delete_yn = 'Y' then 1 else
+		0 end as deleteYn,
+		to_char(created_at, 'YYYY-MM-DD') as createdAt,
+		to_char(updated_at, 'YYYY-MM-DD') as updatedAt
+		from reviews
+		where
+		meetup_id = #{meetupId} and delete_yn = 'N'
+		<choose>
+			<when test="sort == 'likes'">
+				order by likes_count desc, review_id desc
+			</when>
+			<otherwise>
+				order by review_id desc
+			</otherwise>
+		</choose>
+	</select>
+	<!-- reviewId로 리뷰 조회하기 -->
+	<select id="selectReviewById" resultType="ReviewDto">
+		select
+		review_id as reviewId,
+		meetup_id as meetupId,
+		member_id as memberId,
+		content,
+		rating,
+		likes_count as likesCount,
+		views_count as viewsCount,
+		is_public as isPublic,
+		case when delete_yn = 'Y' then 1 else 0 end as deleteYn,
+		to_char(created_at, 'YYYY-MM-DD') as createdAt,
+		to_char(updated_at, 'YYYY-MM-DD') as updatedAt
+		from reviews
+		where review_id = #{reviewId} and delete_yn = 'N'
+	</select>
+
+	<!--사용자:리뷰수정 -->
+	<update id="updateUserReview" parameterType="ReviewDto">
+		update reviews
+		set
+		content = #{content},
+		rating = #{rating},
+		updated_at = current_timestamp
+		where review_id = #{reviewId} and delete_yn = 'N'
+	</update>
+
+	<!-- 사용자:논리삭제 -->
+	<update id="deleteUserReview" parameterType="ReviewDto">
+		update reviews
+		set
+		delete_yn = 'Y',
+		updated_at = current_timestamp
+		where review_id =
+		#{reviewId}
+	</update>
+	
+
+	<!-- 사용자:리뷰 비공개설정 -->
+	<update id="updateUserReviewHide" parameterType="ReviewDto">
+		update reviews
+		set is_public = #{isPublic},
+		updated_at = current_timestamp
+		where
+		review_id = #{reviewId}
+	</update>
+
+	<!-- 마이페이지 내가 쓴 후기목록 조회 -->
+	<select id="selectReviewByMemberId" resultType="ReviewDto">
+		select
+		review_id as reviewId,
+		meetup_id as meetupId,
+		member_id as
+		memberId,
+		content,
+		rating,
+		likes_count as likesCount,
+		views_count as
+		viewsCount,
+		is_public as isPublic,
+		case when delete_yn = 'Y' then 1 else
+		0 end as deleteYn,
+		to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') as
+		createdAt,
+		to_char(updated_at, 'YYYY-MM-DD HH24:MI:SS') as updatedAt
+		from reviews
+		where member_id = #{memberId} and delete_yn = 'N'
+		<choose>
+			<when test="sort == 'likes'">
+				order by likes_count desc, review_id desc
+			</when>
+			<otherwise>
+				order by review_id desc
+			</otherwise>
+		</choose>
+	</select>
+
+	<!-- 사용자:후기내용으로 검색 -->
+	<select id="selectReviewByContent" parameterType="String"
+		resultType="ReviewDto">
+		select
+		review_id as reviewId,
+		meetup_id as meetupId,
+		member_id as memberId,
+		content,
+		rating,
+		likes_count as likesCount,
+		views_count as viewsCount,
+		is_public as isPublic,
+		case when delete_yn =
+		'Y' then 1 else 0 end as deleteYn,
+		to_char(created_at, 'YYYY-MM-DD
+		HH24:MI:SS') as createdAt,
+		to_char(updated_at, 'YYYY-MM-DD HH24:MI:SS')
+		as updatedAt
+		from reviews
+		where content like '%' || #{keyword} || '%'
+		and delete_yn = 'N'
+		and is_public = 'Y'
+		order by review_id desc
+	</select>
+
+
+
+	<!-- -->
+	<!-- -->
+	<!-- -->
+	<!-- -->
+
+	<!-- 좋아요 기능:체크 -->
+	<select id="checkLikeExists" parameterType="map"
+		resultType="int">
+		select count(*)
+		from review_likes
+		where review_id =
+		#{reviewId} and member_id = #{memberId}
+	</select>
+
+	<!-- 좋아요 데이터 추가 -->
+	<insert id="insertLike" parameterType="map">
+		insert into review_likes
+		(review_id, member_id)
+		values (#{reviewId}, #{memberId})
+	</insert>
+
+	<!-- 좋아요 데이터 삭제 -->
+	<delete id="deleteLike" parameterType="map">
+		delete from review_likes
+		where review_id = #{reviewId} and member_id = #{memberId}
+	</delete>
+
+	<!-- 리뷰 테이블 좋아요 수 +1 증가 -->
+	<update id="incrementLikeCount" parameterType="int">
+		update reviews
+		set
+		likes_count = likes_count + 1
+		where review_id = #{reviewId}
+	</update>
+
+	<!-- 리뷰 테이블 좋아요 수 -1 감소 -->
+	<update id="decrementLikeCount" parameterType="int">
+		update reviews
+		set
+		likes_count = likes_count - 1
+		where review_id = #{reviewId}
+	</update>
+
+	<!-- 특정 리뷰의 최종 좋아요 개수 조회 -->
+	<select id="getLikeCount" parameterType="int" resultType="int">
+		select
+		likes_count
+		from reviews
+		where review_id = #{reviewId}
+	</select>
+
+	<!-- 관리자: 전체 리뷰 목록 조회 -->
+	<select id="adminSelectReviewList" parameterType="int"
+		resultType="ReviewDto">
+		select
+		review_id as reviewId,
+		meetup_id as meetupId,
+		member_id as
+		memberId,
+		content,
+		rating,
+		likes_count as likesCount,
+		views_count as
+		viewsCount,
+		is_public as isPublic,
+		case when delete_yn = 'Y' then 1 else
+		0 end as deleteYn,
+		to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') as
+		createdAt,
+		to_char(updated_at, 'YYYY-MM-DD HH24:MI:SS') as updatedAt
+		from reviews
+		<if test="memberId != 0">
+			where member_id = #{memberId}
+		</if>
+		order by review_id desc
+	</select>
+
+	<!-- 관리자: 내용으로 리뷰 검색 -->
+	<select id="adminSearchReviewByContent" parameterType="String"
+		resultType="ReviewDto">
+		select
+		review_id as reviewId,
+		meetup_id as meetupId,
+		member_id as memberId,
+		content,
+		rating,
+		likes_count as likesCount,
+		views_count as viewsCount,
+		is_public as isPublic,
+		case when delete_yn =
+		'Y' then 1 else 0 end as deleteYn,
+		to_char(created_at, 'YYYY-MM-DD
+		HH24:MI:SS') as createdAt,
+		to_char(updated_at, 'YYYY-MM-DD HH24:MI:SS')
+		as updatedAt
+		from reviews
+		where content like '%' || #{keyword} || '%'
+		order by review_id desc
+	</select>
+
+	<!-- 관리자: 특정 작성자가 쓴 리뷰 검색 -->
+	<select id="adminSearchReviewByWriter" parameterType="int"
+		resultType="ReviewDto">
+		select
+		review_id as reviewId,
+		meetup_id as meetupId,
+		member_id as memberId,
+		content,
+		rating,
+		likes_count as likesCount,
+		views_count as viewsCount,
+		is_public as isPublic,
+		case when delete_yn =
+		'Y' then 1 else 0 end as deleteYn,
+		to_char(created_at, 'YYYY-MM-DD
+		HH24:MI:SS') as createdAt,
+		to_char(updated_at, 'YYYY-MM-DD HH24:MI:SS')
+		as updatedAt
+		from reviews
+		where member_id = #{memberId}
+		order by
+		review_id desc
+	</select>
+
+	<!-- 관리자: 리뷰 강제 숨김 처리 -->
+	<update id="adminHideReview" parameterType="int">
+		update reviews
+		set
+		is_public = 'N',
+		updated_at = current_timestamp
+		where review_id = #{id}
+	</update>
+
+	<!--관리자: 리뷰 강제 삭제 처리 -->
+	<update id="adminDeleteReview" parameterType="int">
+		update reviews
+		set
+		delete_yn = 'Y',
+		updated_at = current_timestamp
+		where review_id = #{id}
+	</update>
+
+</mapper>

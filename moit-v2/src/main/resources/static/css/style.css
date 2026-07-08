@@ -1899,6 +1899,215 @@ footer {
     transform: scale(0.97);
 }
 
+/* 후기 페이지 전체 레이아웃 */
+:root {
+    --rw-theme-color: #687EFF;
+    --rw-bg-color: #f7faff;
+    --rw-box-shadow: 0 5px 15px rgba(0,0,0,.07);
+    --rw-text-main: #222222;
+    --rw-text-muted: #666666;
+}
+.rw-page-wrapper {
+    flex: 1;
+    padding: 80px 0;
+    box-sizing: border-box;
+    background-color: var(--rw-bg-color);
+    font-family: sans-serif;
+}
+
+/* 후기 작성창 중앙 정렬 및 너비 제한 */
+.rw-container {
+    width: 760px;
+    max-width: 95%;
+    margin: 0 auto;
+}
+
+/* 메인 작성 카드 */
+.rw-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: var(--rw-box-shadow);
+    padding: 40px;
+}
+
+/* 상단 타이틀 영역 */
+.rw-header-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    background: #eef7ff;
+    color: var(--rw-theme-color);
+    border-radius: 50px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.rw-main-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    color: var(--rw-text-main);
+}
+
+/* 폼 그룹 정의 */
+.rw-form-group {
+    margin-bottom: 25px;
+}
+
+.rw-form-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #333333;
+    font-size: 15px;
+}
+
+/* 순수 CSS 별점(Star) 컴포넌트 */
+.rw-star-rating {
+    display: flex;
+    flex-direction: row-reverse; /* 호버 효과 역산을 위해 필수 */
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.rw-star-rating input[type="radio"] {
+    display: none;
+}
+
+.rw-star-rating label {
+    font-size: 36px;
+    color: #e5e5e5;
+    cursor: pointer;
+    margin-bottom: 0;
+    transition: color 0.15s ease-in-out;
+}
+
+/* 호버 및 선택 시 별 색상 변경 정책 */
+.rw-star-rating input[type="radio"]:checked ~ label,
+.rw-star-rating label:hover,
+.rw-star-rating label:hover ~ label {
+    color: #ffcc00;
+}
+
+/* 입력 필드 (텍스트 영역 및 파일 업로드) */
+.rw-input-field {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #dddddd;
+    border-radius: 12px;
+    font-size: 14px;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    color: var(--rw-text-main);
+}
+
+.rw-input-field:focus {
+    outline: none;
+    border-color: var(--rw-theme-color);
+    box-shadow: 0 0 0 3px rgba(104,126,255,.15);
+}
+
+textarea.rw-input-field {
+    resize: vertical;
+    min-height: 180px;
+    line-height: 1.6;
+}
+
+/* 파일 업로드 필드 전용 마진 조정 */
+input[type="file"].rw-input-field {
+    padding: 12px;
+}
+
+/* 하단 등록/수정 완료 버튼 */
+.rw-submit-btn {
+    width: 100%;
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    background-color: var(--rw-theme-color);
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.2s ease-in-out;
+    margin-top: 10px;
+}
+
+.rw-submit-btn:hover {
+    background-color: #5066f0;
+}
+/* 토글 컨테이너 구조 */
+.rw-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fdfdfd;
+    border: 1px dashed #dddddd;
+    padding: 15px 20px;
+    border-radius: 12px;
+}
+
+.rw-toggle-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rw-toggle-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--rw-text-main);
+}
+
+.rw-toggle-desc {
+    font-size: 12px;
+    color: var(--rw-text-muted);
+}
+
+/* 실제 토글 버튼 스위치 */
+.rw-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+
+.rw-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.rw-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: .3s;
+    border-radius: 34px;
+}
+
+.rw-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+/* 토글이 켜졌을 때 (체크되었을 때) 스타일 */
+.rw-switch input:checked + .rw-slider {
+    background-color: var(--rw-theme-color);
+}
+
+.rw-switch input:checked + .rw-slider:before {
+    transform: translateX(24px);
+}
+
 
 /* 모임등록 */
 /* 본문 및 컨테이너 */
@@ -3571,7 +3780,7 @@ textarea.mw-form-input {
 
 .state-text-wait { color: #64748b; font-weight: 500; }
 .state-text-pass { color: #10b981; font-weight: 600; }
-=======
+
 .table th {
     background: #f7f7f7;
     border-top: 2px solid #444;

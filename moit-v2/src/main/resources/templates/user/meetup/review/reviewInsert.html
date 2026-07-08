@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head lang="ko">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOIT</title>
+
+<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+
+	<th:block th:replace="~{user/fragments/header :: header}" />
+
+
+	<div class="container">
+
+		<div layout:fragment="content">
+
+			<div class="rw-page-wrapper">
+				<div class="rw-container">
+
+
+					<form
+						th:action="${review == null} ? @{/meetup/review/insert} : @{/meetup/review/update}"
+						method="post" enctype="multipart/form-data">
+
+						<input type="hidden" name="reviewId"
+							th:value="${review != null ? review.reviewId : 0}"> <input
+							type="hidden" name="meetupId"
+							th:value="${review != null ? review.meetupId : param.meetupId}">
+
+
+						<div class="rw-card">
+
+
+							<div class="rw-header-badge"
+								th:text="${review == null ? '리뷰 등록' : '리뷰 수정'}">리뷰 등록</div>
+
+
+
+							<div class="rw-main-title">
+								방문하신 "<span>모임</span>"은 만족스러우셨나요?
+							</div>
+
+
+
+
+							<!-- 별점 -->
+							<div class="rw-form-group">
+
+								<label>평가 별점</label>
+
+								<div class="rw-star-rating">
+
+
+									<input type="radio" id="rw-star5" name="rating" value="5"
+										th:checked="${review != null and review.rating == 5}">
+									<label for="rw-star5">★</label> <input type="radio"
+										id="rw-star4" name="rating" value="4"
+										th:checked="${review != null and review.rating == 4}">
+									<label for="rw-star4">★</label> <input type="radio"
+										id="rw-star3" name="rating" value="3"
+										th:checked="${review == null or review.rating == 3}">
+									<label for="rw-star3">★</label> <input type="radio"
+										id="rw-star2" name="rating" value="2"
+										th:checked="${review != null and review.rating == 2}">
+									<label for="rw-star2">★</label> <input type="radio"
+										id="rw-star1" name="rating" value="1"
+										th:checked="${review != null and review.rating == 1}">
+									<label for="rw-star1">★</label>
+
+
+								</div>
+
+							</div>
+
+
+
+
+
+							<!-- 공개 설정 -->
+							<div class="rw-form-group">
+
+								<label>공개 설정</label>
+
+
+								<div class="rw-toggle-wrapper">
+
+
+									<div class="rw-toggle-info">
+
+										<span class="rw-toggle-title" id="toggle-status-text">
+											리뷰 전체 공개 </span> <span class="rw-toggle-desc"> 다른 이용자들이 이 후기를
+											볼 수 있도록 공개합니다. </span>
+
+
+									</div>
+
+
+
+
+									<label class="rw-switch"> <input type="checkbox"
+										name="isPublic" id="rw-public-toggle" value="Y"
+										th:checked="${review == null or review.isPublic == 'Y'}"
+										onchange="updateToggleText(this)"> <span
+										class="rw-slider"></span>
+
+
+									</label>
+
+
+								</div>
+
+							</div>
+
+
+
+
+
+							<!-- 내용 -->
+							<div class="rw-form-group">
+
+								<label>상세 내용</label>
+
+
+								<textarea name="content" class="rw-input-field"
+									placeholder="다른 이용자들에게 도움이 될 수 있도록 솔직한 경험과 소감을 남겨주세요."
+									th:text="${review != null ? review.content : ''}">
+							</textarea>
+
+
+							</div>
+
+
+
+
+
+							<!-- 사진 -->
+							<div class="rw-form-group">
+
+								<label>사진 업로드 (선택)</label> <input type="file"
+									name="attachedImages" multiple class="rw-input-field"
+									accept="image/*">
+
+							</div>
+
+
+
+
+
+							<button type="submit" class="rw-submit-btn"
+								th:text="${review != null ? '수정 완료하기' : '리뷰 등록하기'}">리뷰
+								등록하기</button>
+
+
+
+						</div>
+
+
+					</form>
+
+
+				</div>
+			</div>
+
+
+		</div>
+
+	</div>
+
+
+
+	<th:block th:replace="~{user/fragments/footer :: footer}" />
+
+
+
+	<script>
+
+function updateToggleText(checkbox) {
+
+	const statusText = document.getElementById('toggle-status-text');
+
+	if(checkbox.checked) {
+		statusText.innerText = "리뷰 전체 공개";
+	} else {
+		statusText.innerText = "리뷰 비공개";
+	}
+
+}
+
+
+window.addEventListener('DOMContentLoaded', () => {
+
+	const toggle = document.getElementById('rw-public-toggle');
+
+	if(toggle) {
+		updateToggleText(toggle);
+	}
+
+});
+
+</script>
+
+
+</body>
+</html>
