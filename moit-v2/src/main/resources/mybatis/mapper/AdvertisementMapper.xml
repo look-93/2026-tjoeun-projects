@@ -547,13 +547,15 @@
 	      AND CURRENT_TIMESTAMP BETWEEN a.start_datetime 
 	                                AND a.end_datetime
 	
-	      AND a.ad_id = 85
+	      ORDER BY
+	        a.priority_score DESC,
+	        DBMS_RANDOM.VALUE
+	
+	    FETCH FIRST 1 ROW ONLY
 	
 	</select>
 	
 	
-	
-
     <!-- 전체 광고 수 -->
     <select id="selectTotalAdvertisementCnt"
         resultType="int">
@@ -694,5 +696,40 @@
 	      AND status = 'CLOSED'
 	
 	</select>
+	
+	<update id="updateClickCount">
+
+	    UPDATE advertisements
+	
+	    SET click_count =
+	        click_count + 1
+	
+	    WHERE ad_id = #{adId}
+	
+	</update>
+	
+	<!-- 클릭 로그 -->
+	<insert id="insertClickLog">
+
+	    INSERT INTO advertisement_click_log
+	    (
+	        click_id,
+	        ad_id,
+	        member_id,
+	        click_ip,
+	        user_agent,
+	        clicked_at
+	    )
+	    VALUES
+	    (
+	        advertisement_click_seq.NEXTVAL,
+	        #{adId},
+	        #{memberId},
+	        #{clickIp},
+	        #{userAgent},
+	        SYSDATE
+	    )
+	
+	</insert>
 
 </mapper>

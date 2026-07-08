@@ -15,6 +15,8 @@ import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -332,4 +334,26 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 		return advertisementMapper.selectClosedAdvertisementCnt();
 	}
 
+	@Override
+	public void insertClickLog(
+	        int adId,
+	        HttpServletRequest request,
+	        HttpSession session) {
+
+
+		Integer loginMemberId =
+	            (Integer) session.getAttribute("loginMemberId");
+
+
+	    String userAgent =
+	        request.getHeader("User-Agent");
+
+
+	    advertisementMapper.insertClickLog(
+	            adId,
+	            loginMemberId,
+	            request.getRemoteAddr(),
+	            request.getHeader("User-Agent")
+	    );
+	}
 }
