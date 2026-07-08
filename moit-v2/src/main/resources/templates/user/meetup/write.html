@@ -18,6 +18,28 @@
 						
 						<div class="mw-detail-wrap">
 							<div class="mw-left-panel">
+							
+								<!-- 이미지등록 -->
+								<div class="mw-image-box" style="position: relative;">
+								    <div style="position: relative; width: 100%;">
+								        
+								        <button type="button" id="prevBtn" onclick="moveSlide(-1)" 
+								                style="display: none; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); z-index: 10; background: rgba(0,0,0,0.5); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; font-weight: bold;">〈</button>
+								        
+								        <button type="button" id="nextBtn" onclick="moveSlide(1)" 
+								                style="display: none; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); z-index: 10; background: rgba(0,0,0,0.5); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; font-weight: bold;">〉</button>
+								
+								        <div class="mw-main-image" id="mwMainImage">
+								            <span style="color:#999; margin: 0 auto;" id="placeholderText">대표 이미지를 등록해주세요</span>
+								        </div>
+								    </div>
+								
+								    <div class="mw-thumb-list">
+								        <input type="file" name="files" id="imageInput" multiple style="width:100%;" onchange="previewFiles(event)">
+								    </div>
+								</div>
+			                    <!-- 이미지등록 -->
+			                    
 								<div class="mw-content-box">
 									<div class="mw-detail-badge" th:text="${meetup != null} ? '모임 수정하기' : '새 모임 등록'">새 모임 등록</div>
 					
@@ -121,6 +143,61 @@
 	            if(sigunguId) sigunguId.value = meetup.sigunguId;
 	            if(categoryId) categoryId.value = meetup.categoryId;
 	        }       
+	    }
+	    
+	    
+	 	// 이미지를 한 장씩 넘기기 위한 슬라이드 이동 함수
+	    function moveSlide(direction) {
+	        const container = document.getElementById("mwMainImage");
+	        // 이미지 한 장의 가로 폭(너비)을 구합니다.
+	        const containerWidth = container.clientWidth; 
+	        
+	        // 현재 스크롤 위치에서 이미지 한 장 크기만큼 좌(-) 또는 우(+)로 스크롤 이동
+	        container.scrollLeft += (direction * containerWidth);
+	    }
+	 
+	 	// 이미지 선택 시 화면에 보여지는 기능
+	    function previewFiles(event){
+	    	const mwMainImage = document.getElementById("mwMainImage");
+	    	const placeholderText = document.getElementById("placeholderText");
+	    	const prevBtn = document.getElementById("prevBtn");
+	        const nextBtn = document.getElementById("nextBtn");
+	    	const files = event.target.files;
+	    	
+	    	//새 파일 선택 시 기존에 생성된 이미지 지우기(텍스트 숨김)
+	    	if(placeholderText) placeholderText.style.display="none";
+	    	//기존 이미지 미리보기 삭제
+	    	const oldImages = mwMainImage.querySelectorAll("img");
+	    	oldImages.forEach(img => img.remove());
+	    	
+	    	if(files.length > 1){
+	    		prevBtn.style.display = "block"
+	    		nextBtn.style.display = "block"
+	    	}else {
+	    		prevBtn.style.display = "none"
+		    	nextBtn.style.display = "none"	    		
+	    	}
+	    	
+	    	for(let i=0; i < files.length; i++){
+	    		const file = files[i];
+	    		const reader = new FileReader();
+	    		
+	    		reader.onload = function(event){
+	    			const img = document.createElement('img');
+	    			img.src = event.target.result;
+	    			//미리보기 이미지 스타일(원하는 크기로)
+	    			img.style.width = "100%";
+	    			img.style.height = "100%";
+	    			img.style.objectFit = "cover";
+	    			img.style.borderRadius = "5px";
+	    			img.style.flexShrink = "0";     /* 가로 배열 시 이미지 찌그러짐 방지 (필수) */
+	                img.style.scrollSnapAlign = "start"; /* 자석 스크롤 기준점 설정 */
+	    			
+	    			mwMainImage.appendChild(img);	
+	    		};
+	    		reader.readAsDataURL(file);
+	    	}
+	    	
 	    }
 	</script>
 	</div>

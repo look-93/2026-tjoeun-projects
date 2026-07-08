@@ -39,7 +39,7 @@
 		LEFT JOIN sidos 	 E ON E.sido_id = D.sido_id 
 		LEFT JOIN categories F ON F.category_id = A.category_id
 		LEFT JOIN categories G ON G.category_id = F.parent_id
-		LEFT JOIN meetup_likes H ON H.meetup_id = A.meetup_id AND H.member_id = A.meetup_id				  
+		LEFT JOIN meetup_likes H ON H.meetup_id = A.meetup_id AND H.member_id = A.member_id				  
 		LEFT OUTER JOIN (SELECT COUNT(meetup_id) as like_cnt, 
 	  						  	meetup_id 
 	  				     FROM meetup_likes 
@@ -402,5 +402,23 @@
 		SET status = #{status}
 		WHERE 1=1
 		AND application_id = #{applicationId}
-	</update>	 	
+	</update>	 
+	
+	<!-- 이미지 저장 -->
+	<insert id="insertMeetupImages" parameterType="java.util.Map">
+	    INSERT INTO meetup_images (meetup_id, image_id) 
+	    VALUES
+	    <foreach collection="imageIds" item="id" separator=",">
+	        (#{meetupId}, #{id})
+	    </foreach>
+	</insert>	
+	
+	<!-- 이미지 파일 경로 저장 -->
+	<insert id="insertImages" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="imageId">
+		INSERT INTO images ( image_id, image_path) 
+		VALUES
+		<foreach collection="list" item="img" separator=",">
+			(#{img.imageId}, #{img.imagePath, jdbcType=VARCHAR})
+		</foreach>
+	</insert>		
 </mapper>

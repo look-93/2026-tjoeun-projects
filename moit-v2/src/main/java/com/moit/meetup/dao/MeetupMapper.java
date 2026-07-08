@@ -1,12 +1,14 @@
 package com.moit.meetup.dao;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 
 import com.moit.meetup.dto.AdminMeetupStatusSummaryDto;
 import com.moit.meetup.dto.MeetupApplicationDto;
 import com.moit.meetup.dto.MeetupDto;
+import com.moit.meetup.dto.MeetupImageDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
 import com.moit.meetup.dto.common.CategoryDto;
@@ -35,7 +37,9 @@ public interface MeetupMapper {
 	
 	//모집글등록
 	public int insertMeetup(MeetupDto meetupDto);
-	
+	public int insertImages(List<MeetupImageDto> list);
+	public int insertMeetupImages(Map<String, Object> map);
+
 	//모집글수정
 	public int updateMeetup(MeetupDto meetupDto);
 	

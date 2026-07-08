@@ -1328,6 +1328,7 @@ footer {
 }
 
 .meetup-detail-inquiry-btn {
+    display: block;       /* inline 요소를 block으로 바꿔 너비와 정렬이 먹히게 함 */
     width: 100%;
     margin-top: 12px;
     border: none;
@@ -1338,6 +1339,9 @@ footer {
     cursor: pointer;
     font-weight: 600;
     font-size: 14px;
+    text-align: center;   /* 이제 글자가 중앙으로 정렬됩니다 */
+    text-decoration: none; /* a 태그 특유의 밑줄 제거 */
+    box-sizing: border-box; /* 패딩 때문에 버튼이 부모 영역 밖으로 삐져나가는 것 방지 */
 }
 
 .meetup-detail-report-btn {
@@ -2208,16 +2212,13 @@ textarea.mw-form-input {
     padding: 15px;
     border-radius: 12px;
     cursor: pointer;
-    background: var(--mw-c4);
+    background: #5066f0;
     color: white;
     font-size: 16px;
     font-weight: bold;
     transition: background 0.2s;
 }
 
-.mw-btn-submit:hover {
-    background: #5066f0;
-}
 
 /* 가이드 텍스트 */
 .mw-guide-text {
@@ -2225,6 +2226,49 @@ textarea.mw-form-input {
     color: #666;
     font-size: 14px;
 }
+
+/* IMAGE */
+.mw-image-box{
+    background:white;
+    padding:20px;
+    border-radius:20px;
+    box-shadow:var(--shadow);
+}
+
+.mw-main-image{
+    height:450px;
+    border-radius:20px;
+    /* overflow:hidden; */
+    background:#f5f5f5;
+	display: flex;               /* 이미지들을 가로로 나란히 배치 */
+    align-items: center;
+    justify-content: flex-start; /* 왼쪽부터 차례대로 쌓이게 설정 */
+    
+    overflow-x: scroll;            /* ◀ 버튼 클릭 시 스크롤 이동이 가능하도록 설정 */
+    overflow-y: hidden;          /* 세로 스크롤은 방지 */
+    
+    scroll-snap-type: x mandatory; /* 스와이프할 때 자석처럼 착착 한 장씩 걸리는 효과 */
+    scroll-behavior: smooth;     /* ◀ 버튼 눌렀을 때 부드럽게 스르륵 넘어가게 하는 효과 */
+    -webkit-overflow-scrolling: touch; /* 모바일 부드러운 스크롤 */
+}
+
+/* 💡 깔끔하게 가로 스크롤바 감추기 (추가) */
+.mw-main-image::-webkit-scrollbar {
+    display: none;
+}
+
+.mw-thumb-list{
+    display:flex;
+    gap:10px;
+    margin-top:15px;
+}
+
+.mw-thumb{
+    flex:1;
+    height:80px;
+    border-radius:10px;
+    overflow:hidden;
+}	
 
 /*모임등록 */
 

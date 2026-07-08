@@ -1,23 +1,34 @@
 package com.moit.meetup.service;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.meetup.dao.MeetupMapper;
 import com.moit.meetup.dto.MeetupApplicationDto;
 import com.moit.meetup.dto.MeetupDto;
+import com.moit.meetup.dto.MeetupImageDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
 import com.moit.meetup.dto.common.CategoryDto;
 import com.moit.meetup.dto.common.SidoDto;
 import com.moit.meetup.dto.common.SigunguDto;
+import com.moit.util.UtilUpload;
 
 @Service
 public class MeetupServiceImpl implements MeetupService{
 	@Autowired MeetupMapper meetupMapper; 
+	@Autowired UtilUpload upload;
 	
+	private static final String UPLOAD_PATH = "C:/upload/meetup";
+
 	//사용자 - 목록 조회 + paging
 	@Override
 	public List<MeetupDto> findAllMeetupBy(int pstartno, MeetupSearchDto meetupSearchDto) {
@@ -70,8 +81,57 @@ public class MeetupServiceImpl implements MeetupService{
 	
 	//모집글 등록
 	@Override
-	public int insertMeetup(MeetupDto meetupDto) {
-		return meetupMapper.insertMeetup(meetupDto);
+	@Transactional
+	public int insertMeetup(MeetupDto meetupDto, List<MultipartFile> files) {
+		//1. 모집글 데이터 insert
+		int result = meetupMapper.insertMeetup(meetupDto);
+		
+		//2. 업로드 된 파일이 존재하면 저장 실행
+		if(files != null && !files.isEmpty()) {
+			List<MeetupImageDto> imageList = new ArrayList<>();			
+			try {
+			for(MultipartFile file : files) {
+				if(!file.isEmpty()) {
+					
+						String savedFileName = upload.fileUpload(file, UPLOAD_PATH);
+						
+						MeetupImageDto meetupImageDto = new MeetupImageDto();
+						meetupImageDto.setImagePath(savedFileName);
+						imageList.add(meetupImageDto);
+					} 
+				}
+				
+				if(!imageList.isEmpty()) {
+					// 이미지 테이블에 insert
+					meetupMapper.insertImages(imageList);
+					
+					//이미지 id 뽑아서 리스트로 만들기
+					List<Integer> imageIds = new ArrayList<>();					
+					for(MeetupImageDto dto : imageList) {
+						imageIds.add(dto.getImageId());
+					}
+					// meetup_images map 조립 insert
+					Map<String, Object> map = new HashMap<>();
+					map.put("meetupId", meetupDto.getMeetupId());
+					map.put("imageId", imageIds);
+					
+					meetupMapper.insertMeetupImages(map);					
+				}
+			}catch (IOException e) {
+				e.printStackTrace();
+			}		
+		}	
+		return result;
+	}
+	
+	//모집글 등록 - 이이지 저장
+	@Override
+	public int insertImages(List<MeetupImageDto> list) {
+		return meetupMapper.insertImages(list);
+	}
+	@Override
+	public int insertMeetupImages(Map<String, Object> map) {
+		return meetupMapper.insertMeetupImages(map);
 	}
 	
 	//모집글수정

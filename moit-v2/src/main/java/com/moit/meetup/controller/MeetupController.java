@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.moit.advertisement.dto.AdvertisementDto;
@@ -226,7 +227,11 @@ public class MeetupController {
 	}
 	
 	@PostMapping("/meetup/write")
-	public String createMeetup(Model model, MeetupDto meetupdto, RedirectAttributes rttr, Authentication authentication) {
+	public String createMeetup(Model model, 
+							   MeetupDto meetupdto, 
+							   RedirectAttributes rttr, 
+							   Authentication authentication, 
+							   @RequestParam(value = "files", required = false) List<MultipartFile> files) {
 		// 멤버완료 취합 후 적용
 //		CustomUser user = (CustomUser) authentication.getPrincipal();		
 //		int memberId = userMeetupService.findByMamberId(user.getUsername());		
@@ -234,7 +239,9 @@ public class MeetupController {
 		
 		meetupdto.setMemberId(2);
 		//System.out.println(meetupdto.getMeetupId());
-		boolean result = meetupService.insertMeetup(meetupdto) > 0;		
+		
+		
+		boolean result = meetupService.insertMeetup(meetupdto, files) > 0;		
 		rttr.addFlashAttribute("result", result);
 		
 		return "redirect:/meetup/detail?meetupId=" + meetupdto.getMeetupId();
