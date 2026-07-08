@@ -18,6 +18,8 @@ import com.moit.member.dto.UserDto;
 import com.moit.member.service.UserService;
 import com.moit.security.CustomUserDetails;
 
+import jakarta.servlet.http.HttpSession;
+
 
 @Controller
 @RequestMapping("/user/member")
@@ -106,11 +108,54 @@ public class UserController {
 	}
 	
 	// 아이디 찾기
-	@GetMapping("/findId")
-	public String findId() {
-		return "user/member/findId";
+	@GetMapping("/findId") public String findIdPage() { return "user/member/findId"; }
+	
+	@PostMapping("/findId")
+	public String findId(UserDto dto , Model model) {
+		UserDto user = service.findId(dto);
+		
+		model.addAttribute("user",user);
+		
+		return "user/member/findIdResult";
 	}
 	
+	// 비밀번호 찾기
+	@GetMapping("/findPassword") public String findPasswordPage() { return "user/member/findPassword"; }
 	
+	@PostMapping("/findPassword")
+	public String findPassword(UserDto dto, Model model,HttpSession session) {
+		
+		UserDto user = service.findPasswordUser(dto);
+		
+		if(user == null) { 
+			model.addAttribute("error","일치하는 회원이 없습니다.");
+			return "user/member/findPassword";
+		}
+		
+		session.setAttribute("findMemberId", user.getMemberId());
+		
+		return "user/member/changePassword";
+	}
+	
+	// 비밀번호 재발급
+	@PostMapping("/changePassword")
+	public String changePassword(UserDto dto, HttpSession session,
+	                             RedirectAttributes rttr) {
+		Integer memberId = (Integer)session.getAttribute("findMemberId");
+		
+		if(memberId == null) {
+			return "redirect:/user/member/findPassword";
+		}
+		
+		dto.setMemberId(memberId);
+		
+	    service.changePassword(dto);
+	    
+	    session.removeAttribute("findMemberId");
+
+	    rttr.addFlashAttribute("message", "비밀번호가 변경되었습니다.");
+
+	    return "redirect:/user/member/login";
+	}
 	
 }

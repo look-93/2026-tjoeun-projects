@@ -36,7 +36,7 @@
   </insert>
   
   <!-- 방금 insert된 회원 번호에 info 추가 -->
-  <insert id="insertInfo" parameterType="UserJoinDto">
+  <insert id="insertInfo" parameterType="UserDto">
   	insert into member_info(member_id,gender,birth) 
   	values(members_seq.currval,#{gender},#{birth})
   </insert>
@@ -130,5 +130,31 @@
     <delete id="deleteUser" parameterType="string">
         DELETE FROM members WHERE login_id = #{loginId}
     </delete>
+    
+    <!-- 아이디 찾기 -->
+    <select id="findId" parameterType="UserDto" resultType="UserDto">
+	    SELECT login_id
+	    FROM members
+	    WHERE email = #{email}
+	      AND mobile = #{mobile}
+	      AND delete_yn = 'N'
+	</select>
+	
+	<!-- 비밀번호 찾기(회원조회) -->
+	<select id="findPasswordUser" parameterType="UserDto" resultType="UserDto">
+	    SELECT member_id
+	    FROM members
+	    WHERE login_id = #{loginId}
+	      AND email = #{email}
+	      AND mobile = #{mobile}
+	      AND delete_yn='N'
+	</select>
+	
+	<!-- 비밀번호 변경 -->
+	<update id="changePassword" parameterType="UserDto">
+	    UPDATE members
+	       SET password = #{password}
+	     WHERE member_id = #{memberId}
+	</update>
     
 </mapper>

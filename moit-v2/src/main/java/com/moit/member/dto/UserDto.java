@@ -11,6 +11,8 @@ public class UserDto {
 	private String  email;
 	private String  password;
 	private String  profileUrl;
+	private String gender;
+    private String birth;
 	
 	private int memberTypeId;
 	private int statusId;
