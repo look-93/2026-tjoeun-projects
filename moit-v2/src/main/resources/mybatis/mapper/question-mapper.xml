@@ -16,11 +16,19 @@
 	</select>
 	
 	<!-- 내 문의 총 개수 -->
-	<select id="findMyQuestionCnt" parameterType="int" resultType="int">
+	<select id="findMyQuestionCnt" parameterType="map" resultType="int">
 	    SELECT COUNT(*)
 	    FROM questions
-	    WHERE member_id = #{memberId}
-	      AND delete_yn = 'N'
+	    <where>
+	        member_id = #{memberId}
+	        AND delete_yn = 'N'
+	        <if test="type == 'title' and keyword != null and keyword != ''">
+	            AND title LIKE '%' || #{keyword} || '%'
+	        </if>
+	        <if test="type == 'content' and keyword != null and keyword != ''">
+	            AND content LIKE '%' || #{keyword} || '%'
+	        </if>
+	    </where>
 	</select>
 
 	<!-- 답변 대기 문의 수 -->
@@ -52,7 +60,7 @@
 		SELECT * FROM questions WHERE question_id = #{questionId} AND delete_yn = 'N'
 	</select>
 
-	<!-- 제목, 내용, 등록일 검색 -->
+	<!-- 제목, 내용, 등록일 검색 (관리자용)-->
 	<select id="findBySearch" resultType="QuestionDto">
 		SELECT
 		question_id, parent_id, member_id, category, title, content, status,
@@ -71,6 +79,25 @@
 			</if>
 		</where>
 		ORDER BY created_at DESC
+	</select>
+
+	<!--  제목, 내용 검색 (사용자용) -->
+	<select id="findMyQuestions" resultType="QuestionDto" parameterType="map">
+	    SELECT *
+	    FROM questions
+	    <where>
+	        member_id = #{memberId}
+	        AND delete_yn = 'N'
+	        <if test="type == 'title' and keyword != null and keyword != ''">
+	            AND title LIKE '%' || #{keyword} || '%'
+	        </if>
+	        <if test="type == 'content' and keyword != null and keyword != ''">
+	            AND content LIKE '%' || #{keyword} || '%'
+	        </if>
+	    </where>
+	    ORDER BY question_id DESC
+	    OFFSET #{start} ROWS
+	    FETCH NEXT #{end} ROWS ONLY
 	</select>
 
 	<!-- 문의글 작성 -->
@@ -112,16 +139,6 @@
 		SET delete_yn = 'Y'
 		WHERE question_id = #{questionId}
 	</update>
-	
-	<!-- 사용자측 페이징 -->
-	<select id="findMyQuestions" resultType="QuestionDto" parameterType="map">
-		SELECT * from questions
-		WHERE member_id = #{memberId}
-		  AND delete_yn = 'N'
-		ORDER BY question_id DESC
-		OFFSET #{start} ROWS
-		FETCH NEXT #{end} ROWS ONLY
-	</select>
 	
 	<!-- 답변 삭제 시 문의 상태를 답변 대기로 변경 -->
 	<update id="updateStatusPending">

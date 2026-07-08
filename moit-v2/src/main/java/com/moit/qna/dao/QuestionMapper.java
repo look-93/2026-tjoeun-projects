@@ -46,7 +46,7 @@ public interface QuestionMapper {
     List<QuestionDto> findMyQuestions(Map<String, Object> map);
     
     // 내 문의 총 개수 조회
-    int findMyQuestionCnt(int memberId);
+    int findMyQuestionCnt(Map<String, Object> map);
     
     // 답변 삭제 시 문의 상태 변경
     void updateStatusPending(int questionId);

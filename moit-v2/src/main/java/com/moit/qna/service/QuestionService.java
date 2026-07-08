@@ -80,16 +80,14 @@ public class QuestionService {
     }
     
     // 사용자 문의 목록 페이징 조회
-    public List<QuestionDto> getMyQuestions(
-            int memberId,
-            int start,
-            int end) {
-
+    public List<QuestionDto> getMyQuestions( int memberId, int start, int end, String type, String keyword) {
         Map<String, Object> map = new HashMap<>();
 
         map.put("memberId", memberId);
         map.put("start", start);
         map.put("end", end);
+        map.put("type", type);
+        map.put("keyword", keyword);
 
         List<QuestionDto> list = questionMapper.findMyQuestions(map);
         // 답변 정보 추가
@@ -102,8 +100,12 @@ public class QuestionService {
     }
     
     // 내 문의 총 개수 조회
-    public int getMyQuestionCnt(int memberId) {
-        return questionMapper.findMyQuestionCnt(memberId);
+    public int getMyQuestionCnt(int memberId, String type, String keyword) {
+    	Map<String, Object> map = new HashMap<>();
+    	map.put("memberId", memberId);
+    	map.put("type", type);
+    	map.put("keyword", keyword);
+    	return questionMapper.findMyQuestionCnt(map);
     }
     
     //

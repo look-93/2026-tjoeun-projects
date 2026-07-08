@@ -165,7 +165,7 @@
     <div class="breadcrumb"> <span th:text="${data.category == 'MEETUP'} ? '모임 1:1 문의' : '관리자 1:1 문의'"></span> &gt; 문의 상세보기 </div>
 
     <div class="top-btn-area">
-        <button class="btn btn-answer"
+        <button class="btn btn-answer"	th:if="${canAnswer}"
         		th:onclick="|location.href='@{/questions/answer/write/{id}(id=${data.questionId})}'|">답변등록</button>
         <button class="btn btn-edit"
    				th:onclick="|location.href='@{/questions/edit/{id}(id=${data.questionId})}'|"> 수정 </button>
@@ -226,9 +226,9 @@
 	        <div class="card-title">답변 내용</div>
 	        
 	            <div class="answer-btns">
-	                <button class="btn btn-answer-edit"
+	                <button class="btn btn-answer-edit"		th:if="${canAnswer}"
 						th:onclick="|location.href='@{/questions/answer/edit/{id}(id=${data.questionId})}'|"> 답변수정 </button>
-	                <button class="btn btn-answer-delete"
+	                <button class="btn btn-answer-delete"	th:if="${canAnswer}"
 						th:onclick="|deleteAnswer(${data.answer.answerId}, ${data.questionId})|"> 답변삭제 </button>
 	            </div>
 	        </div>
@@ -256,6 +256,14 @@
 	    }
 	}
 </script>
+<script th:inline="javascript">
+    const msg = [[${msg}]];
+
+    if(msg){
+        alert(msg);
+    }
+</script>
+
 </div>
 </body>
 </html>

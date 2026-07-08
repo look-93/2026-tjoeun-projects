@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{user/mypage/layouts/mypageLayout}">
+<head>
+<meta charset="UTF-8">
+<title>관리자 1:1 문의</title>
+</head>
+<body>
+<div layout:fragment="content">
+
+<div class="page-header">
+    <div>
+        <h1>관리자 1:1 문의</h1>
+        <p>사용자가 등록한 문의를 조회하고 답변합니다.</p>
+    </div>
+</div>
+
+<div class="summary-wrap">
+    <div class="summary-card">
+        <h4>전체 문의</h4>
+        <strong th:text="${allCnt}">0</strong>
+    </div>
+    <div class="summary-card">
+        <h4>답변 대기</h4>
+        <strong th:text="${pendingCnt}">0</strong>
+    </div>
+    <div class="summary-card">
+        <h4>답변 완료</h4>
+        <strong th:text="${answeredCnt}">0</strong>
+    </div>
+    <div class="summary-card">
+        <h4>오늘 등록</h4>
+        <strong th:text="${todayCnt}">0</strong>
+    </div>
+</div>
+
+<div class="list-section">
+
+<form class="search-box" th:action="@{/questions}" method="get">
+
+<select name="type">
+<option value="title" th:selected="${type=='title'}">제목</option>
+<option value="content" th:selected="${type=='content'}">내용</option>
+</select>
+
+<input type="text" name="keyword" th:value="${keyword}" placeholder="검색어">
+
+<select name="status">
+<option value="">전체 문의</option>
+<option value="PENDING" th:selected="${status=='PENDING'}">답변 대기</option>
+<option value="ANSWERED" th:selected="${status=='ANSWERED'}">답변 완료</option>
+</select>
+
+<input type="date" name="startDate" th:value="${startDate}">
+~
+<input type="date" name="endDate" th:value="${endDate}">
+
+<button type="submit">검색</button>
+
+</form>
+
+<table class="inquiry-table">
+<thead>
+<tr>
+<th>번호</th>
+<th>작성자</th>
+<th>문의구분</th>
+<th>제목</th>
+<th>공개여부</th>
+<th>답변상태</th>
+<th>등록일</th>
+<th>답변일</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr th:if="${#lists.isEmpty(list)}">
+<td colspan="8">등록된 문의가 없습니다.</td>
+</tr>
+
+<tr th:each="q:${list}"
+th:onclick="|location.href='@{/questions/{id}(id=${q.questionId})}'|">
+
+<td th:text="${q.questionId}"></td>
+<td th:text="${q.memberId}"></td>
+<td th:text="${q.category=='MEETUP'?'모임 문의':'관리자 문의'}"></td>
+<td th:text="${q.title}"></td>
+
+<td>
+<span class="public-badge" th:if="${q.isPublic=='Y'}">공개</span>
+<span class="private-badge" th:if="${q.isPublic=='N'}">비공개</span>
+</td>
+
+<td>
+<span class="badge waiting" th:if="${q.status=='PENDING'}">답변 대기</span>
+<span class="badge complete" th:if="${q.status=='ANSWERED'}">답변 완료</span>
+</td>
+
+<td th:text="${#dates.format(q.createdAt,'yyyy.MM.dd')}"></td>
+<td th:text="${q.answer!=null ? #dates.format(q.answer.createdAt,'yyyy.MM.dd') : '-'}"></td>
+
+</tr>
+
+</tbody>
+</table>
+
+<div class="paging">
+
+<a th:if="${startPage>1}"
+th:href="@{/questions(page=${startPage-1},type=${type},keyword=${keyword},status=${status})}">
+이전
+</a>
+
+<a th:each="i:${#numbers.sequence(startPage,endPage)}"
+th:text="${i}"
+th:classappend="${page==i?' active':''}"
+th:href="@{/questions(page=${i},type=${type},keyword=${keyword},status=${status})}">
+</a>
+
+<a th:if="${endPage<totalPage}"
+th:href="@{/questions(page=${endPage+1},type=${type},keyword=${keyword},status=${status})}">
+다음
+</a>
+
+</div>
+
+</div>
+
+</div>
+</body>
+</html>
