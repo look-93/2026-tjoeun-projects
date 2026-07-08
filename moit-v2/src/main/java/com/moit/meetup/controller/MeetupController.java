@@ -23,12 +23,15 @@ import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
 import com.moit.meetup.service.MeetupService;
+import com.moit.review.dto.ReviewDto;
+import com.moit.review.service.ReviewService;
 import com.moit.util.UtilPaging;
 
 @Controller
 public class MeetupController {
 	@Autowired MeetupService meetupService;
 	@Autowired AdvertisementService advertisementService;
+	@Autowired ReviewService reviewService;
 	
 	/* 메인페이지 광고 */
 	@GetMapping("/main")
@@ -36,7 +39,7 @@ public class MeetupController {
 
         AdvertisementDto mainAd =
                 advertisementService.selectTopAdvertisement("MAIN");
-        System.out.println(mainAd + "dddddddddddddddddddddddddddddddddddddddddddd");
+        //System.out.println(mainAd + "dddddddddddddddddddddddddddddddddddddddddddd");
         // 광고가 존재하면 노출 증가
         if(mainAd != null) {        	
             advertisementService.updateImpressions(mainAd.getAdId());
@@ -112,7 +115,7 @@ public class MeetupController {
 	
 	/*사옹자 - 모임상세조회*/
 	@GetMapping("/meetup/detail")
-	public String detail(Model model, Authentication authentication, MeetupApplicationDto meetupApplicationDto) {
+	public String detail(Model model, Authentication authentication, MeetupApplicationDto meetupApplicationDto, @RequestParam(value = "sort", required = false, defaultValue = "latest")  String sort) {
 		
 //		CustomUser user = (CustomUser) authentication.getPrincipal(); 
 //		int memberId = userMeetupService.findByMamberId(user.getUsername());
@@ -130,7 +133,9 @@ public class MeetupController {
 		meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
 		model.addAttribute("applyInfo",meetupService.findApplyInfo(meetupApplicationDto));
 		model.addAttribute("detail", meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
-		System.out.println(meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
+		//System.out.println(meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
+		List<ReviewDto> reviewList = reviewService.selectUserReview(meetupApplicationDto.getMeetupId(), sort);
+		model.addAttribute("reviews", reviewList);
 		
 		return "user/meetup/detail";
 	}

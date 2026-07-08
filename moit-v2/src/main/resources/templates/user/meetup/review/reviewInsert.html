@@ -21,7 +21,8 @@
 
 			<div class="rw-page-wrapper">
 				<div class="rw-container">
-
+					<input type="hidden" name="meetupId" th:value="${param.meetupId}">
+					<!-- <div th:text="${param.meetupId}"></div> -->
 
 					<form
 						th:action="${review == null} ? @{/meetup/review/insert} : @{/meetup/review/update}"
