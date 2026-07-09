@@ -64,14 +64,35 @@
 	                <button type="submit" class="btn btn-primary full">
 	                    로그인
 	                </button>
+	                
+	                <div class="social-divider">
+					    <span>또는 간편 로그인</span>
+					</div>
+	                
+	                <!-- 소셜유저 -->
+				    <div class="social-login">		      
+			            <a th:href="@{/oauth2/authorization/kakao}">
+			               <img th:src="@{/images/kakao.png}" alt="kakao login">
+			            </a>
+			         
+			          
+			            <a th:href="@{/oauth2/authorization/naver}">
+			               <img th:src="@{/images/naver.png}" alt="naver login">
+			            </a>
+			         
+			          
+			            <a th:href="@{/oauth2/authorization/google}">
+			               <img th:src="@{/images/google.png}" alt="google login">
+			            </a>		          		      
+				   </div>
 	
 	                <div class="auth-links">	
 	                    <div class="link-row">
-	                        <a th:href="@{/user/find-id}">
+	                        <a th:href="@{/user/member/findId}">
 	                            아이디 찾기
 	                        </a>
 	                        |
-	                        <a th:href="@{/user/find-password}">
+	                        <a th:href="@{/user/member/findPassword}">
 	                            비밀번호 찾기
 	                        </a>
 	                    </div>
@@ -86,6 +107,7 @@
 	                    </div>	
 	                </div>	
 	            </form>	
+	            
 	        </div>
 	
 	        <!-- 관리자 -->
@@ -135,8 +157,8 @@
 	                    </div>	
 	                </div>	
 	            </form>	
-	        </div>	
-	    </section>	
+	        </div>	        	
+	    </section>	    	
 	</div>
 
 <!-- Footer -->
