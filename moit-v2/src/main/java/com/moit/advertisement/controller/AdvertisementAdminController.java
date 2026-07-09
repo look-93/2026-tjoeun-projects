@@ -220,8 +220,8 @@ public class AdvertisementAdminController {
 		            @RequestParam String status,
 		            HttpSession session) {
 		
-		Integer loginMemberId = getLogin(session);
-		
+    	Integer loginMemberId = getLogin(session);
+    	
 		AdvertisementDto dto = new AdvertisementDto();
 		dto.setAdId(adId);
 		dto.setStatus(status);

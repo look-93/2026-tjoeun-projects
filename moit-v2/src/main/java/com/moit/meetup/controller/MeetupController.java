@@ -27,6 +27,9 @@ import com.moit.review.dto.ReviewDto;
 import com.moit.review.service.ReviewService;
 import com.moit.util.UtilPaging;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+
 @Controller
 public class MeetupController {
 	@Autowired MeetupService meetupService;
@@ -35,14 +38,32 @@ public class MeetupController {
 	
 	/* 메인페이지 광고 */
 	@GetMapping("/main")
-    public String main(Model model) {
+    public String main(Model model,
+		            HttpServletRequest request,
+		            HttpSession session) {
 
+		Integer memberId =
+				 (Integer)session.getAttribute("loginMemberId");
+		
+		String sessionId =
+		        session.getId();
+		
         AdvertisementDto mainAd =
-                advertisementService.selectTopAdvertisement("MAIN");
+                advertisementService.selectTopAdvertisement("MAIN", memberId, sessionId);
         //System.out.println(mainAd + "dddddddddddddddddddddddddddddddddddddddddddd");
         // 광고가 존재하면 노출 증가
-        if(mainAd != null) {        	
-            advertisementService.updateImpressions(mainAd.getAdId());
+        if(mainAd != null) {
+
+            boolean counted =
+                advertisementService.insertImpressionLog(
+                    mainAd.getAdId(),
+                    request,
+                    session
+                );
+
+            if(counted){
+                advertisementService.updateImpressions(mainAd.getAdId());
+            }
         }
         
         model.addAttribute("mainAd", mainAd);
@@ -53,19 +74,51 @@ public class MeetupController {
 	
 	/*1. 사용자 - 모임 리스트 화면(HTML) 호출*/
 	@GetMapping("/meetup/list")
-	public String listPage(Model model) {
+	public String listPage(Model model,
+            HttpServletRequest request,
+            HttpSession session) {
 
-	    AdvertisementDto banner = advertisementService.selectTopAdvertisement( "MEETUP_LIST_BANNER" );  
-	    AdvertisementDto sidebar = advertisementService.selectTopAdvertisement( "MEETUP_LIST_SIDEBAR" );
+		Integer memberId =
+				 (Integer)session.getAttribute("loginMemberId");
+		
+		String sessionId =
+		        session.getId();
+		
+	    AdvertisementDto banner = advertisementService.selectTopAdvertisement( "MEETUP_LIST_BANNER" , memberId, sessionId);  
+	    AdvertisementDto sidebar = advertisementService.selectTopAdvertisement( "MEETUP_LIST_SIDEBAR" , memberId, sessionId);
 
 	    model.addAttribute("bannerAd", banner);
 	    model.addAttribute("sidebarAd", sidebar);
 	    // 광고가 존재하면 노출 증가
-        if(banner != null) {        	
-            advertisementService.updateImpressions(banner.getAdId());
-        }
-        if(sidebar != null) {        	
-            advertisementService.updateImpressions(sidebar.getAdId());
+	    if(banner != null){
+
+	        boolean counted =
+	            advertisementService.insertImpressionLog(
+	                banner.getAdId(),
+	                request,
+	                session
+	            );
+
+	        if(counted){
+	            advertisementService.updateImpressions(
+	                banner.getAdId()
+	            );
+	        }
+	    }
+        if(sidebar != null) {
+
+            boolean counted =
+                advertisementService.insertImpressionLog(
+                    banner.getAdId(),
+                    request,
+                    session
+                );
+
+            if(counted){
+                advertisementService.updateImpressions(
+                    banner.getAdId()
+                );
+            }
         }
 	    
 		return "/user/meetup/list";
@@ -115,20 +168,41 @@ public class MeetupController {
 	
 	/*사옹자 - 모임상세조회*/
 	@GetMapping("/meetup/detail")
-	public String detail(Model model, Authentication authentication, MeetupApplicationDto meetupApplicationDto, @RequestParam(value = "sort", required = false, defaultValue = "latest")  String sort) {
+	public String detail(Model model, Authentication authentication, 
+						MeetupApplicationDto meetupApplicationDto, 
+						@RequestParam(value = "sort", required = false, defaultValue = "latest")  String sort,
+			            HttpServletRequest request, HttpSession session	) {
+		
+		Integer memberId =
+				 (Integer)session.getAttribute("loginMemberId");
+		
+		String sessionId =
+		        session.getId();
 		
 //		CustomUser user = (CustomUser) authentication.getPrincipal(); 
 //		int memberId = userMeetupService.findByMamberId(user.getUsername());
 //		meetupApplicationsDto.setMemberId(memberId);
 		
-		AdvertisementDto desidebar = advertisementService.selectTopAdvertisement( "MEETUP_DETAIL_SIDEBAR" );
+		AdvertisementDto desidebar = advertisementService.selectTopAdvertisement( "MEETUP_DETAIL_SIDEBAR" , memberId, sessionId);
 
 		meetupApplicationDto.setMemberId(2);
 		model.addAttribute("desidebarAd", desidebar);
 		// 광고가 존재하면 노출 증가
-        if(desidebar != null) {        	
-            advertisementService.updateImpressions(desidebar.getAdId());
-        }
+		if(desidebar != null){
+
+		    boolean counted =
+		        advertisementService.insertImpressionLog(
+		            desidebar.getAdId(),
+		            request,
+		            session
+		        );
+
+		    if(counted){
+		        advertisementService.updateImpressions(
+		            desidebar.getAdId()
+		        );
+		    }
+		}
 		
 		meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
 		model.addAttribute("applyInfo",meetupService.findApplyInfo(meetupApplicationDto));
