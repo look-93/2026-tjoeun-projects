@@ -57,8 +57,8 @@ public interface UserMapper {
     int connectProvider(UserDto dto);
     UserDto findByEmail(String email);
     UserDto findByProvider(UserDto dto);
-    UserDto insertSocial(UserDto dto);
-    UserDto insertSocialInfo(UserDto dto);
+    int insertSocial(UserDto dto);
+    int insertSocialInfo(UserDto dto);
     void updateSocialInfo(UserDto dto);
     void updateMemberInfo(UserDto dto);
 }

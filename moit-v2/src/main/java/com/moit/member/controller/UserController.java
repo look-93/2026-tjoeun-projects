@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -127,6 +128,7 @@ public class UserController {
 			CustomUserDetails  users = (CustomUserDetails)principal;
 			user=users.getUser();
 			loginId    =  users.getUser().getLoginId();
+
 			
 		} 
 		System.out.println(".........."+user);
@@ -200,6 +202,28 @@ public class UserController {
 		        ip = request.getRemoteAddr();
 		    }	
 		    return ip;
+	}
+	
+	// 회원정보 수정
+	@GetMapping("/memberEdit")
+	public String memberEdit(Authentication authentication ,Model model) {
+		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+		
+		UserDto dto = new UserDto();
+		dto.setLoginId(user.getUsername());
+		
+		dto = service.findByLoginId(dto);
+		
+		model.addAttribute("dto",dto);
+		
+		return "user/member/memberEdit";		
+	}
+	
+	@PostMapping("memberEdit")
+	public String memberEdit(UserDto dto) {
+		service.updateUser(dto);
+		
+		return "redirect:/user/member/mypage";
 	}
 	
 }

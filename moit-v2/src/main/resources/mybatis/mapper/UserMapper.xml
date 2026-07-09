@@ -74,9 +74,9 @@
   <!-- 소셜 회원 -->
   <insert id="insertSocial" parameterType="UserDto" keyProperty="memberId">
 		INSERT INTO members
-		( member_id, login_id, mobile, email, nickname, password, profile_url, member_type_id, status_id, provider, provider_id )
+		( member_id, login_id, email, nickname, password, profile_url, member_type_id, status_id, provider, provider_id )
 		VALUES 
-		( members_seq.nextval,  #{loginId},#{mobile}, #{email},  #{nickname},  #{password},  #{profileUrl,jdbcType=VARCHAR},  #{memberTypeId},  #{statusId},  #{provider},  #{providerId} )
+		( members_seq.nextval,  #{loginId}, #{email},  #{nickname},  #{password},  #{profileUrl,jdbcType=VARCHAR},  #{memberTypeId},  #{statusId},  #{provider},  #{providerId} )
 
   </insert>
   

@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.moit.member.dao.UserMapper;
 import com.moit.member.dto.AuthDto;
@@ -21,10 +22,11 @@ import com.moit.security.CustomUserDetails;
 @Service
 public class Oauth2UserService extends DefaultOAuth2UserService{
 	
-	@Autowired UserMapper dao;
+	@Autowired UserMapper dao;	
 	@Autowired PasswordEncoder passwordEncoder;
 	
 	// alt + shift + s (override)
+	@Transactional
 	@Override
 	public OAuth2User loadUser(OAuth2UserRequest userRequest) 
 			throws OAuth2AuthenticationException {
@@ -76,14 +78,14 @@ public class Oauth2UserService extends DefaultOAuth2UserService{
 
 		    user.setMemberTypeId(1);
 
-		    user.setStatusId(5); // INFO_REQUIRED
+		    user.setStatusId(5); //
 		    
-		    user.setMobile("0000");
+		    user.setMobile(null);
 
 		    dao.insertSocial(user);
 		    dao.insertSocialInfo(user);
 
-		    user = dao.findByEmail(email);
+		    //user = dao.findByEmail(email);
 		}
 		
 //		// 이미 연동된 회원인지 확인    
@@ -113,9 +115,7 @@ public class Oauth2UserService extends DefaultOAuth2UserService{
 //		    }
 //
 //		}
-		
-		user = dao.findByEmail(email);
-		
+			
 		AuthUserDto authDto =
 		        dao.readByLoginId(user.getLoginId());
 		

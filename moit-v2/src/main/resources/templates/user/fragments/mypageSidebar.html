@@ -5,13 +5,16 @@
 		<!-- SIDEBAR -->
 		<aside class="sidebar">
 		    <div class="menu">
-		        <a class="active" href="#">내 정보</a>
+		        <a th:href="@{/user/member/mypage}">내 정보</a>
 		        <a href="#">내 모집글</a>
 		        <a href="#">내 신청모임</a>
 		        <a href="#">내 관심모임</a>
 		        <a href="#">내 문의내역</a>
 		        <a href="#">내 작성후기</a>
-		        <a href="#">내 신고내역</a>		        
+		        <a href="#">내 신고내역</a>		 
+		        <a th:href="@{/user/member/memberEdit}">회원정보 수정</a>
+		        <a href="#">비밀번호 변경</a>
+		        <a href="#">회원 탈퇴</a>       
 		    </div>
 		</aside>
 	</th:block>

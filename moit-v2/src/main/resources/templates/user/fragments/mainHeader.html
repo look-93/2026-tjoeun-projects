@@ -24,7 +24,7 @@
         
 		<div class="header-right">
 		
-		<nav>
+		<nav class="main-menu">
             <a th:href="@{/meetup/user/list}"
                th:classappend="${menu == 'meetup'} ? 'active' : ''">
                 모집찾기
@@ -63,7 +63,8 @@
 			            <div class="profile-info">
 			                <strong th:text="${#authentication.principal.nickname + '님'}">
 			                </strong>
-						<span th:switch="${#authentication.principal.typeName}">
+			                
+							<span th:switch="${#authentication.principal.typeName}">
                                 <span th:case="'ROLE_MEMBER'">
                                     일반회원
                                 </span>
