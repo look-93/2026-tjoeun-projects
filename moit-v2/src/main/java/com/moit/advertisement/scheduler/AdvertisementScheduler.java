@@ -38,11 +38,11 @@ public class AdvertisementScheduler {
        );
 
     }
-    
+    // 매일 새벽 1시
     @Scheduled(cron="0 0 1 * * *")
     public void createDailyStatistics(){
 
-        advertisementService.createDailyStatistics();
+        advertisementService.insertDailyStatistics();
 
     }
 }

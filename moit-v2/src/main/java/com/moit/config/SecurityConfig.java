@@ -27,7 +27,7 @@ public class SecurityConfig {
 
 		//1. 허용경로
 		http.authorizeHttpRequests(auth -> auth.requestMatchers("/user/member/join", "/user/member/login", "/user/checkLoginId" , "/user/checkNickname" , "/api/**").permitAll()
-											   .requestMatchers("/user/member/mypage", "/user/member/update", "/user/member/delete","/user/member/socialInfo").authenticated()
+											   .requestMatchers("/user/member/mypage", "/user/member/update", "/user/member/delete","/user/member/socialInfo","/user/advertisement/**").authenticated()
 											   .anyRequest().permitAll()
 				
 								  )
