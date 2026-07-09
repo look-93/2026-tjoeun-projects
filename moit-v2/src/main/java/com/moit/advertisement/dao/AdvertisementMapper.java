@@ -147,6 +147,4 @@ public interface AdvertisementMapper {
     
  // 광고 일일 통계 생성
     void insertDailyStatistics();
-    
-    List<AdvertisementDto> selectAdvertisementStatistics();
 }

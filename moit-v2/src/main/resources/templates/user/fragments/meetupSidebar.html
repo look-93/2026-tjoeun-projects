@@ -7,6 +7,14 @@
 			<h3>카테고리</h3>
 
 			<div class="category meetupList-category" id="meetupList-category"></div>
+			
+			<div sec:authorize="isAuthenticated()">
+		    로그인됨
+		</div>
+		
+		<div sec:authentication="principal.authorities">
+		    권한 확인
+		</div>
 
 			<section class="side-ad"
 		             th:if="${sidebarAd != null}"
@@ -27,9 +35,16 @@
 		
 		    </section>
 			
-			<div class="sidebar-ad meetupList-sidebar-ad" style="height:120px">
-				<p> 타겟층에게 홍보 하세요 </p>
-				<a href="#" style="height:40px">광고 신청하기</a>
+			<div class="sidebar-ad meetupList-sidebar-ad"
+			     style="height:120px"
+			     sec:authorize="hasRole('PARTNER')">
+			
+			    <a th:href="@{/user/advertisement/list}">
+			        <img src="/upload/ad/ad-promo.png"
+			             alt="광고 신청하기"
+			             style="width:280px; height:120px;">
+			    </a>
+
 			</div>
 		</aside>
 	</th:block>

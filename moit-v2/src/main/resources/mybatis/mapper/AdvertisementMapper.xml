@@ -888,7 +888,7 @@
 	</insert>
 
 	<!-- 광고 일일 통계 생성 -->
-	<insert id="insertDailyStatistics">
+	<!-- <insert id="insertDailyStatistics">
 	
 	    INSERT INTO advertisement_daily_statistics
 	    (
@@ -910,12 +910,14 @@
 	
 	        NVL(c.clicks,0),
 	
-	        ROUND(
-	            NVL(c.clicks,0)
-	            /
-	            NULLIF(i.impressions,0)
-	            * 100
-	        ,2),
+	        NVL(
+			    ROUND(
+			        NVL(c.clicks,0)
+			        /
+			        NULLIF(i.impressions,0)
+			        *100
+			    ,2)
+			,0),
 	
 	        CASE
 	            WHEN NVL(i.impressions,0) >= 10000
@@ -980,6 +982,6 @@
 	    ON a.ad_id = c.ad_id
 	
 	
-	</insert>
+	</insert> -->
 
 </mapper>
