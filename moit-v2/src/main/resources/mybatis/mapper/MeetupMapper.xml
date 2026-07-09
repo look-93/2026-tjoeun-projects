@@ -3,7 +3,12 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.moit.meetup.dao.MeetupMapper">
-
+	<!-- SQL	XML에서 작성
+	<	&lt;
+	<=	&lt;=
+	>	&gt; (생략 가능한 경우도 많음)
+	>=	&gt;= -->
+	
 	<!-- meetup 단건조회 - 관리자/사용자  -->
 	<select id="findAllMeetupBy" parameterType="MeetupSearchDto" resultType="MeetupDto">
 		SELECT A.*,
@@ -39,7 +44,7 @@
 		LEFT JOIN sidos 	 E ON E.sido_id = D.sido_id 
 		LEFT JOIN categories F ON F.category_id = A.category_id
 		LEFT JOIN categories G ON G.category_id = F.parent_id
-		LEFT JOIN meetup_likes H ON H.meetup_id = A.meetup_id AND H.member_id = A.meetup_id				  
+		LEFT JOIN meetup_likes H ON H.meetup_id = A.meetup_id AND H.member_id = A.member_id				  
 		LEFT OUTER JOIN (SELECT COUNT(meetup_id) as like_cnt, 
 	  						  	meetup_id 
 	  				     FROM meetup_likes 
@@ -196,7 +201,7 @@
 	<update id="updateMeetupDeleteYn" parameterType="int">
 		UPDATE meetups
 		SET delete_yn = 'Y',
-			ststus = 'DELETED'
+			status = 'DELETED'
 		WHERE meetup_id = #{meetupId}	
 	</update>		
 	
@@ -217,17 +222,28 @@
 		 WHERE A.meetup_id = #{meetupId}
  	</select>	
  	
+	<!-- 모집저장 -->	
+ 	<insert id="insertMeetup" parameterType="MeetupDto">
+ 	<selectKey keyProperty="meetupId"
+               resultType="int"
+               order="BEFORE">
+        SELECT MEETUPS_SEQ.NEXTVAL
+        FROM DUAL
+    </selectKey>
+		INSERT INTO meetups(meetup_id, member_id, title, content, max_participants, min_participants, sigungu_id, category_id, meetup_at)
+		values(#{meetupId}, #{memberId}, #{title}, #{content}, #{maxParticipants}, #{minParticipants}, #{sigunguId}, #{categoryId}, TO_DATE(#{meetupAt}, 'YYYY-MM-DD"T"HH24:MI'))
+ 	</insert>	
+ 	
  	<!-- 모집수정 -->
  	<update id="updateMeetup" parameterType="MeetupDto">
  		UPDATE meetups
  		   SET title 			 = #{title},
  		   	   content 			 = #{content},
  		   	   max_participants  = #{maxParticipants},
- 		   	   min_participants  = #{minParticipants},
- 		   	   address 		 	 = #{address},
+ 		   	   min_participants  = #{minParticipants}, 		   	 
  		   	   category_id 		 = #{categoryId},
  		   	   sigungu_id        = #{sigunguId},
- 		   	   meetup_at 	 	 = #{meetupAt},
+ 		   	   meetup_at 	 	 = TO_DATE(#{meetupAt}, 'YYYY-MM-DD"T"HH24:MI'),
  		   	   status			 = #{status} 		   	   
  		 WHERE meetup_id = #{meetupId}
  	</update> 	 	 	
@@ -269,7 +285,8 @@
   	<!-- 모집신청 취소 -->
  	<update id="cancelApplyMeetup" parameterType="MeetupApplicationDto"> 
  		UPDATE meetup_applications
- 		   SET status = 'CANCELED'
+ 		   SET status = 'CANCELED',
+ 		   	   updated_at = SYSDATE
 		 WHERE 1=1
  		   AND application_id = #{applicationId}
  	</update>  		
@@ -307,32 +324,32 @@
  	</select> 	
  	
  	<!-- 내모집글 통계 -->
-<select id="selectMyPageStats" resultType="MeetupDto" parameterType="int">
-    SELECT 
-        (SELECT COUNT(*) 
-           FROM meetups 
-          WHERE member_id = #{memberId} 
-            AND delete_yn = 'N' 
-            AND status != 'DELETED'
-         ) AS meetupCount,
-         
-        (SELECT COUNT(*) 
-           FROM reviews 
-          WHERE member_id = #{memberId} 
-            AND delete_yn = 'N'
-         ) AS reviewCount,
-         
-        (SELECT COUNT(*) 
-           FROM meetup_likes   
-          WHERE member_id = #{memberId}
-         ) AS likeCount,
-         
-        (SELECT COUNT(*) 
-           FROM meetup_applications 
-          WHERE member_id = #{memberId} 
-            AND status IN ('APPROVED', 'PENDING')
-         ) AS applicationCount
-    FROM DUAL 
+	<select id="selectMyPageStats" resultType="MeetupDto" parameterType="int">
+	    SELECT 
+	        (SELECT COUNT(*) 
+	           FROM meetups 
+	          WHERE member_id = #{memberId} 
+	            AND delete_yn = 'N' 
+	            AND status != 'DELETED'
+	         ) AS meetupCount,
+	         
+	        (SELECT COUNT(*) 
+	           FROM reviews 
+	          WHERE member_id = #{memberId} 
+	            AND delete_yn = 'N'
+	         ) AS reviewCount,
+	         
+	        (SELECT COUNT(*) 
+	           FROM meetup_likes   
+	          WHERE member_id = #{memberId}
+	         ) AS likeCount,
+	         
+	        (SELECT COUNT(*) 
+	           FROM meetup_applications 
+	          WHERE member_id = #{memberId} 
+	            AND status IN ('APPROVED', 'PENDING')
+	         ) AS applicationCount
+	    FROM DUAL 
    </select>
 
 	<!-- 마이페이지 내 모집신청 조회 -->
@@ -388,8 +405,156 @@
 	<!-- 마이페이지 신청자 목록조회 - 승인/거절 -->
 	<update id="changeMeetupApplyStatus" parameterType="MeetupApplicationDto">
 		UPDATE meetup_applications
-		SET status = #{status}
+		SET status = #{status},
+			reject_reason = #{rejectReason, jdbcType=VARCHAR}
 		WHERE 1=1
 		AND application_id = #{applicationId}
-	</update>	 	
+	</update>	 
+	
+	<!-- meetup_images 이미지 저장 -->
+	<insert id="insertMeetupImages" parameterType="java.util.Map">
+	    INSERT INTO meetup_images (meetup_id, image_id) 
+	    <foreach collection="imageIds" item="id" separator="UNION ALL">
+	        SELECT #{meetupId}, #{id, jdbcType=INTEGER} FROM dual
+	    </foreach>
+	</insert>
+	
+	<!-- images 파일 경로 저장 -->
+	<insert id="insertImages" parameterType="java.util.List">
+	    INSERT INTO images (image_id, image_path)
+	    SELECT IMAGES_SEQ.NEXTVAL, A.imagePath
+	    FROM (
+	        <foreach collection="list" item="img" separator="UNION ALL">
+	            SELECT #{img.imagePath} AS imagePath FROM dual
+	        </foreach>
+	    ) A
+	</insert>
+	
+	<!-- 현재 시퀀스의 가장 마지막 값(CURRVAL)을 매퍼에서 가져오기 -->
+	<select id="getLastImageSequence" resultType="int">
+	    SELECT IMAGES_SEQ.CURRVAL FROM dual
+	</select>
+	
+	<!-- 이미지 조회 -->
+	<select id="findMeetupImage" parameterType="int" resultType="MeetupImageDto">
+		SELECT *
+		FROM meetup_images A
+		JOIN images B ON B.IMAGE_ID = A.IMAGE_ID
+		WHERE A.MEETUP_ID = #{meetupId}
+	</select>
+	
+	<!-- 이미지 삭제 -->
+	
+	<delete id="deleteMeetupImages" parameterType="int">
+		DELETE FROM meetup_images WHERE meetup_id = #{meetupId}
+	</delete>
+	
+	<delete id="deleteImages" parameterType="java.util.List">
+	    DELETE FROM images
+	    WHERE image_id IN
+	    <foreach collection="list" item="img" open="(" separator="," close=")">
+	        #{img.imageId, jdbcType=INTEGER}
+	    </foreach>
+	</delete>
+		
+	<!-- 이미지 삭제 -->
+	
+	<!-- 노쇼방지 -->
+	<!-- 노쇼방지 계산식 
+	### 📉 감점 요인 (가중치 높음)
+	 1. 최근 3개월 내 무단 노쇼 (`meetup_applications.status = 'NOSHOW'`):   건당 **-5점**
+	 2. 모임 시작 24시간 이내 직전 취소 (`status = 'CANCEL_LAST_MINUTE'`):     건당 **-6점**
+	 3. 최근 3개월 내 승인된 신고 누적 이력 (`reports` 테이블 내 유저 신고 승인 건수): 건당 **-7점**
+	
+	### 📈 가점 요인 (신뢰도 회복)
+	 4. 최근 3개월 내 평균 리뷰 평점 우수 (`reviews.rating` 평균 4.5 이상):** 10점** 
+	
+	계산순서 -> 신뢰도점수 - 1 - 2 - 3 + 4 
+	-->
+	
+	<select id="calculatedScore" resultType="TrustScoreDto" parameterType="int">
+		SELECT c.trust_score 
+		       - (NVL(d.noshow_count, 0) * 5)
+		       - (NVL(e.cancel_count, 0) * 6)
+		       - (NVL(f.report_count, 0) * 7)
+		       + (NVL(g.review_bonus_flag, 0) * 10) AS final_trust_score,
+		
+		       (NVL(d.noshow_count, 0) * 5) AS noshow_score,
+		       (NVL(e.cancel_count, 0) * 6) AS cancel_score,
+		       (NVL(f.report_count, 0) * 7) AS report_score,
+		       (NVL(g.review_bonus_flag, 0) * 10) AS review_rating_score,
+		
+		       NVL(d.noshow_count, 0) AS noshow_count,
+		       NVL(e.cancel_count, 0) AS cancel_count,
+		       NVL(f.report_count, 0) AS report_count,
+		       NVL(g.review_bonus_flag, 0) AS review_rating_count,
+		       
+		       c.member_id
+		
+		FROM member_info c
+		
+		LEFT JOIN (
+		    SELECT a.member_id,
+		           COUNT(*) AS noshow_count
+		    FROM meetup_applications a
+		    LEFT JOIN meetups b 
+		           ON b.meetup_id = a.meetup_id
+		    WHERE 1 = 1
+		      AND b.delete_yn = 'N'
+		      AND b.status = 'NOSHOW'
+		      AND b.meetup_at &gt;= ADD_MONTHS(SYSDATE, -3)
+		    GROUP BY a.member_id
+		) d 
+		ON d.member_id = c.member_id
+		
+		LEFT JOIN (
+		    SELECT a.member_id,
+		           COUNT(*) AS cancel_count
+		    FROM meetup_applications a
+		    LEFT JOIN meetups b 
+		           ON b.meetup_id = a.meetup_id
+		    WHERE 1 = 1
+		      AND b.delete_yn = 'N'
+		      AND a.status = 'CANCELED'
+		      AND a.updated_at &gt;= b.meetup_at - INTERVAL '24' HOUR
+		      AND a.updated_at &lt; b.meetup_at
+		    GROUP BY a.member_id
+		) e
+		ON e.member_id = c.member_id
+		
+		LEFT JOIN (
+		    SELECT target_id,
+		           COUNT(*) AS report_count
+		    FROM reports
+		    WHERE created_at &gt;= ADD_MONTHS(SYSDATE, -3)
+		      AND status = 'APPROVED'
+		    GROUP BY target_id
+		) f
+		ON f.target_id = c.member_id
+		
+		LEFT JOIN (
+		    SELECT member_id,
+		    	   CASE WHEN AVG(rating) &gt;= 4.5 THEN 1 ELSE 0 END AS review_bonus_flag
+		    FROM reviews
+		    WHERE created_at &gt;= ADD_MONTHS(SYSDATE, -3)
+		    GROUP BY member_id
+		) g
+		ON g.member_id = c.member_id
+		
+		WHERE 1 = 1
+		  AND c.member_id = #{memberId}
+	
+	</select>
+	
+	<update id="updateAiSummaryAndTrustScore" parameterType="TrustScoreDto">	
+		UPDATE MEMBER_INFO
+		SET trust_score = #{finalTrustScore},
+		    ai_summary = #{aiSummary}                         
+		WHERE member_id = #{memberId}	
+	</update>
+	
+	<!-- 노쇼방지 -->
+	
+
+	
 </mapper>
