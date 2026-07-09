@@ -11,8 +11,6 @@
         <a th:href="@{/user/main}" class="logo">
             MOIT
         </a>
-
-        
     </div>
 
     <!-- 우측 그룹 -->
@@ -25,7 +23,7 @@
 		<div class="header-right">
 		
 		<nav class="main-menu">
-            <a th:href="@{/meetup/user/list}"
+            <a th:href="@{/meetup/list}"
                th:classappend="${menu == 'meetup'} ? 'active' : ''">
                 모집찾기
             </a>

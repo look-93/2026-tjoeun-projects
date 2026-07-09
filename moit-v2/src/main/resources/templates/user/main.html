@@ -57,15 +57,26 @@
 
 		</section>
 
-		<section class="ad-banner">
-
-			<div class="ad-left">
-				<h3>🎉 신규 제휴카페 오픈 이벤트</h3>
-				<p>모든 음료 20% 할인</p>
-			</div>
-
-			<a href="#" class="ad-btn">자세히 보기</a>
-
+		<!-- 광고 영역 -->
+		<section class="ad-banner"
+		         th:if="${mainAd != null}"
+		         th:classappend="${mainAd.imageList != null and !mainAd.imageList.isEmpty()} ? ' has-image' : ''">
+	
+			<a th:href="@{/user/advertisement/click(adId=${mainAd.adId}, position='MAIN')}">
+	
+				<!-- 광고 이미지 존재 -->
+				<img th:if="${mainAd.imageList != null 
+                    		and !mainAd.imageList.isEmpty()}"
+		             th:src="@{${mainAd.imageList[0].imageUrl}}"
+		             alt="광고">
+		
+		        <div th:if="${mainAd.imageList == null 
+		                     or mainAd.imageList.size() == 0}">
+		            광고 이미지 준비중
+		        </div>
+	
+			</a>
+	
 		</section>
 
 		<section class="section">

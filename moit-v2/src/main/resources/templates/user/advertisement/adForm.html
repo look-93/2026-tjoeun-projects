@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{user/mypage/layouts/mypageLayout}">
+
+<head>
+    <title th:text="${mode == 'write'} ? '광고 등록' : '광고 수정'"></title>
+</head>
+
+
+<section layout:fragment="content">
+
+
+<div class="member-ad-write-container">
+
+
+    <h1 class="member-ad-write-title"
+        th:text="${mode == 'write'} ? '광고 등록' : '광고 수정'">
+    </h1>
+
+
+
+
+    <form class="member-ad-write-card"
+          method="post"
+          enctype="multipart/form-data"
+          th:action="${mode=='write'}
+          ? @{/user/advertisement/write}
+          : @{/user/advertisement/edit}">
+
+
+        <input type="hidden"
+               th:name="${_csrf.parameterName}"
+               th:value="${_csrf.token}">
+
+
+        <input type="hidden"
+               name="adId"
+               th:value="${dto.adId}">
+
+
+        <input type="hidden"
+               name="advertiserId"
+               th:value="${dto.advertiserId}">
+
+
+
+
+
+        <!-- =====================
+             기본 정보
+        ====================== -->
+
+
+        <h3 class="member-ad-write-section">
+            기본 정보
+        </h3>
+
+
+
+        <div class="member-ad-write-group">
+
+
+            <label class="member-ad-write-label">
+                광고명
+            </label>
+
+
+            <input type="text"
+                   name="title"
+                   class="member-ad-write-input"
+                   th:value="${dto.title}"
+                   required>
+
+
+        </div>
+
+
+
+
+        <div class="member-ad-write-group">
+
+
+            <label class="member-ad-write-label">
+                내용
+            </label>
+
+
+            <textarea name="content"
+                      class="member-ad-write-textarea"
+                      required
+                      th:text="${dto.content}">
+            </textarea>
+
+
+        </div>
+
+
+
+
+        <div class="member-ad-write-group">
+
+
+            <label class="member-ad-write-label">
+                랜딩 URL
+            </label>
+
+
+            <input type="url"
+                   name="landingUrl"
+                   class="member-ad-write-input"
+                   th:value="${dto.landingUrl}"
+                   required>
+
+
+        </div>
+
+
+
+
+
+
+        <!-- =====================
+             타겟 설정
+        ====================== -->
+
+
+        <h3 class="member-ad-write-section">
+            타겟 설정
+        </h3>
+
+
+
+
+        <div class="member-ad-write-grid">
+
+
+
+            <div class="member-ad-write-group">
+
+                <label class="member-ad-write-label">
+                    최소 연령
+                </label>
+
+
+                <input type="number"
+                       name="targetAgeMin"
+                       class="member-ad-write-input"
+                       th:value="${dto.targetAgeMin}"
+                       required>
+
+            </div>
+
+
+
+
+
+            <div class="member-ad-write-group">
+
+                <label class="member-ad-write-label">
+                    최대 연령
+                </label>
+
+
+                <input type="number"
+                       name="targetAgeMax"
+                       class="member-ad-write-input"
+                       th:value="${dto.targetAgeMax}"
+                       required>
+
+            </div>
+
+
+
+
+
+
+            <div class="member-ad-write-group">
+
+
+                <label class="member-ad-write-label">
+                    성별
+                </label>
+
+
+                <select name="targetGender"
+                        class="member-ad-write-select">
+
+
+                    <option value="ALL"
+                            th:selected="${dto.targetGender == 'ALL'}">
+                        전체
+                    </option>
+
+
+                    <option value="MALE"
+                            th:selected="${dto.targetGender == 'MALE'}">
+                        남성
+                    </option>
+
+
+                    <option value="FEMALE"
+                            th:selected="${dto.targetGender == 'FEMALE'}">
+                        여성
+                    </option>
+
+
+                </select>
+
+
+            </div>
+
+
+
+
+
+
+            <div class="member-ad-write-group">
+
+
+                <label class="member-ad-write-label">
+                    디바이스
+                </label>
+
+
+                <select name="deviceType"
+                        class="member-ad-write-select">
+
+
+                    <option value="ALL"
+                            th:selected="${dto.deviceType == 'ALL'}">
+                        전체
+                    </option>
+
+
+                    <option value="PC"
+                            th:selected="${dto.deviceType == 'PC'}">
+                        PC
+                    </option>
+
+
+                    <option value="MOBILE"
+                            th:selected="${dto.deviceType == 'MOBILE'}">
+                        모바일
+                    </option>
+
+
+                </select>
+
+
+            </div>
+
+
+
+
+
+        </div>
+
+
+
+
+
+
+
+        <!-- =====================
+             광고 설정
+        ====================== -->
+
+
+        <h3 class="member-ad-write-section">
+            광고 설정
+        </h3>
+
+
+
+
+        <div class="member-ad-write-grid">
+
+
+
+            <div class="member-ad-write-group">
+
+
+                <label class="member-ad-write-label">
+                    광고 채널
+                </label>
+
+
+                <input type="text"
+                       name="adChannel"
+                       class="member-ad-write-input"
+                       th:value="${dto.adChannel}">
+
+
+            </div>
+
+
+
+
+
+            <div class="member-ad-write-group">
+
+
+                <label class="member-ad-write-label">
+                    예산
+                </label>
+
+
+                <input type="number"
+                       name="totalBudget"
+                       class="member-ad-write-input"
+                       th:value="${dto.totalBudget}"
+                       max="10000000000"
+                       required>
+
+
+            </div>
+
+
+
+
+
+
+            <div class="member-ad-write-group">
+
+
+                <label class="member-ad-write-label">
+                    광고 등급
+                </label>
+
+
+
+                <select name="adGrade"
+                        class="member-ad-write-select">
+
+
+                    <option value="GENERAL">
+                        일반 광고
+                    </option>
+
+
+                    <option value="PREMIUM">
+                        프리미엄 광고
+                    </option>
+
+
+                </select>
+
+
+            </div>
+
+
+
+        </div>
+
+
+
+
+
+
+
+
+        <!-- =====================
+             이미지 설정
+        ====================== -->
+
+
+        <h3 class="member-ad-write-section">
+            이미지 설정
+        </h3>
+
+
+
+
+
+
+        <div class="member-ad-write-image-item">
+
+
+            <label class="member-ad-write-label required">
+                MAIN
+            </label>
+
+
+            <div class="member-ad-write-preview">
+
+                <img id="preview0"
+                     th:src="${mainImage}"
+                     onerror="this.src='/upload/no-image.png'">
+
+            </div>
+
+
+
+            <input type="hidden"
+                   name="imageTypes"
+                   value="MAIN">
+
+
+            <input type="file"
+                   name="imageFiles"
+                   class="member-ad-write-file"
+                   data-preview="preview0"
+                   accept="image/*"
+                   th:required="${mode=='write'}">
+
+
+        </div>
+
+
+
+
+
+
+
+        <div class="member-ad-write-image-item">
+
+
+            <label class="member-ad-write-label">
+                MEETUP LIST BANNER
+            </label>
+
+
+
+            <div class="member-ad-write-preview">
+
+
+                <img id="preview1"
+                     th:src="${bannerImage}"
+                     onerror="this.src='/upload/no-image.png'">
+
+
+            </div>
+
+
+
+
+            <input type="hidden"
+                   name="imageTypes"
+                   value="MEETUP_LIST_BANNER">
+
+
+            <input type="file"
+                   name="imageFiles"
+                   class="member-ad-write-file"
+                   data-preview="preview1"
+                   accept="image/*">
+
+
+        </div>
+
+        <div class="member-ad-write-image-item">
+
+
+            <label class="member-ad-write-label">
+                MEETUP LIST SIDEBAR
+            </label>
+
+
+
+            <div class="member-ad-write-preview">
+
+
+                <img id="preview2"
+                     th:src="${listSidebarImage}"
+                     onerror="this.src='/upload/no-image.png'">
+
+
+            </div>
+
+
+
+
+            <input type="hidden"
+                   name="imageTypes"
+                   value="MEETUP_LIST_SIDEBAR">
+
+
+
+            <input type="file"
+                   name="imageFiles"
+                   class="member-ad-write-file"
+                   data-preview="preview2"
+                   accept="image/*">
+
+
+        </div>
+
+
+
+
+
+
+
+
+
+        <div class="member-ad-write-image-item">
+
+
+            <label class="member-ad-write-label">
+                MEETUP DETAIL SIDEBAR
+            </label>
+
+
+
+            <div class="member-ad-write-preview">
+
+
+                <img id="preview3"
+                     th:src="${detailSidebarImage}"
+                     onerror="this.src='/upload/no-image.png'">
+
+
+            </div>
+
+
+
+
+
+            <input type="hidden"
+                   name="imageTypes"
+                   value="MEETUP_DETAIL_SIDEBAR">
+
+
+
+            <input type="file"
+                   name="imageFiles"
+                   class="member-ad-write-file"
+                   data-preview="preview3"
+                   accept="image/*">
+
+
+        </div>
+
+
+
+
+
+
+
+
+
+        <!-- =====================
+             기간 설정
+        ====================== -->
+
+
+        <h3 class="member-ad-write-section">
+            광고 기간
+        </h3>
+
+
+
+
+        <div class="member-ad-write-period">
+
+
+
+            <div class="member-ad-write-group">
+
+
+                <label class="member-ad-write-label">
+                    시작일
+                </label>
+
+
+                <input type="datetime-local"
+                       name="startDatetime"
+                       class="member-ad-write-input"
+                       th:value="${dto.startDatetime != null ?
+                       #temporals.format(dto.startDatetime,'yyyy-MM-dd''T''HH:mm') : ''}"
+                       required>
+
+
+            </div>
+
+
+
+
+
+            <div class="member-ad-write-group">
+
+
+                <label class="member-ad-write-label">
+                    종료일
+                </label>
+
+
+                <input type="datetime-local"
+                       name="endDatetime"
+                       class="member-ad-write-input"
+                       th:value="${dto.endDatetime != null ?
+                       #temporals.format(dto.endDatetime,'yyyy-MM-dd''T''HH:mm') : ''}"
+                       required>
+
+
+            </div>
+
+
+        </div>
+
+
+
+
+
+
+
+
+        <!-- =====================
+             버튼
+        ====================== -->
+
+
+        <div class="member-ad-write-btn-area">
+
+
+            <a th:href="@{/user/advertisement/list}"
+               class="member-ad-write-btn member-ad-write-btn-cancel">
+
+                취소
+
+            </a>
+
+
+
+
+            <button type="submit"
+                    class="member-ad-write-btn member-ad-write-btn-submit"
+                    th:text="${mode=='write'} ? '등록' : '수정'">
+
+            </button>
+
+
+
+        </div>
+
+
+
+
+
+    </form>
+
+
+
+</div>
+
+
+
+
+
+
+
+<script>
+
+
+document.querySelectorAll(".member-ad-write-file")
+.forEach(function(input){
+
+
+    input.addEventListener("change",function(){
+
+
+        if(this.files.length === 0){
+            return;
+        }
+
+
+
+        const previewId =
+            this.dataset.preview;
+
+
+
+        const reader =
+            new FileReader();
+
+
+
+        reader.onload=function(e){
+
+
+            document.getElementById(previewId).src =
+                e.target.result;
+
+
+        }
+
+
+
+        reader.readAsDataURL(this.files[0]);
+
+
+    });
+
+
+});
+
+
+
+</script>
+
+
+
+</section>
+
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{admin/layouts/adminLayout}">
+<!--    #1. layout 렌더링    -->
+<head lang="ko">
+<meta charset="UTF-8">
+</head>
+<body>
+	<div layout:fragment="content">
+		<!-- 각자파트 -->
+		<div class="row mb-4">
+
+			<!-- 통계 -->
+			<div class="row mb-4">
+
+				<div class="col-md-3">
+					<div class="card-box">
+						<h6>전체 모집글</h6>
+						<div class="stat-number" id="totalMeetupCount">0</div>
+					</div>
+				</div>
+
+				<div class="col-md-3">
+					<div class="card-box">
+						<h6>모집중</h6>
+						<div class="stat-number" id="recruitingCount">0</div>
+					</div>
+				</div>
+
+				<div class="col-md-3">
+					<div class="card-box">
+						<h6>모집마감</h6>
+						<div class="stat-number" id="closedCount">0</div>
+					</div>
+				</div>
+
+				<div class="col-md-3">
+					<div class="card-box">
+						<h6>기상악화로 인한 취소</h6>
+						<div class="stat-number" id="weatherCanceledCount">0</div>
+					</div>
+				</div>
+
+			</div>
+
+			<!-- 탭 -->
+			<div class="mb-4">
+				<button class="tab-btn active">모집목록</button>
+				<!--                 <button class="tab-btn">행사등록</button>
+               <button class="tab-btn">신청자목록</button> -->
+			</div>
+
+			
+			<!-- 검색 -->
+			<form id="searchForm" >
+				<div class="table-box mb-4">
+
+					<div class="row">
+
+						<div class="col-md-4">
+							<input type="text" id="adminSearchText" name="adminSearchText" class="form-control" placeholder="모집명 검색">
+						</div>
+
+						<div class="col-md-2">
+							<select id="status" name="status" class="form-select">
+								<option value="">상태</option>
+								<option value="RECRUITING">모집중</option>
+								<option value="CLOSED">모집마감</option>
+								<option value="CANCELED">취소</option>
+							</select>
+						</div>
+						<div class="col-md-2">
+							<select id="searchType" name="searchType" class="form-select">
+								<option value="name">작성자이름</option>
+								<option value="title">모집명</option>
+							</select>
+						</div>
+
+						<div class="col-md-2">
+							<button type="submit" class="btn btn-primary">검색</button>
+						</div>
+
+					</div>
+
+				</div>
+			</form>
+
+			<!-- 행사목록 -->
+			<div class="table-box">
+
+				<table class="table table-hover">
+				    <colgroup>
+				        <col style="width:5%">
+				        <col style="width:10%">
+				        <col style="width:30%">
+				        <col style="width:15%">
+				        <col style="width:10%">
+				        <col style="width:10%">
+				        <col style="width:10%">
+				        <col style="width:10%">
+				    </colgroup>
+					<thead class="table-light">
+						<tr>
+							<th>번호</th>
+							<th>모집자</th>
+							<th>모집명</th>
+							<th>모집일</th>
+							<th>최소모집인원</th>
+							<th>최대모집인원</th>
+							<th>신청현황</th>
+							<th>관리</th>
+						</tr>
+					</thead>
+					
+					<tbody id="meetupList"></tbody>
+
+				</table>		
+						
+				<ul class="pagination justify-content-center" id="pagingArea"></ul>					
+
+			</div>
+		
+		</div>
+		<!-- 각자파트 -->	
+	<script th:inline="javascript" >
+		//csrf 토큰
+		const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+		const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+		
+		let currentPage = 1;
+	
+	
+	 	// 페이지가가 처음 로드될 때 실행
+		window.addEventListener("DOMContentLoaded",function(){
+			loadMeetup(1);
+			
+			document.getElementById("searchForm").addEventListener("submit", function(e){
+			 e.preventDefault(); // form submit
+			 loadMeetup(1); // 처음 접속 시 첫 페이지 로드
+			});
+		});
+	 	
+	 	// json으로 페이지 값 가져오기
+	 	function loadMeetup(page){
+	 		currentPage = page
+	 		const params = {
+	 			adminSearchText: document.getElementById("adminSearchText").value, 	// 검색어
+	 			status: document.getElementById("status").value,			// 검색조건 - 모집중, 모집마감, 취소
+	 			searchType: document.getElementById("searchType").value,	// 검색타입 - 작성자이름, 모집명
+	 			pstartno: page
+	 		};
+	 		
+	 		const queryString = new URLSearchParams(params).toString();
+	 		
+	 		fetch("/admin/meetup/list/data?" + queryString, {
+	 		    method: "GET"
+	 		})
+	 		.then(res=>{
+	 		    // 서버가 200 OK가 아닌 404, 500 등을 뱉었는지 확인
+	 		    if (!res.ok) {
+	 		        throw new Error(`서버 응답 에러! 상태코드: ${res.status}`);
+	 		    }
+	 		    return res.json();
+	 		})
+	 		.then(data=>{
+	 			/* console.log("백엔드에서 받은 실제 데이터:", data); // 전체 데이터 구조 먼저 확인 */
+	 		    if (data.searchList) {
+	 		        makeTable(data.searchList, data.paging);
+	 		        makePaging(data.paging);
+	 		        summaryData(data.summaryData);
+	 		       //console.log("summaryData:", data.summaryData);
+	 		    } else {
+	 		        console.warn("searchList 데이터가 비어있습니다:", data);
+	 		    }
+	 		})
+	 		.catch(error =>{
+	 			console.error("데이터 로드 중 에러 발생", error);
+	 		})
+	 	}
+	 	
+	 	// 관리자 페이지 상단 통계 데이터 생성 
+	 	function summaryData(data){
+	 		if(!data) return;
+	 		document.getElementById("totalMeetupCount").innerText = data.totalMeetupCount;
+	 		document.getElementById("recruitingCount").innerText = data.recruitingCount;
+	 		document.getElementById("closedCount").innerText = data.closedCount;
+	 		document.getElementById("weatherCanceledCount").innerText = data.weatherCanceledCount;
+	 	}
+	 	
+	 	// 리스트 목록 생성
+	 	function makeTable(list, paging){
+	 		let html="";
+	 		
+	 		list.forEach((meetup, index)=>{	 			
+	 			let rowNum = paging.listtotal - ((paging.current - 1) * paging.onepagelist) - index;
+	 			html+=`
+	 			<tr>
+	 				<td>${rowNum}</td>
+					<td>${meetup.nickname}</td>
+					<td>${meetup.title}</td>
+					<td>${meetup.meetupAt}</td>
+					<td>${meetup.minParticipants}</td>
+					<td>${meetup.maxParticipants}</td>
+					<td>${meetup.totalParticipants ?? 0}</td>											
+					<td> <button class="btn btn-danger btn-sm" onclick="deleteMeetup(${meetup.meetupId})">삭제</button> </td>
+				</tr>
+	 			`;
+	 		});
+	 		document.getElementById("meetupList").innerHTML=html;
+	 	}
+	 	
+	 	function makePaging(paging){
+	 		let html = "";
+	 		
+	 		if(paging.start > paging.bottomlist){
+	 			html += `
+				<li class="page-item">
+	 				<a class="page-link" href="#" onclick="loadMeetup(${paging.start-1}); return false;"> < </a>
+	 			</li> 			
+	 			`;
+	 		}
+	 		
+	 		for(let i=paging.start; i<=paging.end;i++){
+	 			
+	 			let activeClass = (i == paging.current) ? "active" : "";
+	 			
+	 			html +=`
+				<li class="page-item ${activeClass}">
+					<a href="#" class="page-link" onclick="loadMeetup(${i}); return false;">${i}</a>
+				</li>			
+	 			`;
+	 		}
+	 		
+	 	    if(paging.pagetotal>paging.end){
+	
+	 	        html+=`
+	 	        <li class="page-item">
+	 	            <a class="page-link"
+	 	                href="#"
+	 	                onclick="loadMeetup(${paging.end+1});return false;">
+	 	                >
+	 	            </a>
+	 	        </li>
+	 	        `;
+	 	    }
+	
+	 	    document.getElementById("pagingArea").innerHTML=html; 		
+	 	}
+	 	
+	 	// 삭제
+	 	function deleteMeetup(meetupId){
+	 		const result = confirm('삭제하시겠습니까?');
+	 		if(result){
+	 			fetch("/admin/meetup/delete",{
+	 	 			method:"POST",
+	 	 			headers: getCsrfHeaders(),
+	 	 			body:JSON.stringify({meetupId: meetupId})
+	 	 		})
+	 	 		.then(res => {
+	 	 			if(!res.ok){
+	 	 				throw new Error(`서버 응답에러 :${res.status}`);
+	 	 			}	
+	 	 			return res.json();
+	 	 		})
+	 	 		.then(data => {
+	 	 			//삭제 후 페이징 처리
+	 	 			if(currentPage != null){
+	 	 				//console.log(currentPage + "1"); 
+	 	 				loadMeetup(currentPage);
+	 	 			}else{
+	 	 				//console.log(currentPage + "2"); 
+	 	 				loadMeetup(1);
+	 	 			} 	 			
+	 	 			//console.log(currentPage) 
+	 	 		})
+	 	 		.catch(error=>{
+	 	 			console.error("데이터 로드 중 에러 발생", error);
+	 	 		});
+	 		}
+	 		
+	 	}
+	
+	
+	</script>		
+	</div>
+
+</body>
+</html>

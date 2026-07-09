@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{user/mypage/layouts/mypageLayout}">
+<head lang="ko">
+<meta charset="UTF-8">
+</head>
+<body>
+	<div layout:fragment="content">
+		<div class="mypage-main-content">
+
+			<div class="mypage-dashboard">
+
+				<div class="mypage-stat-card">
+					📝
+					<h3 th:text="${meetupStats.meetupCount}"></h3>
+					<p>작성한 모집글</p>
+				</div>
+
+				<div class="mypage-stat-card">
+					👥
+					<h3 th:text="${meetupStats.applicationCount}"></h3>
+					<p>신청 모임</p>
+				</div>
+
+				<div class="mypage-stat-card">
+					⭐
+					<h3 th:text="${meetupStats.reviewCount}"></h3>
+					<p>작성 후기</p>
+				</div>
+
+				<div class="mypage-stat-card">
+					❤️
+					<h3 th:text="${meetupStats.likeCount}"></h3>
+					<p>관심 모임</p>
+				</div>
+
+			</div>
+
+		</div>
+
+		<div class="mypage-table-section">
+
+			<h2>내 모집글</h2>
+
+			<table class="mypage-table">
+				<thead>
+					<tr>
+						<th>번호</th>
+						<th>모집명</th>
+						<th>모집일</th>
+						<th>모집 상태</th>
+						<th>신청 인원</th>
+						<th>작성일</th>
+						<th>관리</th>
+					</tr>
+				</thead>
+				<tbody>
+
+					<tr th:each="meetup, status : ${meetupList}">
+				        <td th:text="${paging.listtotal - ((paging.current - 1) * paging.onepagelist) - status.index}"></td>
+				        <td th:text="${meetup.title}">모집명 예시</td>
+				        <td th:text="${meetup.fomatMeetupAt}"></td> 
+				        <td>
+				            <span class="status status-end" th:text="${meetup.status == 'RECRUITING' ? '모집중' : '종료'}"></span>
+				        </td>
+				        <td th:text="|${meetup.totalParticipants}/${meetup.maxParticipants}명|"></td> 
+				        <td th:text="${meetup.fomatcreatedAt}"></td> 
+						<td>
+						    <div class="action-btn-wrap">
+						        <button type="button" class="applicant-btn" th:onclick="|openModal('${meetup.meetupId}')|">신청자 조회</button>
+						        <button type="button" class="edit-btn" th:onclick="|goDetail('${meetup.meetupId}')|">수정</button>
+						        
+						        <form th:action="@{/mypage/meetup/delete(meetupId=${meetup.meetupId} , pstartno=${param.pstartno})}" method="post" style="display: inline-block; margin: 0;">
+						            <button type="submit" class="delete-btn">삭제</button>
+						        </form>                                             
+						    </div>
+						</td>
+				    </tr>
+				    
+				    <tr th:if="${#lists.isEmpty(meetupList)}">
+				        <td colspan="7" style="padding: 40px 0; color: #94a3b8;">작성한 모집글이 존재하지 않습니다.</td>
+				    </tr>
+				</tbody>
+			</table>
+			
+			<div class="pagination">
+			    <th:block th:if="${paging.start > paging.bottomlist}">
+			        <a class="page-link" th:href="@{?(pstartno=${paging.start - 1})}"> &lt; </a>
+			    </th:block>
+			
+			    <th:block th:if="${paging.end >= paging.start}">
+			        <a th:each="i : ${#numbers.sequence(paging.start, paging.end)}"
+			           th:href="@{?(pstartno=${i})}"
+			           th:text="${i}"
+			           class="page-link"
+			           th:classappend="${i == paging.current} ? 'active'">1</a>
+			    </th:block>
+			
+			    <th:block th:if="${paging.pagetotal > paging.end}">
+			        <a class="page-link" th:href="@{?(pstartno=${paging.end + 1})}"> &gt; </a>
+			    </th:block>
+			</div>		
+
+		</div>
+		<div class="modal-overlay" id="applicantModal">
+		    <div class="modal-window">
+		        <div class="modal-header">
+		            <h3>행사 신청자 목록</h3>
+		            <button class="modal-close" onclick="closeModal()">&times;</button>
+		        </div>
+		        <div class="modal-body">
+		            <table class="modal-table">
+		                <thead>
+		                    <tr>
+		                        <th style="width: 20%; text-align: left;">회원명</th>
+		                        <th style="width: 30%;">신청일</th>
+		                        <th style="width: 20%;">상태</th>
+		                        <th style="width: 30%;">처리</th>
+		                        <th style="width: 30%;">coment!</th>
+		                    </tr>
+		                </thead>
+		                <tbody id="modalBody"></tbody>
+		            </table>
+		        </div>
+		    </div>
+		</div>
+	<script th:inline="javascript">
+	    const modal = document.getElementById('applicantModal');
+	    
+	    // 타임리프에서 애플리케이션 컨텍스트 패스 가져오기 (기본은 빈 문자열이며 세팅에 따라 채워짐)
+	    const contextPath = /*[[@{/}]]*/ ''; 
+	
+	 // 1. 거절 버튼을 눌렀을 때 실행되는 함수
+	    function handleReject(applicationId, status, btn) {
+	        // 버튼 바로 앞에 있는 인풋창을 찾아서 값을 가져옵니다.
+	        const reasonInput = btn.parentElement.querySelector('.reject-reason');
+	        const reasonValue = reasonInput ? reasonInput.value.trim() : '';
+	        
+	        if (!reasonValue) {
+	            alert('거절 사유를 입력해주세요.');
+	            reasonInput.focus();
+	            return;
+	        }
+	        changeStatus(applicationId, status, btn, reasonValue);
+	    }
+
+	    // 2. 기존 함수 (매개변수 맨 끝에 reason 추가 및 fetch 주소만 수정)
+	    function changeStatus(applicationId, status, btn, reason){
+	    	//console.log(reason)
+	        // 거절 사유가 넘어오면 파라미터에 붙이고, 없으면 빈 값 처리
+	        const reasonParam = reason ? '&rejectReason=' + encodeURIComponent(reason) : '';
+	        //console.log(applicationId);
+	        fetch('/mypage/updateApplyStatus?status=' + status + '&applicationId=' + applicationId + reasonParam)
+	            .then(res => res.json())
+	            .then(data => { 
+	            	
+/* 	                console.log("btn", btn);
+	                console.log("parent", btn.parentElement);
+	                console.log("prev", btn.parentElement.previousElementSibling); */
+	                
+	                const statusTd = btn.closest("td").previousElementSibling;
+	                const statusSpan = statusTd.querySelector("span");
+	                statusSpan.innerHTML = status == 'APPROVED' ? '승인' : '거절';
+	                
+	                if(status == 'APPROVED'){
+	                    //거절 버튼을 누르면 handleReject가 먼저 실행
+	                    btn.parentElement.innerHTML = `
+	                    <div style="display: inline-flex; align-items: center; vertical-align: middle; white-space: nowrap;">
+	                        <input type="text" class="reject-reason" placeholder="거절 사유 입력" style="flex-shrink: 0;" />
+	                        <button class="btn-reject" style="flex-shrink: 0;" onClick="handleReject(${applicationId}, 'REJECTED', this)">거절</button>
+	                    </div>
+	                    `
+	                } else {
+	                    btn.parentElement.innerHTML = `<button class="btn-approve" onClick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>`
+	                }
+	            })
+	            .catch(error => {
+	                //console.error(error);
+	                alert("관리자에게 문의하세요.");
+	            })
+	    }
+	    
+	    function openModal(meetupId) {
+	    	//console.log(meetupId)
+	    	fetch('/mypage/meetupMember?meetupId=' + meetupId)
+	    	.then(res => res.json())
+	    	.then(data => {
+	    		const tbody = document.getElementById("modalBody")
+				const list = data.list;
+	    		let html= '';
+	    		let button = ''
+	
+	    		for(var i= 0; i < list.length; i++){
+	    			const item = list[i];
+	    			const status = item.applyStatus == "PENDING" ? "대기" : item.applyStatus == "APPROVED" ? "승인" : "거절";
+	    			const applicationId = item.applicationId;
+	    			console.log(applicationId)
+	    			if (item.applyStatus === 'PENDING') {
+	    				button = `
+	    			        <button class="btn-approve" onclick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>
+	    			        <button class="btn-reject" onclick="changeStatus(${applicationId}, 'REJECTED', this)">거절</button>
+	    			    `;
+	    			} else if (item.applyStatus === 'APPROVED') {
+	    				button = `
+	    			        <button class="btn-reject" onclick="changeStatus(${applicationId}, 'REJECTED', this)">거절</button>
+	    			    `;
+	    			} else if (item.applyStatus === 'REJECTED') {
+	    				button = `
+	    			        <button class="btn-approve" onclick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>
+	    			    `;
+	    			}
+	
+	    			html += `
+	    			<tr>
+	    			    <td style="text-align: left; font-weight: bold;">${item.nickname}</td>
+	    			    <td>${item.applyAt}</td>
+	    			    <td><span class="state-text-wait">${status}</span></td>
+	    			    <td>${button}</td>
+	    			</tr>
+	    			`;
+	    		}
+	    		tbody.innerHTML = html;
+	    		modal.classList.add('active');
+	            document.body.style.overflow = 'hidden';
+	    	})
+	    	.catch(error => {
+			    alert("관리자에게 문의하세요.");
+			})
+	    }
+	
+	    function closeModal() {
+	        modal.classList.remove('active');
+	        document.body.style.overflow = ''; 
+	    }
+	
+	    window.onclick = function(event) {
+	        if (event.target == modal) {
+	            closeModal();
+	        }
+	    }
+	    
+	    function goDetail(meetupId){
+	        location.href = "/mypage/update?meetupId=" + meetupId;
+	    }
+	</script>		
+		
+	</div>
+</body>
+</html>
