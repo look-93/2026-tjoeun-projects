@@ -49,6 +49,7 @@
 						<th>모집명</th>
 						<th>모집일</th>
 						<th>모집 상태</th>
+						<th>신청 상태</th>
 						<th>후기</th>
 			        </tr>
 				</thead>
@@ -62,7 +63,14 @@
 				        <td>
 				            <span class="status status-end" th:text="${apply.status == 'RECRUITING' ? '모집중' : '종료'}"></span>
 				        </td>
-				        
+				        <td>
+							<span class="status status-end" 
+							      th:text="${apply.applyStatus == 'PENDING' ? '대기중' : 
+							               (apply.applyStatus == 'APPROVED' ? '승인' : 
+							               (apply.applyStatus == 'REJECTED' ? '거절 : ' + apply.rejectReason : 
+							               (apply.applyStatus == 'NOSHOW' ? '노쇼' : '-')))}">
+							</span>
+				        </td>				        
 				        <td>
 							
 						    <div class="action-btn-wrap">
@@ -96,96 +104,8 @@
 			    </th:block>
 			</div>		
 
-		</div>
-
-	<script th:inline="javascript">
-	    const modal = document.getElementById('applicantModal');
-	    
-	    // 타임리프에서 애플리케이션 컨텍스트 패스 가져오기 (기본은 빈 문자열이며 세팅에 따라 채워짐)
-	    const contextPath = /*[[@{/}]]*/ ''; 
-	
-		function changeStatus(applicationId, status, btn){
-			// 기존 복잡한 컨텍스트 패스 연산 수정
-			fetch(contextPath + 'meetup/mypage/updateApplyStatus.do?status=' + status + '&applicationId=' + applicationId)
-	    	.then(res => res.json())
-	    	.then(data => { 
-	    		const statusTd = btn.parentElement.previousElementSibling;
-	    		const statusSpan = statusTd.querySelector("span");
-	    		statusSpan.innerHTML = status == 'APPROVED' ? '승인' : '거절';
-	    		
-	    		if(status == 'APPROVED'){
-	    			btn.parentElement.innerHTML = `<button class="btn-reject" onClick="changeStatus(${applicationId}, 'REJECTED', this)">거절</button>`
-	    		}else {
-	    			btn.parentElement.innerHTML = `<button class="btn-approve" onClick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>`
-	    		}
-	    	})
-	    	.catch(error => {
-		        alert("관리자에게 문의하세요.");
-			})
-		}
-	    
-	    function openModal(meetupId) {
-	    	fetch(contextPath + 'meetup/mypage/meetupMember.do?meetupId=' + meetupId)
-	    	.then(res => res.json())
-	    	.then(data => {
-	    		const tbody = document.getElementById("modalBody")
-				const list = data.list;
-	    		let html= '';
-	    		let button = ''
-	
-	    		for(var i= 0; i < list.length; i++){
-	    			const item = list[i];
-	    			const status = item.applyStatus == "PENDING" ? "대기" : item.applyStatus == "APPROVED" ? "승인" : "거절";
-	    			const applicationId = item.applicationId;
-	    			if (item.applyStatus === 'PENDING') {
-	    				button = `
-	    			        <button class="btn-approve" onclick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>
-	    			        <button class="btn-reject" onclick="changeStatus(${applicationId}, 'REJECTED', this)">거절</button>
-	    			    `;
-	    			} else if (item.applyStatus === 'APPROVED') {
-	    				button = `
-	    			        <button class="btn-reject" onclick="changeStatus(${applicationId}, 'REJECTED', this)">거절</button>
-	    			    `;
-	    			} else if (item.applyStatus === 'REJECTED') {
-	    				button = `
-	    			        <button class="btn-approve" onclick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>
-	    			    `;
-	    			}
-	
-	    			html += `
-	    			<tr>
-	    			    <td style="text-align: left; font-weight: bold;">${item.nickname}</td>
-	    			    <td>${item.applyAt}</td>
-	    			    <td><span class="state-text-wait">${status}</span></td>
-	    			    <td>${button}</td>
-	    			</tr>
-	    			`;
-	    		}
-	    		tbody.innerHTML = html;
-	    		modal.classList.add('active');
-	            document.body.style.overflow = 'hidden';
-	    	})
-	    	.catch(error => {
-			    alert("관리자에게 문의하세요.");
-			})
-	    }
-	
-	    function closeModal() {
-	        modal.classList.remove('active');
-	        document.body.style.overflow = ''; 
-	    }
-	
-	    window.onclick = function(event) {
-	        if (event.target == modal) {
-	            closeModal();
-	        }
-	    }
-	    
-	    function goDetail(meetupId){
-	        location.href = contextPath + "meetup/mypage/update.do?meetupId=" + meetupId;
-	    }
-	</script>		
-		
+		</div>	
 	</div>
+	
 </body>
 </html>
