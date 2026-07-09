@@ -47,9 +47,9 @@ public class ReportsServiceImpl implements ReportsService {
 //		if (count > 0) { return -1; }
 
 		// 신고 난사 select count(*) 쿼리 호출
-//		int todayCnt = dao.TodayReport(dto);
+		int todayCnt = dao.TodayReport(dto);
 		// 5회 이상 신고하면 insert를 하지 않고 -2 반환
-//		if (todayCnt > 0) { return -2; }
+		if (todayCnt >= 5) { return -2; }
 		
 		return dao.insertUserReport(dto);
 	}
@@ -73,7 +73,27 @@ public class ReportsServiceImpl implements ReportsService {
 	@Override
 	public int updateAdmin(ReportsDto dto) {
 		
-		// 신뢰도 점수, 뱃지
+		// rejected or approved
+		int result = dao.updateAdmin(dto);
+		
+		if( "APPROVED".equals(dto.getStatus()) ) {	// status가 APPROVED라면
+			int targetMemberId = dao.selectTargetMemberId(dto);
+			dto.setTargetMemberId(targetMemberId);	// 대상 아이디(정보) 불러오기
+
+			int approvedCnt = dao.approvedCnt(dto);	// 승인 건수 (approvedCnt)
+			dto.setApprovedCnt(approvedCnt);
+
+			if( approvedCnt >= 10 ) {
+				dto.setReportStatusId(3);		// 뱃지 -> 정지 "SUSPENDED"
+			} else if ( approvedCnt >= 5) {	
+				dto.setReportStatusId(2);		// 뱃지 -> 주의 "WARNING"
+			} else {
+				dto.setReportStatusId(1);		// 뱃지 -> 정상 "ACTIVE"
+			}
+			
+			dao.updateTrustScore(dto);			// 신뢰도 점수 update
+			dao.updateBadge(dto);				// 뱃지 상태 update
+		}
 		
 		
 		///////////////////////////////////////////////////
@@ -89,7 +109,7 @@ public class ReportsServiceImpl implements ReportsService {
 		String email = dao.selectEmail(dto);
 		
 		apiEmail.sendMail(content, email); //메일 test
-		return dao.updateAdmin(dto);
+		return result;
 	}
 	
 	@Override

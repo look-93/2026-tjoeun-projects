@@ -17,9 +17,13 @@ public class ReportsDto {
 	private String updatedAt;	// 수정일자
 	
 	// 신고 승인 데이터 기반 신뢰도 점수, 위험뱃지
-	private int targetMemberId;	// 신고당한 사람 ID
-	private int trustScore;		// 신뢰도점수
-	private String badge;		// 뱃지
+	private int targetMemberId;			// 신고당한 유저
+	private String targetNickname;		// 신고당한 유저 닉네임
+	private int approvedCnt;			// 신고 승인(APPROVED) 건수
+	
+	private int selectTrustScore;		// 신뢰도점수
+	private int reportStatusId;			//	1	/	2	/	3
+	private String reportStatusName;	// '정상'	/ '주의'	/ '정지'
 	
 //	private int reportCount;	// �Ű� �Ǽ�
 }

@@ -38,6 +38,22 @@ public interface ReportsMapper {
 	
 	
     // ===== admin =====
+	// 신고당한 글 작성자 조회
+	public int selectTargetMemberId(ReportsDto dto);
+	// 신고당한 글 작성자 닉네임 조회
+	public String selectNickname(ReportsDto dto);
+	
+	// APPROVED 승인 건수 조회 (MEETUP + REVIEW)
+	public int approvedCnt(ReportsDto dto);
+	
+	// 신뢰도 점수 select
+	// 뱃지 select
+	
+	// 신뢰도 점수 update
+	public int updateTrustScore(ReportsDto dto);
+	// 뱃지 1/2/3 update
+	public int updateBadge(ReportsDto dto);
+	
     public int updateAdmin(ReportsDto dto);
     public String selectEmail(ReportsDto dto); 
     public int deleteAdmin(int reportId);

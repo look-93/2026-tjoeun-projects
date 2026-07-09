@@ -4,6 +4,7 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -21,6 +22,8 @@ import com.moit.reports.dto.ReportsDto;
 import com.moit.reports.service.ReportsService;
 import com.moit.util.UtilPaging;
 
+import jakarta.servlet.http.HttpSession;
+
 @Controller
 public class ReportController {
 	@Autowired ReportsService service;
@@ -32,13 +35,27 @@ public class ReportController {
         return "user/meetup/report/button";
     }
 	
+	// 사용자 로그인 헬퍼
+	private Integer getLoginMemberId(HttpSession session) {
+		Integer id = (Integer) session.getAttribute("loginMemberId");
+		return (id != null) ? id : 1; // 일반회원 테스트용
+	}
+
+	// 관리자 로그인 헬퍼
+	private Integer getLoginAdminId(HttpSession session) {
+		Integer id = (Integer) session.getAttribute("loginMemberId");
+		return (id != null) ? id : 22; // 관리자 테스트용
+	}
+	
 	// 내 신고내역 화면 mylist
 	@RequestMapping("/user/meetup/report/mylist")
 	public String reportMylist( @RequestParam(value="pstartno", defaultValue="1") int pstartno,
+								HttpSession session,
 								Model model,
 								Principal principal) {
 		
-		int memberId = 1; // 신고자
+
+		Integer memberId = getLoginMemberId(session);
 		
 //		HashMap<String, Object> map = new HashMap<>();
 //		map.put("start", 0);
@@ -55,10 +72,11 @@ public class ReportController {
 	// br등록
 	@RequestMapping("/user/meetup/report/myPageMyReportList")
 	public String myPageMyReport( @RequestParam(value="pstartno", defaultValue="1") int pstartno,
+								HttpSession session,
 								Model model,
 								Authentication authentication) {
 		
-		int memberId = 1;
+		Integer memberId = getLoginMemberId(session);
 		
 		model.addAttribute("paging", new UtilPaging( service.selectUserCnt(memberId), pstartno ));
 		model.addAttribute("list", service.selectUserReport(pstartno, memberId));
@@ -81,9 +99,11 @@ public class ReportController {
 	}
 	// 신고 작성 기능
 	@PostMapping("/user/meetup/report/write")
-	public String reportWrite_post(ReportsDto dto, RedirectAttributes rttr) {
+	public String reportWrite_post(ReportsDto dto, RedirectAttributes rttr,
+									HttpSession session) {
 		
-		dto.setMemberId(1); // 로그인 회원 번호 test
+		Integer memberId = getLoginMemberId(session);
+		dto.setMemberId(memberId);
 		
 		int result_TargetType = -1;
 		String result = "신고등록 실패";
@@ -125,11 +145,13 @@ public class ReportController {
 	
 	// 내 신고 상세 화면 detail
 	@RequestMapping("/user/meetup/report/detail")
-	public String reportDetail( int reportId, Model model) {
+	public String reportDetail( int reportId, HttpSession session, Model model) {
 		
 		ReportsDto dto = new ReportsDto();
 		dto.setReportId(reportId);
-		dto.setMemberId(1); // 신고자
+		
+		Integer memberId = getLoginMemberId(session); // 사용자 login
+		dto.setMemberId(memberId);
 		
 		model.addAttribute("dto", service.selectUserReportDetail(dto));
 		
@@ -138,11 +160,13 @@ public class ReportController {
 	
 	// 신고 수정 화면 update
 	@GetMapping( value="/user/meetup/report/update")
-	public String reportUpdate(int reportId, Model model) {
+	public String reportUpdate(int reportId, HttpSession session, Model model) {
 
 		ReportsDto dto = new ReportsDto();
 		dto.setReportId(reportId);
-		dto.setMemberId(1); // 신고자
+		
+		Integer memberId = getLoginMemberId(session); // 사용자 login
+		dto.setMemberId(memberId);
 		
 		model.addAttribute("dto", service.selectUserReportDetail(dto));
 		return "user/meetup/report/update";
@@ -150,9 +174,10 @@ public class ReportController {
 	
 	// 신고 수정 처리
 	@PostMapping("/user/meetup/report/update")
-	public String reportUpdate_post(ReportsDto dto, RedirectAttributes rttr) {
+	public String reportUpdate_post(ReportsDto dto, HttpSession session, RedirectAttributes rttr) {
 		
-		dto.setMemberId(1); // 신고자
+		Integer memberId = getLoginMemberId(session); // 사용자 login
+		dto.setMemberId(memberId);
 		
 		String result="신고수정 실패";
 		
@@ -166,9 +191,11 @@ public class ReportController {
 	
 	// 신고 삭제 처리 delete
 	@PostMapping("/user/meetup/report/delete")
-	public String reportDelete_post(ReportsDto dto, RedirectAttributes rttr) {
+	public String reportDelete_post(ReportsDto dto, HttpSession session, RedirectAttributes rttr) {
 		
-		dto.setMemberId(1); // 신고자
+		//dto.setMemberId(1); // 신고자
+		Integer memberId = getLoginMemberId(session); // 사용자 login
+		dto.setMemberId(memberId);
 		
 		String result="신고삭제 실패";
 		
@@ -180,7 +207,7 @@ public class ReportController {
 		return "redirect:/user/meetup/report/mylist";
 	}
 	
-	
+	////////////////////////////////////////////////////////////////////////////////////////
 	// 관리자 리스트 목록
 	@GetMapping("/admin/report/adminList")
 	public String adminList(@RequestParam(value="pstartno", defaultValue="1") int pstartno,
@@ -190,7 +217,14 @@ public class ReportController {
 							
 							@RequestParam(value="searchType", required=false) String searchType,
 							@RequestParam(value="keyword", required=false) String keyword,
+							HttpSession session,
 							Model model) {
+		
+		Integer adminMemberId = getLoginAdminId(session);
+	
+	    if (adminMemberId == null) {
+	    	adminMemberId = 12;
+	    }
 		
 		HashMap<String, Object> map = new HashMap<>();
 		
@@ -225,13 +259,21 @@ public class ReportController {
 	// 관리자 리스트 목록 상세보기
 	@RequestMapping("/admin/report/adminDetail")
 	public String adminDetail(	@RequestParam("reportId") int reportId,
+								HttpSession session,
 								Model model) {
+		
+//		Integer memberId = (Integer) session.getAttribute("loginMemberId");
+		Integer adminMemberId = getLoginAdminId(session);
+		
+	    if (adminMemberId == null) {
+	    	adminMemberId = 12;
+	    }
 		
 		HashMap<String, Object> map = new HashMap<>(); // 조회 조건
 		map.put("reportId", reportId);
 //		model.addAttribute("dto", service.selectAdminReports(map));
 		
-		List<ReportsDto> list = service.selectAdminReports(map); // 조회 결과
+		List<ReportsDto> list = service.selectAdminReports(map); // 관리자 상세 조회 결과
 		if (list != null && !list.isEmpty()) {
 			model.addAttribute("dto", list.get(0));
 		}
@@ -241,7 +283,13 @@ public class ReportController {
 	
 	// 관리자 APPROVED 수정
 	@PostMapping("/admin/report/update")
-	public String reportUpdateAdmin_post(ReportsDto dto, RedirectAttributes rttr) {
+	public String reportUpdateAdmin_post(ReportsDto dto, HttpSession session, RedirectAttributes rttr) {
+		
+		Integer adminMemberId = getLoginAdminId(session);
+		
+	    if (adminMemberId == null) {
+	    	adminMemberId = 12;
+	    }
 		
 		String result="status 상태 수정 실패";
 		
@@ -249,6 +297,7 @@ public class ReportController {
 			if( "APPROVED".equals(dto.getStatus()) ) {
 				result="APPROVED 수정 성공";
 			}
+			
 			else if ( "REJECTED".equals(dto.getStatus()) ) {
 				result="REJECTED 수정 성공";
 			}
@@ -260,7 +309,14 @@ public class ReportController {
 	// 관리자 신고 삭제
 	@PostMapping("/admin/report/delete")
 	public String reportDeleteAdmin_post(	@RequestParam("reportId") int reportId,
-											ReportsDto dto, RedirectAttributes rttr) {
+											ReportsDto dto, HttpSession session, RedirectAttributes rttr) {
+		
+		Integer adminMemberId = getLoginAdminId(session);
+		
+	    if (adminMemberId == null) {
+	    	adminMemberId = 12;
+	    }
+	    
 		String result="신고삭제 실패";
 		
 		if( service.deleteAdmin(reportId) > 0 ) {

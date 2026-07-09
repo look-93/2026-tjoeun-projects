@@ -35,6 +35,7 @@
 		order by report_id desc
 		offset #{start} rows fetch next #{end} rows only
 	</select>
+	
 	<select id="selectUserCnt" resultType="int">
 		select count(*) from reports 
 		where member_id = #{memberId} and delete_yn = 'N'
@@ -68,36 +69,80 @@
 	<!-- ===== admin ===== -->
 	<!-- ===== admin ===== -->
 	
-	<!-- 신고당한 글 작성자 찾기 (targetMemberId)
-	reports.target_id = 신고당한 글 번호
-	meetup.meetup_id = 모임 글 번호
-	meetup.member_id = 그 모임 글 작성자
-	-->
-	<!-- APPROVED 승인 건수 조회 (MEETUP) -->
+	<!-- 신고당한 글 작성자 select (targetMemberId) -->
+	<select id="selectTargetMemberId" resultType="int" parameterType="ReportsDto">
+		select t.target_member_id
+		from (
+			select r.report_id, mt.member_id as target_member_id
+			from reports r		join meetups mt		on r.target_id = mt.meetup_id
+			where r.target_type = 'MEETUP'
+			
+			union all
+			
+			select r.report_id, rv.member_id as target_member_id
+			from reports r		join reviews rv		on r.target_id = rv.review_id
+			where r.target_type = 'REVIEW'
+		) t
+		where report_id = #{reportId}
+	</select>
+	
+	<!-- 신고당한 글 작성자 select (members.nickname) -->
+	<select id="selectNickname" resultType="String" parameterType="ReportsDto">
+		select nickname
+		from members
+		where member_id = #{targetMemberId}
+	</select>
+	
+	<!-- APPROVED 승인 건수 조회 (MEETUP + REVIEW) -->
 	<select id="approvedCnt" resultType="int" parameterType="ReportsDto">
 		select count(*)
-		from reports r		join meetups mt		on r.target_id = mt.meetup_id
-		where r.target_type = 'MEETUP' and r.status = 'APPROVED' and mt.member_id = #{targetMemberId}
+		from (
+			select mt.member_id as target_member_id
+			from reports r		join meetups mt		on r.target_id = mt.meetup_id
+			where r.target_type = 'MEETUP' and r.status = 'APPROVED'
+				
+			union all
+				
+			select rv.member_id as target_member_id
+			from reports r		join reviews rv		on r.target_id = rv.review_id
+			where r.target_type = 'REVIEW' and r.status = 'APPROVED'
+		)		
+		where target_member_id = #{targetMemberId}
 	</select>
 	
-	<!-- 신뢰도 점수 계산 -->
-	<select id="trustScore" resultType="int" parameterType="ReportsDto">
-		select 100 - (count(*) * 10)
-		from reports r		join meetups mt		on r.target_id = mt.meetup_id
-		where r.target_type = 'MEETUP' and r.status = 'APPROVED' and mt.member_id = #{targetMemberId}
+	<!-- 신뢰도 점수 select -->
+	<select id="selectTrustScore" resultType="int" parameterType="ReportsDto">
 	</select>
 	
-	<!-- member_info 테이블에 신뢰도 점수(trust_score) update -->
-	<update id="trustScoreUpdate" parameterType="ReportsDto">
+	<!-- 뱃지 select -->
+	<select id="selectBadge" resultType="String" parameterType="ReportsDto">
+	</select>
+	
+	<!-- 신뢰도 점수 update (member_info.trust_score) -->
+	<update id="updateTrustScore" parameterType="ReportsDto">
 		update member_info
 		set trust_score = (
 			select 100 - (count(*) * 10)
-			from reports r join meetups mt
-				on r.target_id = mt.meetup_id
-			where r.target_type = 'MEETUP'
-				and r.status = 'APPROVED'
-				and mt.member_id = #{targetMemberId}
+			from (
+				select mt.member_id as target_member_id
+				from reports r		join meetups mt		on r.target_id = mt.meetup_id
+				where r.target_type = 'MEETUP' and r.status = 'APPROVED'
+	
+				union all
+				
+				select rv.member_id as target_member_id
+				from reports r		join reviews rv		on r.target_id = rv.review_id
+				where r.target_type = 'REVIEW' and r.status = 'APPROVED'
+			)
+			where target_member_id = #{targetMemberId}
 		)
+		where member_id = #{targetMemberId}
+	</update>
+	
+	<!-- 뱃지 1/2/3 update (member_info.report_status_id) -->
+	<update id="updateBadge" parameterType="ReportsDto">
+		update member_info
+		set report_status_id = #{reportStatusId}
 		where member_id = #{targetMemberId}
 	</update>
 	
