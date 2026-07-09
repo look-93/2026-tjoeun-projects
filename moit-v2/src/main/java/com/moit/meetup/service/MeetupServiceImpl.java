@@ -13,12 +13,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.moit.meetup.client.OpenAiService;
 import com.moit.meetup.dao.MeetupMapper;
 import com.moit.meetup.dto.MeetupApplicationDto;
 import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupImageDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
+import com.moit.meetup.dto.TrustScoreDto;
 import com.moit.meetup.dto.common.CategoryDto;
 import com.moit.meetup.dto.common.SidoDto;
 import com.moit.meetup.dto.common.SigunguDto;
@@ -31,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MeetupServiceImpl implements MeetupService{
 	@Autowired MeetupMapper meetupMapper; 
 	@Autowired UtilUpload upload;
+	@Autowired OpenAiService openAiService;
 	
 	private static final String UPLOAD_PATH = "C:/upload/meetup";
 
@@ -69,10 +72,31 @@ public class MeetupServiceImpl implements MeetupService{
 	
 	//모집 - 신청
 	@Override
+	@Transactional
 	public int insertApplication(MeetupApplicationDto meetupApplicationsDto) {
-		System.out.println(meetupApplicationsDto.getMemberId());
-		System.out.println(meetupApplicationsDto.getMeetupId());
+		//System.out.println(meetupApplicationsDto.getMemberId());
+		//System.out.println(meetupApplicationsDto.getMeetupId());
+		String aiSummary = "신뢰도가 높은 회원입니다.";
 		MeetupApplicationDto find = this.findApplyInfo(meetupApplicationsDto);
+		
+		// 1. 신뢰점수 계산
+		TrustScoreDto trustScoreDto = meetupMapper.calculatedScore(meetupApplicationsDto.getMemberId());
+
+		// 2. [내가 직접 포맷을 짜서 만드는 프롬프트 문구]
+		String aiPrompt = "[대상 유저 이력 정보]\n"
+		        + "- 최근 3개월 내 무단 노쇼(NOSHOW): " + trustScoreDto.getNoshowCount() + "회\n"
+		        + "- 모임 시작 24시간 이내 직전 취소: " + trustScoreDto.getCancelCount() + "회\n"
+		        + "- 3월 내 신고 당한 횟수: " + trustScoreDto.getReportCount() + "회\n"
+		        + "위 이력을 바탕으로 모임 개설자가 주의할 수 있게 20자 내외의 경고성 한 줄 요약문을 만들어줘.";
+		
+		if(trustScoreDto.getFinalTrustScore() < 60) {
+			aiSummary = openAiService.getAIResponse(aiPrompt);
+		}
+		//System.out.println(aiPrompt);
+		//System.out.println(trustScoreDto.getFinalTrustScore());
+		trustScoreDto.setAiSummary(aiSummary);
+		trustScoreDto.setMemberId(meetupApplicationsDto.getMemberId());
+		meetupMapper.updateAiSummaryAndTrustScore(trustScoreDto);
 		
 		if(find != null) {
 			return meetupMapper.updateApplication(find);	

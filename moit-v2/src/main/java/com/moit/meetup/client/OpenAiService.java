@@ -29,7 +29,7 @@ public class OpenAiService {
     			"messages" , List.of(
 					Map.of(
 	    			        "role", "user", 
-	    			        "content", userMessage + " 내용을 이모티콘으로 요약해줘"	    			        
+	    			        "content", userMessage    			        
 					)			
     			)
     		);
@@ -42,7 +42,7 @@ public class OpenAiService {
         										   .header("Authorization","Bearer " + apiKey) //Bearer 적고 한칸띄기
         										   .body(body)
         										   .retrieve()
-        										   .body(String.class); // 응답을 Stringd으로 받음
+        										   .body(String.class); // 응답을 String으로 받음
     		
         	//3. json 파싱    
         	JsonNode root = objectMapper.readTree(responseBody);

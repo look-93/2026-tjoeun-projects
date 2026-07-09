@@ -3,7 +3,12 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.moit.meetup.dao.MeetupMapper">
-
+	<!-- SQL	XML에서 작성
+	<	&lt;
+	<=	&lt;=
+	>	&gt; (생략 가능한 경우도 많음)
+	>=	&gt;= -->
+	
 	<!-- meetup 단건조회 - 관리자/사용자  -->
 	<select id="findAllMeetupBy" parameterType="MeetupSearchDto" resultType="MeetupDto">
 		SELECT A.*,
@@ -453,7 +458,8 @@
 	</delete>
 		
 	<!-- 이미지 삭제 -->
-
+	
+	<!-- 노쇼방지 -->
 	<!-- 노쇼방지 계산식 
 	### 📉 감점 요인 (가중치 높음)
 	 1. 최근 3개월 내 무단 노쇼 (`meetup_applications.status = 'NOSHOW'`):   건당 **-5점**
@@ -476,7 +482,7 @@
 		       (NVL(d.noshow_count, 0) * 5) AS noshow_score,
 		       (NVL(e.cancel_count, 0) * 6) AS cancel_score,
 		       (NVL(f.report_count, 0) * 7) AS report_score,
-		       (NVL(g.review_bonus_flag, 0) * 10) AS review_rating_count,
+		       (NVL(g.review_bonus_flag, 0) * 10) AS review_rating_score,
 		
 		       NVL(d.noshow_count, 0) AS noshow_count,
 		       NVL(e.cancel_count, 0) AS cancel_count,
@@ -540,6 +546,15 @@
 	
 	</select>
 	
-	<!-- 노쇼방지 계산식 -->
+	<update id="updateAiSummaryAndTrustScore" parameterType="TrustScoreDto">	
+		UPDATE MEMBER_INFO
+		SET trust_score = #{finalTrustScore},
+		    ai_summary = #{aiSummary}                         
+		WHERE member_id = #{memberId}	
+	</update>
+	
+	<!-- 노쇼방지 -->
+	
+
 	
 </mapper>

@@ -97,5 +97,5 @@ public interface MeetupMapper {
 	
 	//노쇼방지 계산식
 	public TrustScoreDto calculatedScore(int memberId);
-
+	public int updateAiSummaryAndTrustScore(TrustScoreDto trustScoreDto);
 }
