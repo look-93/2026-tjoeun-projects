@@ -92,10 +92,15 @@ public interface AdvertisementService {
     int selectClosedAdvertisementCnt();
 
     // 클릭 로그
-	boolean insertClickLog(int adId, HttpServletRequest request, HttpSession session);
+	boolean insertClickLog(int adId, String position, HttpServletRequest request, HttpSession session);
 	
 	// 노출 로그
-	boolean insertImpressionLog(int adId, HttpServletRequest request, HttpSession session);
+	boolean insertImpressionLog(int adId, String position, HttpServletRequest request, HttpSession session);
 
+	// 
+	void createDailyStatistics();
+
+	// 일일통계
+	void insertDailyStatistics();
 
 }

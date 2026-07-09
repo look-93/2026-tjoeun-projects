@@ -57,6 +57,7 @@ public class MeetupController {
             boolean counted =
                 advertisementService.insertImpressionLog(
                     mainAd.getAdId(),
+                    "MAIN",
                     request,
                     session
                 );
@@ -95,6 +96,7 @@ public class MeetupController {
 	        boolean counted =
 	            advertisementService.insertImpressionLog(
 	                banner.getAdId(),
+                    "MEETUP_LIST_BANNER",
 	                request,
 	                session
 	            );
@@ -109,14 +111,15 @@ public class MeetupController {
 
             boolean counted =
                 advertisementService.insertImpressionLog(
-                    banner.getAdId(),
+                	sidebar.getAdId(),
+                    "MEETUP_LIST_SIDEBAR",
                     request,
                     session
                 );
 
             if(counted){
                 advertisementService.updateImpressions(
-                    banner.getAdId()
+                	sidebar.getAdId()
                 );
             }
         }
@@ -193,6 +196,7 @@ public class MeetupController {
 		    boolean counted =
 		        advertisementService.insertImpressionLog(
 		            desidebar.getAdId(),
+                    "MEETUP_DETAIL_SIDEBAR",
 		            request,
 		            session
 		        );

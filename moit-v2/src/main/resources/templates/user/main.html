@@ -62,7 +62,7 @@
 		         th:if="${mainAd != null}"
 		         th:classappend="${mainAd.imageList != null and !mainAd.imageList.isEmpty()} ? ' has-image' : ''">
 	
-			<a th:href="@{/user/advertisement/click(adId=${mainAd.adId})}">
+			<a th:href="@{/user/advertisement/click(adId=${mainAd.adId}, position='MAIN')}">
 	
 				<!-- 광고 이미지 존재 -->
 				<img th:if="${mainAd.imageList != null 

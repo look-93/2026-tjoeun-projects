@@ -338,7 +338,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	@Override
 	@Transactional
 	public boolean insertClickLog(
-	        int adId,
+	        int adId, String position,
 	        HttpServletRequest request,
 	        HttpSession session) {
 
@@ -381,7 +381,8 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	            deviceType,
 	            ip,
 	            request.getSession().getId(),
-	            request.getHeader("Referer")
+	            request.getHeader("Referer"),
+	            position
 	    );
 	    
 	 // 로그인 회원이면 포인트 지급
@@ -405,7 +406,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	@Override
 	@Transactional
 	public boolean insertImpressionLog(
-	        int adId,
+	        int adId, String position,
 	        HttpServletRequest request,
 	        HttpSession session) {
 
@@ -465,10 +466,26 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	        memberId,
 	        deviceType,
 	        ip,
-	        sessionId
+	        sessionId,
+	        position
 	    );
 
 
 	    return true;
 	}
+	
+	@Override
+	@Transactional
+	public void insertDailyStatistics(){
+
+	    advertisementMapper.insertDailyStatistics();
+
+	}
+
+	@Override
+	public void createDailyStatistics() {
+		
+	}
+	
+	
 }

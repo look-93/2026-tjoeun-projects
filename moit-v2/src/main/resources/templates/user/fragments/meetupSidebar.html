@@ -12,7 +12,7 @@
 		             th:if="${sidebarAd != null}"
 		             th:classappend="${sidebarAd.imageList != null and !sidebarAd.imageList.isEmpty()} ? ' has-image' : ''">
 		
-		        <a th:href="@{/user/advertisement/click(adId=${sidebarAd.adId})}">
+		        <a th:href="@{/user/advertisement/click(adId=${sidebarAd.adId},  position='MEETUP_LIST_SIDEBAR')}">
 		
 		            <img th:if="${sidebarAd.imageList != null 
 		                         and !sidebarAd.imageList.isEmpty()}"

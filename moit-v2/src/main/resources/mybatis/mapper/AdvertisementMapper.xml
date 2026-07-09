@@ -567,9 +567,9 @@
 			            AND ail.viewed_at >= SYSDATE - 1
 			
 			            AND (
-			                ail.member_id = #{memberId}
+			                ail.member_id = #{memberId, jdbcType=NUMERIC}
 			                OR (
-			                    #{memberId} IS NULL
+			                    #{memberId, jdbcType=NUMERIC} IS NULL
 			                    AND ail.session_id = #{sessionId}
 			                )
 			            )
@@ -745,7 +745,8 @@
 		    device_type,
 		    ip_address,
 		    session_id,
-		    referrer
+		    referrer,
+    		position
 		)
 		VALUES
 		(
@@ -755,7 +756,8 @@
 		    #{deviceType},
 		    #{ipAddress},
 		    #{sessionId},
-		    #{referrer}
+		    #{referrer},
+    		#{position}
 		)
 	
 	</insert>
@@ -869,7 +871,8 @@
 	        member_id,
 	        device_type,
 	        ip_address,
-	        session_id
+	        session_id,
+    		position
 	    )
 	    VALUES
 	    (
@@ -878,8 +881,104 @@
 	        #{memberId, jdbcType=NUMERIC},
 	        #{deviceType},
 	        #{ipAddress},
-	        #{sessionId}
+	        #{sessionId},
+    		#{position}
 	    )
+	
+	</insert>
+
+	<!-- 광고 일일 통계 생성 -->
+	<insert id="insertDailyStatistics">
+	
+	    INSERT INTO advertisement_daily_statistics
+	    (
+	        stat_id,
+	        ad_id,
+	        stat_date,
+	        impressions,
+	        clicks,
+	        ctr,
+	        fatigue_score
+	    )
+	
+	    SELECT
+	        seq_advertisement_statistics.NEXTVAL,
+	        a.ad_id,
+	        TRUNC(SYSDATE)-1,
+	
+	        NVL(i.impressions,0),
+	
+	        NVL(c.clicks,0),
+	
+	        ROUND(
+	            NVL(c.clicks,0)
+	            /
+	            NULLIF(i.impressions,0)
+	            * 100
+	        ,2),
+	
+	        CASE
+	            WHEN NVL(i.impressions,0) >= 10000
+	             AND ROUND(
+	                    NVL(c.clicks,0)
+	                    /
+	                    NULLIF(i.impressions,0)
+	                    *100
+	                 ,2) < 1
+	            THEN 80
+	
+	            WHEN NVL(i.impressions,0) >= 5000
+	             AND ROUND(
+	                    NVL(c.clicks,0)
+	                    /
+	                    NULLIF(i.impressions,0)
+	                    *100
+	                 ,2) < 3
+	            THEN 50
+	
+	            ELSE 10
+	        END
+	
+	
+	    FROM advertisements a
+	
+	
+	    LEFT JOIN
+	    (
+	        SELECT
+	            ad_id,
+	            COUNT(*) impressions
+	
+	        FROM advertisement_impression_log
+	
+	        WHERE viewed_at >= TRUNC(SYSDATE)-1
+	        AND viewed_at < TRUNC(SYSDATE)
+	
+	        GROUP BY ad_id
+	
+	    ) i
+	
+	    ON a.ad_id = i.ad_id
+	
+	
+	
+	    LEFT JOIN
+	    (
+	        SELECT
+	            ad_id,
+	            COUNT(*) clicks
+	
+	        FROM advertisement_click_log
+	
+	        WHERE clicked_at >= TRUNC(SYSDATE)-1
+	        AND clicked_at < TRUNC(SYSDATE)
+	
+	        GROUP BY ad_id
+	
+	    ) c
+	
+	    ON a.ad_id = c.ad_id
+	
 	
 	</insert>
 
