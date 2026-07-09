@@ -79,8 +79,8 @@ public interface AdvertisementService {
     // 클릭 수 증가
     int updateAdvertisementClick(int adId);
 
-    // 메인 광고 조회
-    AdvertisementDto selectTopAdvertisement(String position);
+    // 광고 조회
+    AdvertisementDto selectTopAdvertisement(String position, Integer memberId, String sessionId);
 
     // 통계
     int selectTotalAdvertisementCnt();
@@ -92,9 +92,10 @@ public interface AdvertisementService {
     int selectClosedAdvertisementCnt();
 
     // 클릭 로그
-	void insertClickLog(int adId, HttpServletRequest request, HttpSession session);
-
-
+	boolean insertClickLog(int adId, HttpServletRequest request, HttpSession session);
+	
+	// 노출 로그
+	boolean insertImpressionLog(int adId, HttpServletRequest request, HttpSession session);
 
 
 }

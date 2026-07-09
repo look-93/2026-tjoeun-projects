@@ -309,8 +309,8 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
 	// 메인 광고 조회
 	@Override
-	public AdvertisementDto selectTopAdvertisement(String position) {
-		return advertisementMapper.selectTopAdvertisement(position);
+	public AdvertisementDto selectTopAdvertisement( String position, Integer memberId, String sessionId) {
+	    return advertisementMapper.selectTopAdvertisement( position, memberId, sessionId);
 	}
 
 	// 통계
@@ -333,9 +333,11 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	public int selectClosedAdvertisementCnt() {
 		return advertisementMapper.selectClosedAdvertisementCnt();
 	}
-
+	
+	// 클릭 로그 저장 
 	@Override
-	public void insertClickLog(
+	@Transactional
+	public boolean insertClickLog(
 	        int adId,
 	        HttpServletRequest request,
 	        HttpSession session) {
@@ -344,16 +346,129 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 		Integer loginMemberId =
 	            (Integer) session.getAttribute("loginMemberId");
 
+		String ip =
+	            request.getRemoteAddr();
+		
+		String userAgent = request.getHeader("User-Agent");
+
+		String deviceType = "PC";
+
+		if(userAgent != null){
+			String ua = userAgent.toLowerCase();
+			
+			if (ua.contains("ipad") || ua.contains("tablet")) {
+		        deviceType = "TABLET";
+		    } else if (ua.contains("mobile")
+		            || ua.contains("android")
+		            || ua.contains("iphone")) {
+		        deviceType = "MOBILE";
+		    }
+		}
+
+		
+	    int count =
+	        advertisementMapper.checkDuplicateClick( adId, loginMemberId, ip );
+
+
+	    // 최근 1시간 클릭 기록 있으면 저장 X
+	    if(count > 0){
+	        return false;
+	    }
+	    System.out.println("deviceType = [" + deviceType + "]");
+	    advertisementMapper.insertClickLog(
+	            adId,
+	            loginMemberId,
+	            deviceType,
+	            ip,
+	            request.getSession().getId(),
+	            request.getHeader("Referer")
+	    );
+	    
+	 // 로그인 회원이면 포인트 지급
+	    if (loginMemberId != null) {
+
+	        int pointCount =
+	                advertisementMapper.checkAdvertisementPoint(loginMemberId);
+
+	        if (pointCount == 0) {
+
+	            advertisementMapper.updateMemberPoint(loginMemberId);
+
+	            advertisementMapper.insertPointHistory(loginMemberId);
+	        }
+	    }
+	    
+	    return true;
+	}
+	
+	// 노출 로그 저장 
+	@Override
+	@Transactional
+	public boolean insertImpressionLog(
+	        int adId,
+	        HttpServletRequest request,
+	        HttpSession session) {
+
+
+	    Integer memberId =
+	        (Integer) session.getAttribute("loginMemberId");
+
+
+	    String ip =
+	        request.getRemoteAddr();
+
+
+	    String sessionId =
+	        request.getSession().getId();
+
 
 	    String userAgent =
 	        request.getHeader("User-Agent");
 
 
-	    advertisementMapper.insertClickLog(
+	    String deviceType = "PC";
+
+
+	    if(userAgent != null){
+
+	        String ua = userAgent.toLowerCase();
+
+	        if(ua.contains("ipad")
+	            || ua.contains("tablet")) {
+
+	            deviceType = "TABLET";
+
+	        } else if(ua.contains("mobile")
+	                || ua.contains("android")
+	                || ua.contains("iphone")) {
+
+	            deviceType = "MOBILE";
+	        }
+	    }
+
+
+	    int count =
+	        advertisementMapper.checkDuplicateImpression(
 	            adId,
-	            loginMemberId,
-	            request.getRemoteAddr(),
-	            request.getHeader("User-Agent")
+	            memberId,
+	            sessionId
+	        );
+
+
+	    if(count > 0){
+	        return false;
+	    }
+
+
+	    advertisementMapper.insertImpressionLog(
+	        adId,
+	        memberId,
+	        deviceType,
+	        ip,
+	        sessionId
 	    );
+
+
+	    return true;
 	}
 }

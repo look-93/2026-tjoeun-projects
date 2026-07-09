@@ -338,15 +338,16 @@ public class AdvertisementController {
             HttpSession session) {
 
 
-    	// 클릭 로그 저장
-        advertisementService.insertClickLog(
-                adId,
-                request,
-                session
-        );
-
-
-        advertisementService.updateAdvertisementClick(adId);
+    	// 클릭 로그 확인 (1시간에 한번만 +1 인정)
+    	boolean counted = advertisementService.insertClickLog(
+    	        adId,
+    	        request,
+    	        session
+    	);
+    	// 한시간 내에 기록 x면 증가
+    	if (counted) {
+    	    advertisementService.updateAdvertisementClick(adId);
+    	}
 
         AdvertisementDto dto =
                 advertisementService.selectAdvertisementOne(adId);
