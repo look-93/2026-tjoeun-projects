@@ -37,42 +37,7 @@ public class MeetupController {
 	@Autowired AdvertisementService advertisementService;
 	@Autowired ReviewService reviewService;
 	
-	/* 메인페이지 광고 */
-	@GetMapping("/main")
-    public String main(Model model,
-		            HttpServletRequest request,
-		            HttpSession session) {
 
-		Integer memberId =
-				 (Integer)session.getAttribute("loginMemberId");
-		
-		String sessionId =
-		        session.getId();
-		
-        AdvertisementDto mainAd =
-                advertisementService.selectTopAdvertisement("MAIN", memberId, sessionId);
-        //System.out.println(mainAd + "dddddddddddddddddddddddddddddddddddddddddddd");
-        // 광고가 존재하면 노출 증가
-        if(mainAd != null) {
-
-            boolean counted =
-                advertisementService.insertImpressionLog(
-                    mainAd.getAdId(),
-                    "MAIN",
-                    request,
-                    session
-                );
-
-            if(counted){
-                advertisementService.updateImpressions(mainAd.getAdId());
-            }
-        }
-        
-        model.addAttribute("mainAd", mainAd);
-        
-
-        return "user/main";
-    }
 	
 	/*1. 모임 리스트 화면(HTML) 호출*/
 	@GetMapping("/meetup/list")
