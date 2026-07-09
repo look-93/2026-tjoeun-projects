@@ -526,7 +526,6 @@
 
    <!-- 위치별 광고 조회 -->
 	<select id="selectTopAdvertisement"
-        parameterType="String"
         resultMap="AdvertisementWithImageMap">
 
 	    SELECT 
@@ -546,6 +545,38 @@
 	      AND a.status = 'OPEN'
 	      AND CURRENT_TIMESTAMP BETWEEN a.start_datetime 
 	                                AND a.end_datetime
+	      ORDER BY
+	        (
+			    a.priority_score
+			    -
+			    NVL(
+			        (
+			            SELECT
+			                CASE
+			                    WHEN COUNT(*) >= 20 THEN 5
+			                    WHEN COUNT(*) >= 10 THEN 3
+			                    WHEN COUNT(*) >= 4 THEN 1
+			                    ELSE 0
+			                END
+			
+			            FROM advertisement_impression_log ail
+			
+			            WHERE ail.ad_id = a.ad_id
+			
+			            AND ail.viewed_at >= SYSDATE - 1
+			
+			            AND (
+			                ail.member_id = #{memberId, jdbcType=NUMERIC}
+			                OR (
+			                    #{memberId, jdbcType=NUMERIC} IS NULL
+			                    AND ail.session_id = #{sessionId}
+			                )
+			            )
+			
+			        ),0
+			    )
+			) DESC,
+	        DBMS_RANDOM.VALUE
 	
 	      ORDER BY
            a.priority_score DESC,
@@ -556,8 +587,6 @@
 	</select>
 	
 	
-	
-
     <!-- 전체 광고 수 -->
     <select id="selectTotalAdvertisementCnt"
         resultType="int">
@@ -594,7 +623,7 @@
 	    SET priority_score =
 	    CASE
 	
-	        <!-- 프리미엄 -->
+	        <!-- 프리미엄 | 기본값 5, 최댓값 10 -->
 	        WHEN ad_grade = 'PREMIUM'
 	        THEN LEAST(
 	            
@@ -625,7 +654,7 @@
 	        ,10)
 	
 	
-	        <!-- 일반 -->
+	        <!-- 일반 | 기본값 1, 최댓값 6 -->
 	        ELSE LEAST(
 	
 	            1	
@@ -654,9 +683,7 @@
 	
 	        ,6)
 	
-	    END,
-	
-	    updated_at = CURRENT_TIMESTAMP
+	    END
 	
 	    WHERE delete_yn = 'N'
 	      AND approval_status = 'APPROVED'
@@ -698,5 +725,264 @@
 	      AND status = 'CLOSED'
 	
 	</select>
+	<!-- 광고 클릭수 증가 -->
+	<update id="updateClickCount">
+
+	    UPDATE advertisements
+	
+	    SET click_count =
+	        click_count + 1
+	
+	    WHERE ad_id = #{adId}
+	
+	</update>
+	
+	<!-- 클릭 로그 -->
+	<insert id="insertClickLog">
+
+	    INSERT INTO advertisement_click_log
+		(
+		    click_id,
+		    ad_id,
+		    member_id,
+		    device_type,
+		    ip_address,
+		    session_id,
+		    referrer,
+    		position
+		)
+		VALUES
+		(
+		    seq_advertisement_click.NEXTVAL,
+		    #{adId},
+		    #{memberId, jdbcType=NUMERIC},
+		    #{deviceType},
+		    #{ipAddress},
+		    #{sessionId},
+		    #{referrer},
+    		#{position}
+		)
+	
+	</insert>
+	
+	<!-- 클릭 확인 (동일광고 한해 1시간에 한번만 클릭 인정) -->
+	<select id="checkDuplicateClick"
+	        resultType="int">
+	
+	    SELECT COUNT(*)
+	
+	    FROM advertisement_click_log
+	
+	    WHERE ad_id = #{adId}
+	
+	    AND clicked_at >= SYSDATE - (1/24)
+	
+	    <choose>
+	
+	        <when test="memberId != null">
+	            AND member_id = #{memberId}
+	        </when>
+	
+	        <otherwise>
+	            AND ip_address = #{clickIp}
+	        </otherwise>
+	
+	    </choose>
+	
+	</select>
+	
+	<!-- 클릭 증가시 사용자 포인트 증가 -->
+	<update id="updateMemberPoint">
+
+	    UPDATE member_info
+	
+	    SET point = point + 10
+	
+	    WHERE member_id = #{memberId}
+	
+	</update>
+	<!-- 최근 한시간 내에 지급 여부 확인 -->
+	<select id="checkAdvertisementPoint" resultType="int">
+
+	    SELECT COUNT(*)
+	    FROM point_history
+	    WHERE member_id = #{memberId}
+	      AND point_reason = 'ADVERTISEMENT_CLICK'
+	      AND created_at >= SYSDATE - (1/24)
+	
+	</select>
+	<!-- 포인트 이력 저장 -->
+	<insert id="insertPointHistory">
+
+	    INSERT INTO point_history
+	    (
+	        history_id,
+	        member_id,
+	        point_pm,
+	        point_type,
+	        point_reason
+	    )
+	    VALUES
+	    (
+	        history_seq.NEXTVAL,
+	        #{memberId},
+	        10,
+	        'EARN',
+	        'ADVERTISEMENT_CLICK'
+	    )
+	
+	</insert>
+	
+	<!-- 노출 확인 (동일광고 한해 30분동안 한번 노출 인정) -->
+	<select id="checkDuplicateImpression"
+	        resultType="int">
+	
+	    SELECT COUNT(*)
+	
+	    FROM advertisement_impression_log
+	
+	    WHERE ad_id = #{adId}
+	
+	    AND viewed_at >= SYSTIMESTAMP - INTERVAL '30' MINUTE
+	
+	
+	    <choose>
+	
+	        <when test="memberId != null">
+	
+	            AND member_id = #{memberId}
+	
+	        </when>
+	
+	        <otherwise>
+	
+	            AND session_id = #{sessionId}
+	
+	        </otherwise>
+	
+	    </choose>
+	
+	</select>
+	
+	<!-- 노출 로그 추가 -->
+	<insert id="insertImpressionLog">
+
+	    INSERT INTO advertisement_impression_log
+	    (
+	        impression_id,
+	        ad_id,
+	        member_id,
+	        device_type,
+	        ip_address,
+	        session_id,
+    		position
+	    )
+	    VALUES
+	    (
+	        seq_advertisement_impression.NEXTVAL,
+	        #{adId},
+	        #{memberId, jdbcType=NUMERIC},
+	        #{deviceType},
+	        #{ipAddress},
+	        #{sessionId},
+    		#{position}
+	    )
+	
+	</insert>
+
+	<!-- 광고 일일 통계 생성 -->
+	<!-- <insert id="insertDailyStatistics">
+	
+	    INSERT INTO advertisement_daily_statistics
+	    (
+	        stat_id,
+	        ad_id,
+	        stat_date,
+	        impressions,
+	        clicks,
+	        ctr,
+	        fatigue_score
+	    )
+	
+	    SELECT
+	        seq_advertisement_statistics.NEXTVAL,
+	        a.ad_id,
+	        TRUNC(SYSDATE)-1,
+	
+	        NVL(i.impressions,0),
+	
+	        NVL(c.clicks,0),
+	
+	        ROUND(
+	            NVL(c.clicks,0)
+	            /
+	            NULLIF(i.impressions,0)
+	            * 100
+	        ,2),
+	
+	        CASE
+	            WHEN NVL(i.impressions,0) >= 10000
+	             AND ROUND(
+	                    NVL(c.clicks,0)
+	                    /
+	                    NULLIF(i.impressions,0)
+	                    *100
+	                 ,2) < 1
+	            THEN 80
+	
+	            WHEN NVL(i.impressions,0) >= 5000
+	             AND ROUND(
+	                    NVL(c.clicks,0)
+	                    /
+	                    NULLIF(i.impressions,0)
+	                    *100
+	                 ,2) < 3
+	            THEN 50
+	
+	            ELSE 10
+	        END
+	
+	
+	    FROM advertisements a
+	
+	
+	    LEFT JOIN
+	    (
+	        SELECT
+	            ad_id,
+	            COUNT(*) impressions
+	
+	        FROM advertisement_impression_log
+	
+	        WHERE viewed_at >= TRUNC(SYSDATE)-1
+	        AND viewed_at < TRUNC(SYSDATE)
+	
+	        GROUP BY ad_id
+	
+	    ) i
+	
+	    ON a.ad_id = i.ad_id
+	
+	
+	
+	    LEFT JOIN
+	    (
+	        SELECT
+	            ad_id,
+	            COUNT(*) clicks
+	
+	        FROM advertisement_click_log
+	
+	        WHERE clicked_at >= TRUNC(SYSDATE)-1
+	        AND clicked_at < TRUNC(SYSDATE)
+	
+	        GROUP BY ad_id
+	
+	    ) c
+	
+	    ON a.ad_id = c.ad_id
+	
+	
+	</insert> -->
 
 </mapper>

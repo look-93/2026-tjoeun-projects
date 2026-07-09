@@ -71,7 +71,7 @@
 						        <button type="button" class="applicant-btn" th:onclick="|openModal('${meetup.meetupId}')|">신청자 조회</button>
 						        <button type="button" class="edit-btn" th:onclick="|goDetail('${meetup.meetupId}')|">수정</button>
 						        
-						        <form th:action="@{/meetup/mypage/delete.do(meetupId=${meetup.meetupId})}" method="post" style="display: inline-block; margin: 0;">
+						        <form th:action="@{/mypage/meetup/delete(meetupId=${meetup.meetupId} , pstartno=${param.pstartno})}" method="post" style="display: inline-block; margin: 0;">
 						            <button type="submit" class="delete-btn">삭제</button>
 						        </form>                                             
 						    </div>
@@ -117,6 +117,7 @@
 		                        <th style="width: 30%;">신청일</th>
 		                        <th style="width: 20%;">상태</th>
 		                        <th style="width: 30%;">처리</th>
+		                        <th style="width: 30%;">coment!</th>
 		                    </tr>
 		                </thead>
 		                <tbody id="modalBody"></tbody>
@@ -130,25 +131,55 @@
 	    // 타임리프에서 애플리케이션 컨텍스트 패스 가져오기 (기본은 빈 문자열이며 세팅에 따라 채워짐)
 	    const contextPath = /*[[@{/}]]*/ ''; 
 	
-		function changeStatus(applicationId, status, btn){
-			// 기존 복잡한 컨텍스트 패스 연산 수정
-			fetch(contextPath + 'mypage/updateApplyStatus?status=' + status + '&applicationId=' + applicationId)
-	    	.then(res => res.json())
-	    	.then(data => { 
-	    		const statusTd = btn.parentElement.previousElementSibling;
-	    		const statusSpan = statusTd.querySelector("span");
-	    		statusSpan.innerHTML = status == 'APPROVED' ? '승인' : '거절';
-	    		
-	    		if(status == 'APPROVED'){
-	    			btn.parentElement.innerHTML = `<button class="btn-reject" onClick="changeStatus(${applicationId}, 'REJECTED', this)">거절</button>`
-	    		}else {
-	    			btn.parentElement.innerHTML = `<button class="btn-approve" onClick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>`
-	    		}
-	    	})
-	    	.catch(error => {
-		        alert("관리자에게 문의하세요.");
-			})
-		}
+	 // 1. 거절 버튼을 눌렀을 때 실행되는 함수
+	    function handleReject(applicationId, status, btn) {
+	        // 버튼 바로 앞에 있는 인풋창을 찾아서 값을 가져옵니다.
+	        const reasonInput = btn.parentElement.querySelector('.reject-reason');
+	        const reasonValue = reasonInput ? reasonInput.value.trim() : '';
+	        
+	        if (!reasonValue) {
+	            alert('거절 사유를 입력해주세요.');
+	            reasonInput.focus();
+	            return;
+	        }
+	        changeStatus(applicationId, status, btn, reasonValue);
+	    }
+
+	    // 2. 기존 함수 (매개변수 맨 끝에 reason 추가 및 fetch 주소만 수정)
+	    function changeStatus(applicationId, status, btn, reason){
+	    	//console.log(reason)
+	        // 거절 사유가 넘어오면 파라미터에 붙이고, 없으면 빈 값 처리
+	        const reasonParam = reason ? '&rejectReason=' + encodeURIComponent(reason) : '';
+	        //console.log(applicationId);
+	        fetch('/mypage/updateApplyStatus?status=' + status + '&applicationId=' + applicationId + reasonParam)
+	            .then(res => res.json())
+	            .then(data => { 
+	            	
+/* 	                console.log("btn", btn);
+	                console.log("parent", btn.parentElement);
+	                console.log("prev", btn.parentElement.previousElementSibling); */
+	                
+	                const statusTd = btn.closest("td").previousElementSibling;
+	                const statusSpan = statusTd.querySelector("span");
+	                statusSpan.innerHTML = status == 'APPROVED' ? '승인' : '거절';
+	                
+	                if(status == 'APPROVED'){
+	                    //거절 버튼을 누르면 handleReject가 먼저 실행
+	                    btn.parentElement.innerHTML = `
+	                    <div style="display: inline-flex; align-items: center; vertical-align: middle; white-space: nowrap;">
+	                        <input type="text" class="reject-reason" placeholder="거절 사유 입력" style="flex-shrink: 0;" />
+	                        <button class="btn-reject" style="flex-shrink: 0;" onClick="handleReject(${applicationId}, 'REJECTED', this)">거절</button>
+	                    </div>
+	                    `
+	                } else {
+	                    btn.parentElement.innerHTML = `<button class="btn-approve" onClick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>`
+	                }
+	            })
+	            .catch(error => {
+	                //console.error(error);
+	                alert("관리자에게 문의하세요.");
+	            })
+	    }
 	    
 	    function openModal(meetupId) {
 	    	//console.log(meetupId)
@@ -164,6 +195,7 @@
 	    			const item = list[i];
 	    			const status = item.applyStatus == "PENDING" ? "대기" : item.applyStatus == "APPROVED" ? "승인" : "거절";
 	    			const applicationId = item.applicationId;
+	    			console.log(applicationId)
 	    			if (item.applyStatus === 'PENDING') {
 	    				button = `
 	    			        <button class="btn-approve" onclick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>

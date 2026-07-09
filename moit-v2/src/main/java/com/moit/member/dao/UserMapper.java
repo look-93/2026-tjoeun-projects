@@ -14,7 +14,7 @@ import com.moit.member.dto.UserJoinDto;
 public interface UserMapper {
 	// 1. 회원가입 (일반, 제휴업체, 관리자 공통 사용 가능)
     int insert(UserDto dto);
-    int insertInfo(UserJoinDto dto);
+    int insertInfo(UserDto dto);
     
     // 2. 로그인 인증 정보 조회
     AuthUserDto readAuth(Map<String,Object> map);
@@ -36,10 +36,29 @@ public interface UserMapper {
     
     int deleteYn(String loginId);
     
-    //8. 마이페이지
+    //8. 마이페이지(회원조회)
     UserDto findByLoginId(UserDto dto);
+    
+    //9. 아이디 찾기
+    UserDto findId(UserDto dto);
+    
+    //10. 비밀번호 찾기(회원확인)
+    UserDto findPasswordUser(UserDto dto);
+    
+    //11. 비밀번호변경
+    int changePassword(UserDto dto);
     
     /* security */
     // 로그인
     AuthUserDto readByLoginId(String username);
+    
+    
+    /* social */
+    int connectProvider(UserDto dto);
+    UserDto findByEmail(String email);
+    UserDto findByProvider(UserDto dto);
+    int insertSocial(UserDto dto);
+    int insertSocialInfo(UserDto dto);
+    void updateSocialInfo(UserDto dto);
+    void updateMemberInfo(UserDto dto);
 }

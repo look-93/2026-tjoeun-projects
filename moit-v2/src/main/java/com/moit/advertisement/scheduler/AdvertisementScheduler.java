@@ -38,4 +38,11 @@ public class AdvertisementScheduler {
        );
 
     }
+    
+    @Scheduled(cron="0 0 1 * * *")
+    public void createDailyStatistics(){
+
+        advertisementService.createDailyStatistics();
+
+    }
 }

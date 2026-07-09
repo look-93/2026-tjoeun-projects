@@ -83,7 +83,11 @@ public interface AdvertisementMapper {
     int updateAdvertisementClick(int adId);
 
     // 사용자 광고 1건
-    AdvertisementDto selectTopAdvertisement( @Param("position") String position );
+    AdvertisementDto selectTopAdvertisement(
+            @Param("position") String position,
+            @Param("memberId") Integer memberId,
+            @Param("sessionId") String sessionId
+    );
 
     // 통계
     int selectTotalAdvertisementCnt();
@@ -94,5 +98,55 @@ public interface AdvertisementMapper {
 
     int selectClosedAdvertisementCnt();
     
+    // 클릭 로그 저장
+    void insertClickLog(
+            @Param("adId") int adId,
+            @Param("memberId") Integer memberId,
+            @Param("deviceType") String deviceType,
+            @Param("ipAddress") String ipAddress,
+            @Param("sessionId") String sessionId,
+            @Param("referrer") String referrer,
+            @Param("position") String position
+    );
+    
+    // 광고 클릭 확인
+    int checkDuplicateClick(
+            @Param("adId") int adId,
+            @Param("memberId") Integer memberId,
+            @Param("clickIp") String clickIp
+    );
+    // 광고 클릭시 포인트 증가
+    void addPoint(
+    	    @Param("memberId") int memberId,
+    	    @Param("point") int point
+    	);
+    // 멤버 광고 포인트 관리
+    int checkAdvertisementPoint(int memberId);
 
+    void updateMemberPoint(@Param("memberId") int memberId);
+
+    void insertPointHistory(@Param("memberId") int memberId);
+    
+ // 노출 로그 중복 체크
+    int checkDuplicateImpression(
+            @Param("adId") int adId,
+            @Param("memberId") Integer memberId,
+            @Param("sessionId") String sessionId
+    );
+
+
+    // 노출 로그 저장
+    void insertImpressionLog(
+            @Param("adId") int adId,
+            @Param("memberId") Integer memberId,
+            @Param("deviceType") String deviceType,
+            @Param("ipAddress") String ipAddress,
+            @Param("sessionId") String sessionId,
+            @Param("position") String position
+    );
+    
+ // 광고 일일 통계 생성
+    void insertDailyStatistics();
+    
+    List<AdvertisementDto> selectAdvertisementStatistics();
 }

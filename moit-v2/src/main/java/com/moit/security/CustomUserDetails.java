@@ -24,15 +24,19 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 
 	private UserDto user;
 	private AuthUserDto authDto;
-	private Map<String,Object> attirubutes = new HashMap<>(); //##
+	private Map<String,Object> attriubutes = new HashMap<>(); //##
+
+	private Integer statusId;
 	
+		
 	////////////////////////////////////// 1. 일반 로그인
 	public CustomUserDetails(UserDto user, AuthUserDto authDto) {
 		super();
 		this.user = user;
 		this.authDto = authDto;
-		this.attirubutes.put("loginId", user.getLoginId());
-//		this.attirubutes.put("provider", user.getProvider());
+		this.attriubutes.put("loginId", user.getLoginId());
+		this.attriubutes.put("provider", user.getProvider());
+		this.statusId = authDto.getStatusId();
 	} 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -54,6 +58,7 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 	
 	public String getNickname() { return user.getNickname(); }
 	public String getTypeName() { return authDto.getTypeName(); }
+	public Integer getStatusId(){ return statusId; }
     // ★ 중요
     @Override public String getPassword() {  return authDto.getPassword();  }
 
@@ -68,16 +73,17 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 	public CustomUserDetails(UserDto user, Map<String, Object> attirubutes) {
 		super();
 		this.user = user;
-		this.authDto = new AuthUserDto();
-		this.attirubutes = new HashMap<>(attirubutes != null? attirubutes : Map.of()) ;
-		this.attirubutes.put("loginId", user.getLoginId());
-		this.attirubutes.put("provider", user.getProvider());
+		//this.authDto = new AuthUserDto();
+		this.attriubutes = new HashMap<>(attirubutes != null? attirubutes : Map.of()) ;
+		this.attriubutes.put("loginId", user.getLoginId());
+		this.attriubutes.put("provider", user.getProvider());
 	}
 	
-	@Override public Map<String, Object> getAttributes() { return attirubutes; }
-	          public void setAttributes(Map<String, Object> attributes ) { this.attirubutes = attributes; }
+	@Override public Map<String, Object> getAttributes() { return attriubutes; }
+	          public void setAttributes(Map<String, Object> attributes ) { this.attriubutes = attributes; }
 	
-	@Override public String getName() { return user.getLoginId() ; }
+	@Override public String getName() { return user.getProviderId() ; }
+	
 	
 }
 

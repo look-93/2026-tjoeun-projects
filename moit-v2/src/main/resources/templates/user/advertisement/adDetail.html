@@ -1,189 +1,324 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{admin/layouts/adminLayout}">
+      layout:decorate="~{user/layouts/layout}">
 
 <head>
     <title>광고 상세</title>
 </head>
 
+
 <section layout:fragment="content">
 
-<div class="container-fluid">
+<div class="member-ad-detail-container">
 
-    <h1 class="page-title">내 광고 상세</h1>
 
-    <div class="card-box">
+    <h1 class="member-ad-detail-title">
+        내 광고 상세
+    </h1>
 
-        
 
-        <!-- 통계 -->
-        <div class="row mb-4">
+    <div class="member-ad-detail-card">
 
-            <div class="col-md-4">
-                <div class="card-box text-center">
-                    <div class="info-title">노출수</div>
-                    <div class="stat-number" th:text="${dto.impressions}">0</div>
+
+        <!-- =================
+             통계
+        ================= -->
+
+        <div class="member-ad-stat-wrap">
+
+
+            <div class="member-ad-stat-card">
+
+                <div class="member-ad-label">
+                    노출수
                 </div>
+
+                <div class="member-ad-stat-number"
+                     th:text="${dto.impressions}">
+                    0
+                </div>
+
             </div>
 
-            <div class="col-md-4">
-                <div class="card-box text-center">
-                    <div class="info-title">클릭수</div>
-                    <div class="stat-number" th:text="${dto.clicks}">0</div>
+
+
+            <div class="member-ad-stat-card">
+
+                <div class="member-ad-label">
+                    클릭수
                 </div>
+
+                <div class="member-ad-stat-number"
+                     th:text="${dto.clicks}">
+                    0
+                </div>
+
             </div>
 
-            <div class="col-md-4">
-                <div class="card-box text-center">
-                    <div class="info-title">CTR</div>
 
-                    <div class="stat-number">
-                        <span th:if="${dto.impressions > 0}"
-                              th:text="${#numbers.formatDecimal(dto.clicks * 100.0 / dto.impressions, 1, 2)} + '%'"></span>
 
-                        <span th:if="${dto.impressions == 0}">
-                            0.00%
-                        </span>
-                    </div>
+
+            <div class="member-ad-stat-card">
+
+                <div class="member-ad-label">
+                    CTR
+                </div>
+
+
+                <div class="member-ad-stat-number">
+
+                    <span th:if="${dto.impressions > 0}"
+                          th:text="${#numbers.formatDecimal(dto.clicks * 100.0 / dto.impressions,1,2)} + '%'">
+                    </span>
+
+
+                    <span th:unless="${dto.impressions > 0}">
+                        0.00%
+                    </span>
+
 
                 </div>
+
+
             </div>
+
 
         </div>
-        
-        <!-- 이미지 리스트 -->
-		<div class="ad-image mb-4"
-		     th:if="${dto.imageList != null and !#lists.isEmpty(dto.imageList)}">
-		
-		    <div th:each="img : ${dto.imageList}"
-		         style="margin-bottom:10px;">
-		
-		        <img th:src="${img.imageUrl}"
-		             style="width:100%;height:300px;object-fit:contain;border-radius:10px;">
-		    </div>
-		
-		</div>
-		
-		<!-- 이미지 없을 때 -->
-		<div class="ad-image mb-4"
-		     th:if="${dto.imageList == null or #lists.isEmpty(dto.imageList)}">
-		
-		    <img src="/upload/no-image.png"
-		         style="width:100%;height:300px;object-fit:cover;border-radius:10px;">
-		</div>
 
-        <!-- 정보 -->
-        <div class="row g-3">
 
-            <div class="col-md-4">
-                <div class="info-box">
-                    <div class="info-title">광고명</div>
-                    <div class="info-value" th:text="${dto.title}"></div>
-                </div>
+
+
+
+        <!-- =================
+             이미지
+        ================= -->
+
+        <div class="member-ad-image-area"
+             th:if="${dto.imageList != null and !#lists.isEmpty(dto.imageList)}">
+
+
+            <div class="member-ad-image-box"
+                 th:each="img:${dto.imageList}">
+
+
+                <img th:src="${img.imageUrl}"
+                     class="member-ad-image">
+
             </div>
 
-            <div class="col-md-4">
-                <div class="info-box">
-                    <div class="info-title">상태</div>
-                    <div class="info-value" th:text="${dto.status}"></div>
-                </div>
-            </div>
 
-            <div class="col-md-4">
-                <div class="info-box">
-                    <div class="info-title">디바이스</div>
-                    <div class="info-value" th:text="${dto.deviceType}"></div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="info-box">
-                    <div class="info-title">광고채널</div>
-                    <div class="info-value" th:text="${dto.adChannel}"></div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="info-box">
-                    <div class="info-title">시작일</div>
-                    <div class="info-value" th:text="${#temporals.format(dto.startDatetime, 'yyyy-MM-dd HH:mm:ss')}"></div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="info-box">
-                    <div class="info-title">종료일</div>
-                    <div class="info-value" th:text="${#temporals.format(dto.endDatetime, 'yyyy-MM-dd HH:mm:ss')}"></div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="info-box">
-                    <div class="info-title">예산</div>
-                    <div class="info-value" th:text="${dto.totalBudget}"></div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="info-box">
-                    <div class="info-title">등록일</div>
-                    <div class="info-value" th:text="${#temporals.format(dto.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="info-box">
-                    <div class="info-title">수정일</div>
-                    <div class="info-value" th:text="${#temporals.format(dto.updatedAt, 'yyyy-MM-dd HH:mm:ss')}"></div>
-                </div>
-            </div>
         </div>
 
-        <hr class="my-4">
 
-        <!-- 내용 -->
-        <h5>광고 내용</h5>
-        <p th:text="${dto.content}"></p>
 
-        <hr class="my-4">
+        <div class="member-ad-no-image"
+             th:unless="${dto.imageList != null and !#lists.isEmpty(dto.imageList)}">
 
+
+            <img src="/upload/no-image.png">
+
+        </div>
+
+
+
+
+
+        <!-- =================
+             광고 정보
+        ================= -->
+
+
+        <div class="member-ad-info-wrap">
+
+
+            <div class="member-ad-info-box">
+
+                <div class="member-ad-label">
+                    광고명
+                </div>
+
+                <div class="member-ad-value"
+                     th:text="${dto.title}">
+                </div>
+
+            </div>
+
+
+
+
+            <div class="member-ad-info-box">
+
+                <div class="member-ad-label">
+                    상태
+                </div>
+
+                <div class="member-ad-value"
+                     th:text="${dto.status}">
+                </div>
+
+            </div>
+
+
+
+
+            <div class="member-ad-info-box">
+
+                <div class="member-ad-label">
+                    디바이스
+                </div>
+
+                <div class="member-ad-value"
+                     th:text="${dto.deviceType}">
+                </div>
+
+            </div>
+
+
+
+
+
+            <div class="member-ad-info-box">
+
+                <div class="member-ad-label">
+                    광고채널
+                </div>
+
+                <div class="member-ad-value"
+                     th:text="${dto.adChannel}">
+                </div>
+
+            </div>
+
+
+
+
+
+            <div class="member-ad-info-box">
+
+                <div class="member-ad-label">
+                    시작일
+                </div>
+
+                <div class="member-ad-value"
+                     th:text="${#temporals.format(dto.startDatetime,'yyyy-MM-dd HH:mm:ss')}">
+                </div>
+
+            </div>
+
+
+
+
+
+            <div class="member-ad-info-box">
+
+                <div class="member-ad-label">
+                    종료일
+                </div>
+
+                <div class="member-ad-value"
+                     th:text="${#temporals.format(dto.endDatetime,'yyyy-MM-dd HH:mm:ss')}">
+                </div>
+
+            </div>
+
+
+
+
+
+            <div class="member-ad-info-box">
+
+                <div class="member-ad-label">
+                    예산
+                </div>
+
+                <div class="member-ad-value"
+                     th:text="${dto.totalBudget}">
+                </div>
+
+            </div>
+
+			<div class="member-ad-info-box">
+			
+			    <div class="member-ad-label">
+			        수정일
+			    </div>
+			
+			    <div class="member-ad-value"
+				     th:if="${dto.updatedAt != null}"
+				     th:text="${#temporals.format(dto.updatedAt,'yyyy-MM-dd HH:mm:ss')}">
+				</div>
+				
+				<div class="member-ad-value"
+				     th:unless="${dto.updatedAt != null}">
+				    -
+				</div>
+			
+			</div>
+
+
+        </div>
+
+
+
+
+        <hr class="member-ad-divider">
+ <!-- 내용 -->
+        <div class="member-ad-content">
+
+            <h5>
+                광고 내용
+            </h5>
+
+            <p th:text="${dto.content}">
+            </p>
+
+        </div>
+
+        <hr class="member-ad-divider">
         <!-- 링크 -->
-        <h5>외부 링크</h5>
-        <a th:href="${dto.landingUrl}" target="_blank"
-           th:text="${dto.landingUrl}"></a>
 
-		<hr class="my-4">
+        <div class="member-ad-link">
+            <h5>
+                외부 링크
+            </h5>
+            <a th:href="${dto.landingUrl}"
+               target="_blank"
+               th:text="${dto.landingUrl}">
+            </a>
+        </div>
 
-        <div class="btn-area mt-4">
+        <!-- 버튼 -->
 
-		    <!-- 목록 -->
-		    <a th:href="@{/user/advertisement/list}"
-		       class="btn btn-secondary">
-		        목록
-		    </a>
-		
-		    <!-- 수정 -->
-		    <a th:href="@{/user/advertisement/edit(adId=${dto.adId})}"
-		       class="btn btn-primary">
-		        수정
-		    </a>
-		
-		    <!-- 삭제 -->
-		    <form th:action="@{/user/advertisement/delete}" method="post" style="display:inline;">
-		        <input type="hidden" name="adId" th:value="${dto.adId}"/>
-		
-		        <button type="submit"
-		                class="btn btn-danger"
-		                onclick="return confirm('정말 삭제하시겠습니까?');">
-		            삭제
-		        </button>
-		    </form>
-		
-		</div>
+        <div class="member-ad-btn-area">
 
+            <a th:href="@{/user/advertisement/list}"
+               class="member-ad-btn member-ad-btn-gray">
+                목록
+            </a>
+
+            <a th:href="@{/user/advertisement/edit(adId=${dto.adId})}"
+               class="member-ad-btn member-ad-btn-blue">
+                수정
+            </a>
+
+            <form th:action="@{/user/advertisement/delete}"
+                  method="post">
+
+
+                <input type="hidden"
+                       name="adId"
+                       th:value="${dto.adId}">
+
+
+                <button class="member-ad-btn member-ad-btn-red"
+                        onclick="return confirm('정말 삭제하시겠습니까?');">
+                    삭제
+                </button>
+            </form>
+        </div>
     </div>
 </div>
-
 </section>
+
 </html>
