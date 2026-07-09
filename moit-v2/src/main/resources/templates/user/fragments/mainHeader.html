@@ -8,7 +8,7 @@
 			<div class="container header-inner">
     <!-- 좌측 로고 + 메뉴 -->
     <div class="left-group">
-        <a th:href="@{/}" class="logo">
+        <a th:href="@{/main}" class="logo">
             MOIT
         </a>
 
@@ -25,7 +25,7 @@
 		<div class="header-right">
 		
 		<nav>
-            <a th:href="@{/meetup/user/list}"
+            <a th:href="@{/meetup/list}"
                th:classappend="${menu == 'meetup'} ? 'active' : ''">
                 모집찾기
             </a>

@@ -1188,6 +1188,7 @@ footer {
 
 /* IMAGE BOX */
 .meetup-detail-img-box {
+	height: 500px;
     background: white;
     padding: 20px;
     border-radius: var(--radius);
@@ -1195,10 +1196,49 @@ footer {
 }
 
 .meetup-detail-main-img {
-    height: 450px;
+    width: 100%;
+    height: 350px;
     border-radius: var(--radius);
     overflow: hidden;
-    background: white;
+    background: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ⚡ 이미지가 1개라 full-size 클래스가 붙었을 때 */
+.meetup-detail-main-img.full-size {
+    height: 450px; /* 썸네일 공간만큼 높이를 더 키워줌! */
+}
+
+.meetup-detail-main-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+}
+
+.meetup-detail-no-image {
+    width: 100%;
+    height: 450px;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center; /* 세로 가운데 */
+    align-items: center;      /* 가로 가운데 */
+
+    background: #f9f9f9;
+    border: 2px dashed #e0e0e0;
+    border-radius: 12px;
+
+    color: #999;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.meetup-detail-no-image .icon {
+    font-size: 40px;
+    margin-bottom: 10px;
 }
 
 .meetup-detail-thumb-list {
@@ -1214,6 +1254,12 @@ footer {
     overflow: hidden;
 }
 
+.meetup-detail-thumb img {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    object-fit: cover;
+}
 /* CONTENT BOX */
 .meetup-detail-content-box {
     background: white;
@@ -1328,6 +1374,7 @@ footer {
 }
 
 .meetup-detail-inquiry-btn {
+    display: block;       /* inline 요소를 block으로 바꿔 너비와 정렬이 먹히게 함 */
     width: 100%;
     margin-top: 12px;
     border: none;
@@ -1338,6 +1385,9 @@ footer {
     cursor: pointer;
     font-weight: 600;
     font-size: 14px;
+    text-align: center;   /* 이제 글자가 중앙으로 정렬됩니다 */
+    text-decoration: none; /* a 태그 특유의 밑줄 제거 */
+    box-sizing: border-box; /* 패딩 때문에 버튼이 부모 영역 밖으로 삐져나가는 것 방지 */
 }
 
 .meetup-detail-report-btn {
@@ -2208,16 +2258,13 @@ textarea.mw-form-input {
     padding: 15px;
     border-radius: 12px;
     cursor: pointer;
-    background: var(--mw-c4);
+    background: #5066f0;
     color: white;
     font-size: 16px;
     font-weight: bold;
     transition: background 0.2s;
 }
 
-.mw-btn-submit:hover {
-    background: #5066f0;
-}
 
 /* 가이드 텍스트 */
 .mw-guide-text {
@@ -2225,6 +2272,69 @@ textarea.mw-form-input {
     color: #666;
     font-size: 14px;
 }
+
+/* IMAGE */
+.mw-image-box{
+    background:white;
+    padding:20px;
+    border-radius:20px;
+    box-shadow:var(--shadow);
+}
+
+.mw-main-image{
+    height:450px;
+    border-radius:20px;
+    /* overflow:hidden; */
+    background:#f5f5f5;
+	display: flex;               /* 이미지들을 가로로 나란히 배치 */
+    align-items: center;
+    justify-content: flex-start; /* 왼쪽부터 차례대로 쌓이게 설정 */
+    
+    overflow-x: scroll;            /* ◀ 버튼 클릭 시 스크롤 이동이 가능하도록 설정 */
+    overflow-y: hidden;          /* 세로 스크롤은 방지 */
+    
+    scroll-snap-type: x mandatory; /* 스와이프할 때 자석처럼 착착 한 장씩 걸리는 효과 */
+    scroll-behavior: smooth;     /* ◀ 버튼 눌렀을 때 부드럽게 스르륵 넘어가게 하는 효과 */
+    -webkit-overflow-scrolling: touch; /* 모바일 부드러운 스크롤 */
+}
+
+.mw-slide-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    display: none; /* 기본은 숨김 */
+}
+.mw-slide-btn.left { left: 15px; }
+.mw-slide-btn.right { right: 15px; }
+
+
+/* 💡 깔끔하게 가로 스크롤바 감추기 (추가) */
+.mw-main-image::-webkit-scrollbar {
+    display: none;
+}
+
+.mw-thumb-list{
+    display:flex;
+    gap:10px;
+    margin-top:15px;
+}
+
+.mw-thumb{
+    flex:1;
+    height:80px;
+    border-radius:10px;
+    overflow:hidden;
+}	
 
 /*모임등록 */
 
@@ -2435,7 +2545,7 @@ textarea.mw-form-input {
 }
 
 .modal-table {
-
+    width: 100%;
     border-collapse: collapse;
 }
 
@@ -3753,30 +3863,37 @@ textarea.mw-form-input {
 }
 
 .download-btn:hover { background: #475569; }
-.btn-approve {
-    background: #10b981;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-right: 4px;
-}
-.btn-approve:hover { background: #059669; }
 
-.btn-reject {
-    background: #ef4444;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
+.reject-reason {
+    width: 140px;              /* ⚡ 너비를 살짝 줄여서 공간 확보 */
+    padding: 6px 10px;
     font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
+    border: 1px solid #cbd5e1; 
+    border-radius: 6px;        
+    color: #334155;            
+    background-color: #ffffff; 
+    outline: none;             
+    vertical-align: middle;
+    margin-right: 6px;
+    box-sizing: border-box;
+    flex-shrink: 0;            /* ⚡ flex 내부에서 찌그러지지 않도록 방어 */
 }
-.btn-reject:hover { background: #dc2626; }
+
+/* ⚡ 클릭(포커스) 되었을 때도 파란색 없이, 그냥 선만 살짝 선명해지는 정도만 */
+.reject-reason:focus {
+    border-color: #94a3b8; 
+}
+
+/* 안내 글자색도 테이블 느낌에 맞춰 차분하게 */
+.reject-reason::placeholder {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+/* 세로 정렬 맞추기 위해 버튼들에도 추가 */
+.btn-reject, .btn-approve {
+    vertical-align: middle;
+}
 
 .state-text-wait { color: #64748b; font-weight: 500; }
 .state-text-pass { color: #10b981; font-weight: 600; }
