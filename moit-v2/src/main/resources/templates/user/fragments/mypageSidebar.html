@@ -23,8 +23,13 @@
 		           data-path="/mypage/meetupApplyInfo">
 		           내 신청모임
 		        </a>
+		        <a href="/questions/myQuestion"
+		           class="menu-link"
+		           data-path="/questions/myQuestion">
+		           내 문의내역
+		        </a>
 <!-- 		        <a href="#">내 관심모임</a>
-		        <a href="#">내 문의내역</a>
+		        
 		        <a href="#">내 작성후기</a>
 		        <a href="#">내 신고내역</a> -->
  		        <a href="/user/member/memberEdit"
@@ -32,13 +37,13 @@
 		           data-path="/user/member/memberEdit">
 		           회원정보 수정
 		        </a>
-		        <a href="#">비밀번호 변경</a>
-		        <a href="#">회원 탈퇴</a>   
-
-		        <a th:href="@{/user/advertisement/list}"
-	               th:classappend="${menu == 'advertisement'} ? ' active'">
-	                내 광고내역(제휴용)
-	            </a>         
+		        <!-- <a href="#">비밀번호 변경</a> -->
+		        <!-- <a href="#">회원 탈퇴</a>  -->  
+ 		        <a href="/user/advertisement/list"
+		           class="menu-link"
+		           data-path="/user/advertisement/list">
+		           내 광고내역(제휴용)
+		        </a>        
 		    </div>
 		</aside>
 		

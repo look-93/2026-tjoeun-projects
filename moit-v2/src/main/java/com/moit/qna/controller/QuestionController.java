@@ -2,6 +2,8 @@ package com.moit.qna.controller;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,10 +13,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.moit.member.dto.UserDto;
 import com.moit.qna.dto.AnswerDto;
 import com.moit.qna.dto.QuestionDto;
 import com.moit.qna.service.AnswerService;
 import com.moit.qna.service.QuestionService;
+import com.moit.security.CustomUserDetails;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -31,13 +35,23 @@ public class QuestionController {
     private final AnswerService answerService;
     
     // 내가 쓴 문의 목록
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/myQuestion")
     public String myQuestion(@RequestParam(defaultValue="1") int page,
-            HttpSession session,Model model) {
-    	//MemberDto loginUser = (MemberDto)session.getAttribute("loginUser");
-        
-        //int memberId = loginUser.getMemberId();
-        int memberId = 1; // 임시 나중에 삭제
+            HttpSession session,Model model, Authentication authentication) {
+    	
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 		
+        //int memberId = 1; // 임시 나중에 삭제
         int pageSize = 10;
         int start = (page - 1) * pageSize;
         List<QuestionDto> list =
@@ -49,7 +63,8 @@ public class QuestionController {
                 questionService.getMyQuestionCnt(memberId);
         int totalPage =
                 (int)Math.ceil((double)totalCnt / pageSize);
-
+        
+        model.addAttribute("dto" , user); 
         model.addAttribute("list", list);
         model.addAttribute("page", page);
         model.addAttribute("totalPage", totalPage);
