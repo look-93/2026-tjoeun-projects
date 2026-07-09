@@ -81,7 +81,7 @@
 			<a th:href="@{/user/meetup/report/mylist}" class="detail-btn detail-btn-white">목록</a>
 			
 			<a th:if="${dto.targetType == 'MEETUP'}"
-				th:href="@{/user/meetup/detail(meetupId=${dto.targetId})}" class="detail-btn detail-btn-soft-blue">
+				th:href="@{/meetup/detail(meetupId=${dto.targetId})}" class="detail-btn detail-btn-soft-blue">
 				해당 글 보기
 			</a>
 			<a th:if="${dto.targetType == 'REVIEW'}"

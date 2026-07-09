@@ -105,8 +105,21 @@ public class QuestionController {
         return "user/qna/questionWrite";
     }
    
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/write")
-    public String writePost(QuestionDto dto, RedirectAttributes rttr) {
+    public String writePost(QuestionDto dto, RedirectAttributes rttr, Authentication authentication) {
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		}    	
+    	dto.setMemberId(memberId);
         questionService.register(dto);
         rttr.addFlashAttribute("msg", "문의가 등록되었습니다.");
         return "redirect:/questions/" + dto.getQuestionId();

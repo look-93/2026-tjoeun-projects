@@ -151,16 +151,24 @@ public class MeetupController {
 						@RequestParam(value = "sort", required = false, defaultValue = "latest")  String sort,
 			            HttpServletRequest request, HttpSession session	) {
 		
-		Integer memberId =
-				 (Integer)session.getAttribute("loginMemberId");
+		/*
+		 * Integer memberId = (Integer)session.getAttribute("loginMemberId");
+		 */
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 		
 		
 		String sessionId =
 		        session.getId();
-		
-//		CustomUser user = (CustomUser) authentication.getPrincipal(); 
-//		int memberId = userMeetupService.findByMamberId(user.getUsername());
-//		meetupApplicationsDto.setMemberId(memberId);
-		
+
 		AdvertisementDto desidebar = advertisementService.selectTopAdvertisement( "MEETUP_DETAIL_SIDEBAR" , memberId, sessionId);
 
 		meetupApplicationDto.setMemberId(memberId);

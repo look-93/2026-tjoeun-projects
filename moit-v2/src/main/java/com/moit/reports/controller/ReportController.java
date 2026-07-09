@@ -16,9 +16,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.moit.member.dto.UserDto;
 import com.moit.reports.api.ApiEmail;
 import com.moit.reports.dto.ReportsDto;
 import com.moit.reports.service.ReportsService;
+import com.moit.security.CustomUserDetails;
 import com.moit.util.UtilPaging;
 
 @Controller
@@ -36,9 +38,19 @@ public class ReportController {
 	@RequestMapping("/user/meetup/report/mylist")
 	public String reportMylist( @RequestParam(value="pstartno", defaultValue="1") int pstartno,
 								Model model,
-								Principal principal) {
-		
-		int memberId = 1;
+								Authentication authentication) {
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 		
+
 		
 //		HashMap<String, Object> map = new HashMap<>();
 //		map.put("start", 0);
@@ -58,8 +70,17 @@ public class ReportController {
 	public String myPageMyReport( @RequestParam(value="pstartno", defaultValue="1") int pstartno,
 								Model model,
 								Authentication authentication) {
-		
-		int memberId = 1;
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 		
 		
 		model.addAttribute("paging", new UtilPaging( service.selectUserCnt(memberId), pstartno ));
 		model.addAttribute("list", service.selectUserReport(pstartno, memberId));
@@ -82,9 +103,22 @@ public class ReportController {
 	}
 	// 신고 작성 기능
 	@PostMapping("/user/meetup/report/write")
-	public String reportWrite_post(ReportsDto dto, RedirectAttributes rttr) {
+	public String reportWrite_post(ReportsDto dto, RedirectAttributes rttr, Authentication authentication) {
 		
-		dto.setMemberId(1); // 로그인 회원 번호 test
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 		
+				
+		
+		dto.setMemberId(memberId); // 로그인 회원 번호 test
 		
 		int result_TargetType = -1;
 		String result = "신고등록 실패";
@@ -108,11 +142,23 @@ public class ReportController {
 	
 	// 내 신고 상세 화면 detail
 	@RequestMapping("/user/meetup/report/detail")
-	public String reportDetail( int reportId, Model model) {
+	public String reportDetail( int reportId, Model model,Authentication authentication) {
 		
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 		
+					
 		ReportsDto dto = new ReportsDto();
 		dto.setReportId(reportId);
-		dto.setMemberId(1);
+		dto.setMemberId(memberId);
 		
 		model.addAttribute("dto", service.selectUserReportDetail(dto));
 		
@@ -121,11 +167,22 @@ public class ReportController {
 	
 	// 신고 수정 화면 update
 	@GetMapping( value="/user/meetup/report/update")
-	public String reportUpdate(int reportId, Model model) {
-
+	public String reportUpdate(int reportId, Model model, Authentication authentication) {
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 		
+				
 		ReportsDto dto = new ReportsDto();
 		dto.setReportId(reportId);
-		dto.setMemberId(1);
+		dto.setMemberId(memberId);
 		
 		model.addAttribute("dto", service.selectUserReportDetail(dto));
 		return "user/meetup/report/update";
@@ -133,9 +190,19 @@ public class ReportController {
 	
 	// 신고 수정 처리
 	@PostMapping("/user/meetup/report/update")
-	public String reportUpdate_post(ReportsDto dto, RedirectAttributes rttr) {
-		
-		dto.setMemberId(1);
+	public String reportUpdate_post(ReportsDto dto, RedirectAttributes rttr, Authentication authentication) {
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 	
+		dto.setMemberId(memberId);
 		
 		String result="신고수정 실패";
 		
@@ -149,9 +216,19 @@ public class ReportController {
 	
 	// 신고 삭제 처리 delete
 	@PostMapping("/user/meetup/report/delete")
-	public String reportDelete_post(ReportsDto dto, RedirectAttributes rttr) {
-		
-		dto.setMemberId(1); 
+	public String reportDelete_post(ReportsDto dto, RedirectAttributes rttr, Authentication authentication) {
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 	
+		dto.setMemberId(memberId); 
 		
 		String result="신고삭제 실패";
 		
