@@ -888,7 +888,7 @@
 	</insert>
 
 	<!-- 광고 일일 통계 생성 -->
-	<insert id="insertDailyStatistics">
+	<!-- <insert id="insertDailyStatistics">
 	
 	    INSERT INTO advertisement_daily_statistics
 	    (
@@ -980,6 +980,6 @@
 	    ON a.ad_id = c.ad_id
 	
 	
-	</insert>
+	</insert> -->
 
 </mapper>

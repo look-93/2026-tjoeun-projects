@@ -4,8 +4,14 @@
 	<th:block th:fragment="mypageSidebar">
 		<aside class="sidebar">
 		    <div class="menu">
-		        <a th:href="@{/user/member/mypage}">내 정보</a>
-          
+		        <!-- <a th:href="@{/user/member/mypage}">내 정보</a> -->
+		        
+ 		        <a href="/user/member/mypage"
+		           class="menu-link"
+		           data-path="/user/member/mypage">
+		           내 정보
+		        </a>
+		                 
 		        <a href="/mypage/myMeetupInfo"
 		           class="menu-link"
 		           data-path="/mypage/myMeetupInfo">
