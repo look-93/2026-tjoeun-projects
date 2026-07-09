@@ -220,12 +220,8 @@ public class ReportController {
 							HttpSession session,
 							Model model) {
 		
-		Integer adminMemberId = getLoginAdminId(session);
+		Integer memberId = getLoginAdminId(session);
 	
-	    if (adminMemberId == null) {
-	    	adminMemberId = 12;
-	    }
-		
 		HashMap<String, Object> map = new HashMap<>();
 		
 		map.put("targetType", targetType);
@@ -257,17 +253,15 @@ public class ReportController {
 	}
 	
 	// 관리자 리스트 목록 상세보기
-	@RequestMapping("/admin/report/adminDetail")
+	@GetMapping("/admin/report/adminDetail")
 	public String adminDetail(	@RequestParam("reportId") int reportId,
 								HttpSession session,
 								Model model) {
 		
 //		Integer memberId = (Integer) session.getAttribute("loginMemberId");
-		Integer adminMemberId = getLoginAdminId(session);
+//		if (memberId == null) { memberId = 12; }
+		Integer memberId = getLoginAdminId(session);
 		
-	    if (adminMemberId == null) {
-	    	adminMemberId = 12;
-	    }
 		
 		HashMap<String, Object> map = new HashMap<>(); // 조회 조건
 		map.put("reportId", reportId);
@@ -278,6 +272,8 @@ public class ReportController {
 			model.addAttribute("dto", list.get(0));
 		}
 		
+		// 신뢰도 & 뱃지 조회 정보
+		
 		return "admin/report/adminDetail";
 	}
 	
@@ -285,11 +281,7 @@ public class ReportController {
 	@PostMapping("/admin/report/update")
 	public String reportUpdateAdmin_post(ReportsDto dto, HttpSession session, RedirectAttributes rttr) {
 		
-		Integer adminMemberId = getLoginAdminId(session);
-		
-	    if (adminMemberId == null) {
-	    	adminMemberId = 12;
-	    }
+		Integer memberId = getLoginAdminId(session);
 		
 		String result="status 상태 수정 실패";
 		
@@ -303,7 +295,7 @@ public class ReportController {
 			}
 		}
 		rttr.addFlashAttribute("result", result);
-		return "redirect:/admin/report/adminList";
+		return "redirect:/admin/report/adminDetail?reportId=" + dto.getReportId();
 	}
 	
 	// 관리자 신고 삭제
@@ -311,12 +303,8 @@ public class ReportController {
 	public String reportDeleteAdmin_post(	@RequestParam("reportId") int reportId,
 											ReportsDto dto, HttpSession session, RedirectAttributes rttr) {
 		
-		Integer adminMemberId = getLoginAdminId(session);
+		Integer memberId = getLoginAdminId(session);
 		
-	    if (adminMemberId == null) {
-	    	adminMemberId = 12;
-	    }
-	    
 		String result="신고삭제 실패";
 		
 		if( service.deleteAdmin(reportId) > 0 ) {

@@ -34,7 +34,7 @@
 				<div class="admin-detail-summary-card">
 					<div class="admin-detail-summary-label">대상</div>
 					<div class="admin-detail-summary-value"
-						th:text="${dto.targetId} + '번 글'"></div>
+						th:text="${dto.targetType} + ' ' + ${dto.targetId} + '번 글'"></div>
 				</div>
 
 				<div class="admin-detail-summary-card">
@@ -72,14 +72,15 @@
 				</div>
 				
 				<div class="admin-detail-row">
-					<div class="admin-detail-label">신고당한 유저 아이디</div>
+					<div class="admin-detail-label">신고 대상 (닉네임)</div>
 					<div class="admin-detail-value"
 						th:text="${dto.targetMemberId} + ' ( ' + ${dto.targetNickname} + ' )'"></div>
 				</div>
+				
 				<div class="admin-detail-row">
 					<div class="admin-detail-label">신뢰도 점수 (뱃지)</div>
 					<div class="admin-detail-value"
-						th:text="${dto.selectTrustScore} + '점 / ' + ${dto.reportStatusName}"></div>
+						th:text="${dto.trustScore} + '점 / ' + ${dto.StatusName}"></div>
 				</div>
 
 				<div class="admin-detail-row">
