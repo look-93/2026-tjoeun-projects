@@ -41,7 +41,7 @@ public class AdvertisementController {
                 (Integer) session.getAttribute("loginMemberId");
 
         if (loginMemberId == null) {
-            loginMemberId = 3;
+            loginMemberId = 12;
         }
 
         dto.setAdvertiserId(loginMemberId);
@@ -60,6 +60,9 @@ public class AdvertisementController {
 
         int totalPage =
                 (int)Math.ceil((double)totalCnt / size);
+        
+     // 데이터가 없어서 totalPage가 0이 나오더라도 최소 1페이지로 고정
+        if (totalPage == 0) { totalPage = 1; }
 
         model.addAttribute("list", list);
         model.addAttribute("dto", dto);
@@ -101,7 +104,7 @@ public class AdvertisementController {
                     (Integer) session.getAttribute("loginMemberId");
 
             if (loginMemberId == null) {
-                loginMemberId = 3;
+                loginMemberId = 12;
             }
 
             dto.setAdvertiserId(loginMemberId);
@@ -163,7 +166,7 @@ public class AdvertisementController {
                 (Integer) session.getAttribute("loginMemberId");
 
         if (loginMemberId == null) {
-            loginMemberId = 3;
+            loginMemberId = 12;
         }
 
         if (dto == null) {
@@ -193,7 +196,7 @@ public class AdvertisementController {
                 (Integer) session.getAttribute("loginMemberId");
 
         if (loginMemberId == null) {
-            loginMemberId = 3;
+            loginMemberId = 12;
         }
 
         if (dto == null) {
@@ -230,7 +233,7 @@ public class AdvertisementController {
                 (Integer) session.getAttribute("loginMemberId");
 
         if (loginMemberId == null) {
-            loginMemberId = 3;
+            loginMemberId = 12;
         }
 
         AdvertisementDto origin =
@@ -307,7 +310,7 @@ public class AdvertisementController {
                 (Integer) session.getAttribute("loginMemberId");
 
         if (loginMemberId == null) {
-            loginMemberId = 3;
+            loginMemberId = 12;
             // return "redirect:/member/login";
         }
 
@@ -335,15 +338,16 @@ public class AdvertisementController {
             HttpSession session) {
 
 
-        advertisementService.updateAdvertisementClick(adId);
-
-
-//        advertisementService.insertClickLog(
-//                adId,
-//                request,
-//                session
-//        );
-
+    	// 클릭 로그 확인 (1시간에 한번만 +1 인정)
+    	boolean counted = advertisementService.insertClickLog(
+    	        adId,
+    	        request,
+    	        session
+    	);
+    	// 한시간 내에 기록 x면 증가
+    	if (counted) {
+    	    advertisementService.updateAdvertisementClick(adId);
+    	}
 
         AdvertisementDto dto =
                 advertisementService.selectAdvertisementOne(adId);

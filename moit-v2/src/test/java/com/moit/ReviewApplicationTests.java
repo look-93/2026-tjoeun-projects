@@ -24,7 +24,7 @@ public class ReviewApplicationTests {
 		ReviewDto dto = new ReviewDto();
 		
 		dto.setReviewId(1);
-		int result = mapper.deletUserReview(dto);
+		int result = mapper.deleteUserReview(dto);
 		System.out.println("=========================================");
 		System.out.println("======>리뷰 논리삭제 성공 행 개수: " + result);
 		System.out.println("=========================================");
