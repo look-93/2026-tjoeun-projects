@@ -42,6 +42,8 @@ public class MeetupDto {
     private String fomatMeetupAt;
     private String fomatcreatedAt;
     private Integer meetupTotalCount;
+    private Integer applicationId;
+    private String rejectReason;
     
     /*통계*/
     private Integer meetupCount;

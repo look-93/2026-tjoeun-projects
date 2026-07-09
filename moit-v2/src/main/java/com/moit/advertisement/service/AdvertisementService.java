@@ -9,6 +9,9 @@ import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+
 public interface AdvertisementService {
 
 	// 스케쥴러
@@ -76,8 +79,8 @@ public interface AdvertisementService {
     // 클릭 수 증가
     int updateAdvertisementClick(int adId);
 
-    // 메인 광고 조회
-    AdvertisementDto selectTopAdvertisement(String position);
+    // 광고 조회
+    AdvertisementDto selectTopAdvertisement(String position, Integer memberId, String sessionId);
 
     // 통계
     int selectTotalAdvertisementCnt();
@@ -88,7 +91,16 @@ public interface AdvertisementService {
 
     int selectClosedAdvertisementCnt();
 
+    // 클릭 로그
+	boolean insertClickLog(int adId, String position, HttpServletRequest request, HttpSession session);
+	
+	// 노출 로그
+	boolean insertImpressionLog(int adId, String position, HttpServletRequest request, HttpSession session);
 
+	// 
+	void createDailyStatistics();
 
+	// 일일통계
+	void insertDailyStatistics();
 
 }

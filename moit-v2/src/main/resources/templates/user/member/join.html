@@ -129,9 +129,9 @@
 
 	<script th:inline="javascript">
 	
-		const loginIdUrl = [[@{/users/checkLoginId}]];
-		const nicknameUrl = [[@{/users/checkNickname}]];
-		const loginPage = [[@{/user/login}]];
+		const loginIdUrl = [[@{/user/member/checkLoginId}]];
+		const nicknameUrl = [[@{/user/member/checkNickname}]];
+		const loginPage = [[@{/user/member/login}]];
 		
 		function checkDuplicate(inputId, targetId, url, message){
 		

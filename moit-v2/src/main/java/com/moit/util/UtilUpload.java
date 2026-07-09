@@ -12,16 +12,32 @@ import org.springframework.web.multipart.MultipartFile;
 @Component //내가 만든 부품이야
 public class UtilUpload {
 	@Value("${resource.path}") private String resourcePath;// C:/upload -> application.properties
+
 	
-	public String fileUpload(MultipartFile file) throws IOException {	
-		//1. 파일 이름 중복안되게
-		UUID uid = UUID.randomUUID();
-		String save = uid.toString() + "_" + file.getOriginalFilename();
-		//2. 파일업로드
-		File target = new File(resourcePath , save);
-		FileCopyUtils.copy(file.getBytes(), target);
-		return save;		
-	}
+	// 방식 A: 경로를 지정 안 하면 기본 경로(defaultPath) 사용
+    public String fileUpload(MultipartFile file) throws IOException {	
+        return fileUpload(file, resourcePath); 
+    }
+    
+    // 방식 B: 경로를 지정하면 해당 경로 사용 (핵심 로직은 여기서 처리)
+    public String fileUpload(MultipartFile file, String customPath) throws IOException {	
+        UUID uid = UUID.randomUUID();
+        String save = uid.toString() + "_" + file.getOriginalFilename();
+        
+        File target = new File(customPath, save);
+        FileCopyUtils.copy(file.getBytes(), target);
+        return save;		
+    }
+    
+//	public String fileUpload(MultipartFile file) throws IOException {	
+//		//1. 파일 이름 중복안되게
+//		UUID uid = UUID.randomUUID();
+//		String save = uid.toString() + "_" + file.getOriginalFilename();
+//		//2. 파일업로드
+//		File target = new File(resourcePath , save);
+//		FileCopyUtils.copy(file.getBytes(), target);
+//		return save;		
+//	}
 	
 	//1. 업로드 : 팀미션 : 확장자, 용량 사이즈 고려
 	//2. 팀미션 : 글삭제시 파일도 같이 삭제

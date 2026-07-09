@@ -6,9 +6,25 @@
 		<div class="mypage-profile-card">
 			<div class="mypage-profile-img"></div>
 			<div>
-			    <h2>홍길동</h2>
-			    <p>hong@example.com</p>
-			    <span class="badge">일반 회원</span>
+			    <h2 th:text="${dto.nickname}"></h2>
+			    <p th:text="${dto.email}"></p>
+			    <span class="badge" th:switch="${#authentication.principal.typeName}">
+                      <span th:case="'ROLE_MEMBER'">
+                          일반회원
+                      </span>
+
+                      <span th:case="'ROLE_PARTNER'">
+                          제휴업체
+                      </span>
+
+                      <span th:case="'ROLE_ADMIN'">
+                          관리자
+                      </span>
+
+                      <span th:case="*"
+                            th:text="${#authentication.principal.typeName}">
+                      </span>
+               </span>
 			</div>
 		</div>
 	</th:block>

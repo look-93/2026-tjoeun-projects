@@ -8,7 +8,6 @@
 </head>
 <body>
 	<div layout:fragment="content">
-	<div th:text="${dto.nickname}"></div>
 		<!-- MAIN -->
 		<div class="mypage-main-content">
 
@@ -37,8 +36,6 @@
 					<h3>6</h3>
 					<p>관심 모임</p>
 				</div>
-				
-					<p th:text="${dto}"></p>
 			</div>
 
 			<div class="mypage-user-info">
@@ -54,7 +51,7 @@
 
 					<div class="mypage-info-box">
 						<div class="mypage-info-title">이메일</div>
-						<div>hong@example.com</div>
+						<div th:text="${dto.email}"></div>
 					</div>
 
 					<div class="mypage-info-box">

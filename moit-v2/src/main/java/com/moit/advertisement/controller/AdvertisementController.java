@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +18,8 @@ import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.service.AdvertisementService;
+import com.moit.member.dto.UserDto;
+import com.moit.security.CustomUserDetails;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -31,20 +35,37 @@ public class AdvertisementController {
     private static final String UPLOAD_PATH = "C:/upload/ad/";
 
     // 내 광고 목록
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/list")
     public String list(
             AdvertisementSearchDto dto,
             HttpSession session,
+            Authentication authentication,
             Model model) {
+    	
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 
+		    	
 
-        Integer loginMemberId =
-                (Integer) session.getAttribute("loginMemberId");
+		/*
+		 * Integer loginMemberId = (Integer) session.getAttribute("loginMemberId");
+		 */
 
-        if (loginMemberId == null) {
-            loginMemberId = 12;
+        if (memberId == null) {
+        	memberId = 12;
         }
 
-        dto.setAdvertiserId(loginMemberId);
+        
+        dto.setAdvertiserId(memberId);
 
         int page = dto.getPage() <= 0 ? 1 : dto.getPage();
         int size = dto.getSize() <= 0 ? 10 : dto.getSize();
@@ -60,6 +81,9 @@ public class AdvertisementController {
 
         int totalPage =
                 (int)Math.ceil((double)totalCnt / size);
+        
+     // 데이터가 없어서 totalPage가 0이 나오더라도 최소 1페이지로 고정
+        if (totalPage == 0) { totalPage = 1; }
 
         model.addAttribute("list", list);
         model.addAttribute("dto", dto);
@@ -331,19 +355,22 @@ public class AdvertisementController {
     @GetMapping("/click")
     public String click(
             @RequestParam int adId,
+            @RequestParam String position,
             HttpServletRequest request,
             HttpSession session) {
 
 
-        advertisementService.updateAdvertisementClick(adId);
-
-
-//        advertisementService.insertClickLog(
-//                adId,
-//                request,
-//                session
-//        );
-
+    	// 클릭 로그 확인 (1시간에 한번만 +1 인정)
+    	boolean counted = advertisementService.insertClickLog(
+    	        adId,
+    	        position,
+    	        request,
+    	        session
+    	);
+    	// 한시간 내에 기록 x면 증가
+    	if (counted) {
+    	    advertisementService.updateAdvertisementClick(adId);
+    	}
 
         AdvertisementDto dto =
                 advertisementService.selectAdvertisementOne(adId);

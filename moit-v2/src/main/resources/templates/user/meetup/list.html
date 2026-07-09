@@ -17,7 +17,7 @@
 				         th:if="${bannerAd != null}"
 				         th:classappend="${bannerAd.imageList != null and !bannerAd.imageList.isEmpty()} ? ' has-image' : ''">
 				
-				    <a th:href="@{/user/advertisement/click(adId=${bannerAd.adId})}">
+				    <a th:href="@{/user/advertisement/click(adId=${bannerAd.adId},  position='MEETUP_LIST_BANNER')}">
 				
 				        <img th:if="${bannerAd.imageList != null 
 				                     and !bannerAd.imageList.isEmpty()}"
