@@ -54,17 +54,7 @@ public class AdvertisementController {
 			loginId    =  users.getUser().getLoginId();
 			memberId = users.getUser().getMemberId();
 		} 
-		    	
 
-		/*
-		 * Integer loginMemberId = (Integer) session.getAttribute("loginMemberId");
-		 */
-
-        if (memberId == null) {
-        	memberId = 12;
-        }
-
-        
         dto.setAdvertiserId(memberId);
 
         int page = dto.getPage() <= 0 ? 1 : dto.getPage();
@@ -84,9 +74,10 @@ public class AdvertisementController {
         
      // 데이터가 없어서 totalPage가 0이 나오더라도 최소 1페이지로 고정
         if (totalPage == 0) { totalPage = 1; }
+
         model.addAttribute("list", list);
-        model.addAttribute("dto", dto);
         model.addAttribute("search", dto);
+        model.addAttribute("dto" , user); 
         model.addAttribute("totalCnt", totalCnt);
         model.addAttribute("totalPage", totalPage);
         model.addAttribute("menu", "advertisement");
