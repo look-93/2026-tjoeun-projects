@@ -19,11 +19,14 @@ import com.moit.member.dto.AuthUserDto;
 import com.moit.member.dto.UserDto;
 import com.moit.security.CustomUserDetails;
 
+import jakarta.servlet.http.HttpSession;
+
 @Service
 public class Oauth2UserService extends DefaultOAuth2UserService{
 	
 	@Autowired UserMapper dao;	
 	@Autowired PasswordEncoder passwordEncoder;
+	@Autowired HttpSession session;
 	
 	// alt + shift + s (override)
 	@Transactional
@@ -52,84 +55,82 @@ public class Oauth2UserService extends DefaultOAuth2UserService{
 		String providerId = info.getProviderId();
 		String img = info.getImage(); //##
 		
-//		UserDto param = new UserDto(); 
-//		param.setProvider(provider); 
-//		param.setProviderId(providerId);
 		
 		UserDto user = dao.findByEmail(email); // 마이페이지
 		
 		if(user == null){
 
-			user = new UserDto();
-
-		    user.setLoginId(provider + "_" + providerId);
-
-		    user.setEmail(email);
-
-		    user.setNickname(nickname);
-
-		    user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-
-		    user.setProvider(provider);
-
-		    user.setProviderId(providerId);
-
-		    user.setProfileUrl(img);
-
-		    user.setMemberTypeId(1);
-
-		    user.setStatusId(5); //
-		    
-		    user.setMobile(null);
-
-		    dao.insertSocial(user);
-		    dao.insertSocialInfo(user);
-
-		    //user = dao.findByEmail(email);
-		}
-		
-//		// 이미 연동된 회원인지 확인    
-//		if(user == null) { 
-//			throw new OAuth2AuthenticationException("먼저 일반회원으로 가입한 후 마이페이지에서 소셜 계정을 연동해주세요.");
-//		}
-//		
-//		// 최초 소셜 연동
-//		if(user.getProvider() == null){
+//			user = new UserDto();
+//
+//		    user.setLoginId(provider + "_" + providerId);
+//
+//		    user.setEmail(email);
+//
+//		    user.setNickname(nickname);
+//
+//		    user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
 //
 //		    user.setProvider(provider);
+//
 //		    user.setProviderId(providerId);
 //
-//		    dao.connectProvider(user);
-//		}
-//		
-//		else{
+//		    user.setProfileUrl(img);
 //
-//		    if(!provider.equals(user.getProvider())){
-//		        throw new OAuth2AuthenticationException(
-//		                "다른 소셜 계정으로 연동된 회원입니다.");
-//		    }
+//		    user.setMemberTypeId(1);
 //
-//		    if(!providerId.equals(user.getProviderId())){
-//		        throw new OAuth2AuthenticationException(
-//		                "등록되지 않은 소셜 계정입니다.");
-//		    }
+//		    user.setStatusId(5); //
+//		    
+//		    user.setMobile(null);
 //
-//		}
+//		    dao.insertSocial(user);
+//		    dao.insertSocialInfo(user);
 			
-		AuthUserDto authDto =
-		        dao.readByLoginId(user.getLoginId());
+			 UserDto socialUser = new UserDto();
+
+			    socialUser.setEmail(email);
+			    socialUser.setNickname(nickname);
+			    socialUser.setProvider(provider);
+			    socialUser.setProviderId(providerId);
+			    socialUser.setProfileUrl(img);
+
+
+			    // ★ 회원가입 전 임시 저장
+			    session.setAttribute("socialUser", socialUser);
+
+
+			    // 로그인 객체는 임시 생성
+			    user = new UserDto();
+
+			    user.setLoginId(provider + "_" + providerId);
+			    user.setEmail(email);
+			    user.setNickname(nickname);
+			    user.setProvider(provider);
+			    user.setProviderId(providerId);
+			    user.setProfileUrl(img);
+		    
+		}
+			
+			
+		//AuthUserDto authDto = dao.readByLoginId(user.getLoginId());
+		//CustomUserDetails customUser = new CustomUserDetails(user,attributes);
 		
-		CustomUserDetails customUser = new CustomUserDetails(user,authDto);
+		CustomUserDetails customUser;
 		
+		if(user.getMemberId() == 0) {
 		Map<String,Object> attributes = new HashMap<>(oAuth2User.getAttributes());
-		
+				
 		attributes.put("provider", provider);
 		attributes.put("providerId", providerId);
 		attributes.put("email", email);
 		attributes.put("nickname", nickname);
 		attributes.put("profileUrl", img);
 		
-		customUser.setAttributes(attributes);
+		customUser = new CustomUserDetails(user, attributes);
+		}else {
+			AuthUserDto authDto = dao.readByLoginId(user.getLoginId());
+			
+			customUser = new CustomUserDetails(user,authDto);
+		}
 		
 		return customUser;
 	}

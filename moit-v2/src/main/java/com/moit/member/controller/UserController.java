@@ -91,30 +91,57 @@ public class UserController {
 	@GetMapping("/login")
 	public String login() {  return "user/member/login"; }
 
-	@GetMapping("/fail") public String fail(Model model) {
-		model.addAttribute("errorMessage","로그인 실패 : 아이디 또는 비밀번호를 확인해주세요.");
-		return "redirect:/user/member/join";
+	@GetMapping("/fail") public String fail(RedirectAttributes rttr) {
+		rttr.addFlashAttribute("errorMessage",
+	            "로그인 실패 : 아이디 또는 비밀번호를 확인해주세요.");
+		
+		return "redirect:/user/member/login";
 	}
 	
 	// 소셜 로그인
-	@GetMapping("/social-info")
-    public String socialInfoForm() {
-        return "user/member/social-info";
+	@GetMapping("/socialInfo")
+    public String socialInfoForm(HttpSession session, Model model) {
+		
+		UserDto socialUser = (UserDto) session.getAttribute("socialUser");
+		
+		if(socialUser == null) {
+			
+			return "redirect:/user/member/login";
+		}
+		
+		model.addAttribute("socialUser",socialUser);
+		
+        return "user/member/socialInfo";
     }
 
-    @PostMapping("/social-info")
+    @PostMapping("/socialInfo")
     public String socialInfoSave(
             @ModelAttribute UserDto dto,
-            Authentication authentication) {
+            HttpSession session) {
 
-        CustomUserDetails user =
-                (CustomUserDetails) authentication.getPrincipal();
+    	UserDto socialUser =
+                (UserDto) session.getAttribute("socialUser");
+        
+        if(socialUser == null) {
+        	return "redirect:/user/member/login";
+        }
 
-        dto.setMemberId(user.getAppUserId());
+        dto.setEmail(socialUser.getEmail());
+        dto.setNickname(socialUser.getNickname());
+        dto.setProvider(socialUser.getProvider());
+        dto.setProviderId(socialUser.getProviderId());
+        dto.setProfileUrl(socialUser.getProfileUrl());
 
-        service.completeSocialJoin(dto);
-
-        return "redirect:/user/member/mypage";
+//        dto.setLoginId( socialUser.getProvider() +"_"+socialUser.getProviderId() );
+//        
+//        dto.setMemberTypeId(1);
+//        dto.setStatusId(1);
+        
+        service.insertSocialJoin(dto);
+        
+        session.removeAttribute("socialUser");
+        
+        return "redirect:/user/member/login";
     }
 	
 	@PreAuthorize("isAuthenticated()")

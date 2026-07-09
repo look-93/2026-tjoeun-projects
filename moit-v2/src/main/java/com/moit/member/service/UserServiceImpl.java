@@ -3,6 +3,7 @@ package com.moit.member.service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -90,11 +91,25 @@ public class UserServiceImpl  implements UserService{
 		return true;
 	}
 	
+//	@Transactional
+//	@Override
+//	public void completeSocialJoin(UserDto dto) {
+//		dao.updateSocialInfo(dto);
+//        dao.updateMemberInfo(dto);
+//	}
+	
 	@Transactional
 	@Override
-	public void completeSocialJoin(UserDto dto) {
-		dao.updateSocialInfo(dto);
-        dao.updateMemberInfo(dto);
+	public void insertSocialJoin(UserDto dto) {
+		dto.setPassword(pwencoder.encode(UUID.randomUUID().toString()));
+		
+		dto.setLoginId(dto.getProvider() + "-" + dto.getProviderId());
+		
+		dto.setMemberTypeId(1);
+		dto.setStatusId(1);
+		
+		dao.insertSocial(dto);
+		dao.insertSocialInfo(dto);
 	}
 
 	

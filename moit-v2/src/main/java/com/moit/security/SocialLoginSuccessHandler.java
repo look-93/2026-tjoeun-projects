@@ -14,24 +14,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler{
-
-//    @Override
-//    public void onAuthenticationSuccess(
-//            HttpServletRequest request,
-//            HttpServletResponse response,
-//            Authentication authentication)
-//            throws IOException, ServletException {
-//
-//        CustomUserDetails user =
-//                (CustomUserDetails) authentication.getPrincipal();
-//
-//        // 최초 소셜회원
-//        if(user.getStatusId() == 5){
-//            response.sendRedirect("/user/member/main");
-//        }else{
-//            response.sendRedirect("/user/member/main");
-//        }
-//    }
 	
 	@Override
     public void onAuthenticationSuccess(
@@ -39,6 +21,14 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler{
             HttpServletResponse response,
             Authentication authentication)
             throws IOException {
+		
+		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+		
+		if(user.getAppUserId() == 0) {
+			response.sendRedirect("/user/member/social-info");
+			
+			return;
+		}
 
         response.sendRedirect("/user/main");
     }

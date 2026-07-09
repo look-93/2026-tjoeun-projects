@@ -10,11 +10,7 @@
 <body>
 
 <!-- Header -->
-<div th:replace="~{user/fragments/mainHeader :: mainHeader}"></div>
-	    <div th:if="${errorMessage}" class="alert alert-info alert-dismissible fade show" role="alert">
-        <span th:text="${errorMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+<div th:replace="~{user/fragments/mainHeader :: mainHeader}"></div>	    
 	<div class="container">	
 	    <section class="auth-box">	
 	        <div class="tab-menu">
@@ -183,7 +179,14 @@
 		    });
 		
 		});
+		
+	</script>
+	<script th:inline="javascript">
+	    const message = [[${errorMessage}]];
 	
+	    if (message != null) {
+	        alert(message);
+	    }
 	</script>
 
 </body>
