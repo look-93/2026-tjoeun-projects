@@ -11,6 +11,7 @@ import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupImageDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
+import com.moit.meetup.dto.TrustScoreDto;
 import com.moit.meetup.dto.common.CategoryDto;
 import com.moit.meetup.dto.common.SidoDto;
 import com.moit.meetup.dto.common.SigunguDto;
@@ -94,5 +95,7 @@ public interface MeetupMapper {
 	public MeetupLikeDto selectMeetupLike(MeetupLikeDto meetupLikeDto);
 	public int countMeetupLike(MeetupLikeDto meetupLikeDto);	
 	
+	//노쇼방지 계산식
+	public TrustScoreDto calculatedScore(int memberId);
 
 }

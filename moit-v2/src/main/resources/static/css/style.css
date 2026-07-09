@@ -2298,6 +2298,26 @@ textarea.mw-form-input {
     -webkit-overflow-scrolling: touch; /* 모바일 부드러운 스크롤 */
 }
 
+.mw-slide-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    display: none; /* 기본은 숨김 */
+}
+.mw-slide-btn.left { left: 15px; }
+.mw-slide-btn.right { right: 15px; }
+
+
 /* 💡 깔끔하게 가로 스크롤바 감추기 (추가) */
 .mw-main-image::-webkit-scrollbar {
     display: none;

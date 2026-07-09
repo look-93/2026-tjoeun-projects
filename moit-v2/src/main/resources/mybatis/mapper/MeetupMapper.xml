@@ -280,7 +280,8 @@
   	<!-- 모집신청 취소 -->
  	<update id="cancelApplyMeetup" parameterType="MeetupApplicationDto"> 
  		UPDATE meetup_applications
- 		   SET status = 'CANCELED'
+ 		   SET status = 'CANCELED',
+ 		   	   updated_at = SYSDATE
 		 WHERE 1=1
  		   AND application_id = #{applicationId}
  	</update>  		
@@ -452,5 +453,93 @@
 	</delete>
 		
 	<!-- 이미지 삭제 -->
+
+	<!-- 노쇼방지 계산식 
+	### 📉 감점 요인 (가중치 높음)
+	 1. 최근 3개월 내 무단 노쇼 (`meetup_applications.status = 'NOSHOW'`):   건당 **-5점**
+	 2. 모임 시작 24시간 이내 직전 취소 (`status = 'CANCEL_LAST_MINUTE'`):     건당 **-6점**
+	 3. 최근 3개월 내 승인된 신고 누적 이력 (`reports` 테이블 내 유저 신고 승인 건수): 건당 **-7점**
+	
+	### 📈 가점 요인 (신뢰도 회복)
+	 4. 최근 3개월 내 평균 리뷰 평점 우수 (`reviews.rating` 평균 4.5 이상):** 10점** 
+	
+	계산순서 -> 신뢰도점수 - 1 - 2 - 3 + 4 
+	-->
+	
+	<select id="calculatedScore" resultType="TrustScoreDto" parameterType="int">
+		SELECT c.trust_score 
+		       - (NVL(d.noshow_count, 0) * 5)
+		       - (NVL(e.cancel_count, 0) * 6)
+		       - (NVL(f.report_count, 0) * 7)
+		       + (NVL(g.review_bonus_flag, 0) * 10) AS final_trust_score,
+		
+		       (NVL(d.noshow_count, 0) * 5) AS noshow_score,
+		       (NVL(e.cancel_count, 0) * 6) AS cancel_score,
+		       (NVL(f.report_count, 0) * 7) AS report_score,
+		       (NVL(g.review_bonus_flag, 0) * 10) AS review_rating_count,
+		
+		       NVL(d.noshow_count, 0) AS noshow_count,
+		       NVL(e.cancel_count, 0) AS cancel_count,
+		       NVL(f.report_count, 0) AS report_count,
+		       NVL(g.review_bonus_flag, 0) AS review_rating_count,
+		       
+		       c.member_id
+		
+		FROM member_info c
+		
+		LEFT JOIN (
+		    SELECT a.member_id,
+		           COUNT(*) AS noshow_count
+		    FROM meetup_applications a
+		    LEFT JOIN meetups b 
+		           ON b.meetup_id = a.meetup_id
+		    WHERE 1 = 1
+		      AND b.delete_yn = 'N'
+		      AND b.status = 'NOSHOW'
+		      AND b.meetup_at &gt;= ADD_MONTHS(SYSDATE, -3)
+		    GROUP BY a.member_id
+		) d 
+		ON d.member_id = c.member_id
+		
+		LEFT JOIN (
+		    SELECT a.member_id,
+		           COUNT(*) AS cancel_count
+		    FROM meetup_applications a
+		    LEFT JOIN meetups b 
+		           ON b.meetup_id = a.meetup_id
+		    WHERE 1 = 1
+		      AND b.delete_yn = 'N'
+		      AND a.status = 'CANCELED'
+		      AND a.updated_at &gt;= b.meetup_at - INTERVAL '24' HOUR
+		      AND a.updated_at &lt; b.meetup_at
+		    GROUP BY a.member_id
+		) e
+		ON e.member_id = c.member_id
+		
+		LEFT JOIN (
+		    SELECT target_id,
+		           COUNT(*) AS report_count
+		    FROM reports
+		    WHERE created_at &gt;= ADD_MONTHS(SYSDATE, -3)
+		      AND status = 'APPROVED'
+		    GROUP BY target_id
+		) f
+		ON f.target_id = c.member_id
+		
+		LEFT JOIN (
+		    SELECT member_id,
+		    	   CASE WHEN AVG(rating) &gt;= 4.5 THEN 1 ELSE 0 END AS review_bonus_flag
+		    FROM reviews
+		    WHERE created_at &gt;= ADD_MONTHS(SYSDATE, -3)
+		    GROUP BY member_id
+		) g
+		ON g.member_id = c.member_id
+		
+		WHERE 1 = 1
+		  AND c.member_id = #{memberId}
+	
+	</select>
+	
+	<!-- 노쇼방지 계산식 -->
 	
 </mapper>

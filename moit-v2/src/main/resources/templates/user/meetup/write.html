@@ -21,14 +21,14 @@
 							
 								<!-- 이미지등록 -->
 								<div class="mw-image-box" style="position: relative;">
-								    <div style="position: relative; width: 100%;">
+								    <div style="position: relative; width: 100%; height:350px;">
 								
-								        <button type="button" id="prevBtn" onclick="moveSlide(-1)"
-								            th:style="${images != null and images.size() > 1} ? 'display: block; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); z-index: 10; background: rgba(0,0,0,0.5); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; font-weight: bold;' : 'display: none;'">
+								        <button type="button" id="prevBtn" class="mw-slide-btn left" onclick="moveSlide(-1)"
+								            th:style="${images != null and images.size() > 1} ? 'display: block;' : 'display: none;'">
 								            〈</button>
 								
-								        <button type="button" id="nextBtn" onclick="moveSlide(1)"
-								            th:style="${images != null and images.size() > 1} ? 'display: block; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); z-index: 10; background: rgba(0,0,0,0.5); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; font-weight: bold;' : 'display: none;'">
+								        <button type="button" id="nextBtn" class="mw-slide-btn right" onclick="moveSlide(1)"
+								            th:style="${images != null and images.size() > 1} ? 'display: block;' : 'display: none;'">
 								            〉</button>
 								
 								        <div class="mw-main-image" id="mwMainImage" 
