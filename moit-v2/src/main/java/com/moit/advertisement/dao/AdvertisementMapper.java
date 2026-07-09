@@ -105,7 +105,8 @@ public interface AdvertisementMapper {
             @Param("deviceType") String deviceType,
             @Param("ipAddress") String ipAddress,
             @Param("sessionId") String sessionId,
-            @Param("referrer") String referrer
+            @Param("referrer") String referrer,
+            @Param("position") String position
     );
     
     // 광고 클릭 확인
@@ -140,6 +141,12 @@ public interface AdvertisementMapper {
             @Param("memberId") Integer memberId,
             @Param("deviceType") String deviceType,
             @Param("ipAddress") String ipAddress,
-            @Param("sessionId") String sessionId
+            @Param("sessionId") String sessionId,
+            @Param("position") String position
     );
+    
+ // 광고 일일 통계 생성
+    void insertDailyStatistics();
+    
+    List<AdvertisementDto> selectAdvertisementStatistics();
 }

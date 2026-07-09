@@ -334,6 +334,7 @@ public class AdvertisementController {
     @GetMapping("/click")
     public String click(
             @RequestParam int adId,
+            @RequestParam String position,
             HttpServletRequest request,
             HttpSession session) {
 
@@ -341,6 +342,7 @@ public class AdvertisementController {
     	// 클릭 로그 확인 (1시간에 한번만 +1 인정)
     	boolean counted = advertisementService.insertClickLog(
     	        adId,
+    	        position,
     	        request,
     	        session
     	);
