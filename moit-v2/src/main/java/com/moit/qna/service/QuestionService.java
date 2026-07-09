@@ -23,13 +23,24 @@ public class QuestionService {
     // 전체 문의 목록 조회 (페이징)
     public List<QuestionDto> getList(
             int start,
-            int end) {
+            int end,
+            String type,
+            String keyword,
+            String status,
+            String startDate,
+            String endDate) {
 
-        Map<String, Integer> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>();
 
         map.put("start", start);
         map.put("end", end);
 
+        map.put("type", type);
+        map.put("keyword", keyword);
+        map.put("status", status);
+        map.put("startDate", startDate);
+        map.put("endDate", endDate);
+        
         return questionMapper.findAll(map);
     }
 
@@ -62,6 +73,24 @@ public class QuestionService {
     // 전체 문의 수 조회
     public int getAllCnt() {
         return questionMapper.findAllCnt();
+    }
+    // 검색 문의 수 조회
+    public int getSearchCnt(
+            String type,
+            String keyword,
+            String status,
+            String startDate,
+            String endDate) {
+
+        Map<String,Object> map=new HashMap<>();
+
+        map.put("type", type);
+        map.put("keyword", keyword);
+        map.put("status", status);
+        map.put("startDate", startDate);
+        map.put("endDate", endDate);
+
+        return questionMapper.findSearchCnt(map);
     }
 
     // 답변 대기 문의 수 조회
@@ -107,9 +136,15 @@ public class QuestionService {
     	map.put("keyword", keyword);
     	return questionMapper.findMyQuestionCnt(map);
     }
+
+    //관리자용 선택 삭제
+    public void deleteSelected(List<Integer> ids){
+        questionMapper.deleteSelected(ids);
+    }
     
     //
     public List<QuestionDto> selectByParentId(int parentId){
         return questionMapper.selectByParentId(parentId);
     }
+    
 }

@@ -107,6 +107,7 @@
     padding:18px;
     text-align:center;
     border-bottom:1px solid #f1f5f9;
+    white-space: nowrap;
 }
 
 .inquiry-table tbody tr{
@@ -291,14 +292,8 @@
 						    <span class="private-badge" th:if="${q.isPublic == 'N'}">🔒 비공개</span>
 						</td>
                         <td>
-
-                            <span class="badge waiting" th:if="${q.status == 'PENDING'}">
-                                답변 대기
-                            </span>
-                            <span class="badge complete" th:if="${q.status == 'ANSWERED'}">
-                                답변 완료
-                            </span>
-
+                            <span class="badge waiting" th:if="${q.status == 'PENDING'}"> 답변 대기 </span>
+                            <span class="badge complete" th:if="${q.status == 'ANSWERED'}"> 답변 완료 </span>
                         </td>
                         <td th:text="${#dates.format(q.createdAt, 'yyyy.MM.dd HH:mm:ss')}"></td>
                         <td th:text="${q.answer != null ? #dates.format(q.answer.createdAt,'yyyy.MM.dd HH:mm:ss') : '-'}"></td>	

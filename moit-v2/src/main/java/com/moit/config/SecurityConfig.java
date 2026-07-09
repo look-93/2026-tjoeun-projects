@@ -36,7 +36,8 @@ public class SecurityConfig {
 										  .permitAll()
 								  )//4. csrf 예외처리								  
 								  .csrf(csrf -> csrf
-										  .ignoringRequestMatchers("/users/join", "/users/update", "/users/delete")
+										  .ignoringRequestMatchers("/users/join", "/users/update", "/users/delete", 
+											        "/questions/deleteSelected")
 										  // Spring Security는 POST, PUT, DELETE 등의 요청에 CSRF 토큰이 있는지 검사
 										  // Thymeleaf + Spring Security + <form> → CSRF 토큰이 자동으로 추가
 										  // 왜추가했지..???

@@ -7,8 +7,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.moit.meetup.dto.MeetupDto;
@@ -33,26 +35,14 @@ public class QuestionController {
     private final AnswerService answerService;
     private final MeetupService meetupService;
     
-    // 관리자 페이지
-    @GetMapping("/admin")
-    public String adminQuestionList(Model model) {
-
-        model.addAttribute("allCnt", questionService.getAllCnt());
-        model.addAttribute("pendingCnt", questionService.getPendingCnt());
-        model.addAttribute("answeredCnt", questionService.getAnsweredCnt());
-        model.addAttribute("todayCnt", questionService.getTodayCnt());
-
-        model.addAttribute("list", questionService.getList(0, 10));
-
-        model.addAttribute("page", 1);
-        model.addAttribute("startPage", 1);
-        model.addAttribute("endPage", 1);
-        model.addAttribute("totalPage", 1);
-
-        return "user/qna/adminQuestionList";
+    //관리자용 선택 삭제
+    @PostMapping("/deleteSelected")
+    @ResponseBody
+    public void deleteSelected(@RequestBody List<Integer> ids){
+        questionService.deleteSelected(ids);
     }
     
-    // 내가 쓴 문의 목록
+    // 내 문의 목록
     @GetMapping("/myQuestion")
     public String myQuestion(@RequestParam(defaultValue="1") int page,
             @RequestParam(required = false) String type,
@@ -87,20 +77,44 @@ public class QuestionController {
 
         return "user/qna/questionList";
     }
-    // 관리자가 보는 전체 문의 내역
-    @GetMapping
-    public String list( @RequestParam(defaultValue = "1") int page, Model model) {
+    // 관리자가 보는 전체 문의 목록
+    @GetMapping("/admin")
+    public String admin(
+            @RequestParam(defaultValue="1") int page,
+            @RequestParam(required=false) String type,
+            @RequestParam(required=false) String keyword,
+            @RequestParam(required=false) String status,
+            @RequestParam(required=false) String startDate,
+            @RequestParam(required=false) String endDate,
+            Model model){
         int pageSize = 10;
         int start = (page - 1) * pageSize;
-        List<QuestionDto> list = questionService.getList(start, pageSize);
+        List<QuestionDto> list = questionService.getList(start, pageSize, type, keyword, status, startDate, endDate );
 
-        int totalCnt = questionService.getAllCnt();
+        int totalCnt = questionService.getSearchCnt(type, keyword, status, startDate, endDate);
         int totalPage = (int)Math.ceil((double)totalCnt / pageSize);
 
-        model.addAttribute("list", list);
+        int pageBlock = 10;
+        int startPage = ((page - 1) / pageBlock) * pageBlock + 1;
+        int endPage = startPage + pageBlock - 1;
 
+        if(endPage > totalPage){
+            endPage = totalPage;
+        }
+        
+        model.addAttribute("list", list);
         model.addAttribute("page", page);
         model.addAttribute("totalPage", totalPage);
+        model.addAttribute("startPage", startPage);
+        model.addAttribute("endPage", endPage);
+        
+        model.addAttribute("type", type);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("status", status);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+
+        model.addAttribute("searchCnt", totalCnt);
         
         // 전체 문의 수
         model.addAttribute("allCnt", questionService.getAllCnt());
@@ -110,7 +124,7 @@ public class QuestionController {
         model.addAttribute("answeredCnt", questionService.getAnsweredCnt());
         // 오늘 등록된 문의 수
         model.addAttribute("todayCnt", questionService.getTodayCnt());
-        return "user/qna/qnaList";
+        return "user/qna/adminQuestionList";
     }
     
     // 모임글 문의 등록
@@ -130,7 +144,7 @@ public class QuestionController {
     
     // 문의 상세 화면 + 답변 조회 + 버튼 권한
     @GetMapping("/{id}")
-    public String detail(@PathVariable int id, HttpSession session, Model model) {
+    public String detail(@PathVariable int id, HttpSession session, Model model,  RedirectAttributes rttr) {
         QuestionDto data = questionService.getDetail(id);
 
         boolean canAnswer = canAnswer(data, session);

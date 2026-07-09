@@ -34,3 +34,4 @@ Thumbs.db
 # =========================
 application-local.properties
 application-secret.properties
+moit-v2/src/main/resources/application-oauth.properties
