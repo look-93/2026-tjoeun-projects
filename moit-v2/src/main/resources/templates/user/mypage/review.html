@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{user/mypage/layouts/mypageLayout}">
+<head lang="ko">
+<meta charset="UTF-8">
+</head>
+<body>
+	<div layout:fragment="content">
+		<div class="mypage-main-content">
+
+			<div class="mypage-dashboard"
+				style="display: flex; gap: 20px; width: 100%;">
+
+				<div class="mypage-stat-card"
+					style="flex: 1; border: 2px solid #3B82F6; margin: 0;">
+					⭐
+					<h3 th:text="${myReviews != null ? #lists.size(myReviews) : 0}">26</h3>
+					<p>작성 후기</p>
+				</div>
+
+				<div class="mypage-stat-card"
+					style="flex: 1; border: 2px solid #EF4444; margin: 0;">
+					🔒
+					<h3
+						th:text="${myReviews != null ? #lists.size(myReviews.?[isPublic == 'N']) : 0}">7</h3>
+					<p style="color: #EF4444; font-weight: 600;">비공개 후기</p>
+				</div>
+
+			</div>
+			<div
+				style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px; background: #F8FAFC; padding: 12px 16px; border-radius: 12px; border: 1px solid #E2E8F0;">
+
+				<form th:action="@{/mypage/review}" method="get"
+					style="display: flex; gap: 8px; flex: 1; max-width: 380px;">
+
+					<input type="hidden" name="sort" th:value="${sort}"> <input
+						type="text" name="keyword" th:value="${keyword}"
+						placeholder="후기 내용 검색"
+						style="flex: 1; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 14px; outline: none;">
+
+					<button type="submit"
+						style="background: #3B82F6; color: white; border: none; padding: 0 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+						검색</button>
+
+				</form>
+
+				<div>
+
+					<form th:action="@{/mypage/review}" method="get">
+
+						<input type="hidden" name="keyword" th:value="${keyword}">
+
+						<!-- <select name="sort" onchange="this.form.submit()"
+							style="padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 14px; color: #475569; background: white; cursor: pointer; outline: none;">
+ -->
+							<!-- <option value="latest" th:selected="${sort == 'latest'}">
+								최신순</option>
+
+							<option value="likes" th:selected="${sort == 'likes'}">
+								인기순</option> -->
+
+						</select>
+
+					</form>
+
+				</div>
+
+			</div>
+		</div>
+
+		<div class="mypage-table-section" style="margin-top: 30px;">
+
+			<h2>내가 작성한 후기 목록</h2>
+
+			<table class="mypage-table">
+				<thead>
+					<tr>
+						<th style="width: 25%; text-align: left; padding-left: 15px;">모임
+							정보</th>
+						<th style="width: 45%; text-align: left;">후기 내용</th>
+						<th style="width: 15%; text-align: center;">공개 상태</th>
+						<th style="width: 15%; text-align: center;">관리</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:if="${myReviews == null or #lists.isEmpty(myReviews)}">
+						<td colspan="4"
+							style="text-align: center; color: #9CA3AF; padding: 40px 0;">
+							작성한 후기가 존재하지 않습니다.</td>
+					</tr>
+
+					<tr th:unless="${myReviews == null or #lists.isEmpty(myReviews)}"
+						th:each="review : ${myReviews}">
+						<td class="mypage-table-title"
+							style="padding-left: 15px; vertical-align: top;"><span
+							th:text="'모임 번호: ' + ${review.meetupId}"
+							style="font-weight: 700; display: block; color: #1E293B; margin-bottom: 4px;">모임
+								정보</span> <span th:text="${review.createdAt}"
+							style="font-size: 12px; color: #94A3B8; font-weight: normal;">2026.06.10</span>
+						</td>
+
+						<td style="vertical-align: top; padding-right: 15px;">
+							<div
+								style="color: #FBBF24; font-size: 13px; margin-bottom: 4px; letter-spacing: -0.5px;">
+								<span th:each="star : ${#numbers.sequence(1,5)}"
+									th:text="${star <= review.rating ? '★' : '☆'}">★</span>
+							</div>
+							<p th:text="${review.content}"
+								style="margin: 0; font-size: 14px; color: #475569; line-height: 1.5; white-space: pre-wrap;"></p>
+						</td>
+
+						<td style="text-align: center; vertical-align: middle;"><span
+							th:if="${review.isPublic == 'Y' or review.isPublic == null}"
+							style="background-color: #E0F2FE; color: #0369A1; padding: 4px 10px; border-radius: 8px; font-weight: 600; font-size: 12px; display: inline-block;">전체공개</span>
+							<span th:if="${review.isPublic == 'N'}"
+							style="background-color: #FEE2E2; color: #B91C1C; padding: 4px 10px; border-radius: 8px; font-weight: 600; font-size: 12px; display: inline-block;">비공개</span>
+						</td>
+
+						<td style="text-align: center; vertical-align: middle;">
+							<div
+								style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+								<!-- <button class="mypage-btn" 
+								        th:onclick="|location.href='/meetup/review/update/' + ${review.reviewId} + '?meetupId=' + ${review.meetupId}|"
+								        style="background-color: #FEF08A; color: #713F12; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer; margin: 0;">
+									수정
+								</button> -->
+								<a class="mypage-btn"
+									th:href="@{/meetup/review/update/{reviewId}
+								   (reviewId=${review.reviewId}, 
+								    meetupId=${review.meetupId},
+								    from='mypage')}"
+									style="background-color: #FEF3C7; color: #92400E; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 12px; display: inline-block; text-align: center; margin: 0;">
+									수정</a> <a class="mypage-btn"
+									th:href="@{/meetup/review/delete/{reviewId}(reviewId=${review.reviewId}, meetupId=${review.meetupId})}"
+									onclick="return confirm('정말 이 후기를 삭제하시겠습니까?');"
+									style="background-color: #DCFCE7; color: #166534; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 12px; display: inline-block; text-align: center; margin: 0;">
+									삭제 </a>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+		</div>
+	</div>
+
+	<script th:inline="javascript">
+		function changeSort(sortValue) {
+			const urlParams = new URLSearchParams(window.location.search);
+			urlParams.set('sort', sortValue);
+			window.location.href = "/user/mypage/myReviews?"
+					+ urlParams.toString();
+		}
+	</script>
+</body>
+</html>

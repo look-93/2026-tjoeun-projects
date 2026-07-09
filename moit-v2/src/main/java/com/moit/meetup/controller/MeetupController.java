@@ -113,31 +113,65 @@ public class MeetupController {
 		return result;	
 	}	
 	
-	/*사옹자 - 모임상세조회*/
+	
+	/* 사용자 - 모임상세조회 */
 	@GetMapping("/meetup/detail")
-	public String detail(Model model, Authentication authentication, MeetupApplicationDto meetupApplicationDto, @RequestParam(value = "sort", required = false, defaultValue = "latest")  String sort) {
-		
-//		CustomUser user = (CustomUser) authentication.getPrincipal(); 
-//		int memberId = userMeetupService.findByMamberId(user.getUsername());
-//		meetupApplicationsDto.setMemberId(memberId);
-		
-		AdvertisementDto desidebar = advertisementService.selectTopAdvertisement( "MEETUP_DETAIL_SIDEBAR" );
+	public String detail(
+	        Model model,
+	        Authentication authentication,
+	        MeetupApplicationDto meetupApplicationDto,
 
-		meetupApplicationDto.setMemberId(2);
-		model.addAttribute("desidebarAd", desidebar);
-		// 광고가 존재하면 노출 증가
-        if(desidebar != null) {        	
-            advertisementService.updateImpressions(desidebar.getAdId());
-        }
-		
-		meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
-		model.addAttribute("applyInfo",meetupService.findApplyInfo(meetupApplicationDto));
-		model.addAttribute("detail", meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
-		//System.out.println(meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
-		List<ReviewDto> reviewList = reviewService.selectUserReview(meetupApplicationDto.getMeetupId(), sort);
-		model.addAttribute("reviews", reviewList);
-		
-		return "user/meetup/detail";
+	        @RequestParam(value = "keyword", required = false) String keyword,   // ★ 추가
+	        @RequestParam(value = "sort", required = false, defaultValue = "latest") String sort) {
+
+//	      CustomUser user = (CustomUser) authentication.getPrincipal();
+//	      int memberId = userMeetupService.findByMamberId(user.getUsername());
+//	      meetupApplicationsDto.setMemberId(memberId);
+
+	    AdvertisementDto desidebar =
+	            advertisementService.selectTopAdvertisement("MEETUP_DETAIL_SIDEBAR");
+
+	    meetupApplicationDto.setMemberId(2);
+	    model.addAttribute("desidebarAd", desidebar);
+
+	    // 광고가 존재하면 노출 증가
+	    if (desidebar != null) {
+	        advertisementService.updateImpressions(desidebar.getAdId());
+	    }
+
+	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
+	    model.addAttribute("applyInfo",
+	            meetupService.findApplyInfo(meetupApplicationDto));
+
+	    model.addAttribute("detail",
+	            meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
+
+	    //  기존 부분
+	    // List<ReviewDto> reviewList =
+	    //        reviewService.selectUserReview(meetupApplicationDto.getMeetupId(), sort);
+	    // model.addAttribute("reviews", reviewList);
+
+	    // ★ 추가 시작
+	    List<ReviewDto> reviewList;
+
+	    if (keyword != null && !keyword.isBlank()) {
+	        reviewList = reviewService.selectReviewByContent(
+	                meetupApplicationDto.getMeetupId(),
+	                keyword,
+	                sort);
+	    } else {
+	        reviewList = reviewService.selectUserReview(
+	                meetupApplicationDto.getMeetupId(),
+	                sort);
+	    }
+
+	    model.addAttribute("reviews", reviewList);
+	    model.addAttribute("keyword", keyword);
+	    model.addAttribute("sort", sort);
+	    // ★ 추가 끝
+	    
+
+	    return "user/meetup/detail";
 	}
 	
 	//모집신청
