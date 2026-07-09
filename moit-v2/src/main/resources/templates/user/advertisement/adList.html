@@ -32,7 +32,7 @@
                                 name="searchText"
                                 class="form-control"
                                 placeholder="광고명을 입력하세요."
-                                th:value="${dto.searchText}">
+                                th:value="${search.searchText}">
 
                         <button type="submit"
                                 class="btn btn-primary">
@@ -123,7 +123,7 @@
                 <tr th:each="ad, stat : ${list}">
 
                     <!-- 번호 -->
-                    <td th:text="${(dto.page - 1) * dto.size + stat.index + 1}"></td>
+                    <td th:text="${(search.page - 1) * search.size + stat.index + 1}"></td>
 
                     <!-- 이미지 -->
                     <td>
@@ -243,10 +243,10 @@
 			
 			        <!-- 이전 -->
 			        <li class="ad-page-item"
-			            th:classappend="${dto.page <= 1} ? 'disabled'">
+			            th:classappend="${search.page <= 1} ? 'disabled'">
 			
 			            <a class="ad-page-link"
-			               th:href="@{/user/advertisement/list(page=${dto.page-1},searchText=${dto.searchText})}">
+			               th:href="@{/user/advertisement/list(page=${search.page-1},searchText=${search.searchText})}">
 			                이전
 			            </a>
 			
@@ -255,21 +255,21 @@
 			        <!-- 페이지 번호 -->
 			        <li class="ad-page-item"
 			            th:each="i : ${#numbers.sequence(1,totalPage)}"
-			            th:classappend="${dto.page==i} ? 'active'">
+			            th:classappend="${search.page==i} ? 'active'">
 			
 			            <a class="ad-page-link"
 			               th:text="${i}"
-			               th:href="@{/user/advertisement/list(page=${i},searchText=${dto.searchText})}">
+			               th:href="@{/user/advertisement/list(page=${i},searchText=${search.searchText})}">
 			            </a>
 			
 			        </li>
 			
 			        <!-- 다음 -->
 			        <li class="ad-page-item"
-			            th:classappend="${dto.page>=totalPage} ? 'disabled'">
+			            th:classappend="${search.page>=totalPage} ? 'disabled'">
 			
 			            <a class="ad-page-link"
-			               th:href="@{/user/advertisement/list(page=${dto.page+1},searchText=${dto.searchText})}">
+			               th:href="@{/user/advertisement/list(page=${search.page+1},searchText=${search.searchText})}">
 			                다음
 			            </a>
 			

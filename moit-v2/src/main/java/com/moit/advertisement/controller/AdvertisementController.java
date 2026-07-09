@@ -54,17 +54,7 @@ public class AdvertisementController {
 			loginId    =  users.getUser().getLoginId();
 			memberId = users.getUser().getMemberId();
 		} 
-		    	
 
-		/*
-		 * Integer loginMemberId = (Integer) session.getAttribute("loginMemberId");
-		 */
-
-        if (memberId == null) {
-        	memberId = 12;
-        }
-
-        
         dto.setAdvertiserId(memberId);
 
         int page = dto.getPage() <= 0 ? 1 : dto.getPage();
@@ -86,8 +76,8 @@ public class AdvertisementController {
         if (totalPage == 0) { totalPage = 1; }
 
         model.addAttribute("list", list);
-        model.addAttribute("dto", dto);
         model.addAttribute("search", dto);
+        model.addAttribute("dto" , user); 
         model.addAttribute("totalCnt", totalCnt);
         model.addAttribute("totalPage", totalPage);
         model.addAttribute("menu", "advertisement");
