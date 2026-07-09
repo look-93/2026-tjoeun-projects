@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.moit.advertisement.dto.AdvertisementDto;
@@ -72,7 +73,7 @@ public class MeetupController {
         return "user/main";
     }
 	
-	/*1. 사용자 - 모임 리스트 화면(HTML) 호출*/
+	/*1. 모임 리스트 화면(HTML) 호출*/
 	@GetMapping("/meetup/list")
 	public String listPage(Model model,
             HttpServletRequest request,
@@ -124,7 +125,7 @@ public class MeetupController {
 		return "/user/meetup/list";
 	}
 	
-	/*2. 사용자 - 모임 리스트 데이터(JSON) 호출*/
+	/*2. 모임 리스트 데이터(JSON) 호출*/
 	@GetMapping("/meetup/list/data")
 	@ResponseBody
 	public Map<String, Object> listData(MeetupSearchDto meetupSearchDto, Model model){
@@ -146,7 +147,7 @@ public class MeetupController {
 		return map;
 	}
 	
-	/* 사용자 - 좋아요 기능*/
+	/* 좋아요 기능*/
 	@PostMapping("/meetup/list/like")
 	@ResponseBody
 	public Map<String, Object> meetupLike(MeetupLikeDto meetupLikeDto, Authentication authentication, MeetupDto meetupdto) {
@@ -166,7 +167,7 @@ public class MeetupController {
 		return result;	
 	}	
 	
-	/*사옹자 - 모임상세조회*/
+	/*모임상세조회*/
 	@GetMapping("/meetup/detail")
 	public String detail(Model model, Authentication authentication, 
 						MeetupApplicationDto meetupApplicationDto, 
@@ -207,7 +208,7 @@ public class MeetupController {
 		meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
 		model.addAttribute("applyInfo",meetupService.findApplyInfo(meetupApplicationDto));
 		model.addAttribute("detail", meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
-		//System.out.println(meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
+		model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
 		List<ReviewDto> reviewList = reviewService.selectUserReview(meetupApplicationDto.getMeetupId(), sort);
 		model.addAttribute("reviews", reviewList);
 		
@@ -271,7 +272,7 @@ public class MeetupController {
 	//마이페이지 - 내 모집글 조회
 	@GetMapping("/mypage/meetupMember")
 	@ResponseBody
-	public Map<String, Object> myMeetupMemberList(Model model, int meetupId) {
+	public Map<String, Object> myMeetupMemberList(int meetupId) {
 		
 		Map<String, Object> result = new HashMap<>();
 		List<MeetupDto> list= meetupService.selectMeetupApplyMember(meetupId);
@@ -280,13 +281,14 @@ public class MeetupController {
 		return result;
 	}	
 	
-	//마이페이지 - 내 모집글 조회
+	//마이페이지 - 내 모집글 조회 - 신청자 목록 업데이트
 	@GetMapping("/mypage/updateApplyStatus")
 	@ResponseBody
-	public Map<String, Object> myMeetupApplyStatus(Model model, MeetupApplicationDto meetupApplicationDto) {
+	public Map<String, Object> myMeetupApplyStatus(MeetupApplicationDto meetupApplicationDto) {
 		
 		Map<String, Object> result = new HashMap<>();
-		boolean insert = meetupService.changeMeetupApplyStatus(meetupApplicationDto) > 0;	
+		boolean insert = meetupService.changeMeetupApplyStatus(meetupApplicationDto) > 0;
+		//System.out.println(meetupApplicationDto.getApplicationId() + "fgsgsdsggggggggggggggggggggggg");
 		result.put("insert", insert);
 		return result;
 	}			
@@ -300,7 +302,11 @@ public class MeetupController {
 	}
 	
 	@PostMapping("/meetup/write")
-	public String createMeetup(Model model, MeetupDto meetupdto, RedirectAttributes rttr, Authentication authentication) {
+	public String createMeetup(Model model, 
+							   MeetupDto meetupdto, 
+							   RedirectAttributes rttr, 
+							   Authentication authentication, 
+							   @RequestParam(value = "files", required = false) List<MultipartFile> files) {
 		// 멤버완료 취합 후 적용
 //		CustomUser user = (CustomUser) authentication.getPrincipal();		
 //		int memberId = userMeetupService.findByMamberId(user.getUsername());		
@@ -308,7 +314,10 @@ public class MeetupController {
 		
 		meetupdto.setMemberId(2);
 		//System.out.println(meetupdto.getMeetupId());
-		boolean result = meetupService.insertMeetup(meetupdto) > 0;		
+		
+		//System.out.println(files + "ddddddddddddddddddddddddddddddddddddddd");
+		
+		boolean result = meetupService.insertMeetup(meetupdto, files) > 0;		
 		rttr.addFlashAttribute("result", result);
 		
 		return "redirect:/meetup/detail?meetupId=" + meetupdto.getMeetupId();
@@ -319,6 +328,7 @@ public class MeetupController {
 	public String update(Model model, int meetupId) {
 		//System.out.println(meetupId + "ddddddddddddddddddddddd");
 		
+		model.addAttribute("images", meetupService.findMeetupImage(meetupId));
 		model.addAttribute("meetup", meetupService.selectMeetupDetail(meetupId));
 		model.addAttribute("childCategoryList", meetupService.findAllChildCategory());		
 		model.addAttribute("sigunguList", meetupService.findAllSigungu());
@@ -327,14 +337,14 @@ public class MeetupController {
 	
 	//모집글 수정
 	@PostMapping("/mypage/update")
-	public String updateMeetup(Model model, MeetupDto meetupdto, RedirectAttributes rttr, Authentication authentication) {
+	public String updateMeetup(Model model, MeetupDto meetupdto, RedirectAttributes rttr, Authentication authentication, @RequestParam(value = "files", required = false) List<MultipartFile> files) {
 		// 멤버완료 취합 후 적용
 //		CustomUser user = (CustomUser) authentication.getPrincipal();		
 //		int memberId = userMeetupService.findByMamberId(user.getUsername());		
 //		meetupdto.setMemberId(memberId);
 		
 		meetupdto.setMemberId(2);
-		boolean result = meetupService.updateMeetup(meetupdto) > 0;		
+		boolean result = meetupService.updateMeetup(meetupdto, files) > 0;		
 		rttr.addFlashAttribute("result", result);		
 		return "redirect:/mypage/myMeetupInfo";
 	}		
@@ -358,10 +368,8 @@ public class MeetupController {
 	
 	//마이페이지 - 모집글 삭제
 	@PostMapping("/mypage/meetup/delete")
-	public String deleteByAdmin(int meetupId, int pstartno, RedirectAttributes rttr) {
-		//System.out.println(meetupId + "dddddddddddddddddddddddddddddddd");
-		meetupService.updateMeetupDeleteYn(meetupId);
-		
+	public String deleteByAdmin(int meetupId, @RequestParam(value = "pstartno", required = false, defaultValue = "1") Integer pstartno, RedirectAttributes rttr) {
+		meetupService.updateMeetupDeleteYn(meetupId);		
 		return "redirect:/mypage/myMeetupInfo?pstartno=" + pstartno;
 	}
 

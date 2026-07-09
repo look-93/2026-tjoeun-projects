@@ -545,7 +545,6 @@
 	      AND a.status = 'OPEN'
 	      AND CURRENT_TIMESTAMP BETWEEN a.start_datetime 
 	                                AND a.end_datetime
-	
 	      ORDER BY
 	        (
 			    a.priority_score
@@ -580,6 +579,7 @@
 	        DBMS_RANDOM.VALUE
 	
 	    FETCH FIRST 1 ROW ONLY
+
 	
 	</select>
 	

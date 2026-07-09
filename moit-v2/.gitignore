@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# =========================
+# Spring Boot (보안/로컬 설정만 제외)
+# =========================
+application-local.properties
+application-secret.properties
+application-oauth.properties
