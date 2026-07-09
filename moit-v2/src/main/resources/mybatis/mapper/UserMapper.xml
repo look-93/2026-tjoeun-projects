@@ -6,10 +6,46 @@
   
   <!-- 로그인 -->	
   <select id="readByLoginId" parameterType="string" resultType="AuthUserDto">
-     SELECT m.login_id, m.password, mt.type_name, m.nickname,m.profile_url
+     SELECT m.login_id, m.password, mt.type_name, m.nickname,m.profile_url,m.status_id
         FROM members m
         JOIN member_type mt ON m.member_type_id = mt.member_type_id
         WHERE m.login_id = #{loginId} AND m.delete_yn = 'N'
+  </select>
+  
+  <!-- 소셜로그인 -->
+  <select id="findByProvider"
+        parameterType="UserDto"
+        resultType="UserDto">
+		SELECT *
+		FROM members
+		WHERE provider = #{provider}
+		  AND provider_id = #{providerId}	
+  </select>
+  
+  <update id="connectProvider" parameterType="UserDto">
+	UPDATE members
+	SET provider = #{provider}, provider_id = #{providerId}
+	WHERE member_id = #{memberId}
+  </update>
+  
+  <update id="updateSocialInfo" parameterType="UserDto">
+	    UPDATE members
+	       SET mobile = #{mobile}, status_id = 1
+	     WHERE member_id = #{memberId}	
+  </update>
+	
+  <update id="updateMemberInfo" parameterType="UserDto">	
+	    UPDATE member_info
+	       SET gender = #{gender}, birth = #{birth}
+	     WHERE member_id = #{memberId}	
+  </update>
+  
+  <select id="findByEmail" parameterType="String" resultType="UserDto">
+		SELECT
+		    *
+		FROM members
+		WHERE email = #{email}
+		AND delete_yn='N'	
   </select>
   
   <!-- 마이페이지 -->
@@ -35,10 +71,26 @@
         )
   </insert>
   
+  <!-- 소셜 회원 -->
+  <insert id="insertSocial" parameterType="UserDto" keyProperty="memberId">
+		INSERT INTO members
+		( member_id, login_id, email, nickname, password, profile_url, member_type_id, status_id, provider, provider_id )
+		VALUES 
+		( members_seq.nextval,  #{loginId}, #{email},  #{nickname},  #{password},  #{profileUrl,jdbcType=VARCHAR},  #{memberTypeId},  #{statusId},  #{provider},  #{providerId} )
+
+  </insert>
+  
   <!-- 방금 insert된 회원 번호에 info 추가 -->
-  <insert id="insertInfo" parameterType="UserJoinDto">
-  	insert into member_info(member_id,gender,birth) 
-  	values(members_seq.currval,#{gender},#{birth})
+  <insert id="insertInfo" parameterType="UserDto">
+  	insert into member_info(member_id,gender,birth,join_ip) 
+  	values(members_seq.currval,#{gender},#{birth},#{joinIp})
+  </insert>
+  
+  <insert id="insertSocialInfo">
+		INSERT INTO member_info
+		( member_id )
+		VALUES
+		( members_seq.currval )
   </insert>
   
   <!-- 중복검사 -->
@@ -130,5 +182,31 @@
     <delete id="deleteUser" parameterType="string">
         DELETE FROM members WHERE login_id = #{loginId}
     </delete>
+    
+    <!-- 아이디 찾기 -->
+    <select id="findId" parameterType="UserDto" resultType="UserDto">
+	    SELECT login_id
+	    FROM members
+	    WHERE email = #{email}
+	      AND mobile = #{mobile}
+	      AND delete_yn = 'N'
+	</select>
+	
+	<!-- 비밀번호 찾기(회원조회) -->
+	<select id="findPasswordUser" parameterType="UserDto" resultType="UserDto">
+	    SELECT member_id
+	    FROM members
+	    WHERE login_id = #{loginId}
+	      AND email = #{email}
+	      AND mobile = #{mobile}
+	      AND delete_yn='N'
+	</select>
+	
+	<!-- 비밀번호 변경 -->
+	<update id="changePassword" parameterType="UserDto">
+	    UPDATE members
+	       SET password = #{password}
+	     WHERE member_id = #{memberId}
+	</update>
     
 </mapper>

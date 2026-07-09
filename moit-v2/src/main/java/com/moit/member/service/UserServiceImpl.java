@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.moit.member.dao.UserMapper;
 import com.moit.member.dto.AuthUserDto;
@@ -47,8 +48,10 @@ public class UserServiceImpl  implements UserService{
 		    dto.setProfileUrl("/moit.png");
 		}
 		
-		return dao.insert(dto);
+		dao.insert(dto);
+		dao.insertInfo(dto);
 		
+		return 1;
 	}
 	
 	@Override public AuthUserDto readAuth(Map<String,Object> map) { return dao.readAuth(map); }
@@ -65,13 +68,38 @@ public class UserServiceImpl  implements UserService{
 
 	@Override public UserDto findByLoginId(UserDto dto) {  return dao.findByLoginId(dto); }
 
-	@Override public int insertInfo(UserJoinDto dto) { return dao.insertInfo(dto); }
+	@Override public int insertInfo(UserDto dto) { return dao.insertInfo(dto); }
 
+	@Override public AuthUserDto readByLoginId(UserDto dto) {  return dao.readByLoginId(dto.getLoginId()); }
+
+	@Override public UserDto findId(UserDto dto) { return dao.findId(dto); }
+	
+	@Override public UserDto findPasswordUser(UserDto dto) { return dao.findPasswordUser(dto); }
+	
 	@Override
-	public AuthUserDto readByLoginId(UserDto dto) {
-				
-		return dao.readByLoginId(dto.getLoginId());
+	public boolean changePassword(UserDto dto) {
+		
+		int result = dao.changePassword(dto);
+		
+		if(result == 0) { return false; }
+		
+		dto.setPassword(pwencoder.encode(dto.getPassword()));
+		
+		dao.changePassword(dto);
+		
+		return true;
 	}
+	
+	@Transactional
+	@Override
+	public void completeSocialJoin(UserDto dto) {
+		dao.updateSocialInfo(dto);
+        dao.updateMemberInfo(dto);
+	}
+
+	
+	
+	
 	
 
 }

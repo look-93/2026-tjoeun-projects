@@ -90,6 +90,8 @@ nav {
     display: flex;
     gap: 12px; /* 버튼 사이 간격 */
     align-items: center;
+    
+    white-space: nowrap;
 }
 
 /* 네비게이션 버튼 공통 스타일 */
@@ -100,7 +102,41 @@ nav a {
     border-radius: 20px;
     transition: all 0.2s ease;
     font-weight: 600;
+       
 }
+
+.main-menu a{
+    position:relative;
+    display:inline-block;   /* 또는 inline-flex */
+    text-decoration:none;
+    padding:8px 0;
+}
+
+.main-menu a:hover,
+.main-menu a.active{
+    color:var(--c4);
+}
+
+.main-menu a::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:0;
+
+    width:0;
+    height:3px;
+
+    background:var(--c4);
+    border-radius:2px;
+
+    transition:width .2s ease;
+}
+
+.main-menu a:hover::after,
+.main-menu a.active::after{
+    width:100%;
+}
+
 
 /* 모집찾기 버튼 (채우기 스타일) */
 .nav-btn-primary {
