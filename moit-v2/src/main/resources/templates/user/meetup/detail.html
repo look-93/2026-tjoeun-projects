@@ -1,66 +1,78 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-	layout:decorate="~{user/meetup/layouts/meetupDetailLayout}">
-
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{user/meetup/layouts/meetupDetailLayout}">
 <head lang="ko">
 <meta charset="UTF-8">
 <title>모임 상세 보기</title>
 </head>
 <body>
-
-	<div layout:fragment="content">
-		<div class="meetup-detail-wrap">
-			<input type="hidden" name="meetupId" th:value="${detail.meetupId}" id="meetupId">
+   <div layout:fragment="content">
+      <div class="meetup-detail-wrap">
+         <input type="hidden" name="meetupId" th:value="${param.meetupId}"
+            id="meetupId">
+         <div class="meetup-detail-left">
+            <a href="/meetup/list" class="meetup-detail-back-link">
+               <span class="back-arrow">←</span> 목록으로
+            </a>
+            
+			<!-- 이미지 -->
+			<div class="meetup-detail-img-box">
 			
-			<div class="meetup-detail-left">
-				<a href="/meetup/list" class="meetup-detail-back-link"> 
-					<span class="back-arrow">←</span> 목록으로
-				</a>
+			    <th:block th:if="${images != null and !images.isEmpty()}">
+			
+			        <div class="meetup-detail-main-img" th:classappend="${images.size() == 1} ? ' full-size' : ''">
+			            <img th:src="@{|/upload/meetup/${images[0].imagePath}|}"
+			                 alt="모집글 메인 이미지">
+			        </div>
+			
+			        <div class="meetup-detail-thumb-list" th:if="${images.size()>1}">
+			            <div class="meetup-detail-thumb"
+			                 th:each="img, stat : ${images}">
+			                <img th:src="@{|/upload/meetup/${img.imagePath}|}"
+			                     th:classappend="${stat.first} ? ' active' : ''"
+			                     onclick="changeMainImg(this.src)"
+			                     alt="모집글 썸네일 이미지">
+			            </div>
+			        </div>
+			
+			    </th:block>
+			
+			    <th:block th:unless="${images != null and !images.isEmpty()}">
+			
+			        <div class="meetup-detail-no-image">
+			            <span class="icon">🖼️</span>
+			            <span>등록된 이미지가 없습니다.</span>
+			        </div>
+			
+			    </th:block>
+			
+			</div>		
+			<!-- 이미지 -->
+            <div class="meetup-detail-content-box">
+               <div class="meetup-detail-content-top">
+                  <div class="meetup-detail-badge"
+                     th:text="${detail.status == 'RECRUITING' ? '모집중' : '모집마감'}"></div>
+                  <a
+                     th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${param.meetupId})}"
+                     class="meetup-detail-report-btn" type="button"> 모임 신고 </a>
+               </div>
+               <h1 class="meetup-detail-title" th:text="${detail.title}"></h1>
+            </div>
 
-				<div class="meetup-detail-img-box">
-					<th:block th:if="${images != null and !images.isEmpty()}">
-						<div class="meetup-detail-main-img" th:classappend="${images.size() == 1} ? ' full-size' : ''">
-							<img th:src="@{|/upload/meetup/${images[0].imagePath}|}" alt="모집글 메인 이미지">
-						</div>
+            <div class="meetup-detail-tabs">
+               <div class="meetup-detail-tab-header">
+                  <div class="meetup-detail-tab-btn active" onclick="showTab(0)">상세정보</div>
+                  <div class="meetup-detail-tab-btn" onclick="showTab(1)">신청자</div>
+                  <div class="meetup-detail-tab-btn" onclick="showTab(2)">후기</div>
+                  <div class="meetup-detail-tab-btn" onclick="showTab(3)">Q&A</div>
+               </div>
 
-						<div class="meetup-detail-thumb-list" th:if="${images.size() > 1}">
-							<div class="meetup-detail-thumb" th:each="img, stat : ${images}">
-								<img th:src="@{|/upload/meetup/${img.imagePath}|}"
-									th:classappend="${stat.first} ? ' active' : ''"
-									onclick="changeMainImg(this.src)" alt="모집글 썸네일 이미지">
-							</div>
-						</div>
-					</th:block>
-
-					<th:block th:unless="${images != null and !images.isEmpty()}">
-						<div class="meetup-detail-no-image">
-							<span class="icon">🖼️</span> <span>등록된 이미지가 없습니다.</span>
-						</div>
-					</th:block>
-				</div>
-
-				<div class="meetup-detail-content-box">
-					<div class="meetup-detail-content-top">
-						<div class="meetup-detail-badge" th:text="${detail.status == 'RECRUITING' ? '모집중' : '모집마감'}"></div>
-						<a th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${detail.meetupId})}" class="meetup-detail-report-btn"> 모임 신고 </a>
-					</div>
-					<h1 class="meetup-detail-title" th:text="${detail.title}"></h1>
-				</div>
-
-				<div class="meetup-detail-tabs">
-					<div class="meetup-detail-tab-header">
-						<div class="meetup-detail-tab-btn active" onclick="showTab(0)">상세정보</div>
-						<div class="meetup-detail-tab-btn" onclick="showTab(1)">신청자</div>
-						<div class="meetup-detail-tab-btn" onclick="showTab(2)">후기</div>
-						<div class="meetup-detail-tab-btn" onclick="showTab(3)">Q&A</div>
-					</div>
-
-					<div class="meetup-detail-tab-content">
-						<div class="meetup-detail-tab-panel active">
-							<h3>모임 안내</h3>
-							<p th:text="${detail.content}"></p>
-						</div>
+               <div class="meetup-detail-tab-content">
+                  <div class="meetup-detail-tab-panel active">
+                     <h3>모임 안내</h3>
+                     <p th:text="${detail.content}"></p>
+                  </div>
 
 						<div class="meetup-detail-tab-panel">
 							<p th:text="${detail.nickname + ' 외 ' + (detail.totalParticipants == null || detail.totalParticipants == 0 ? 0 : detail.totalParticipants - 1 ) + '명'}"></p>

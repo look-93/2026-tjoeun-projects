@@ -29,6 +29,11 @@ body {
     min-height: 100vh; /* 화면 높이를 최소 100% 확보 */
 }
 
+html {
+    /* 스크롤바가 사라져도 화면 튕김을 방지하는 마법의 속성 */
+    scrollbar-gutter: stable;
+}
+
 a {
     text-decoration: none;
     color: inherit;
@@ -139,18 +144,18 @@ nav a {
     color: white !important;
 }
 
-.nav--primary:hover {
+.nav-btn-primary:hover {
     background: #5367f0;
 }
 
 /* 관리자문의 버튼 (아웃라인 스타일) */
-.nav--secondary {
+.nav-btn-secondary {
     background: transparent;
     color: #444 !important;
     border: 1px solid #ddd;
 }
 
-.nav--secondary:hover {
+.nav-btn-secondary:hover {
     background: #f1f5f9;
     border-color: #ccc;
 }
@@ -224,7 +229,7 @@ AD
     margin-bottom:10px;
 }
 
-.ad-{
+.ad-btn{
     background:var(--c4);
     color:white;
     padding:10px 20px;
@@ -602,7 +607,7 @@ SECTION
     margin-bottom: 10px;
 }
 
-.meetupList-top-ad- {
+.meetupList-top-ad-btn {
     background: var(--c4);
     color: white;
     padding: 12px 20px;
@@ -610,6 +615,54 @@ SECTION
     text-decoration: none;
 }
 
+/* =========================
+   MEETUP CREATE BUTTON / SEARCH MEETUP
+========================= */
+.btn-search-meetup {
+    background: var(--c4);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+
+    font-weight: 600;
+
+    transition: all 0.2s ease;
+}
+
+/* hover */
+.btn-search-meetup:hover {
+    background: #5367f0;
+    box-shadow: 0 6px 15px rgba(83, 103, 240, 0.25);
+}
+
+.btn-create-meetup {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 12px 18px;
+    border-radius: 12px;
+
+    background: linear-gradient(135deg, var(--c4), var(--c3));
+    color: white;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    text-decoration: none;
+
+    box-shadow: var(--shadow);
+
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+/* hover */
+.btn-create-meetup:hover {
+    background: linear-gradient(135deg, #5367f0, var(--c4));
+}
 
 /* ==================================================
    MAIN CONTENT AREA (main- 접두사 추가 파트)
@@ -638,12 +691,12 @@ SECTION
     margin-bottom: 25px;
 }
 
-.main-hero- {
+.main-hero-btn {
     display: flex;
     gap: 15px;
 }
 
-.main- {
+.main-btn {
     border: none;
     padding: 14px 28px;
     border-radius: 50px;
@@ -651,12 +704,12 @@ SECTION
     font-weight: 600;
 }
 
-.main--primary {
+.main-btn-primary {
     background: var(--c4);
     color: white;
 }
 
-.main--light {
+.main-btn-light {
     background: white;
     color: var(--text);
 }
@@ -2707,7 +2760,6 @@ textarea.mw-form-input {
    }
 }
 
->>>>>>> origin/main
 @charset "UTF-8";
 
 /* ==============================
@@ -3865,55 +3917,6 @@ textarea.mw-form-input {
     margin-bottom:25px;
 }
 
-/* 버튼 영역 */
-.ad-list-action{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-}
-
-/* 공통 버튼 */
-.ad-list-btn{
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-
-    width: 60px;
-    height: 34px;
-
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 600;
-
-    transition: .2s;
-}
-
-/* 상세 */
-.ad-list-btn-detail{
-    background: #4a90e2;
-    color: #fff;
-}
-
-.ad-list-btn-detail:hover{
-    background: #357abd;
-    color: #fff;
-}
-
-/* 삭제 */
-.ad-list-btn-delete{
-    background: #e74c3c;
-    color: #fff;
-}
-
-.ad-list-btn-delete:hover{
-    background: #c0392b;
-}
-
 /* 테이블 */
 
 .table {
@@ -4107,38 +4110,47 @@ textarea.mw-form-input {
 
 /* 페이징 */
 
-.pagination {
+/* ========== Advertisement Pagination (NEW) ========== */
+
+.ad-pagination {
     display: flex;
     justify-content: center;
     list-style: none;
     gap: 6px;
     margin-top: 30px;
     padding: 0;
+    margin: 0;
 }
 
-.page-item .page-link {
+.ad-page-item .ad-page-link {
     display: block;
     padding: 8px 14px;
     border: 1px solid #ddd;
-    border-radius: 6px;
+    border-radius: 8px;
     text-decoration: none;
     color: #333;
     background: #fff;
+    font-size: 14px;
+    white-space: nowrap; /* 글씨 튀어나오는 문제 해결 */
 }
 
-.page-item.active .page-link {
-    background: #0d6efd;
+.ad-page-item.active .ad-page-link {
+    background: var(--c4);
     color: #fff;
-    border-color: #0d6efd;
+    border-color: var(--c4);
+    font-weight: 600;
 }
 
-.page-item.disabled .page-link {
-    opacity: .5;
+.ad-page-item.disabled .ad-page-link {
+    opacity: .4;
     pointer-events: none;
 }
 
-.pagination-wrap{
-    margin-top:30px;
+.ad-pagination-wrap {
+    margin-top: 30px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
 /* 빈 목록 */
@@ -4407,28 +4419,6 @@ textarea.mw-form-input {
     width:300px;
 }
 
-.member-ad-image-box{
-    position: relative;
-    display: inline-block;
-}
-
-.member-ad-image-type{
-    position: absolute;
-    top: 10px;
-    left: 10px;
-
-    background: rgba(0,0,0,.7);
-    color: #fff;
-
-    padding: 4px 10px;
-    border-radius: 6px;
-
-    font-size: 13px;
-    font-weight: 600;
-
-    z-index: 10;
-}
-
 /* 정보 */
 .member-ad-info-wrap {
     margin-top:30px;
@@ -4503,4 +4493,3 @@ textarea.mw-form-input {
 	    width:100%;
 	}
 }
-

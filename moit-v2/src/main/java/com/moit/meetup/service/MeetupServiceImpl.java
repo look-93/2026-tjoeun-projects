@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.moit.meetup.client.OpenAiService;
+import com.moit.meetup.client.OpenAiService2;
 import com.moit.meetup.dao.MeetupMapper;
 import com.moit.meetup.dto.MeetupApplicationDto;
 import com.moit.meetup.dto.MeetupDto;
@@ -33,10 +33,12 @@ import lombok.extern.slf4j.Slf4j;
 public class MeetupServiceImpl implements MeetupService{
 	@Autowired MeetupMapper meetupMapper; 
 	@Autowired UtilUpload upload;
-	@Autowired OpenAiService openAiService;
+	@Autowired OpenAiService2 openAiService;
 	
 	private static final String UPLOAD_PATH = "C:/upload/meetup";
-
+	
+	public MeetupDto getDetail(int meetupId){ return meetupMapper.findById(meetupId); }
+	
 	//사용자 - 목록 조회 + paging
 	@Override
 	public List<MeetupDto> findAllMeetupBy(int pstartno, MeetupSearchDto meetupSearchDto) {

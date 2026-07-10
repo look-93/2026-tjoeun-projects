@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layouts/adminLayout}">
+
+<head>
+    <title>MOIT | 회원관리</title>
+</head>
+
+<body>
+
+<div layout:fragment="content">
+
+    <!-- ===========================
+            제목
+    ============================ -->
+
+    <div class="page-title-wrap">
+
+        <h3 class="mb-0">
+            회원관리
+        </h3>
+
+    </div>
+
+    <!-- ===========================
+            탭
+    ============================ -->
+
+    <div class="member-tab-wrap">
+
+        <button class="member-tab active"
+                data-tab="member">
+
+            운영관리
+
+        </button>
+
+        <button class="member-tab"
+                data-tab="partner">
+
+            제휴업체 승인
+
+        </button>
+
+    </div>
+
+    <!-- ===========================
+            운영관리
+    ============================ -->
+
+    <div id="member"
+         class="member-tab-content active">
+
+        <!-- 검색 -->
+
+        <div class="search-area">
+
+            <form method="get"
+                  th:action="@{/admin/member/list}">
+
+                <div class="search-box">
+
+                    <div class="search-form">
+
+                        <input type="text"
+                               class="form-control"
+                               name="searchText"
+                               placeholder="아이디 또는 닉네임을 입력하세요."
+                               th:value="${search.searchText}">
+
+                        <button class="btn btn-primary">
+
+                            검색
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-3 my-3">
+
+                        <select class="form-select"
+                                name="memberType"
+                                onchange="this.form.submit()">
+
+                            <option value="">전체회원</option>
+
+                            <option value="1">
+                                일반회원
+                            </option>
+
+                            <option value="2">
+                                제휴업체
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3 my-3">
+
+                        <select class="form-select"
+                                name="status"
+                                onchange="this.form.submit()">
+
+                            <option value="">
+                                전체상태
+                            </option>
+
+                            <option value="1">
+                                ACTIVE
+                            </option>
+
+                            <option value="2">
+                                PENDING
+                            </option>
+
+                            <option value="3">
+                                SUSPENDED
+                            </option>
+
+                            <option value="4">
+                                DELETED
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+        <!-- ======================
+                운영관리 목록
+        ======================= -->
+
+        <div class="search-area">
+
+            <div class="table-wrap">
+
+                <table class="table">
+
+                    <thead>
+
+                    <tr>
+
+                        <th width="6%">번호</th>
+
+                        <th width="10%">회원구분</th>
+
+                        <th width="12%">아이디</th>
+
+                        <th width="12%">닉네임</th>
+
+                        <th width="18%">이메일</th>
+
+                        <th width="10%">상태</th>
+
+                        <th width="15%">가입일</th>
+
+                        <th width="17%">관리</th>
+
+                    </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    <tr th:if="${#lists.isEmpty(memberList)}">
+
+                        <td colspan="8">
+
+                            조회된 회원이 없습니다.
+
+                        </td>
+
+                    </tr>
+
+                    <tr th:each="member, stat : ${memberList}">
+
+                        <td th:text="${stat.count}"></td>
+
+                        <td>
+
+                            <span class="ad-badge ad-bg-primary"
+                                  th:if="${member.memberTypeId==1}">
+                                일반회원
+                            </span>
+
+                            <span class="ad-badge ad-bg-success"
+                                  th:if="${member.memberTypeId==2}">
+                                제휴업체
+                            </span>
+
+                        </td>
+
+                        <td th:text="${member.loginId}"></td>
+
+                        <td th:text="${member.nickname}"></td>
+
+                        <td th:text="${member.email}"></td>
+
+                        <td>
+
+                            <span class="ad-badge ad-bg-success"
+                                  th:if="${member.statusId==1}">
+                                ACTIVE
+                            </span>
+
+                            <span class="ad-badge ad-bg-warning"
+                                  th:if="${member.statusId==2}">
+                                PENDING
+                            </span>
+
+                            <span class="ad-badge ad-bg-danger"
+                                  th:if="${member.statusId==3}">
+                                SUSPENDED
+                            </span>
+
+                            <span class="ad-badge ad-bg-dark"
+                                  th:if="${member.statusId==4}">
+                                DELETED
+                            </span>
+
+                        </td>
+
+                        <td th:text="${member.createdAt}"></td>
+
+                        <td>
+
+                            <div class="ad-list-action">
+
+                                <a class="ad-list-btn ad-list-btn-detail">
+
+                                    상세
+
+                                </a>
+
+                                <button class="ad-list-btn ad-list-btn-delete">
+
+                                    정지
+
+                                </button>
+
+                                <button class="ad-list-btn ad-list-btn-detail">
+
+                                    복구
+
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    </tbody>
+
+                </table>
+                
+                                <!-- ======================
+                        운영관리 페이징
+                ======================= -->
+
+                <nav class="ad-pagination-wrap">
+
+                    <ul class="ad-pagination">
+
+                        <!-- 이전 -->
+
+                        <li class="ad-page-item"
+                            th:classappend="${memberSearch.page<=1} ? 'disabled'">
+
+                            <a class="ad-page-link"
+                               th:href="@{/admin/member/list(page=${memberSearch.page-1},searchText=${memberSearch.searchText})}">
+
+                                이전
+
+                            </a>
+
+                        </li>
+
+                        <!-- 페이지 -->
+
+                        <li class="ad-page-item"
+                            th:each="i:${#numbers.sequence(1,memberTotalPage)}"
+                            th:classappend="${memberSearch.page==i} ? 'active'">
+
+                            <a class="ad-page-link"
+                               th:text="${i}"
+                               th:href="@{/admin/member/list(page=${i},searchText=${memberSearch.searchText})}">
+                            </a>
+
+                        </li>
+
+                        <!-- 다음 -->
+
+                        <li class="ad-page-item"
+                            th:classappend="${memberSearch.page>=memberTotalPage} ? 'disabled'">
+
+                            <a class="ad-page-link"
+                               th:href="@{/admin/member/list(page=${memberSearch.page+1},searchText=${memberSearch.searchText})}">
+
+                                다음
+
+                            </a>
+
+                        </li>
+
+                    </ul>
+
+                </nav>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+
+
+    <!-- ============================================================
+                            제휴업체 승인
+    ============================================================= -->
+
+    <div id="partner"
+         class="member-tab-content">
+
+        <!-- 검색 -->
+
+        <div class="search-area">
+
+            <form method="get"
+                  th:action="@{/admin/member/partnerApproval}">
+
+                <div class="search-box">
+
+                    <div class="search-form">
+
+                        <input type="text"
+                               class="form-control"
+                               name="searchText"
+                               placeholder="업체명 또는 아이디를 입력하세요."
+                               th:value="${partnerSearch.searchText}">
+
+                        <button class="btn btn-primary">
+
+                            검색
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3 my-3">
+
+                    <select class="form-select"
+                            name="approval"
+                            onchange="this.form.submit()">
+
+                        <option value="">
+
+                            전체
+
+                        </option>
+
+                        <option value="2">
+
+                            승인대기
+
+                        </option>
+
+                        <option value="1">
+
+                            승인완료
+
+                        </option>
+
+                        <option value="3">
+
+                            반려
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </form>
+
+        </div>
+
+
+
+
+
+        <!-- 목록 -->
+
+        <div class="search-area">
+
+            <div class="table-wrap">
+
+                <table class="table">
+
+                    <thead>
+
+                    <tr>
+
+                        <th width="6%">번호</th>
+
+                        <th width="15%">업체명</th>
+
+                        <th width="15%">아이디</th>
+
+                        <th width="20%">이메일</th>
+
+                        <th width="15%">가입일</th>
+
+                        <th width="12%">상태</th>
+
+                        <th width="17%">관리</th>
+
+                    </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    <tr th:if="${#lists.isEmpty(partnerList)}">
+
+                        <td colspan="7">
+
+                            승인 대상 업체가 없습니다.
+
+                        </td>
+
+                    </tr>
+
+                    <tr th:each="partner, stat : ${partnerList}">
+
+                        <td th:text="${stat.count}"></td>
+
+                        <td th:text="${partner.nickname}"></td>
+
+                        <td th:text="${partner.loginId}"></td>
+
+                        <td th:text="${partner.email}"></td>
+
+                        <td th:text="${partner.createdAt}"></td>
+
+                        <td>
+
+                            <span class="ad-badge ad-bg-warning"
+                                  th:if="${partner.statusId==2}">
+
+                                승인대기
+
+                            </span>
+
+                            <span class="ad-badge ad-bg-success"
+                                  th:if="${partner.statusId==1}">
+
+                                승인완료
+
+                            </span>
+
+                            <span class="ad-badge ad-bg-danger"
+                                  th:if="${partner.statusId==3}">
+
+                                반려
+
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <div class="ad-list-action">
+
+                                <a class="ad-list-btn ad-list-btn-detail"
+                                   th:href="@{/admin/member/detail(memberId=${partner.memberId})}">
+
+                                    상세
+
+                                </a>
+
+                                <form th:action="@{/admin/member/approve}"
+                                      method="post">
+
+                                    <input type="hidden"
+                                           name="memberId"
+                                           th:value="${partner.memberId}">
+
+                                    <button type="submit"
+                                            class="ad-list-btn ad-list-btn-detail">
+
+                                        승인
+
+                                    </button>
+
+                                </form>
+
+                                <form th:action="@{/admin/member/reject}"
+                                      method="post">
+
+                                    <input type="hidden"
+                                           name="memberId"
+                                           th:value="${partner.memberId}">
+
+                                    <button type="submit"
+                                            class="ad-list-btn ad-list-btn-delete">
+
+                                        반려
+
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    </tbody>
+
+                </table>
+                
+                                <!-- ======================
+                        제휴업체 승인 페이징
+                ======================= -->
+
+                <nav class="ad-pagination-wrap">
+
+                    <ul class="ad-pagination">
+
+                        <!-- 이전 -->
+
+                        <li class="ad-page-item"
+                            th:classappend="${partnerSearch.page<=1} ? 'disabled'">
+
+                            <a class="ad-page-link"
+                               th:href="@{/admin/member/partnerApproval(page=${partnerSearch.page-1},searchText=${partnerSearch.searchText})}">
+
+                                이전
+
+                            </a>
+
+                        </li>
+
+                        <!-- 페이지 -->
+
+                        <li class="ad-page-item"
+                            th:each="i:${#numbers.sequence(1,partnerTotalPage)}"
+                            th:classappend="${partnerSearch.page==i} ? 'active'">
+
+                            <a class="ad-page-link"
+                               th:text="${i}"
+                               th:href="@{/admin/member/partnerApproval(page=${i},searchText=${partnerSearch.searchText})}">
+                            </a>
+
+                        </li>
+
+                        <!-- 다음 -->
+
+                        <li class="ad-page-item"
+                            th:classappend="${partnerSearch.page>=partnerTotalPage} ? 'disabled'">
+
+                            <a class="ad-page-link"
+                               th:href="@{/admin/member/partnerApproval(page=${partnerSearch.page+1},searchText=${partnerSearch.searchText})}">
+
+                                다음
+
+                            </a>
+
+                        </li>
+
+                    </ul>
+
+                </nav>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ===========================
+        탭 전환
+=========================== -->
+
+<script>
+
+const tabs = document.querySelectorAll(".member-tab");
+const contents = document.querySelectorAll(".member-tab-content");
+
+tabs.forEach(tab => {
+
+    tab.addEventListener("click", function(){
+
+        tabs.forEach(t=>t.classList.remove("active"));
+        contents.forEach(c=>c.classList.remove("active"));
+
+        this.classList.add("active");
+
+        document
+            .getElementById(this.dataset.tab)
+            .classList.add("active");
+
+    });
+
+});
+
+</script>
+
+</body>
+
+</html>
