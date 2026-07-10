@@ -1,25 +1,23 @@
 package com.moit.reports.controller;
 
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
-
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.moit.member.dto.UserDto;
 import com.moit.reports.api.ApiEmail;
 import com.moit.reports.dto.ReportsDto;
 import com.moit.reports.service.ReportsService;
+import com.moit.security.CustomUserDetails;
 import com.moit.util.UtilPaging;
 
 import jakarta.servlet.http.HttpSession;
@@ -36,32 +34,44 @@ public class ReportController {
     }
 	
 	// 사용자 로그인 헬퍼
-	private Integer getLoginMemberId(HttpSession session) {
-		Integer id = (Integer) session.getAttribute("loginMemberId");
-		return (id != null) ? id : 1; // 일반회원 테스트용
-	}
+//	private Integer getLoginMemberId(HttpSession session) {
+//		Integer id = (Integer) session.getAttribute("loginMemberId");
+//		return (id != null) ? id : 1; // 일반회원 테스트용
+//	}
 
 	// 관리자 로그인 헬퍼
-	private Integer getLoginAdminId(HttpSession session) {
-		Integer id = (Integer) session.getAttribute("loginMemberId");
-		return (id != null) ? id : 22; // 관리자 테스트용
-	}
+//	private Integer getLoginAdminId(HttpSession session) {
+//		Integer id = (Integer) session.getAttribute("loginMemberId");
+//		return (id != null) ? id : 22; // 관리자 테스트용
+//	}
 	
 	// 내 신고내역 화면 mylist
 	@RequestMapping("/user/meetup/report/mylist")
 	public String reportMylist( @RequestParam(value="pstartno", defaultValue="1") int pstartno,
 								HttpSession session,
 								Model model,
-								Principal principal) {
+								Authentication authentication) {
 		
 
-		Integer memberId = getLoginMemberId(session);
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 	
 		
 //		HashMap<String, Object> map = new HashMap<>();
 //		map.put("start", 0);
 //		map.put("end", 10);
 //		map.put("memberId", memberId); // 로그인 회원 번호 test
 		
+		model.addAttribute("dto", user);
 		model.addAttribute("paging", new UtilPaging( service.selectUserCnt(memberId), pstartno ));
 		model.addAttribute("list", service.selectUserReport(pstartno, memberId));
 		model.addAttribute("menu", "myReport");
@@ -75,8 +85,17 @@ public class ReportController {
 								HttpSession session,
 								Model model,
 								Authentication authentication) {
-		
-		Integer memberId = getLoginMemberId(session);
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 		
 		
 		model.addAttribute("paging", new UtilPaging( service.selectUserCnt(memberId), pstartno ));
 		model.addAttribute("list", service.selectUserReport(pstartno, memberId));
@@ -99,11 +118,27 @@ public class ReportController {
 	}
 	// 신고 작성 기능
 	@PostMapping("/user/meetup/report/write")
-	public String reportWrite_post(ReportsDto dto, RedirectAttributes rttr,
-									HttpSession session) {
+	public String reportWrite_post(	ReportsDto dto,
+									RedirectAttributes rttr,
+									HttpSession session,
+									Authentication authentication) {
 		
-		Integer memberId = getLoginMemberId(session);
-		dto.setMemberId(memberId);
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 		
+				
+		
+		dto.setMemberId(memberId); // 로그인 회원 번호 test
+		
+//		Integer memberId = getLoginMemberId(session);
 		
 		int result_TargetType = -1;
 		String result = "신고등록 실패";
@@ -145,13 +180,26 @@ public class ReportController {
 	
 	// 내 신고 상세 화면 detail
 	@RequestMapping("/user/meetup/report/detail")
-	public String reportDetail( int reportId, HttpSession session, Model model) {
+	public String reportDetail( int reportId, HttpSession session, Model model,
+								Authentication authentication) {
+		
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		}
 		
 		ReportsDto dto = new ReportsDto();
 		dto.setReportId(reportId);
-		
-		Integer memberId = getLoginMemberId(session); // 사용자 login
 		dto.setMemberId(memberId);
+		
+//		Integer memberId = getLoginMemberId(session); // 사용자 login
 		
 		model.addAttribute("dto", service.selectUserReportDetail(dto));
 		
@@ -160,12 +208,25 @@ public class ReportController {
 	
 	// 신고 수정 화면 update
 	@GetMapping( value="/user/meetup/report/update")
-	public String reportUpdate(int reportId, HttpSession session, Model model) {
+	public String reportUpdate(	int reportId, HttpSession session, Model model,
+								Authentication authentication) {
 
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 		
+		
 		ReportsDto dto = new ReportsDto();
 		dto.setReportId(reportId);
 		
-		Integer memberId = getLoginMemberId(session); // 사용자 login
+//		Integer memberId = getLoginMemberId(session); // 사용자 login
 		dto.setMemberId(memberId);
 		
 		model.addAttribute("dto", service.selectUserReportDetail(dto));
@@ -174,9 +235,20 @@ public class ReportController {
 	
 	// 신고 수정 처리
 	@PostMapping("/user/meetup/report/update")
-	public String reportUpdate_post(ReportsDto dto, HttpSession session, RedirectAttributes rttr) {
-		
-		Integer memberId = getLoginMemberId(session); // 사용자 login
+	public String reportUpdate_post(ReportsDto dto, HttpSession session, RedirectAttributes rttr,
+									Authentication authentication) {
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 		
+//		Integer memberId = getLoginMemberId(session); // 사용자 login
 		dto.setMemberId(memberId);
 		
 		String result="신고수정 실패";
@@ -191,10 +263,20 @@ public class ReportController {
 	
 	// 신고 삭제 처리 delete
 	@PostMapping("/user/meetup/report/delete")
-	public String reportDelete_post(ReportsDto dto, HttpSession session, RedirectAttributes rttr) {
-		
-		//dto.setMemberId(1); // 신고자
-		Integer memberId = getLoginMemberId(session); // 사용자 login
+	public String reportDelete_post(ReportsDto dto, HttpSession session, RedirectAttributes rttr,
+									Authentication authentication) {
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		}
+//		Integer memberId = getLoginMemberId(session); // 사용자 login
 		dto.setMemberId(memberId);
 		
 		String result="신고삭제 실패";
@@ -220,7 +302,7 @@ public class ReportController {
 							HttpSession session,
 							Model model) {
 		
-		Integer memberId = getLoginAdminId(session);
+//		Integer memberId = getLoginAdminId(session);
 	
 		HashMap<String, Object> map = new HashMap<>();
 		
@@ -260,8 +342,8 @@ public class ReportController {
 		
 //		Integer memberId = (Integer) session.getAttribute("loginMemberId");
 //		if (memberId == null) { memberId = 12; }
-		Integer memberId = getLoginAdminId(session);
 		
+//		Integer memberId = getLoginAdminId(session);
 		
 		HashMap<String, Object> map = new HashMap<>(); // 조회 조건
 		map.put("reportId", reportId);
@@ -272,8 +354,6 @@ public class ReportController {
 			model.addAttribute("dto", list.get(0));
 		}
 		
-		// 신뢰도 & 뱃지 조회 정보
-		
 		return "admin/report/adminDetail";
 	}
 	
@@ -281,7 +361,7 @@ public class ReportController {
 	@PostMapping("/admin/report/update")
 	public String reportUpdateAdmin_post(ReportsDto dto, HttpSession session, RedirectAttributes rttr) {
 		
-		Integer memberId = getLoginAdminId(session);
+//		Integer memberId = getLoginAdminId(session);
 		
 		String result="status 상태 수정 실패";
 		
@@ -303,7 +383,7 @@ public class ReportController {
 	public String reportDeleteAdmin_post(	@RequestParam("reportId") int reportId,
 											ReportsDto dto, HttpSession session, RedirectAttributes rttr) {
 		
-		Integer memberId = getLoginAdminId(session);
+//		Integer memberId = getLoginAdminId(session);
 		
 		String result="신고삭제 실패";
 		

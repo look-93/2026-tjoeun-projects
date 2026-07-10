@@ -29,8 +29,6 @@ public interface ReportsService {
 	
 	// ===== admin =====
 	// ===== admin =====
-	public ReportsDto findMemberTrustInfo(ReportsDto dto);
-	
 	public int updateAdmin(ReportsDto dto);
     public int deleteAdmin(int reportId);
 

@@ -77,8 +77,8 @@ public class ReportsServiceImpl implements ReportsService {
 		int result = dao.updateAdmin(dto);
 		
 		if( "APPROVED".equals(dto.getStatus()) ) {	// status가 APPROVED라면
-			int targetMemberId = dao.selectTargetMemberId(dto);
-			dto.setTargetMemberId(targetMemberId);	// 신고당한 대상 아이디(정보) 불러오기
+			int targetMemberId = dao.selectTargetMemberId(dto); // 신고당한 대상 아이디(정보) 불러오기
+			dto.setTargetMemberId(targetMemberId);	
 			
 			int approvedCnt = dao.selectApprovedCnt(targetMemberId);
 			int noshowCnt = dao.selectNoshowCnt(targetMemberId);
@@ -147,35 +147,42 @@ public class ReportsServiceImpl implements ReportsService {
 	}
 	
 	
-	@Override
-	public ReportsDto findMemberTrustInfo(ReportsDto dto) {
-		return dao.findMemberTrustInfo(dto);
-	}
-
 	@Override // 관리자 신고 목록 조회 (동적 조건 + 페이징 + 단건 조회까지 포함)
 	public List<ReportsDto> selectAdminReports(HashMap<String, Object> map) {
 		
-//		List<ReportsDto> list = dao.selectAdminReports(map);
-//		
-//		for (ReportsDto dto : list) {
-//			// 신고당한 유저
-//			int targetMemberId = dao.selectTargetMemberId(dto);
-//			dto.setTargetMemberId(targetMemberId);
-//			
-//			// 닉네임
-//			String targetNickname = dao.selectNickname(dto);
-//			dto.setTargetNickname(targetNickname);
-//			
-//			// 신뢰도 점수
-//			int trustScore = dao.selectTrustScore(dto);
-//			dto.setSelectTrustScore(trustScore);
-//			
-//			// 뱃지
-//			String StatusName = dao.selectBadge(dto);
-//			dto.setReportStatusName(StatusName);
-//		}
+		List<ReportsDto> list = dao.selectAdminReports(map);
+
+		for (ReportsDto dto : list) {
+			Integer targetMemberId = dao.selectTargetMemberId(dto);
+			
+			if (targetMemberId == null) {
+	            dto.setTargetNickname("대상 없음");
+	            dto.setTrustScore(0);
+	            dto.setStatusName("조회불가");
+	            continue;
+	        }
+			
+			// 신고당한 유저
+			dto.setTargetMemberId(targetMemberId);
+			
+			ReportsDto searchParam = new ReportsDto();
+			searchParam.setTargetMemberId(targetMemberId);
+
+			ReportsDto trustInfo = dao.findMemberTrustInfo(searchParam);
+			
+			if (trustInfo != null) {
+				dto.setTargetMemberId( trustInfo.getTargetMemberId() );
+				dto.setTargetNickname( trustInfo.getTargetNickname() );
+				dto.setTrustScore( trustInfo.getTrustScore() );
+				
+				// 뱃지
+				dto.setReportStatusId( trustInfo.getReportStatusId() );
+				dto.setStatusCode( trustInfo.getStatusCode() );
+				dto.setStatusName( trustInfo.getStatusName() );
+			}
+		}
 		
-		return dao.selectAdminReports(map);
+		return list;
 	}
 
 	@Override // 관리자 신고 목록 카운트 (동적 조건 반영)

@@ -39,7 +39,7 @@ public interface ReportsMapper {
 	
     // ===== admin =====
 	// 신고당한 글 작성자 조회
-	public int selectTargetMemberId(ReportsDto dto);
+	public Integer selectTargetMemberId(ReportsDto dto);
 	// 신고당한 글 작성자 닉네임 조회
 //	public String selectNickname(ReportsDto dto);
 	
@@ -48,7 +48,7 @@ public interface ReportsMapper {
 	
 	/////////////////////////////////////////////
 	// 단순 조회용 쿼리 (로그인/마이페이지 호출용 member_info.trust_score - DB 부하 0%)
-	public int findMemberTrustInfo(ReportsDto dto);
+	public ReportsDto findMemberTrustInfo(ReportsDto dto);
 	// 실시간 신뢰도 점수 산출 쿼리
 	// approved_cnt = 모임 참여 승인 횟수 (+2)
 	public int selectApprovedCnt(int reportId);

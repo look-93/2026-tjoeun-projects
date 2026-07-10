@@ -271,22 +271,27 @@
 	<select id="selectReportCnt" resultType="int" parameterType="int">
 		select count(*)
 		from (
-			select r.report_id
+			select r.report_id,
+					mt.member_id as target_member_id
 			from reports r	join meetups mt
 				on r.target_type = 'MEETUP'
 					and r.target_id = mt.meetup_id
 					and r.status = 'APPROVED'
+					and r.delete_yn = 'N'
 					and r.created_at >= sysdate -90
 					
 			union all
 			
-			select r.report_id
+			select r.report_id,
+					rv.member_id as target_member_id
 			from reports r	join reviews rv
 				on r.target_type = 'REVIEW'
 					and r.target_id = rv.review_id
 					and r.status = 'APPROVED'
-					and r.creadted_at >= sysdate -90
+					and r.delete_yn = 'N'
+					and r.created_at >= sysdate -90
 		)
+		where target_member_id = #{targetMemberId}
 	</select>
 	
 	<!-- 계산된 신뢰도 점수 업데이트 쿼리 -->
