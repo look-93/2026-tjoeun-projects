@@ -52,7 +52,10 @@
 	<select id="doubleReport" resultType="int" parameterType="ReportsDto">
 		select count(*)
 		from reports
-		where member_id = #{memberId} and target_type = #{targetType} and target_id = #{targetId} and delete_yn = 'N'
+		where member_id = #{memberId}
+			and target_type = #{targetType}
+			and target_id = #{targetId}
+			and delete_yn = 'N'
 	</select>
 	
 	<!-- 신고 난사 방지 -->
@@ -60,7 +63,8 @@
 		select count(*)
 		from reports
 		where member_id = #{memberId} and delete_yn = 'N'
-			and created_at >= trunc(sysdate) and created_at &lt; trunc(sysdate) +1
+			and created_at >= trunc(sysdate)
+			and created_at &lt; trunc(sysdate) +1
 	</select>
 	
 	
@@ -165,66 +169,59 @@
 			
 			approved_cnt = 모임 참여 승인 횟수		→ meetup_applications.status = 'APPROVED'
 			noshow_cnt = 모임 노쇼 횟수 			→ meetup_applications.status = 'NOSHOW'
-			report_cnt = 내가 작성한 MEETUP/REVIEW가 신고 승인된 횟수 → meetups + reviews
+			report_cnt = 내가 작성한 MEETUP/REVIEW가 신고 승인된 횟수 → meetups + reviews 
 	
 
-	<select id="selectCalculatedTrustScore" resultType="int" parameterType="int">
-	    SELECT
-	        (
-	            mi.trust_score
-	            + NVL(ma.approved_cnt, 0) * 2
-	            - NVL(ma.noshow_cnt, 0) * 10
-	            - NVL(r.report_cnt, 0) * 5
-	        ) AS calculated_trust_score
-	    FROM members m
-	        JOIN member_info mi
-	            ON m.member_id = mi.member_id
+	<select id="calculateRealtimeTrustScore" resultType="int">
+	    select 
+			greatest(
+				mi.trust_score
+                + (nvl(ma.approved_cnt, 0) * 2)
+                - (nvl(ma.noshow_cnt, 0) * 10)
+                - (nvl(rp.report_cnt, 0) * 5)
+            ) as trust_score
+	    from member_info mi
+	    left join (
+	        select 
+	            member_id,
+	            count(case when status = 'APPROVED' then 1 end) as approved_cnt,
+	            count(case when status = 'NOSHOW' then 1 end) as noshow_cnt
+	        from meetup_applications
+	        where member_id = #{memberId}
+	          and created_at >= sysdate - 90
+	        group by member_id
+	    ) ma
+	        on mi.member_id = ma.member_id
+	    left join (
+	        select 
+	            target_member_id as member_id,
+	            count(*) as report_cnt
+	        from (
+	            select mt.member_id as target_member_id
+	            from reports r
+	            join meetups mt
+	                on r.target_type = 'MEETUP'
+	                and r.target_id = mt.meetup_id
+	            where r.status = 'APPROVED'
+	              and r.delete_yn = 'N'
+	              and r.created_at >= sysdate - 90
 	
-	        LEFT JOIN (
-	            SELECT
-	                member_id,
-	                COUNT(CASE WHEN status = 'APPROVED' THEN 1 END) AS approved_cnt,
-	                COUNT(CASE WHEN status = 'NOSHOW' THEN 1 END) AS noshow_cnt
-	            FROM meetup_applications
-	            WHERE member_id = #{memberId}
-	              AND created_at >= SYSDATE - 90
-	            GROUP BY member_id
-	        ) ma
-	            ON m.member_id = ma.member_id
+	            union all
 	
-	        LEFT JOIN (
-	            SELECT
-	                target_member_id AS member_id,
-	                COUNT(*) AS report_cnt
-	            FROM (
-	                SELECT
-	                    mt.member_id AS target_member_id,
-	                    r.report_id
-	                FROM reports r
-	                    JOIN meetups mt
-	                        ON r.target_type = 'MEETUP'
-	                       AND r.target_id = mt.meetup_id
-	                WHERE r.status = 'APPROVED'
-	                  AND r.created_at >= SYSDATE - 90
-	
-	                UNION ALL
-	
-	                SELECT
-	                    rv.member_id AS target_member_id,
-	                    r.report_id
-	                FROM reports r
-	                    JOIN reviews rv
-	                        ON r.target_type = 'REVIEW'
-	                       AND r.target_id = rv.review_id
-	                WHERE r.status = 'APPROVED'
-	                  AND r.created_at >= SYSDATE - 90
-	            )
-	            WHERE target_member_id = #{memberId}
-	            GROUP BY target_member_id
-	        ) r
-	            ON m.member_id = r.member_id
-	
-	    WHERE m.member_id = #{memberId}
+	            select rv.member_id as target_member_id
+	            from reports r
+	            join reviews rv
+	                on r.target_type = 'REVIEW'
+	                and r.target_id = rv.review_id
+	            where r.status = 'APPROVED'
+	              and r.delete_yn = 'N'
+	              and r.created_at >= sysdate - 90
+	        )
+	        where target_member_id = #{memberId}
+	        group by target_member_id
+	    ) rp
+	        on mi.member_id = rp.member_id
+	    where mi.member_id = #{memberId}
 	</select> -->
 	
 	
@@ -247,16 +244,16 @@
 	</select>
 	
 	<!-- 실시간 신뢰점수 산출 count(*) 쿼리 3개
-		기본 점수 100점 + (승인 횟수 * 2) - (노쇼 * 10) - (신고당한 건수 * 5)
+		기본 점수 100점 + (승인 횟수 * 2) - (노쇼 * 10) - (신고당한 건수 * 5) -->
 		
-		approved_cnt = 모임 참여 승인 횟수 (+2) meetup_applications.status = 'APPROVED' -->
+		<!-- approved_cnt = 모임 참여 승인 횟수 (+2) meetup_applications.status = 'APPROVED'  -->
 	<select id="selectApprovedCnt" resultType="int" parameterType="int">
 		select count(*)
 		from meetup_applications
 		where member_id = #{memberId}
 			and status = 'APPROVED'
 			and created_at >= sysdate - 90
-	</select>
+	</select> 
 	
 	<!-- noshow_cnt = 모임 노쇼 횟수 (-10) meetup_applications.status = 'NOSHOW' -->
 	<select id="selectNoshowCnt" resultType="int" parameterType="int">
@@ -265,7 +262,7 @@
 		where member_id = #{memberId}
 			and status = 'NOSHOW'
 			and created_at >= sysdate - 90
-	</select>
+	</select> 
 	
 	<!-- report_cnt = 내가 작성한 MEETUP/REVIEW가 신고 승인된 횟수 (-5) -->
 	<select id="selectReportCnt" resultType="int" parameterType="int">
@@ -292,7 +289,7 @@
 					and r.created_at >= sysdate -90
 		)
 		where target_member_id = #{targetMemberId}
-	</select>
+	</select> 
 	
 	<!-- 계산된 신뢰도 점수 업데이트 쿼리 -->
 	<update id="updateMemberTrustScore" parameterType="ReportsDto">
@@ -347,6 +344,7 @@
 		from reports r join members m on r.member_id = m.member_id
 		where r.report_id = #{reportId}
 	</select>
+	
 
 	<!-- 신고 강제 삭제 -->
 	<delete id="deleteAdmin" parameterType="int">
@@ -427,7 +425,14 @@
 	
  
 
-
+	<!-- 3일 전에 신고 상태 변경된 데이터 추출 -->
+	<select id="selectThreeDaysAgo" resultType="ReportsDto">
+		select m.email
+		from reports r join members m on r.member_id = m.member_id
+		where r.status = 'APPROVED'
+			and r.updated_at >= trunc(sysdate) - 3
+			and r.updated_at &lt; trunc(sysdate) - 2
+	</select>
 </mapper>
 
 

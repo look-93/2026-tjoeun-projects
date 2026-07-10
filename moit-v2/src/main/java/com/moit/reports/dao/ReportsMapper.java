@@ -63,6 +63,8 @@ public interface ReportsMapper {
 	public int updateMemberReportStatusId(ReportsDto dto);
 	// 새벽 배치용: 전날 활동 이력(참여/노쇼/신고)이 있는 회원 ID 타겟 추출
 	public int selectTargetMembersYesterday(ReportsDto dto);
+	// 3일 전에 신고 상태 변경된 데이터 추출
+	public List<ReportsDto> selectThreeDaysAgo(ReportsDto dto);
 	
 	
 	
@@ -77,6 +79,7 @@ public interface ReportsMapper {
 //	public int updateBadge(ReportsDto dto);
 	
     public int updateAdmin(ReportsDto dto);
+//	members table에 report_id로 email 찾기
     public String selectEmail(ReportsDto dto); 
     public int deleteAdmin(int reportId);
 

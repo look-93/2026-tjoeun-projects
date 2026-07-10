@@ -37,6 +37,13 @@ public interface ReportsService {
 
     // 관리자 신고 목록 카운트 (동적 조건 반영)
     public int selectAdminReportsCnt(HashMap<String, Object> map);
+    
+    //////////////////
+    // email send	//
+    //////////////////
+    
+    // 3일 전에 신고 상태 변경된 데이터 추출
+ 	public List<ReportsDto> selectThreeDaysAgo(ReportsDto dto);
 	
     
 	

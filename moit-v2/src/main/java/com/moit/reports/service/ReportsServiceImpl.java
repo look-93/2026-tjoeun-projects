@@ -16,7 +16,6 @@ import javassist.compiler.ast.Keyword;
 public class ReportsServiceImpl implements ReportsService {
 	@Autowired ReportsMapper dao;
 	@Autowired ApiEmail apiEmail;
-	@Autowired ReportsMapper mapper;
 
 	@Override // 사용자 본인이 작성한 신고 내역 조회 & 유저 - 페이징
 	public List<ReportsDto> selectUserReport(int pstartno, int memberId) {
@@ -107,17 +106,20 @@ public class ReportsServiceImpl implements ReportsService {
 		
 		///////////////////////////////////////////////////
 		// apiEmail content
+		String subject = "신고 처리되지 않음.";
 		String content = "신고 처리되지 않음.";
 		if( "APPROVED".equals(dto.getStatus()) ) {
-			content = "신고 처리가 승인 되었습니다.";
+			subject = "[제목] 신고 처리가 승인 되었습니다.";
+			content = "[내용] 신고 처리가 승인 되었습니다.";
 		} else if( "REJECTED".equals(dto.getStatus()) ) {
-			content = "신고 처리가 반려 되었습니다.";
+			subject = "[제목] 신고 처리가 반려 되었습니다.";
+			content = "[내용] 신고 처리가 반려 되었습니다.";
 		}
 		
 		// apiEmail Email
 		String email = dao.selectEmail(dto);
 		
-		apiEmail.sendMail(content, email); //메일 test
+		apiEmail.sendMail(subject, content, email); //메일 test
 		return result;
 	}
 	
@@ -131,15 +133,14 @@ public class ReportsServiceImpl implements ReportsService {
 		String email = dao.selectEmail(dto);
 		
 		// apiEmail content
-		String content="삭제되지 않음.";
 		int result = dao.deleteAdmin(reportId);
 
 		if( result > 0 ) {
-			content = "신고 글이 삭제 되었습니다.";
+			String subject = "Moit 신고 문의 처리";
+			String content = "신고 글이 삭제 되었습니다.";
 			
 			if( email != null ) {
-				apiEmail.sendMail(content, email); //메일 test
-
+				apiEmail.sendMail(subject, content, email); //메일 test
 			} else { System.out.println("메일 전송 실패..."); }
 		}
 		
@@ -188,6 +189,31 @@ public class ReportsServiceImpl implements ReportsService {
 	@Override // 관리자 신고 목록 카운트 (동적 조건 반영)
 	public int selectAdminReportsCnt(HashMap<String, Object> map) {
 		return dao.selectAdminReportsCnt(map);
+	}
+	
+	
+
+	@Override // 3일 전에 신고 상태 변경된 데이터 추출
+	public List<ReportsDto> selectThreeDaysAgo(ReportsDto dto) {
+		
+		List<ReportsDto> targetList = dao.selectThreeDaysAgo(dto);
+		System.out.println( targetList.size() );
+		
+		for (ReportsDto target : targetList) {
+			String email = target.getEmail();
+			
+			if( email != null && !email.isEmpty() ) {
+				String subject = "[만족도 참여] Moit 문의 처리 결과는 어떠셨나요?";
+				String content = "Moit 문의 처리 결과는 어떠셨나요?<br>"
+								+ "마음에 드셨다면 만족도 참여에 동참해주세요!";
+				
+				try {
+					apiEmail.sendMail(subject, content, email); //메일 test
+				} catch (Exception e) { e.printStackTrace(); }
+				
+			} else { System.out.println("메일 전송 실패..."); }
+		}
+		return dao.selectThreeDaysAgo(dto);
 	}
 
 	

@@ -1,15 +1,25 @@
 package com.moit.reports.api;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import com.moit.reports.dao.ReportsMapper;
 
 @Component
 public class ApiScheduledTask {
 	
+	@Autowired
+	private ReportsMapper mapper;
+	@Autowired
+	private ApiEmail apiEmail;
+	
 //	신고처리하고 3일뒤에 신고처리결과가 맘에 드시나요?   메일보내기 자동으로 
-//	@Scheduled(fixedRate = 259200)
-	public void runTest() {
+//				cron = 초 분 시 일 월 요일
+	@Scheduled(cron = "0 0 3 * * *")
+	public void threeSendEmail() { 
 		System.out.println("...스케줄러 실행중 : " + System.currentTimeMillis());
+		
 	}
 
 }
