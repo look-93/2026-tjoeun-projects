@@ -1,45 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <body>
-<<<<<<< HEAD
-	<th:block th:fragment="mypageSidebar">
-		<aside class="sidebar">
-		    <div class="menu">
-		        <!-- <a th:href="@{/user/member/mypage}">내 정보</a> -->
-		        
- 		        <a href="/user/member/mypage"
-		           class="menu-link"
-		           data-path="/user/member/mypage">
-		           내 정보
-		        </a>
-		                 
-		        <a href="/mypage/myMeetupInfo"
-		           class="menu-link"
-		           data-path="/mypage/myMeetupInfo">
-		           모임관리
-		        </a>
-		        
-		        <a href="/mypage/meetupApplyInfo"
-		           class="menu-link"
-		           data-path="/mypage/meetupApplyInfo">
-		           내 신청모임
-		        </a>
-		        <a th:href="@{/mypage/review}"
-	               th:classappend="${menu == 'review'} ? ' active'">
-	            	내 작성후기
-	            </a> 
-<!-- 		   <a href="#">내 관심모임</a>
-		        <a href="#">내 문의내역</a>     
-		        <a href="#">내 신고내역</a>        
-		        <a href="#">내 신고내역</a> -->
- 		        <a href="/user/member/memberEdit"
-		           class="menu-link"
-		           data-path="/user/member/memberEdit">
-		           회원정보 수정
-		        </a>
-		        <a href="#">비밀번호 변경</a>
-		        <a href="#">회원 탈퇴</a>   
-=======
    <th:block th:fragment="mypageSidebar">
       <aside class="sidebar">
           <div class="menu">
@@ -62,6 +23,7 @@
                  data-path="/mypage/meetupApplyInfo">
                  내 신청모임
               </a>
+              <a th:href="@{/questions/myQuestion}">내 문의내역</a>
 <!--               <a href="#">내 관심모임</a>
               <a href="#">내 문의내역</a>
               <a href="#">내 작성후기</a>
@@ -73,7 +35,6 @@
               </a>
               <a href="#">비밀번호 변경</a>
               <a href="#">회원 탈퇴</a>   
->>>>>>> 743e4adc9c97f0354800fc40dd55fd663b9a8231
 
               <a th:href="@{/user/advertisement/list}"
                   th:classappend="${menu == 'advertisement'} ? ' active'">

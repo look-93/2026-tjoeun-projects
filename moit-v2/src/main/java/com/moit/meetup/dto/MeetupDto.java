@@ -1,7 +1,6 @@
 package com.moit.meetup.dto;
 
 import java.math.BigDecimal;
-
 import lombok.Data;
 
 @Data
@@ -72,5 +71,3 @@ weather_status IN( 	-- 날씨상태
 	'SNOW'
 )            
 */
-
-
