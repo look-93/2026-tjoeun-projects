@@ -3863,6 +3863,55 @@ textarea.mw-form-input {
     margin-bottom:25px;
 }
 
+/* 버튼 영역 */
+.ad-list-action{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 공통 버튼 */
+.ad-list-btn{
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 60px;
+    height: 34px;
+
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+
+    transition: .2s;
+}
+
+/* 상세 */
+.ad-list-btn-detail{
+    background: #4a90e2;
+    color: #fff;
+}
+
+.ad-list-btn-detail:hover{
+    background: #357abd;
+    color: #fff;
+}
+
+/* 삭제 */
+.ad-list-btn-delete{
+    background: #e74c3c;
+    color: #fff;
+}
+
+.ad-list-btn-delete:hover{
+    background: #c0392b;
+}
+
 /* 테이블 */
 
 .table {
@@ -4363,6 +4412,28 @@ textarea.mw-form-input {
 
 .member-ad-no-image img {
     width:300px;
+}
+
+.member-ad-image-box{
+    position: relative;
+    display: inline-block;
+}
+
+.member-ad-image-type{
+    position: absolute;
+    top: 10px;
+    left: 10px;
+
+    background: rgba(0,0,0,.7);
+    color: #fff;
+
+    padding: 4px 10px;
+    border-radius: 6px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    z-index: 10;
 }
 
 /* 정보 */
