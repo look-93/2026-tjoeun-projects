@@ -3912,6 +3912,67 @@ textarea.mw-form-input {
     background: #c0392b;
 }
 
+/* 연장 신청 공통 */
+
+.ad-extension-btn,
+.ad-extension-wait {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 6px 14px;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+    margin-top: 5px;
+
+}
+
+
+/* 연장 신청 버튼 */
+
+.ad-extension-btn {
+
+    color: #ffffff;
+
+    background-color: #2563eb;
+
+    border: 1px solid #2563eb;
+
+}
+
+
+.ad-extension-btn:hover {
+
+    background-color: #1d4ed8;
+
+}
+
+
+/* 승인 대기 */
+
+.ad-extension-wait {
+
+    color: #92400e;
+
+    background-color: #fef3c7;
+
+    border: 1px solid #f59e0b;
+
+}
+/*==============================*/
+
 /* 테이블 */
 
 .table {

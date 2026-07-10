@@ -79,6 +79,15 @@ public class AdvertisementAdminController {
 
             model.addAttribute("waitingCnt", totalCnt);
 
+        } 
+        else if ("extension".equals(tab)) {
+
+
+            list = advertisementService.selectExtensionList();
+
+            totalCnt = list.size();
+
+
         } else {
 
             dto.setApprovalStatus("APPROVED");
@@ -146,6 +155,22 @@ public class AdvertisementAdminController {
         advertisementService.updateApprovalStatus(dto);
 
         return "redirect:/admin/advertisement/manageList?tab=approval";
+    }
+    // 연장 승인
+    @PostMapping("/extensionApprove")
+    public String extensionApprove(
+            @RequestParam int adId) {
+
+
+        AdvertisementDto dto = new AdvertisementDto();
+
+        dto.setAdId(adId);
+
+
+        advertisementService.updateExtensionApprove(dto);
+
+
+        return "redirect:/admin/advertisement/manageList?tab=extension";
     }
 
     // 반려 처리

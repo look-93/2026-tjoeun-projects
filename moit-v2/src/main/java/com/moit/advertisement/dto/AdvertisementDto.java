@@ -43,6 +43,9 @@ public class AdvertisementDto {
     private String rejectReason; // 반려사유
     private Integer statusUpdatedBy;
     private LocalDateTime statusUpdatedAt;
+    // 기간 연장 메일 전송시 현재종료시일저장 
+    private LocalDateTime extensionRequestEndDatetime;
+    private String extensionStatus;
 
     // 통계
     private int impressions;
@@ -74,4 +77,9 @@ public class AdvertisementDto {
     private String deleteYn;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    // 메일용 정보
+    private String email;
+    private String memberName;
+    private long dday;
 }

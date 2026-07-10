@@ -37,6 +37,9 @@ public interface AdvertisementService {
 	// 승인 목록 개수
 	int selectWaitingTotalCnt(AdvertisementSearchDto dto);
 
+	// 기간연장 승인 대기 목록
+	List<AdvertisementDto> selectExtensionList();
+	
     // 상세 조회
     AdvertisementDto selectAdvertisementOne(int adId);
 
@@ -57,6 +60,9 @@ public interface AdvertisementService {
     
     // 상태 변경
     int updateAdvertisementStatus(AdvertisementDto dto);
+    
+ // 연장승인 상태 변경
+    void updateExtensionApprove( AdvertisementDto dto );
 
     // 우선도 설정
 	int updateAdGrade(int adId, String adGrade);
@@ -101,6 +107,10 @@ public interface AdvertisementService {
 	void createDailyStatistics();
 
 	// 일일통계
-	void insertDailyStatistics();
+//	void insertDailyStatistics();
+	
+	// 메일 발송
+	void sendReminderMail();
+
 
 }
