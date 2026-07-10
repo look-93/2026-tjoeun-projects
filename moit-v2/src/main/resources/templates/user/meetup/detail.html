@@ -300,7 +300,7 @@
 			})
 			.catch(err => console.log(err));
 		}
-		
+		/**********모임신청*********/
 		function applyCancelMeetup(applicationId){
 			fetch("/meetup/cancelApplyMeetup", {
 				headers: getCsrfHeaders(),
@@ -318,6 +318,7 @@
 		}
 		
 		function changeMainImg(src) {
+			// 메인 이미지 태그를 찾아서 소스(src)를 클릭한 썸네일 주소로 변경
 			const mainImg = document.querySelector('.meetup-detail-main-img img');
 			if (mainImg) mainImg.src = src;
 		}
