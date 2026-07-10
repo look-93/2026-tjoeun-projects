@@ -18,15 +18,11 @@ public class ProfanityFilter {
     );
 
     public boolean containsBadWord(String text){
-
-        if(text == null){
-            return false;
-        }
+        if(text == null){ return false; }
         String target = text.replaceAll("\\s+", "");
+        
         for(String word : BAD_WORDS){
-            if(target.contains(word)){
-                return true;
-            }
+            if(target.contains(word)){ return true; }
         }
         return false;
     }

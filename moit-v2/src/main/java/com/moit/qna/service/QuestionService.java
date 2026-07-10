@@ -19,6 +19,7 @@ public class QuestionService {
 
     private final QuestionMapper questionMapper;
     private final AnswerMapper answerMapper;
+    private final QuestionAiAnalysisService questionAiAnalysisService;
 
     // 전체 문의 목록 조회 (페이징)
     public List<QuestionDto> getList(
@@ -57,7 +58,14 @@ public class QuestionService {
     
     // 문의 등록
     public void register(QuestionDto dto) {
+        // questions 테이블 저장
         questionMapper.insertQuestion(dto);
+
+        // AI 분석
+        String text = dto.getTitle() + "\n" + dto.getContent();
+        questionAiAnalysisService.analyzeAndSave(
+                dto.getQuestionId(), text
+        );
     }
     
     // 문의 수정
