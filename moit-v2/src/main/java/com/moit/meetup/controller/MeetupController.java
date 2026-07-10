@@ -177,17 +177,27 @@ public class MeetupController {
 	    model.addAttribute("desidebarAd", desidebar);
 
 	    // 광고가 존재하면 노출 증가
-	    if (desidebar != null) {
-	        advertisementService.updateImpressions(desidebar.getAdId());
-	    }
+	    if(desidebar != null){
 
+	          boolean counted =
+	              advertisementService.insertImpressionLog(
+	                  desidebar.getAdId(),
+	                    "MEETUP_DETAIL_SIDEBAR",
+	                  request,
+	                  session
+	              );
+
+	          if(counted){
+	              advertisementService.updateImpressions(
+	                  desidebar.getAdId()
+	              );
+	          }
+	      }
+	    
 	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
-	    model.addAttribute("applyInfo",
-	            meetupService.findApplyInfo(meetupApplicationDto));
-
-	    model.addAttribute("detail",
-	            meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
-
+	    model.addAttribute("applyInfo", meetupService.findApplyInfo(meetupApplicationDto));
+	    model.addAttribute("detail", meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
+	    model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
 	    //  기존 부분
 	    // List<ReviewDto> reviewList =
 	    //        reviewService.selectUserReview(meetupApplicationDto.getMeetupId(), sort);
