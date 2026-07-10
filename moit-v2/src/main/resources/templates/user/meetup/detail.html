@@ -150,8 +150,11 @@
                            </div>
 
                            <div>
-                              <button class="meetup-detail-report-btn">신고</button>
-                              
+                              <!-- <button class="meetup-detail-report-btn">신고</button> -->
+                                <a th:href="@{/user/meetup/report/write(targetType='REVIEW', targetId=${review.reviewId})}"
+									class="btn btn-outline-danger">
+					                리뷰 신고
+					            </a>
                               <button class="meetup-detail-report-btn"
                                  style="background-color: #FEF08A; color: #15803D; border: none; border-radius: 12px; padding: 4px 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s;"
                                  onmouseover="this.style.backgroundColor='#FDE047'"
