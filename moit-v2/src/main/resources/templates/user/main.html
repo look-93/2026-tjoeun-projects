@@ -18,7 +18,7 @@
 				<p>대학생 · 일반인을 위한 모임 플랫폼</p>
 
 				<div class="main-hero-btn">
-					<button class="main-btn main-btn-primary">모임 찾기</button>
+					<button class="main-btn main-btn-primary" onclick="goMeetupList()">모임 찾기</button>
 					<button class="main-btn main-btn-light">행사 보기</button>
 				</div>
 
@@ -28,35 +28,33 @@
 
 		</section>
 
-		<section class="main-category">
-
-			<div class="main-category-card">
-				🏃<span>운동</span>
-			</div>
-			<div class="main-category-card">
-				🎨<span>문화</span>
-			</div>
-			<div class="main-category-card">
-				📚<span>스터디</span>
-			</div>
-			<div class="main-category-card">
-				🤝<span>봉사</span>
-			</div>
-			<div class="main-category-card">
-				🎮<span>게임</span>
-			</div>
-			<div class="main-category-card">
-				✈️<span>여행</span>
-			</div>
-			<div class="main-category-card">
-				☕<span>카페</span>
-			</div>
-			<div class="main-category-card">
-				🎵<span>음악</span>
-			</div>
-
+		<section class="main-category">	
+		    <div class="main-category-card" onclick="location.href='/meetup/list?categoryId=1'">
+		        🏃<span>운동</span>
+		    </div>
+		    <div class="main-category-card" onclick="location.href='/meetup/list?categoryId=3'">
+		        📚<span>스터디</span>
+		    </div>
+		     <div class="main-category-card" onclick="location.href='/meetup/list?categoryId=4'">
+		        🎮<span>취미</span>
+		    </div>
+		    <div class="main-category-card" onclick="location.href='/meetup/list?categoryId=2'">
+		        🎨<span>문화</span>
+		    </div>
+		    <div class="main-category-card" onclick="location.href='/meetup/list?categoryId=5'">
+		        ☕<span>맛집</span>
+		    </div>	    
+		    <div class="main-category-card" onclick="location.href='/meetup/list?categoryId=6'">
+		        ✈️<span>여행</span>
+		    </div>
+		    <div class="main-category-card" onclick="location.href='/meetup/list?categoryId=7'">
+		        ☕<span>카페</span>
+		    </div>
+		    <div class="main-category-card" onclick="location.href='/meetup/list?categoryId=8'">
+		        🎵<span>음악</span>
+		    </div>	
 		</section>
-
+	
 		<!-- 광고 영역 -->
 		<section class="ad-banner"
 		         th:if="${mainAd != null}"
@@ -119,6 +117,12 @@
 
 			</div>
 		</section>
+	<script type="text/javascript">
+		function goMeetupList(){
+			location.href="/meetup/list"
+		}
+	
+	</script>
 	</div>
 </body>
 </html>

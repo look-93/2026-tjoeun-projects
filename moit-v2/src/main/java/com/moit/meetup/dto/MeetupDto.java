@@ -31,7 +31,7 @@ public class MeetupDto {
     private String nickname;
     private Integer totalParticipants;	// 총 참가 인원
     private Integer likeCnt; //좋아요 수
-    private Integer hasIike;
+    private Integer hasLike;
     private String categoryName;
     private String formattedMeetupAt;
     private String sidoName;
@@ -44,6 +44,8 @@ public class MeetupDto {
     private Integer meetupTotalCount;
     private Integer applicationId;
     private String rejectReason;
+    private String aiSummary;
+    private String imagePath;
     
     /*통계*/
     private Integer meetupCount;

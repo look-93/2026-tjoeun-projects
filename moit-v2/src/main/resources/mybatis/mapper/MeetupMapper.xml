@@ -28,7 +28,8 @@
 				WHEN H.member_id IS NULL THEN 0
 				ELSE 1
 			   END AS has_like,
-		   	   I.like_cnt
+		   	   I.like_cnt,
+		   	   j.image_path
 		FROM meetups A
 		LEFT JOIN members B ON B.member_id = A.member_id
 		LEFT JOIN (SELECT meetup_id,
@@ -45,11 +46,23 @@
 		LEFT JOIN categories F ON F.category_id = A.category_id
 		LEFT JOIN categories G ON G.category_id = F.parent_id
 		LEFT JOIN meetup_likes H ON H.meetup_id = A.meetup_id AND H.member_id = A.member_id				  
-		LEFT OUTER JOIN (SELECT COUNT(meetup_id) as like_cnt, 
-	  						  	meetup_id 
-	  				     FROM meetup_likes 
-	  				    GROUP BY meetup_id
-	  				  ) I ON I.meetup_id = A.meetup_id		  
+		LEFT JOIN (SELECT COUNT(meetup_id) as like_cnt, 
+ 						  	meetup_id 
+ 				     FROM meetup_likes 
+ 				    GROUP BY meetup_id
+ 				  ) I ON I.meetup_id = A.meetup_id
+		<!-- 이미지 1장만 추출하도록 서브쿼리 -->
+		LEFT JOIN (
+		    SELECT meetup_id, image_path
+		    FROM (
+		        SELECT mi.meetup_id, 
+		               i.image_path,
+		               ROW_NUMBER() OVER (PARTITION BY mi.meetup_id ORDER BY mi.image_id ASC) as rn
+		        FROM MEETUP_IMAGES mi  
+		        JOIN IMAGES i ON mi.image_id = i.image_id
+		    )
+		    WHERE rn = 1
+		) J ON J.meetup_id = A.meetup_id
 		WHERE A.delete_yn = 'N'
 		  AND A.status IN ( 'RECRUITING', 'CLOSED')
 		<if test="status != null and status != ''">
@@ -391,10 +404,13 @@
                B.status AS apply_status,
                A.meetup_id,
 			   B.member_id,
-			   B.application_id
+			   B.application_id,
+			   B.reject_reason,
+			   D.ai_summary
 		  FROM meetups 				A
           JOIN meetup_applications  B ON B.meetup_id = A.meetup_id
           JOIN members  			C ON C.member_id = B.member_id
+          JOIN member_info          D ON D.member_id = B.member_id
 		 WHERE A.delete_yn = 'N' 
 	       AND A.status != 'DELETED' 
 		   AND B.status != 'CANCELED'

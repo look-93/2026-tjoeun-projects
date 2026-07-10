@@ -367,6 +367,7 @@ SECTION
     overflow: hidden;
     box-shadow: var(--shadow);
     transition: .3s;
+    cursor: pointer;
 }
 
 .card:hover {
@@ -376,6 +377,45 @@ SECTION
 .card-img {
     height: 180px;
     background: linear-gradient(135deg, var(--c2), var(--c3));
+    
+    /* 1. 혹시라도 이미지가 삐져나오면 잘라버리는 안전장치 */
+    overflow: hidden; 
+    position: relative;
+}
+
+/* 2. 카드 이미지 안의 <img> 태그 스타일 지정 */
+.card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block; /* 👈 하단 미세 공백 제거 및 완벽한 블록화 */
+}
+
+/* 💡 디테일 페이지 스타일을 참고해서 만든 카드용 '이미지 없음' 스타일 */
+.meetup-no-image {
+    width: 100%;
+    height: 100%; /* 부모인 .card-img의 180px을 그대로 채움 */
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* 세로 가운데 정렬 */
+    align-items: center;     /* 가로 가운데 정렬 */
+    gap: 6px;                /* 아이콘과 텍스트 사이 간격 */
+
+    /* 카드 자체에 그라데이션 배경이 있으므로 배경은 투명하게, 테두리는 점선으로 어우러지게 설정 */
+    background: #f9f9f9;
+	overflow: hidden; 
+    position: relative;
+    /* 그라데이션 배경 위에서 글자가 잘 보이도록 흰색 계열로 지정 */
+    color: #999;
+    font-size: 13px; /* 카드는 작으므로 글씨 크기를 약간 축소 */
+    font-weight: 500;
+}
+
+/* 🖼️ 아이콘 크기 제어 */
+.meetup-no-image .icon {
+    font-size: 22px; /* 아이콘 크기도 카드 비율에 맞춰 조정 */
 }
 
 .card-body {
@@ -692,11 +732,19 @@ SECTION
     border-radius: 20px;
     text-align: center;
     box-shadow: var(--shadow);
+    cursor: pointer; /* 마우스 오버 시 손가락 모양으로 변경 */
+    transition: all 0.2s ease; /* 부드러운 전환 효과 */
 }
 
 .main-category-card span {
     display: block;
     margin-top: 10px;
+}
+
+/* 마우스를 올렸을 때(hover) 스타일 */
+.main-category-card:hover {
+    background-color: #f5f5f5; /* 배경색을 살짝 밝게 변경 */
+    transform: translateY(-2px); /* 카드가 위로 2px 살짝 들리는 효과 */
 }
 
 /* CARD WRAP */
@@ -813,6 +861,12 @@ footer {
 /* ==================================================
    MYPAGE CONTENT AREA (마이페이지 전용 스타일 추가)
    ================================================== */
+.mypage-page-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-top: 30px;   /* 👈 여기서 간격을 강제로 고정 */
+}
 
 /* 1. 상단 프로필 카드 */
 .mypage-profile-card {
@@ -823,7 +877,7 @@ footer {
     display: flex;
     align-items: center;
     gap: 25px;
-    margin-top: 30px;
+    margin-top: 0px;
     margin-bottom: 25px;
 }
 
@@ -2533,8 +2587,8 @@ textarea.mw-form-input {
 
 .modal-window {
     background: white;
-    width: 750px;
-    max-width: 90%;
+    width: 1000px;
+    max-width: 95%;
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     overflow: hidden;
@@ -2576,7 +2630,7 @@ textarea.mw-form-input {
 
 .modal-body {
     padding: 24px;
-    max-height: 450px;
+    max-height: 650px;
     overflow-y: auto;
 }
 

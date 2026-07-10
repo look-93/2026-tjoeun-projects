@@ -107,7 +107,6 @@ public class MeetupController {
 			meetupSearchDto.setPstartno(1);
 		}
 		
-		//System.out.println(meetupSearchDto.getCategoryId());
 		Map<String, Object> map = new HashMap<>();
 		map.put("paging", new UtilPaging(meetupService.findAllMeetupCountBy(meetupSearchDto), pstartno));
 		map.put("searchList", meetupService.findAllMeetupBy(pstartno, meetupSearchDto));
@@ -151,8 +150,17 @@ public class MeetupController {
 						@RequestParam(value = "sort", required = false, defaultValue = "latest")  String sort,
 			            HttpServletRequest request, HttpSession session	) {
 		
-		Integer memberId =
-				 (Integer)session.getAttribute("loginMemberId");
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 
 		
 		String sessionId =
 		        session.getId();
