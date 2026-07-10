@@ -26,8 +26,9 @@ public class SecurityConfig {
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception  { 
 
 		//1. 허용경로
-		http.authorizeHttpRequests(auth -> auth.requestMatchers("/user/member/join", "/user/member/login", "/user/checkLoginId" , "/user/checkNickname" , "/api/**").permitAll()
-											   .requestMatchers("/user/member/mypage", "/user/member/update", "/user/member/delete","/user/member/socialInfo","/user/advertisement/**").authenticated()
+		http.authorizeHttpRequests(auth -> auth.requestMatchers("/user/member/join", "/user/member/login", "/user/checkLoginId" , "/user/checkNickname" , "/api/**", "/meetup/list").permitAll()
+											   .requestMatchers("/user/member/mypage", "/user/member/update", "/user/member/delete","/user/member/socialInfo","/user/advertisement/**"
+													   			,"/meetup/write/**" ,"/meetup/detail/**", "/mypage/**").authenticated()
 											   .anyRequest().permitAll()
 				
 								  )
