@@ -42,6 +42,8 @@ public class CustomUserDetailsService implements UserDetailsService{
 //	    user.setPassword( authDto.getPassword() );
 //	    user.setNickname( authDto.getNickname() );
 //	    user.setProfileUrl( authDto.getProfileUrl() );
+	    System.out.println(authDto);
+	    System.out.println(authDto.getAuthList());
 
 	    return new CustomUserDetails( dto, authDto );
 

@@ -235,3 +235,53 @@ body{
     color: #222;
     word-break: break-word;
 }
+
+/* ===========================
+      회원관리 탭
+=========================== */
+
+.member-tab-wrap{
+
+    display:flex;
+    gap:10px;
+    margin-bottom:25px;
+
+}
+
+.member-tab{
+
+    border:none;
+    background:#f3f5f8;
+    color:#666;
+    padding:10px 22px;
+    border-radius:8px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.25s;
+
+}
+
+.member-tab:hover{
+
+    background:#e7eefc;
+
+}
+
+.member-tab.active{
+
+    background:#2F80ED;
+    color:white;
+
+}
+
+.member-tab-content{
+
+    display:none;
+
+}
+
+.member-tab-content.active{
+
+    display:block;
+
+}
