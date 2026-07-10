@@ -3,18 +3,24 @@ package com.moit.review.service;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.moit.review.dto.ReviewDto;
 
 public interface ReviewService {
 
 	//사용자
-	int insertUserReview(ReviewDto dto);
+	 int insertUserReview(ReviewDto dto, MultipartFile[] attachedImages);
 	List<ReviewDto> selectUserReview(int meetupId, String sort);
 	int updateUserReview(ReviewDto dto);
 	int deleteUserReview(ReviewDto dto);
 	int updateUserReviewHide(ReviewDto dto);
-	List<ReviewDto> selectReviewByMemberId(int memberId, String sort);
-    List<ReviewDto> selectReviewByContent(String keyword);
+	List<ReviewDto> selectReviewByMemberId(int memberId,
+            String keyword,String sort);
+
+List<ReviewDto> selectReviewByContent(int meetupId,
+           String keyword,
+           String sort);
     ReviewDto selectReviewById(int reviewId);
   
     //좋아요
@@ -31,6 +37,12 @@ public interface ReviewService {
     List<ReviewDto> adminSearchReviewByWriter(int memberId);
     int adminHideReview(int id);
     int adminDeleteReview(int id);
+    //좋아요 
+	int toggleReviewLike(int reviewId, int memberId);
+	
+	//openai
+	public String reviewAnalysis(Integer meetupId);
+	
 	
 	
 	

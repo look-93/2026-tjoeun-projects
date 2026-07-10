@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,7 @@ import com.moit.member.service.UserService;
 import com.moit.security.CustomUserDetails;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 
@@ -29,10 +32,6 @@ import jakarta.servlet.http.HttpSession;
 public class UserController {
 
 	@Autowired UserService service;
-	
-//	// 메인페이지
-//	@GetMapping("/")
-//	public String index() {  return "/main"; }
 	
 	// 회원가입
 	@PreAuthorize("isAnonymous()")
@@ -91,50 +90,74 @@ public class UserController {
 	@GetMapping("/login")
 	public String login() {  return "user/member/login"; }
 
-	@GetMapping("/fail") public String fail(Model model) {
-		model.addAttribute("errorMessage","로그인 실패 : 아이디 또는 비밀번호를 확인해주세요.");
-		return "redirect:/user/member/join";
-	}
 	
 	// 소셜 로그인
-	@GetMapping("/social-info")
-    public String socialInfoForm() {
-        return "user/member/social-info";
+	@GetMapping("/socialInfo")
+    public String socialInfoForm(HttpSession session, Model model) {
+		
+		UserDto socialUser = (UserDto) session.getAttribute("socialUser");
+		
+		if(socialUser == null) {
+			
+			return "redirect:/user/member/login";
+		}
+		
+		model.addAttribute("socialUser",socialUser);
+		
+        return "user/member/socialInfo";
     }
 
-    @PostMapping("/social-info")
+    @PostMapping("/socialInfo")
     public String socialInfoSave(
-            @ModelAttribute UserDto dto,
-            Authentication authentication) {
+    		@ModelAttribute UserDto dto,
+            HttpSession session,
+            HttpServletRequest request,
+            HttpServletResponse response) {
 
-        CustomUserDetails user =
-                (CustomUserDetails) authentication.getPrincipal();
+    	UserDto socialUser =
+                (UserDto) session.getAttribute("socialUser");
+        
+        if(socialUser == null) {
+        	return "redirect:/user/member/login";
+        }
 
-        dto.setMemberId(user.getAppUserId());
+        dto.setEmail(socialUser.getEmail());
+        if(dto.getNickname()==null || dto.getNickname().isEmpty()){
+            dto.setNickname(dto.getNickname());
+        }
+        dto.setProvider(socialUser.getProvider());
+        dto.setProviderId(socialUser.getProviderId());
+        dto.setProfileUrl(socialUser.getProfileUrl());
+        
+        service.insertSocialInfo(dto);
 
-        service.completeSocialJoin(dto);
+        session.removeAttribute("socialUser");
 
-        return "redirect:/user/member/mypage";
+        SecurityContextHolder.clearContext();
+
+        session.invalidate();
+
+        return "redirect:/user/member/login";
     }
 	
 	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/mypage") public String  mypage( Authentication   authentication , Model model  ) {  
-		String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
+		CustomUserDetails principal =
+	            (CustomUserDetails) authentication.getPrincipal();
 
-			
-		} 
-		System.out.println(".........."+user);
-		System.out.println(".........."+loginId);
-		model.addAttribute("dto" , user); 
-		return "user/member/mypage"; 
+	    // 로그인 아이디 추출
+	    String loginId = principal.getUsername();
+
+	    // DB 조회용 DTO
+	    UserDto searchDto = new UserDto();
+	    searchDto.setLoginId(loginId);
+
+	    // DB에서 최신 회원정보 조회
+	    UserDto user = service.findByLoginId(searchDto);
+
+	    model.addAttribute("dto", user);
+
+	    return "user/member/mypage"; 
 	}
 	
 	// 아이디 찾기
@@ -220,10 +243,68 @@ public class UserController {
 	}
 	
 	@PostMapping("memberEdit")
-	public String memberEdit(UserDto dto) {
-		service.updateUser(dto);
+	public String memberEdit(UserDto dto, Authentication authentication, RedirectAttributes rttr) {
+		
+		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+		
+		 dto.setMemberId( user.getAppUserId() );
+		 dto.setLoginId(user.getUsername());
+		 
+		 UserDto loginUser = service.findByLoginId(dto);
+		 
+		 if (!loginUser.getNickname().equals(dto.getNickname())) {
+
+		        UserDto check = service.findUser(
+		                Map.of("nickname", dto.getNickname()));
+
+		        if (check != null) {
+		            rttr.addFlashAttribute("msg", "이미 사용중인 닉네임입니다.");
+		            return "redirect:/user/member/memberEdit";
+		        }
+		    }
+
+		    int result = service.updateUser(dto);
+
+		    if(result == 1){
+		        rttr.addFlashAttribute("msg","회원정보가 수정되었습니다.");
+		    }else{
+		        rttr.addFlashAttribute("msg","회원정보 수정에 실패했습니다.");
+		    }
 		
 		return "redirect:/user/member/mypage";
+	}
+	
+	// 비밀번호 변경(로그인한 유저)
+	@GetMapping("/passwordChange")
+	public String passwordChange(Model model,
+						         UserDto dto,
+						         Authentication authentication) { 
+		String loginId = authentication.getName();
+		dto.setLoginId(loginId);
+		UserDto userDto = service.findByLoginId(dto);
+		
+		model.addAttribute("dto", userDto);
+		
+		return "user/member/passwordChange"; 
+	}
+	
+	@PostMapping("/passwordChange")
+	public String passwordChage(@RequestParam String currentPassword, 
+								@RequestParam String newPassword,
+			                    Authentication authentication, 
+			                    RedirectAttributes rttr) {
+		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+		
+		boolean result = service.changePassword(user.getAppUserId(),currentPassword,newPassword);
+		
+		if(!result) { 
+			rttr.addFlashAttribute("msg","현재 비밀번호가 일치하지 않습니다."); 
+			return "redirect:/user/member/passwordChange";
+		}
+		
+		rttr.addFlashAttribute("msg","비밀번호가 변경되었습니다.");
+		
+		return "redirect:/user/member/mypage";		
 	}
 	
 }

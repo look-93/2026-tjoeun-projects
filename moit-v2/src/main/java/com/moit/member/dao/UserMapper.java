@@ -48,6 +48,8 @@ public interface UserMapper {
     //11. 비밀번호변경
     int changePassword(UserDto dto);
     
+    UserDto findByMemberId(int memberId);
+    
     /* security */
     // 로그인
     AuthUserDto readByLoginId(String username);
@@ -60,5 +62,5 @@ public interface UserMapper {
     int insertSocial(UserDto dto);
     int insertSocialInfo(UserDto dto);
     void updateSocialInfo(UserDto dto);
-    void updateMemberInfo(UserDto dto);
+    int updateMemberInfo(UserDto dto);
 }

@@ -1,11 +1,14 @@
 package com.moit.member.service;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,8 @@ public class UserServiceImpl  implements UserService{
  
 	@Autowired  UserMapper dao;
 	@Autowired  @Qualifier("passwordEncoder") PasswordEncoder  pwencoder;
+	
+	@Value("${resource.path}") private String resourcePath;
 	
 	@Override
 	public int insert(UserDto dto) {
@@ -49,7 +54,7 @@ public class UserServiceImpl  implements UserService{
 		}
 		
 		dao.insert(dto);
-		dao.insertInfo(dto);
+		if(dto.getMemberTypeId() != 3){ dao.insertInfo(dto); }
 		
 		return 1;
 	}
@@ -58,7 +63,68 @@ public class UserServiceImpl  implements UserService{
 	
 	@Override public UserDto findUser(Map<String, Object> paramMap) { return dao.findUser(paramMap); }
 	
-	@Override public int updateUser(UserDto dto) { return dao.updateUser(dto); }
+	@Transactional
+	@Override 
+	public int updateUser(UserDto dto) { 
+		
+        if (dto.getProfileImage() != null && !dto.getProfileImage().isEmpty()) {
+
+            try {
+
+                // UUID 생성 (파일명 중복 방지)
+                String uuid = UUID.randomUUID().toString();
+
+                // 원본 파일명
+                String originalName = dto.getProfileImage().getOriginalFilename();
+
+                // 확장자 추출
+                String ext = originalName.substring(originalName.lastIndexOf("."));
+
+                // 저장될 파일명
+                String saveName = uuid + ext;
+
+                // 저장 폴더 생성
+                String uploadPath = resourcePath + "/profile/";
+                
+                File dir = new File(uploadPath);
+
+                if (!dir.exists()) { dir.mkdirs(); }
+
+                UserDto oldUser = dao.findByMemberId(dto.getMemberId());
+
+                if (oldUser != null &&
+                        oldUser.getProfileUrl() != null &&
+                        !oldUser.getProfileUrl().equals("/moit.png")) {
+
+                    File oldFile =
+                            new File(uploadPath,
+                                    oldUser.getProfileUrl().replace("/upload/profile/", ""));
+                    if (oldFile.exists()) {
+                        oldFile.delete();
+                    }
+                }
+
+                dto.getProfileImage()
+                        .transferTo(new File(uploadPath + saveName));
+
+                // DB에는 URL만 저장
+                dto.setProfileUrl("/upload/profile/" + saveName);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return 0;
+            }
+        }
+		
+		int result1 = dao.updateUser(dto);
+	    int result2 = dao.updateMemberInfo(dto);
+		
+	    if(result1 > 0 || result2 > 0){
+	        return 1;
+	    }
+		
+		return 0; 
+	}
 	
 	@Override public List<UserDto> select10(Map<String, Object> paramMap) { return dao.select10(paramMap); }
 	
@@ -90,12 +156,48 @@ public class UserServiceImpl  implements UserService{
 		return true;
 	}
 	
+//	@Transactional
+//	@Override
+//	public void completeSocialJoin(UserDto dto) {
+//		dao.updateSocialInfo(dto);
+//        dao.updateMemberInfo(dto);
+//	}
+	
 	@Transactional
 	@Override
-	public void completeSocialJoin(UserDto dto) {
-		dao.updateSocialInfo(dto);
-        dao.updateMemberInfo(dto);
+	public void insertSocialInfo(UserDto dto) {
+		dto.setPassword(pwencoder.encode(UUID.randomUUID().toString()));
+		
+		dto.setLoginId(dto.getProvider() + "-" + dto.getProviderId());
+		
+		dto.setMemberTypeId(1);
+		dto.setStatusId(1);
+		
+		dao.insertSocial(dto);
+		dao.insertSocialInfo(dto);
 	}
+	
+	@Override public UserDto findByMemberId(int memberId) { return dao.findByMemberId(memberId); }
+
+	@Override
+	public boolean changePassword(int memberId, String currentPassword, String newPassword) {
+		UserDto user = dao.findByMemberId(memberId);
+		
+		if(!pwencoder.matches(currentPassword, user.getPassword())) {
+			return false;
+		}
+		
+		UserDto dto = new UserDto();
+		
+		dto.setMemberId(memberId);
+		dto.setPassword(pwencoder.encode(newPassword));
+		
+		dao.changePassword(dto);
+		
+		return true;
+	}
+
+	
 
 	
 	

@@ -1,6 +1,7 @@
 package com.moit.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -28,22 +29,18 @@ public class CustomUserDetailsService implements UserDetailsService{
 	        throw new UsernameNotFoundException( "사용자를 찾을 수 없습니다 : " + username );
 	    }
 	   
+	    if(authDto.getStatusId() == 2) {
+	        throw new BadCredentialsException("WAIT");
+	    }
+	    
 	    UserDto user = new UserDto();
 
-//	    user.setLoginId( authDto.getLoginId() );
 	    user.setLoginId( username );
 	    
 	    UserDto dto = dao.findByLoginId(user);
 	    
 	    if (dto == null) {
             throw new UsernameNotFoundException( "회원정보를 찾을 수 없습니다 : " + username);
-        }
-	    
-//	    user.setPassword( authDto.getPassword() );
-//	    user.setNickname( authDto.getNickname() );
-//	    user.setProfileUrl( authDto.getProfileUrl() );
-	    System.out.println(authDto);
-	    System.out.println(authDto.getAuthList());
 
 	    return new CustomUserDetails( dto, authDto );
 

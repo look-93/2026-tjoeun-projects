@@ -16,13 +16,13 @@
         <h3>신고 버튼 테스트</h3>
 
         <div class="text-end">
-            <a th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=2)}"
-               class="btn btn-outline-primary">
+            <a th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=51)}"
+				class="btn btn-outline-primary">
                 모임 신고
             </a>
 
-            <a th:href="@{/user/meetup/report/write(targetType='REVIEW', targetId=2)}"
-               class="btn btn-outline-danger">
+            <a th:href="@{/user/meetup/report/write(targetType='REVIEW', targetId=20)}"
+				class="btn btn-outline-danger">
                 리뷰 신고
             </a>
 
@@ -34,7 +34,23 @@
             <a th:href="@{/admin/report/adminList}"
                class="btn btn-outline-success">
                 출입금지
+                th:authorize="hasRole('ADMIN')" 추가
             </a>
+			
+			
+			
+            <!--  ROLE_ADMIN 권한을 가진 사용자에게만 보이기
+			<a class="nav-link" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/dashboard}">ADMIN PAGE</a>
+			-->
+			 
+			<!-- 로그인한 사람의 username과 모임 개설자의 username이 같을 때만 노출 
+			<a class="btn btn-primary" 
+			   th:if="${#authentication.name == meeting.creatorName}" 
+			   th:href="@{/answer/create/{id}(id=${meeting.id})}">
+			   답변 작성
+			</a>
+			-->
+			
         </div>
     </div>
 

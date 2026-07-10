@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>관리자 회원가입</title>
+
+<link rel="stylesheet" th:href="@{/css/style.css}">
+<link rel="stylesheet" th:href="@{/css/memberStyle.css}">
+
+</head>
+<body>
+
+<div th:replace="~{user/fragments/mainHeader :: mainHeader}"></div>
+	<div class="auth-box">		
+	<h2>관리자 회원가입</h2>
+		
+		<div class="admin-notice">
+		    가입 신청 후 최고관리자의 승인이 완료되어야 로그인할 수 있습니다.
+		</div>
+	
+		<form id="joinForm"
+		      th:action="@{/admin/member/join}"
+		      method="post">		
+			<!-- CSRF -->
+			<input type="hidden"
+			       th:name="${_csrf.parameterName}"
+			       th:value="${_csrf.token}">		
+			       	
+			<!-- 아이디 -->		
+			<div class="form-group-inline">			
+				<input type="text"
+				       id="loginId"
+				       name="loginId"
+				       placeholder="관리자 아이디"
+				       required>		
+			</div>	
+				
+			<div id="idCheck"
+			     class="target">
+			</div>
+		
+			<!-- 비밀번호 -->		
+			<div class="form-group">			
+				<input type="password"
+				       id="password"
+				       name="password"
+				       placeholder="비밀번호"
+				       required>		
+			</div>
+			
+			<div class="form-group">		
+				<input type="password"
+				       id="passwordCheck"
+				       placeholder="비밀번호 확인"
+				       required>		
+			</div>
+		
+			<div id="passCheck"></div>
+		
+			<!-- 관리자명 -->			
+			<div class="form-group-inline">					
+				<input type="text"
+				       id="nickname"
+				       name="nickname"
+				       placeholder="관리자명"
+				       required>				
+			</div>
+					
+			<div id="nickCheck"
+			     class="target">
+			</div>
+		
+			<!-- 이메일 -->		
+			<div class="form-group">			
+				<input type="email"
+				       id="email"
+				       name="email"
+				       placeholder="관리자 이메일"
+				       required>		
+			</div>
+		
+			<!-- 휴대폰 -->		
+			<div class="form-group">					
+				<input type="tel"
+				       id="mobile"
+				       name="mobile"
+				       placeholder="전화번호"
+				       required>					
+				<div class="hint">
+				'-' 없이 숫자만 입력해주세요.
+				</div>			
+			</div>
+		
+			<!-- 약관 -->		
+			<div class="form-options">					
+				<label>		
+				<input type="checkbox"
+				       id="agree"
+				       required>		
+				관리자 이용약관 및 개인정보처리방침 동의		
+				</label>	
+			</div>
+		
+			<button type="submit"
+			        class="btn btn-primary">		
+				관리자 가입 신청		
+			</button>		
+		</form>
+	</div>
+
+<div th:replace="~{user/fragments/footer :: footer}"></div>
+
+	<script th:inline="javascript">		
+		const loginIdUrl = [[@{/user/member/checkLoginId}]];
+		const nicknameUrl = [[@{/user/member/checkNickname}]];
+		const loginPage = [[@{/user/member/login}]];
+		
+		function checkDuplicate(inputId, targetId, url, message){		
+	
+			const input = document.getElementById(inputId);		
+		    const target = document.getElementById(targetId);
+			
+		    input.addEventListener("keyup", function(){
+		
+		        const value=this.value.trim();
+			
+		        if(value===""){
+			
+		            target.textContent = message+"을(를) 입력해주세요.";	
+		            target.className = "target text-warning"; 
+		
+		            return;	
+		        }
+			
+		        fetch(url+"?"+input.name+"="+encodeURIComponent(value))	
+		        .then(res=>res.json())	
+		        .then(data=>{	
+		            if(data.exists){	
+		                target.textContent = "이미 사용중인 "+message+"입니다.";	
+		                target.className = "target text-danger";	
+		            }else{	
+		                target.textContent = "사용 가능한 "+message+"입니다.";	
+		                target.className = "target text-success";	
+		            }	
+		        })	
+		        .catch(()=>{	
+		            target.textContent = "서버 오류가 발생했습니다.";	
+		            target.className = "target text-warning";	
+		        });	
+		    });	
+		}
+		
+		// 아이디 중복검사
+		checkDuplicate( "loginId", "idCheck", loginIdUrl, "아이디" );		
+		// 관리자명 중복검사
+		checkDuplicate( "nickname", "nickCheck", nicknameUrl, "관리자명" );
+		
+		// 비밀번호 확인	
+		const password = document.getElementById("password");	
+		const passwordCheck = document.getElementById("passwordCheck");	
+		const passTarget = document.getElementById("passCheck");
+	
+		passwordCheck.addEventListener("keyup",()=>{	
+		    if(password.value===passwordCheck.value){
+			
+		        passTarget.textContent = "비밀번호가 일치합니다.";	
+		        passTarget.className = "target text-success";
+		    }else{
+		        passTarget.textContent = "비밀번호가 일치하지 않습니다.";	
+		        passTarget.className = "target text-danger";	
+		    }	
+		});	
+	</script>
+
+</body>
+</html>
