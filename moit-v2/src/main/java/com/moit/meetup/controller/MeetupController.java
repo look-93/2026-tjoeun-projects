@@ -187,7 +187,8 @@ public class MeetupController {
 
 	    model.addAttribute("detail",
 	            meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
-
+	    //로그인한 사용자 html 로 전달(후기)
+	    model.addAttribute("loginMemberId", memberId);
 	    //  기존 부분
 	    // List<ReviewDto> reviewList =
 	    //        reviewService.selectUserReview(meetupApplicationDto.getMeetupId(), sort);
@@ -211,6 +212,10 @@ public class MeetupController {
 	    model.addAttribute("keyword", keyword);
 	    model.addAttribute("sort", sort);
 	    // ★ 추가 끝
+	    
+	    
+	    
+	    
 	    
 
 	    return "user/meetup/detail";

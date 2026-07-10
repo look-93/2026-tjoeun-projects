@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.moit.review.client.OpenAiReviewService;
 import com.moit.review.dto.ReviewDto;
 import com.moit.review.service.ReviewService;
 
@@ -23,6 +24,8 @@ public class ReviewController {
 
     @Autowired
     ReviewService reviewService;
+    @Autowired
+	private OpenAiReviewService openAiReviewService;
 
 
     // 후기 작성 페이지
@@ -252,5 +255,19 @@ public class ReviewController {
         
         return resultBody;
     }
+    
+    @PostMapping("/meetup/review/analysis")
+    @ResponseBody
+	public String activeReviewAiAnalysis(@RequestParam("meetupId") int meetupId) {
+		
+		// 1. 해당 모임 아이디로 등록된 후기 리스트 전체 조회 
+		List<ReviewDto> reviewList = reviewService.selectUserReview(meetupId, "latest");
+		
+		// 2. 가공되지 않은 후기 리스트를 AI 서비스단으로 넘겨 프롬프트 분석 결과 문자열 수신
+		String aiReportResult = openAiReviewService.reviewAnalysis(reviewList);
+		
+		
+		return aiReportResult;
+	}
 
 }
