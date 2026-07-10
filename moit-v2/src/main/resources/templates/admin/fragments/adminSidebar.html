@@ -5,16 +5,47 @@
 		<!-- 사이드바 -->
 		<div class="sidebar">
 			<div class="logo">MOIT</div>
-			<div class="menu">	
-				<!-- 링크생기면 th:href -->
-				<a href="#"  class="active">회원관리</a> 
-				<a href="#">모임관리</a> 
+			<div class="menu">					
+				<a href="#">회원관리</a> 
+				<a href="/admin/meetup/list"
+				   class="menu-link"
+				   data-path="/admin/meetup">
+				   모임관리
+				</a>
 				<a href="#">문의관리</a>
-				<a href="#">후기관리</a>
+<<<<<<< HEAD
+				<a href="/admin/review/list"
+				   class="menu-link"
+				   data-path="/admin/review">
+				  	후기관리
+				</a>
 				<a href="#">신고관리</a>				 
+=======
+				<a href="#">후기관리</a>
+				<a href="/admin/report/adminList"
+				   class="menu-link"
+				   data-path="/admin/report/adminList">신고관리</a>				 
+>>>>>>> 743e4adc9c97f0354800fc40dd55fd663b9a8231
 				<a href="#">광고관리</a>
 			</div>
 		</div>
+		<script>
+	
+			document.addEventListener("DOMContentLoaded", function () {
+		
+			    const path = window.location.pathname;
+		
+			    document.querySelectorAll(".menu-link").forEach(a => {
+		
+			        const basePath = a.dataset.path;
+		
+			        if (path.startsWith(basePath)) {
+			            a.classList.add("active");
+			        }
+			    });
+			});
+		</script>
 	</th:block>
+
 </body>
 </html>

@@ -107,6 +107,8 @@
 			<scope>test</scope>
 		</dependency>
 		
+		
+		
 		<!-- API -->
 		<!-- SOCIAL -->
 		<!-- SOCIAL -->	
@@ -117,8 +119,7 @@
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-		</dependency>	
-		
+		</dependency>			
 		<!-- OpenAI -->
 		<dependency>
 		    <groupId>com.openai</groupId>
@@ -130,7 +131,13 @@
 		    <groupId>com.fasterxml.jackson.core</groupId>
 		    <artifactId>jackson-databind</artifactId>
 		</dependency>
-			
+
+		<dependency>
+		    <groupId>com.sun.mail</groupId>
+		    <artifactId>javax.mail</artifactId>
+		    <version>1.6.2</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{user/mypage/layouts/mypageLayout}">
+<head>
+<meta charset="UTF-8">
+<title>내 정보 수정</title>
+</head>
+
+<body>
+
+	<div layout:fragment="content">
+	    <div class="mypage-main-content">	
+	        <div class="member-edit-box">	
+	            <h2 class="member-edit-title">회원정보 수정</h2>	
+	            <form class="member-edit-form"
+	            	  th:action="@{/user/member/memberEdit}"
+	                  method="post"
+	                  enctype="multipart/form-data">
+	
+	                <!-- 프로필 -->	
+	                <div class="profile-upload">	
+	                    <div class="profile-preview">
+
+	                        <img th:if="${dto.profileUrl != null}"
+	                             th:src="@{${dto.profileUrl}}"
+	                             alt="프로필">	
+	                        <span th:if="${dto.profileUrl == null}"
+	                              th:text="${#strings.substring(dto.nickname,0,1)}">
+	                        </span>	
+	                    </div>
+	
+	                    <label class="btn btn-outline">	
+	                       프로필 사진 변경	
+	                        <input type="file"
+	                               name="profileImage"
+	                               accept="image/*"
+	                               hidden>	
+	                    </label>	
+	                </div>
+		
+	                <div class="mypage-info-grid">	
+	                    <!-- 아이디 -->	
+	                    <div class="form-group">	
+	                        <div class="mypage-info-title">
+	                            아이디
+	                        </div>	
+	                        <input type="text"
+	                               th:value="${dto.loginId}"
+	                               readonly>	
+	                    </div>
+		
+	                    <!-- 닉네임 -->	
+	                    <div class="form-group">	
+	                        <div class="mypage-info-title">
+	                            닉네임
+	                        </div>	
+	                        <input type="text"
+	                               name="nickname"
+	                               th:value="${dto.nickname}">	
+	                    </div>
+	
+	
+	                    <!-- 이메일 -->	
+	                    <div class="form-group">	
+	                        <div class="mypage-info-title">
+	                            이메일
+	                        </div>	
+	                        <input type="email"
+	                               name="email"
+	                               th:value="${dto.email}">	
+	                    </div>
+		
+	                    <!-- 회원등급 -->	
+	                    <div class="mypage-info-box">	
+	                        <div class="mypage-info-title">
+	                            회원등급
+	                        </div>	
+	                        <input type="text"
+	                               th:value="${#authentication.principal.typeName}"
+	                               readonly>	
+	                    </div>	
+	                </div>
+	
+	
+	                <div class="mypage-btn-group">	
+	                    <a th:href="@{/user/member/mypage}"
+	                       class="btn btn-secondary">	
+	                        취소	
+	                    </a>
+	
+	                    <button type="submit"
+	                            class="btn btn-primary">	
+	                        저장하기	
+	                    </button>	
+	                </div>
+	            </form>
+	        </div>
+	    </div>
+	</div>
+</body>
+</html>

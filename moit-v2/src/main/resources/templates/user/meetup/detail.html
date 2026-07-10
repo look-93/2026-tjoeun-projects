@@ -1,10 +1,596 @@
 <!DOCTYPE html>
-<html>
-<head>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{user/meetup/layouts/meetupDetailLayout}">
+
+<head lang="ko">
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<title>모임 상세 보기</title>
 </head>
 <body>
 
+   <div layout:fragment="content">
+      <div class="meetup-detail-wrap">
+         <input type="hidden" name="meetupId" th:value="${param.meetupId}"
+            id="meetupId">
+         <div class="meetup-detail-left">
+            <a href="/meetup/list" class="meetup-detail-back-link">
+               <span class="back-arrow">←</span> 목록으로
+            </a>
+            
+			<!-- 이미지 -->
+			<div class="meetup-detail-img-box">
+			
+			    <th:block th:if="${images != null and !images.isEmpty()}">
+			
+			        <div class="meetup-detail-main-img" th:classappend="${images.size() == 1} ? ' full-size' : ''">
+			            <img th:src="@{|/upload/meetup/${images[0].imagePath}|}"
+			                 alt="모집글 메인 이미지">
+			        </div>
+			
+			        <div class="meetup-detail-thumb-list" th:if="${images.size()>1}">
+			            <div class="meetup-detail-thumb"
+			                 th:each="img, stat : ${images}">
+			                <img th:src="@{|/upload/meetup/${img.imagePath}|}"
+			                     th:classappend="${stat.first} ? ' active' : ''"
+			                     onclick="changeMainImg(this.src)"
+			                     alt="모집글 썸네일 이미지">
+			            </div>
+			        </div>
+			
+			    </th:block>
+			
+			    <th:block th:unless="${images != null and !images.isEmpty()}">
+			
+			        <div class="meetup-detail-no-image">
+			            <span class="icon">🖼️</span>
+			            <span>등록된 이미지가 없습니다.</span>
+			        </div>
+			
+			    </th:block>
+			
+			</div>		
+			<!-- 이미지 -->
+            <div class="meetup-detail-content-box">
+               <div class="meetup-detail-content-top">
+                  <div class="meetup-detail-badge"
+                     th:text="${detail.status == 'RECRUITING' ? '모집중' : '모집마감'}"></div>
+                  <a
+                     th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${param.meetupId})}"
+                     class="meetup-detail-report-btn" type="button"> 모임 신고 </a>
+               </div>
+               <h1 class="meetup-detail-title" th:text="${detail.title}"></h1>
+            </div>
+
+            <div class="meetup-detail-tabs">
+               <div class="meetup-detail-tab-header">
+                  <div class="meetup-detail-tab-btn active" onclick="showTab(0)">상세정보</div>
+                  <div class="meetup-detail-tab-btn" onclick="showTab(1)">신청자</div>
+                  <div class="meetup-detail-tab-btn" onclick="showTab(2)">후기</div>
+                  <div class="meetup-detail-tab-btn" onclick="showTab(3)">Q&A</div>
+               </div>
+
+               <div class="meetup-detail-tab-content">
+                  <div class="meetup-detail-tab-panel active">
+                     <h3>모임 안내</h3>
+                     <p th:text="${detail.content}"></p>
+                  </div>
+
+                  <div class="meetup-detail-tab-panel">
+                     <p
+                        th:text="${detail.nickname + ' 외 ' + (detail.totalParticipants == null || detail.totalParticipants == 0 ? 0 : detail.totalParticipants - 1 ) + '명'}"></p>
+                  </div>
+
+                  <div class="meetup-detail-tab-panel">
+
+                     <div class="meetup-detail-rating-header">
+                        <button
+                           style="background-color: #374151; color: #ffffff; border: none; border-radius: 12px; padding: 8px 16px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s ease-in-out;"
+                           onmouseover="this.style.backgroundColor='#1F2937'"
+                           onmouseout="this.style.backgroundColor='#374151'"
+                           th:onclick="|location.href='/meetup/review/insert?meetupId=${detail.meetupId}'|">
+                           후기 작성하기</button>
+                     </div>
+
+                     <div class="meetup-detail-rating-box">
+                        <div class="meetup-detail-rating-score">
+                           <h1 th:text="${#numbers.formatDecimal(avgRating, 1, 1)}">4.8</h1>
+                           <div class="meetup-detail-stars">★★★★★</div>
+                           <p>
+                              총 후기 <span th:text="${#lists.size(reviews)}">0</span>개
+                           </p>
+                        </div>
+
+                        <div class="meetup-detail-rating-bars">
+                           <div class="meetup-detail-bar" th:with="count=${#lists.size(reviews.?[rating == 5])}, total=${#lists.size(reviews)}">
+                              <span class="meetup-detail-bar-label">5점</span>
+                              <div class="meetup-detail-bar-line">
+                                 <div class="meetup-detail-bar-fill" th:style="|width: ${total > 0 ? (count * 100.0 / total) : 0}%|"></div>
+                              </div>
+                              <span class="meetup-detail-bar-count" th:text="${count}">0</span>
+                           </div>
+                           <div class="meetup-detail-bar" th:with="count=${#lists.size(reviews.?[rating == 4])}, total=${#lists.size(reviews)}">
+                              <span class="meetup-detail-bar-label">4점</span>
+                              <div class="meetup-detail-bar-line">
+                                 <div class="meetup-detail-bar-fill" th:style="|width: ${total > 0 ? (count * 100.0 / total) : 0}%|"></div>
+                              </div>
+                              <span class="meetup-detail-bar-count" th:text="${count}">0</span>
+                           </div>
+                           <div class="meetup-detail-bar" th:with="count=${#lists.size(reviews.?[rating == 3])}, total=${#lists.size(reviews)}">
+                              <span class="meetup-detail-bar-label">3점</span>
+                              <div class="meetup-detail-bar-line">
+                                 <div class="meetup-detail-bar-fill" th:style="|width: ${total > 0 ? (count * 100.0 / total) : 0}%|"></div>
+                              </div>
+                              <span class="meetup-detail-bar-count" th:text="${count}">0</span>
+                           </div>
+                           <div class="meetup-detail-bar" th:with="count=${#lists.size(reviews.?[rating == 2])}, total=${#lists.size(reviews)}">
+                              <span class="meetup-detail-bar-label">2점</span>
+                              <div class="meetup-detail-bar-line">
+                                 <div class="meetup-detail-bar-fill" th:style="|width: ${total > 0 ? (count * 100.0 / total) : 0}%|"></div>
+                              </div>
+                              <span class="meetup-detail-bar-count" th:text="${count}">0</span>
+                           </div>
+                           <div class="meetup-detail-bar" th:with="count=${#lists.size(reviews.?[rating == 1])}, total=${#lists.size(reviews)}">
+                              <span class="meetup-detail-bar-label">1점</span>
+                              <div class="meetup-detail-bar-line">
+                                 <div class="meetup-detail-bar-fill" th:style="|width: ${total > 0 ? (count * 100.0 / total) : 0}%|"></div>
+                              </div>
+                              <span class="meetup-detail-bar-count" th:text="${count}">0</span>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div class="meetup-detail-comment" th:each="review : ${reviews}">
+                        <div class="meetup-detail-comment-top">
+                           <div class="meetup-detail-comment-user">
+                              <div class="meetup-detail-comment-name"
+                                 th:text="${review.memberId}">회원</div>
+                              <div class="meetup-detail-comment-date"
+                                 th:text="${review.createdAt}">2026.06.15</div>
+                           </div>
+
+                           <div>
+                              <!-- <button class="meetup-detail-report-btn">신고</button> -->
+                                <a th:href="@{/user/meetup/report/write(targetType='REVIEW', targetId=${review.reviewId})}"
+									class="btn btn-outline-danger">
+					                리뷰 신고
+					            </a>
+                              <button class="meetup-detail-report-btn"
+                                 style="background-color: #FEF08A; color: #15803D; border: none; border-radius: 12px; padding: 4px 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s;"
+                                 onmouseover="this.style.backgroundColor='#FDE047'"
+                                 onmouseout="this.style.backgroundColor='#FEF08A'"
+                                 th:onclick="|location.href='/meetup/review/update/${review.reviewId}?meetupId=${detail.meetupId}'|">
+                                 수정</button>
+
+                              <a class="meetup-detail-report-btn"
+                                 style="background-color: #BFDBFE; color: #1D4ED8; border: none; border-radius: 12px; padding: 4px 10px; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; transition: background 0.2s;"
+                                 onmouseover="this.style.backgroundColor='#93C5FD'"
+                                 onmouseout="this.style.backgroundColor='#BFDBFE'"
+                                 th:href="@{/meetup/review/delete/{reviewId}(reviewId=${review.reviewId}, meetupId=${detail.meetupId})}"
+                                 onclick="return confirm('정말 이 후기를 삭제하시겠습니까?');"> 삭제 </a>
+                           </div>
+                        </div>
+
+                        <div class="meetup-detail-stars">
+                           <span th:each="star : ${#numbers.sequence(1,5)}"
+                              th:text="${star <= review.rating ? '★' : '☆'}"> </span>
+                        </div>
+
+                        <p class="meetup-detail-comment-text"
+                           th:text="${review.content}">후기 내용</p>
+                     </div>
+
+                  </div>
+                  <div class="meetup-detail-tab-panel">
+                     <h3>Q&A</h3>
+                     <div class="meetup-detail-comment">
+                        <div class="meetup-detail-comment-user">
+                           <div class="meetup-detail-comment-name">익명</div>
+                           <div class="meetup-detail-comment-date">2026.06.18</div>
+                        </div>
+                        <p class="meetup-detail-comment-text">초보인데 참여 가능할까요?</p>
+                     </div>
+
+
+			<div class="meetup-detail-right">
+				<div class="meetup-detail-side-box">
+					<h3>모집 정보</h3>
+					<div class="meetup-detail-info-row">
+						<span>인원</span> <span
+							th:text="${detail.totalParticipants + ' / ' + detail.maxParticipants}"></span>
+					</div>
+					<div class="meetup-detail-info-row">
+						<span>지역</span> <span th:text="${detail.sidoName}"></span>
+					</div>
+
+					<div id="applyArea">
+						<button th:if="${applyInfo == null}"
+							class="meetup-detail-btn meetup-detail-btn-primary"
+							th:onclick="|applyMeetup(${detail.meetupId})|">신청하기</button>
+
+
+						<button th:if="${applyInfo != null}"
+							class="meetup-detail-btn meetup-detail-btn-danger"
+							th:onclick="|applyCancelMeetup(${applyInfo.applicationId})|">
+							신청취소</button>
+					</div>
+				</div>
+
+				<div class="meetup-detail-side-box">
+					<h3>작성자</h3>
+					<p class="meetup-detail-author" th:text="${detail.nickname}"></p>
+					<a type="button" class="meetup-detail-inquiry-btn"
+						th:href="@{/questions/write(meetupId=${detail.meetupId})}">💬
+						모임글 문의하기</a>
+				</div>
+
+				<div class="meetup-detail-side-box">
+					<h3>추천 모임</h3>
+					<div class="meetup-detail-recom-card">
+						<img
+							src="https://images.unsplash.com/photo-1501555088652-021faa106b9b">
+						<div class="meetup-detail-recom-info">
+							<div class="meetup-detail-recom-title">북한산 등산</div>
+							<div class="meetup-detail-recom-tag">서울</div>
+						</div>
+					</div>
+					<div class="meetup-detail-recom-card">
+						<img
+							src="https://images.unsplash.com/photo-1533240332313-0db49b459ad6">
+						<div class="meetup-detail-recom-info">
+							<div class="meetup-detail-recom-title">트레킹</div>
+							<div class="meetup-detail-recom-tag">경기</div>
+						</div>
+					</div>
+				</div>
+
+				<section class="ad-banner" th:if="${desidebarAd != null}"
+					th:classappend="${desidebarAd.imageList != null and !desidebarAd.imageList.isEmpty()} ? ' has-image' : ''">
+					<a th:href="@{/user/advertisement/click(adId=${desidebarAd.adId})}">
+						<img
+						th:if="${desidebarAd.imageList != null and !desidebarAd.imageList.isEmpty()}"
+						th:src="@{${desidebarAd.imageList[0].imageUrl}}" alt="광고">
+						<div
+							th:if="${desidebarAd.imageList == null or desidebarAd.imageList.size() == 0}">
+							광고 이미지 준비중</div>
+					</a>
+				</section>
+			</div>
+		</div>
+
+		<div id="meetupReviewModal" class="meetup-detail-modal-overlay"
+			onclick="closeReviewModal(event)">
+			<div class="meetup-detail-modal-content">
+				<div class="meetup-detail-modal-header">
+					<h2>모임 후기 작성</h2>
+					<button class="meetup-detail-modal-close"
+						onclick="document.getElementById('meetupReviewModal').classList.remove('active')">&times;</button>
+				</div>
+
+				<form id="meetupReviewForm" onsubmit="submitReview(event)">
+					<div class="meetup-detail-modal-group">
+						<label>이 모임은 어떠셨나요?</label>
+						<div class="meetup-detail-modal-stars">
+							<input type="radio" id="star5" name="rating" value="5" checked><label
+								for="star5">★</label> <input type="radio" id="star4"
+								name="rating" value="4"><label for="star4">★</label> <input
+								type="radio" id="star3" name="rating" value="3"><label
+								for="star3">★</label> <input type="radio" id="star2"
+								name="rating" value="2"><label for="star2">★</label> <input
+								type="radio" id="star1" name="rating" value="1"><label
+								for="star1">★</label>
+						</div>
+					</div>
+
+					<div class="meetup-detail-modal-group">
+						<label for="reviewText">상세한 후기를 남겨주세요</label>
+						<textarea id="reviewText" rows="5"
+							placeholder="모임의 분위기, 좋았던 점 등을 공유해주세요. (최소 10자 이상)" required></textarea>
+					</div>
+
+					<div class="meetup-detail-modal-group">
+						<label>사진 첨부 (선택)</label> <input type="file" id="reviewImages"
+							accept="image/*" multiple style="display: none;"
+							onchange="previewFiles(event)">
+						<div class="meetup-detail-file-btn"
+							onclick="document.getElementById('reviewImages').click()">
+							📸 사진 업로드하기</div>
+						<div id="imagePreviewContainer"
+							class="meetup-detail-preview-container"></div>
+					</div>
+
+					<div class="meetup-detail-modal-footer">
+						<button type="button" class="meetup-detail-modal-btn cancel"
+							onclick="document.getElementById('meetupReviewModal').classList.remove('active')">취소</button>
+						<button type="submit" class="meetup-detail-modal-btn submit">등록하기</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<script th:inline="javascript">
+
+         <div class="meetup-detail-right">
+            <div class="meetup-detail-side-box">
+               <h3>모집 정보</h3>
+               <div class="meetup-detail-info-row">
+                  <span>인원</span> <span
+                     th:text="${detail.totalParticipants + ' / ' + detail.maxParticipants}"></span>
+               </div>
+               <div class="meetup-detail-info-row">
+                  <span>지역</span> <span th:text="${detail.sidoName}"></span>
+               </div>
+
+               <div id="applyArea">
+                  <button th:if="${applyInfo == null}"
+                     class="meetup-detail-btn meetup-detail-btn-primary"
+                     th:onclick="|applyMeetup(${detail.meetupId})|">신청하기</button>
+
+                  <button th:if="${applyInfo != null}"
+                     class="meetup-detail-btn meetup-detail-btn-danger"
+                     th:onclick="|applyCancelMeetup(${applyInfo.applicationId})|">
+                     신청취소</button>
+               </div>
+            </div>
+
+            <div class="meetup-detail-side-box">
+               <h3>작성자</h3>
+               <p class="meetup-detail-author" th:text="${detail.nickname}"></p>
+               <a type="button" class="meetup-detail-inquiry-btn"
+                  th:href="@{/questions/write(meetupId=${detail.meetupId})}">💬
+                  모임글 문의하기
+               </a>
+            </div>
+
+            <div class="meetup-detail-side-box">
+               <h3>추천 모임</h3>
+               <div class="meetup-detail-recom-card">
+                  <img src="https://images.unsplash.com/photo-1501555088652-021faa106b9b">
+                  <div class="meetup-detail-recom-info">
+                     <div class="meetup-detail-recom-title">북한산 등산</div>
+                     <div class="meetup-detail-recom-tag">서울</div>
+                  </div>
+               </div>
+               <div class="meetup-detail-recom-card">
+                  <img src="https://images.unsplash.com/photo-1533240332313-0db49b459ad6">
+                  <div class="meetup-detail-recom-info">
+                     <div class="meetup-detail-recom-title">트레킹</div>
+                     <div class="meetup-detail-recom-tag">경기</div>
+                  </div>
+               </div>
+            </div>
+            <!-- 광고 -->
+            <section class="ad-banner"
+                     th:if="${desidebarAd != null}"
+                     th:classappend="${desidebarAd.imageList != null and !desidebarAd.imageList.isEmpty()} ? ' has-image' : ''">
+            
+                <a th:href="@{/user/advertisement/click(adId=${desidebarAd.adId},  position='MEETUP_DETAIL_SIDEBAR')}">
+            
+                    <img th:if="${desidebarAd.imageList != null 
+                                 and !desidebarAd.imageList.isEmpty()}"
+                         th:src="@{${desidebarAd.imageList[0].imageUrl}}"
+                         alt="광고">
+                         
+                      <div th:if="${desidebarAd.imageList == null 
+                                 or desidebarAd.imageList.size() == 0}">
+                        광고 이미지 준비중
+                    </div>
+            
+                </a>
+            </section>
+         </div>
+      </div>
+
+      <div id="meetupReviewModal" class="meetup-detail-modal-overlay"
+         onclick="closeReviewModal(event)">
+         <div class="meetup-detail-modal-content">
+            <div class="meetup-detail-modal-header">
+               <h2>모임 후기 작성</h2>
+               <button class="meetup-detail-modal-close"
+                  onclick="document.getElementById('meetupReviewModal').classList.remove('active')">&times;</button>
+            </div>
+
+            <form id="meetupReviewForm" onsubmit="submitReview(event)">
+               <div class="meetup-detail-modal-group">
+                  <label>이 모임은 어떠셨나요?</label>
+                  <div class="meetup-detail-modal-stars">
+                     <input type="radio" id="star5" name="rating" value="5" checked><label
+                        for="star5">★</label> <input type="radio" id="star4"
+                        name="rating" value="4"><label for="star4">★</label> <input
+                        type="radio" id="star3" name="rating" value="3"><label
+                        for="star3">★</label> <input type="radio" id="star2"
+                        name="rating" value="2"><label for="star2">★</label> <input
+                        type="radio" id="star1" name="rating" value="1"><label
+                        for="star1">★</label>
+                  </div>
+               </div>
+
+               <div class="meetup-detail-modal-group">
+                  <label for="reviewText">상세한 후기를 남겨주세요</label>
+                  <textarea id="reviewText" rows="5"
+                     placeholder="모임의 분위기, 좋았던 점 등을 공유해주세요. (최소 10자 이상)" required></textarea>
+               </div>
+
+               <div class="meetup-detail-modal-group">
+                  <label>사진 첨부 (선택)</label> <input type="file" id="reviewImages"
+                     accept="image/*" multiple style="display: none;"
+                     onchange="previewFiles(event)">
+                  <div class="meetup-detail-file-btn"
+                     onclick="document.getElementById('reviewImages').click()">
+                     📸 사진 업로드하기</div>
+                  <div id="imagePreviewContainer"
+                     class="meetup-detail-preview-container"></div>
+               </div>
+
+               <div class="meetup-detail-modal-footer">
+                  <button type="button" class="meetup-detail-modal-btn cancel"
+                     onclick="document.getElementById('meetupReviewModal').classList.remove('active')">취소</button>
+                  <button type="submit" class="meetup-detail-modal-btn submit">등록하기</button>
+               </div>
+            </form>
+         </div>
+      </div>
+
+      <script th:inline="javascript">
+
+        function showTab(i){
+            const tabs = document.querySelectorAll(".meetup-detail-tab-btn");
+            const panels = document.querySelectorAll(".meetup-detail-tab-panel");
+
+            tabs.forEach(t => t.classList.remove("active"));
+            panels.forEach(p => p.classList.remove("active"));
+
+            tabs[i].classList.add("active");
+            panels[i].classList.add("active");
+        }
+        
+      /***********후기***********/
+        function openReviewModal() {
+            document.getElementById('meetupReviewModal').classList.add('active');
+        }
+
+        function closeReviewModal(e) {
+            if(e.target.classList.contains('meetup-detail-modal-overlay')) {
+                document.getElementById('meetupReviewModal').classList.remove('active');
+            }
+        }
+
+        function previewFiles(e) {
+            const container = document.getElementById('imagePreviewContainer');
+            container.innerHTML = "";
+            const files = e.target.files;
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+                    container.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function submitReview(e) {
+            e.preventDefault();
+            alert("후기가 성공적으로 등록되었습니다!");
+            document.getElementById('meetupReviewModal').classList.remove('active');
+            document.getElementById('meetupReviewForm').reset();
+            document.getElementById('imagePreviewContainer').innerHTML = "";
+        }
+        /***********후기***********/
+        
+        /**********모임신청*********/
+        function applyMeetup(meetupId,applicationId){
+           console.log({meetupId: meetupId})
+           fetch(
+                "/meetup/applyMeetup",
+                {
+                 headers: getCsrfHeaders(),
+                 method:"post",
+                 body:JSON.stringify({meetupId: meetupId})
+                })
+           .then(res=>{
+              if(!res.ok){
+                 throw new Error(`서버 응답에러 :${res.status}`);
+              }   
+              return res.json();
+           })
+           .then(data=>{
+                if(data.result === true){
+                    location.reload();
+                }
+           })
+           .catch(error=>{
+              console.log(error);
+           })
+        }
+        
+        function applyCancelMeetup(applicationId){
+           fetch(
+                    "/meetup/cancelApplyMeetup",
+                    {
+                     headers: getCsrfHeaders(),
+                     method:"post",
+                     body:JSON.stringify({applicationId: applicationId})
+                    })
+               .then(res=>{
+                  if(!res.ok){
+                     throw new Error(`서버 응답에러 :${res.status}`);
+                  }   
+                  return res.json();
+               })
+               .then(data=>{                
+                  if(data.result === true){
+                       location.reload();
+                   }
+               })
+               .catch(error=>{
+                  console.log(error);
+               })
+            }
+        
+
+        //후기 기능 (검색하고 다시 현재 페이지 유지)
+        window.onload = function () {
+
+            const params = new URLSearchParams(window.location.search);
+
+            if (params.get("tab") === "review") {
+                showTab(2);
+            }
+
+        }
+        //좋아요(비동기처리)
+        function toggleLike(btn){
+
+            const reviewId = btn.dataset.reviewId;
+
+            fetch("/meetup/review/like/" + reviewId,{
+                method:"POST",
+                headers:getCsrfHeaders()
+            })
+            .then(res=>res.json())
+            .then(data=>{
+
+                btn.querySelector("span").innerText=data.likesCount;
+
+            });
+
+        }
+        
+        function changeSort(sortType) {
+            // 1. 현재 URL 파라미터 상태 가져오기
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            
+            const meetupId = document.getElementById("meetupId").value;
+            urlParams.set("meetupId", meetupId);
+            urlParams.set("sort", sortType);
+            urlParams.set("tab", "review"); // 정렬 후 새로고침 되어도 후기 탭이 바로 뜨게 고정
+            
+            // 3. 기존에 검색한 키워드가 있었다면 유지, 없으면 파라미터에서 제거
+            const keywordInput = document.querySelector("input[name='keyword']");
+            if (keywordInput && keywordInput.value.trim() !== "") {
+                urlParams.set("keyword", keywordInput.value);
+            } else {
+                urlParams.delete("keyword");
+            }
+
+            // 4. 조립된 URL로 페이지 이동 (
+            location.href = "/meetup/detail?" + urlParams.toString();
+        }
+
+        function changeMainImg(src) {
+            // 메인 이미지 태그를 찾아서 소스(src)를 클릭한 썸네일 주소로 변경
+            const mainImg = document.querySelector('.meetup-detail-main-img img');
+            if (mainImg) {
+                mainImg.src = src;
+            }
+        }
+
+        </script>
+	</div>
 </body>
 </html>

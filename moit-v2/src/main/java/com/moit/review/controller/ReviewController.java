@@ -1,0 +1,256 @@
+package com.moit.review.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.moit.review.dto.ReviewDto;
+import com.moit.review.service.ReviewService;
+
+@Controller
+public class ReviewController {
+
+    @Autowired
+    ReviewService reviewService;
+
+
+    // 후기 작성 페이지
+    @GetMapping("/meetup/review/insert")
+    public String insertUserReview_get() {
+
+        return "user/meetup/review/reviewInsert";
+    }
+
+
+    // 후기 등록
+    @PostMapping("/meetup/review/insert")
+    public String insertUserReview_post(
+            ReviewDto dto,
+            @RequestParam(value = "attachedImages", required = false)
+            MultipartFile[] attachedImages) {
+
+
+        // 시큐리티 적용 후 변경
+        dto.setMemberId(2);
+
+
+        System.out.println("===== 후기 등록 Controller =====");
+        System.out.println("meetupId : " + dto.getMeetupId());
+        System.out.println("memberId : " + dto.getMemberId());
+        System.out.println("isPublic : " + dto.getIsPublic());
+        System.out.println("content : " + dto.getContent());
+        System.out.println("rating : " + dto.getRating());
+        System.out.println("첨부파일 개수 : "
+                + (attachedImages == null ? 0 : attachedImages.length));
+        System.out.println("==============================");
+
+
+        reviewService.insertUserReview(dto, attachedImages);
+
+
+        return "redirect:/meetup/detail?meetupId=" + dto.getMeetupId();
+    }
+
+
+
+    // 특정 모임 후기 목록 조회
+    @GetMapping("/meetup/review/meetup/{meetupId}")
+    public String selectUserReview(
+            @PathVariable int meetupId,
+            @RequestParam(value = "sort", required = false, defaultValue = "latest")
+            String sort,
+            Model model) {
+
+
+        List<ReviewDto> reviewList =
+                reviewService.selectUserReview(meetupId, sort);
+
+
+        model.addAttribute("reviews", reviewList);
+        model.addAttribute("meetupId", meetupId);
+
+
+        return "user/meetup/detail";
+    }
+
+
+
+
+    // 마이페이지 내가 작성한 후기 목록 조회
+    @GetMapping("/mypage/review")
+    public String selectReviewByMemberId(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "sort", required = false, defaultValue = "latest") String sort,
+            Model model) {
+
+        // 시큐리티 적용 후 로그인 회원 id로 변경
+        int memberId = 2;
+
+        List<ReviewDto> myReviewList =
+                reviewService.selectReviewByMemberId(memberId, keyword, sort);
+
+        model.addAttribute("myReviews", myReviewList);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("sort", sort);
+        model.addAttribute("menu", "review");
+
+        return "user/mypage/review";
+    }
+
+
+
+
+
+    // 후기 수정 페이지(get)
+    @GetMapping("/meetup/review/update/{reviewId}")
+    public String updateUserReview_get(
+            @PathVariable int reviewId,
+            @RequestParam(required = false) int meetupId,
+            @RequestParam(required = false) String from,
+            Model model) {
+
+
+        ReviewDto targetReview =
+                reviewService.selectReviewById(reviewId);
+
+
+        if(targetReview != null) {
+
+            model.addAttribute("review", targetReview);
+            model.addAttribute("meetupId",
+                    targetReview.getMeetupId());
+        }
+
+
+        model.addAttribute("from", from);
+
+
+        return "user/meetup/review/reviewInsert";
+    }
+    
+    
+    //후기 수정(post)
+    @PostMapping("/meetup/review/update")
+    public String updateUserReview_post(
+            ReviewDto dto,
+            @RequestParam(required=false) String from) {
+
+
+        System.out.println("수정 from = " + from);
+
+
+        reviewService.updateUserReview(dto);
+
+
+        if("mypage".equals(from)) {
+            return "redirect:/mypage/review";
+        }
+
+
+        return "redirect:/meetup/detail?meetupId=" + dto.getMeetupId();
+    }
+
+	/*
+	 * // 후기 수정
+	 * 
+	 * @PostMapping("/meetup/review/update") public String updateUserReview_post(
+	 * ReviewDto dto) {
+	 * 
+	 * 
+	 * reviewService.updateUserReview(dto);
+	 * 
+	 * 
+	 * return "redirect:/meetup/detail?meetupId=" + dto.getMeetupId(); }
+	 */
+
+
+
+
+    // 후기 삭제
+    @GetMapping("/meetup/review/delete/{reviewId}")
+    public String deleteUserReview_get(
+            ReviewDto dto,
+            RedirectAttributes rttr) {
+
+
+        reviewService.deleteUserReview(dto);
+
+
+        rttr.addFlashAttribute(
+                "deleteResult",
+                "success");
+
+
+        return "redirect:/meetup/detail?meetupId="
+                + dto.getMeetupId();
+    }
+
+
+
+
+
+    // 후기 삭제 POST
+    @PostMapping("/meetup/review/delete")
+    public String deleteUserReview(
+            ReviewDto dto,
+            RedirectAttributes rttr,
+            @RequestParam(value="from", required=false)
+            String from) {
+
+
+        boolean result =
+                reviewService.deleteUserReview(dto) == 1;
+
+
+        rttr.addFlashAttribute(
+                "deleteResult",
+                result);
+
+
+
+        if("mypage".equals(from)) {
+
+            return "redirect:/mypage/review";
+        }
+
+
+
+        return "redirect:/meetup/"
+                + dto.getMeetupId();
+    }
+    
+    
+    //좋아요 기능 (비동기 처리)
+    @PostMapping("/meetup/review/like/{reviewId}")
+    @ResponseBody
+    public Map<String, Object> toggleReviewLike(@PathVariable("reviewId") int reviewId) {
+        
+        Map<String, Object> resultBody = new HashMap<>();
+        
+        int memberId = 2; 
+        
+        try {
+            int updatedLikesCount = reviewService.toggleReviewLike(reviewId, memberId);
+            resultBody.put("success", true);
+            resultBody.put("likesCount", updatedLikesCount);
+        } catch (Exception e) {
+            e.printStackTrace();
+            resultBody.put("success", false);
+            resultBody.put("message", "좋아요 처리 중 오류가 발생했습니다.");
+        }
+        
+        return resultBody;
+    }
+
+}

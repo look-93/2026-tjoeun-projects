@@ -1,10 +1,268 @@
 <!DOCTYPE html>
-<html>
-<head>
+<html xmlns:th="http://www.thymeleaf.org"
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{user/meetup/layouts/meetupListLayout}">
+<!--    #1. layout 렌더링    -->
+<head lang="ko">
 <meta charset="UTF-8">
-<title>Insert title here</title>
 </head>
 <body>
+	<div class="page">
+		<div layout:fragment="content">
+			<!-- 각자파트 -->
+		
+			<section class="content">
+				<!-- 광고 -->
+				<section class="ad-banner"
+				         th:if="${bannerAd != null}"
+				         th:classappend="${bannerAd.imageList != null and !bannerAd.imageList.isEmpty()} ? ' has-image' : ''">
+				
+				    <a th:href="@{/user/advertisement/click(adId=${bannerAd.adId},  position='MEETUP_LIST_BANNER')}">
+				
+				        <img th:if="${bannerAd.imageList != null 
+				                     and !bannerAd.imageList.isEmpty()}"
+				             th:src="@{${bannerAd.imageList[0].imageUrl}}"
+				             alt="광고">
+				             
+			             <div th:if="${bannerAd.imageList == null 
+	                     			or bannerAd.imageList.size() == 0}">
+				            광고 이미지 준비중
+				        </div>
+				
+				    </a>
+				
+				</section>
+				<!-- 광고 -->
+				<form id="searchForm">
+					<div class="filter-box">
+					
+						<input type="text" id="searchText"  name="searchText"  class="form-control" placeholder="모임명 검색"> 
+						
+						<select id="sidoId" name="sidoId" class="form-select"></select> 
+						
+						<select id="orderType" name="orderType" class="form-select">
+							<option value="createAt">최신순</option>
+							<option value="like">인기순</option>
+							<option value="meetupAt">마감임박순</option>
+						</select>
+	
+						<button type="submit" class="btn-search-meetup">검색</button>
+						<a th:href="@{/meetup/write}" class="btn-create-meetup">+ 모임등록</a>
+					</div>
+				</form>
 
+				<div class="card-grid" id="meetupList"></div>
+				<div class="pagination" id="pagingArea"></div>
+			</section>
+			
+		<!-- 스크립트 영역 -->
+		<script th:inline="javascript">
+		//csrf 토큰
+/* 		const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+		const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content; */
+		
+		let currentPage = 1;
+		
+		window.addEventListener("DOMContentLoaded", function(){
+			loadMeetup(1);
+			
+			document.getElementById("searchForm").addEventListener("submit", function(e){
+				e.preventDefault();
+				loadMeetup(1);  // 처음 접속 시 첫 페이지 로드
+			})
+			
+		})
+		
+		function loadMeetup(page){			
+			currentPage = page;
+			const urlParams = new URLSearchParams(window.location.search);
+			const categoryId = urlParams.get("categoryId") || 0;
+			
+			const params = {
+				searchText: document.getElementById("searchText").value,	//검색어
+				sidoId: document.getElementById("sidoId").value,		//지역조회
+				orderType: document.getElementById("orderType").value,	//정렬타입
+				pstartno: page,
+				categoryId: categoryId
+			}
+			
+			const queryString = new URLSearchParams(params).toString();
+			
+			fetch("/meetup/list/data?" + queryString,{
+				method: "GET"
+			})
+			.then(res=>{
+				if(!res.ok){
+					throw new Error(`서버 응답 에러 : ${res.status}`);
+				}
+				return res.json();
+			})
+			.then(data=>{
+				//console.log(data.categorys)
+				if(data.searchList){
+					makeCard(data.searchList, data.paging);
+					makePaging(data.paging);
+					makeSido(data.sidoList);
+					makeCategory(data.categorys);
+				}
+			})
+			.catch(error =>{
+				console.error("데이터 로드 중 에러 발생", error);
+			})
+		}
+		
+		function makeCard(list, paging){
+			let html = "";
+			list.forEach((meetup, index)=>{
+				html+=`
+				<div class="card">
+					<a href="/meetup/detail?meetupId=${meetup.meetupId}">
+					
+						<div class="card-img">
+						${meetup.imagePath 
+		                    ? `<img src="/upload/meetup/${meetup.imagePath}" alt="${meetup.title}" />`
+		                    : `<div class="meetup-no-image">
+		                           <span class="icon">🖼️</span>
+		                           <span>등록된 이미지가 없습니다.</span>
+		                       </div>`
+		                }
+						</div>
+		
+						<div class="card-body">
+		
+							<span class="badge" style="background:${meetup.status === 'RECRUITING' ? '#dfffe4' : '#ffe7e6'};">
+							${meetup.status == 'RECRUITING' ? '모집중' : '모집마감'} 
+							</span>
+		
+							<h4>${meetup.title}</h4>	
+							<p>🏃 ${meetup.categoryName}</p>
+							<p>📍 ${meetup.sigunguName}</p>
+							<p>👥 ${meetup.totalParticipants} / ${meetup.maxParticipants}</p>
+							
+							<div class="card-footer">
+								<span>${meetup.formattedMeetupAt}</span> 
+								<a href="#">
+									<span class="like" onclick="toggleLike(event, ${meetup.meetupId}, this)">${meetup.hasLike ? '❤️' : '🤍'}</span>
+									<span class="like-count">${meetup.likeCnt ? meetup.likeCnt : 0}</span>
+								</a>
+							</div>
+		
+						</div>
+					</a>
+				</div>
+				
+				`; 
+			});
+			
+			document.getElementById("meetupList").innerHTML=html;
+		}
+		
+		//페이징
+	 	function makePaging(paging){
+	 		let html = "";
+	 		//console.log(paging)
+	 		if(paging.start > paging.bottomlist){
+	 			html += `
+				<a  href="#" class="page-link" onclick="loadMeetup(${paging.start-1}); return false;"> < </a>		
+	 			`;
+	 		}
+	 		
+	 		for(let i=paging.start; i<=paging.end;i++){
+	 			
+	 			let activeClass = (i == paging.current) ? "active" : "";
+	 			
+	 			html +=`
+				<a href="#" class="page-link  ${activeClass}" onclick="loadMeetup(${i}); return false;">${i}</a>
+	 			`;
+	 		}
+	 		
+	 	    if(paging.pagetotal>paging.end){
+	
+	 	        html+=`
+	 	            <a class="page-link"
+	 	                href="#"
+	 	                onclick="loadMeetup(${paging.end+1}); return false;">
+	 	                >
+	 	            </a>
+	 	        `;
+	 	    }
+	
+	 	    document.getElementById("pagingArea").innerHTML=html; 		
+	 	}
+
+		// 지역 조회조건
+		function makeSido(sido){
+			const selected = document.getElementById("sidoId").value;
+			let html = '<option value="0">전체 지역</option>';
+			//console.log(sido);
+			sido.forEach(item=>{
+				html += `
+					<option value="${item.sidoId}" ${selected == item.sidoId ? "selected" : ""}>${item.name}</option>				
+				`
+			})
+			document.getElementById("sidoId").innerHTML = html;
+			
+		}
+		
+		//카테고리 사이드바
+		function makeCategory(categorys){
+			const category = document.getElementById("meetupList-category");
+			//console.log(categorys)
+			const urlParams = new URLSearchParams(window.location.search); //URL 뒤에 붙은 ?categoryId=3 같은 값을 꺼내는 도구
+			const selectedId = String(urlParams.get("categoryId") || "0");
+			
+			let html = '';
+			//console.log(selectedId)
+			html += `
+		        <a href="?categoryId=0"
+		        	 class="${selectedId === "0" ? "active" : ""}">
+		            전체
+		        </a>				
+			` 
+			
+			categorys.forEach(item=>{
+				html += `
+					<a href="?categoryId=${item.categoryId}" 
+						 class="${selectedId === String(item.categoryId) ? "active" : ""}">
+					${item.categoryName}
+					</a>
+				`;
+			})
+			 category.innerHTML = html;
+		}
+		
+		function toggleLike(e, meetupId, el){
+			e.preventDefault();
+
+		    fetch(
+		    		"/meetup/list/like?meetupId=" + meetupId,
+		        {
+		            method: "POST",
+		            headers: getCsrfHeaders()
+		        }
+		    )
+		    .then(res => res.json())
+		    .then(data => {
+				 console.log(data.hasLike)
+		        // 서버에서 true/false 반환한다고 가정
+		        if (data.hasLike) {
+		            el.innerText = "❤️";
+		        } else {
+		            el.innerText = "🤍";
+		        }
+
+		        el.parentElement.querySelector(".like-count").innerText =
+		            data.likeCnt;
+		    })
+		    .catch(err => console.error(err));
+		}
+		</script>
+		
+		<!-- 우측 사이드 -->
+		
+		</div>
+		<!-- 각자파트 -->
+
+	</div>
 </body>
 </html>

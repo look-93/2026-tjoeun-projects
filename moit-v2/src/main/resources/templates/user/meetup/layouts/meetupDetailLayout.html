@@ -3,17 +3,21 @@
 <head lang="ko">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="_csrf" th:content="${_csrf.token}">
+<meta name="_csrf_header" th:content="${_csrf.headerName}">
 <!-- <title>MOIT | 모집글 목록</title> -->
 <title>MOIT | 모임상세</title>
 <link rel="stylesheet" th:href="@{/css/style.css}">
+<link rel="stylesheet" th:href="@{/css/memberStyle.css}">
 </head>
 <body>
-	<th:block th:replace="~{user/fragments/header :: header}" />
+	<th:block th:replace="~{user/fragments/mainHeader :: mainHeader}" />
 	<div class="container">
 			<div layout:fragment="content">
 				<!-- 페이지 내용 -->
 			</div>
 	</div>
 	<th:block th:replace="~{user/fragments/footer :: footer}" />
+	<script th:src="@{/js/common.js}"></script>
 </body>
 </html>

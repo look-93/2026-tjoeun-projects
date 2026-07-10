@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{user/mypage/layouts/mypageLayout}">
+<head lang="ko">
+<meta charset="UTF-8">
+</head>
+<body>
+	<div layout:fragment="content">
+		<div class="mypage-main-content">
+
+			<div class="mypage-dashboard">
+
+				<div class="mypage-stat-card">
+					📝
+					<h3 th:text="${meetupStats.meetupCount}"></h3>
+					<p>작성한 모집글</p>
+				</div>
+
+				<div class="mypage-stat-card">
+					👥
+					<h3 th:text="${meetupStats.applicationCount}"></h3>
+					<p>신청 모임</p>
+				</div>
+
+				<div class="mypage-stat-card">
+					⭐
+					<h3 th:text="${meetupStats.reviewCount}"></h3>
+					<p>작성 후기</p>
+				</div>
+
+				<div class="mypage-stat-card">
+					❤️
+					<h3 th:text="${meetupStats.likeCount}"></h3>
+					<p>관심 모임</p>
+				</div>
+
+			</div>
+
+		</div>
+		<div class="mypage-table-section">
+
+			<h2>내 신청글</h2>
+
+			<table class="mypage-table">
+				<thead>
+					<tr>
+						<th>번호</th>
+						<th>모집명</th>
+						<th>모집일</th>
+						<th>모집 상태</th>
+						<th>신청 상태</th>
+						<th>후기</th>
+			        </tr>
+				</thead>
+				<tbody>
+				    <tr th:each="apply, status : ${applyList}">
+				        <td th:text="${paging.listtotal - ((paging.current - 1) * paging.onepagelist) - status.index}">1</td>
+				        
+				        <td th:text="${apply.title}"></td>
+				        <td th:text="${apply.fomatMeetupAt}"></td> 
+				        
+				        <td>
+				            <span class="status status-end" th:text="${apply.status == 'RECRUITING' ? '모집중' : '종료'}"></span>
+				        </td>
+				        <td>
+							<span class="status status-end" 
+							      th:text="${apply.applyStatus == 'PENDING' ? '대기중' : 
+							               (apply.applyStatus == 'APPROVED' ? '승인' : 
+							               (apply.applyStatus == 'REJECTED' ? '거절 : ' + apply.rejectReason : 
+							               (apply.applyStatus == 'NOSHOW' ? '노쇼' : '-')))}">
+							</span>
+				        </td>				        
+				        <td>
+							
+						    <div class="action-btn-wrap">
+						        <button type="button" class="applicant-btn review-btn">후기 작성</button>
+						    </div>
+							
+				        </td>
+				    </tr>
+				    
+				    <tr th:if="${#lists.isEmpty(applyList)}">
+				        <td colspan="5" style="padding: 40px 0; color: #94a3b8; text-align: center;">신청한 모집글이 존재하지 않습니다.</td>
+				    </tr>
+				</tbody>
+			</table>
+			
+			<div class="pagination">
+			    <th:block th:if="${paging.start > paging.bottomlist}">
+			        <a class="page-link" th:href="@{?(pstartno=${paging.start - 1})}"> &lt; </a>
+			    </th:block>
+			
+			    <th:block th:if="${paging.end >= paging.start}">
+			        <a th:each="i : ${#numbers.sequence(paging.start, paging.end)}"
+			           th:href="@{?(pstartno=${i})}"
+			           th:text="${i}"
+			           class="page-link"
+			           th:classappend="${i == paging.current} ? 'active'">1</a>
+			    </th:block>
+			
+			    <th:block th:if="${paging.pagetotal > paging.end}">
+			        <a class="page-link" th:href="@{?(pstartno=${paging.end + 1})}"> &gt; </a>
+			    </th:block>
+			</div>		
+
+		</div>	
+	</div>
+	
+</body>
+</html>

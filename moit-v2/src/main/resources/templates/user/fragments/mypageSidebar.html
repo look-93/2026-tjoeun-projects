@@ -1,19 +1,63 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <body>
-	<th:block th:fragment="mypageSidebar">
-		<!-- SIDEBAR -->
-		<aside class="sidebar">
-		    <div class="menu">
-		        <a class="active" href="#">내 정보</a>
-		        <a href="#">내 모집글</a>
-		        <a href="#">내 신청모임</a>
-		        <a href="#">내 관심모임</a>
-		        <a th:href="@{/questions/myQuestion}">내 문의내역</a>
-		        <a href="#">내 작성후기</a>
-		        <a href="#">내 신고내역</a>		        
-		    </div>
-		</aside>
-	</th:block>
+   <th:block th:fragment="mypageSidebar">
+      <aside class="sidebar">
+          <div class="menu">
+              <!-- <a th:href="@{/user/member/mypage}">내 정보</a> -->
+              
+               <a href="/user/member/mypage"
+                 class="menu-link"
+                 data-path="/user/member/mypage">
+                 내 정보
+              </a>
+                       
+              <a href="/mypage/myMeetupInfo"
+                 class="menu-link"
+                 data-path="/mypage/myMeetupInfo">
+                 모임관리
+              </a>
+              
+              <a href="/mypage/meetupApplyInfo"
+                 class="menu-link"
+                 data-path="/mypage/meetupApplyInfo">
+                 내 신청모임
+              </a>
+              <a th:href="@{/questions/myQuestion}">내 문의내역</a>
+<!--               <a href="#">내 관심모임</a>
+              <a href="#">내 문의내역</a>
+              <a href="#">내 작성후기</a>
+              <a href="#">내 신고내역</a> -->
+               <a href="/user/member/memberEdit"
+                 class="menu-link"
+                 data-path="/user/member/memberEdit">
+                 회원정보 수정
+              </a>
+              <a href="#">비밀번호 변경</a>
+              <a href="#">회원 탈퇴</a>   
+
+              <a th:href="@{/user/advertisement/list}"
+                  th:classappend="${menu == 'advertisement'} ? ' active'">
+                   내 광고내역(제휴용)
+               </a>         
+          </div>
+      </aside>
+      
+      <script>
+         document.addEventListener("DOMContentLoaded", function () {
+             // 1. 현재 브라우저의 URL 경로를 가져옵니다 (예: /mypage/meetupapplyInfo)
+             const currentPath = window.location.pathname;
+      
+             document.querySelectorAll(".menu-link").forEach(a => {
+                 const basePath = a.getAttribute("data-path");
+      
+                 // 2. 현재 주소와 data-path가 일치하거나, 페이징(?pstartno=2) 등으로 인해 해당 주소로 시작하는지 체크
+                 if (basePath && (currentPath === basePath || currentPath.startsWith(basePath + "/"))) {
+                     a.classList.add("active");
+                 }
+             });
+         });
+      </script>      
+   </th:block>
 </body>
 </html>

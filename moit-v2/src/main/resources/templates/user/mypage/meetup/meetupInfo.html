@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{user/mypage/layouts/mypageLayout}">
+<head lang="ko">
+<meta charset="UTF-8">
+</head>
+<body>
+	<div layout:fragment="content">
+		<div class="mypage-main-content">
+
+			<div class="mypage-dashboard">
+
+				<div class="mypage-stat-card">
+					📝
+					<h3 th:text="${meetupStats.meetupCount}"></h3>
+					<p>작성한 모집글</p>
+				</div>
+
+				<div class="mypage-stat-card">
+					👥
+					<h3 th:text="${meetupStats.applicationCount}"></h3>
+					<p>신청 모임</p>
+				</div>
+
+				<div class="mypage-stat-card">
+					⭐
+					<h3 th:text="${meetupStats.reviewCount}"></h3>
+					<p>작성 후기</p>
+				</div>
+
+				<div class="mypage-stat-card">
+					❤️
+					<h3 th:text="${meetupStats.likeCount}"></h3>
+					<p>관심 모임</p>
+				</div>
+
+			</div>
+
+		</div>
+
+		<div class="mypage-table-section">
+
+			<h2>내 모집글</h2>
+
+			<table class="mypage-table">
+				<thead>
+					<tr>
+						<th>번호</th>
+						<th>모집명</th>
+						<th>모집일</th>
+						<th>모집 상태</th>
+						<th>신청 인원</th>
+						<th>작성일</th>
+						<th>관리</th>
+					</tr>
+				</thead>
+				<tbody>
+
+					<tr th:each="meetup, status : ${meetupList}">
+				        <td th:text="${paging.listtotal - ((paging.current - 1) * paging.onepagelist) - status.index}"></td>
+				        <td th:text="${meetup.title}">모집명 예시</td>
+				        <td th:text="${meetup.fomatMeetupAt}"></td> 
+				        <td>
+				            <span class="status status-end" th:text="${meetup.status == 'RECRUITING' ? '모집중' : '종료'}"></span>
+				        </td>
+				        <td th:text="|${meetup.totalParticipants}/${meetup.maxParticipants}명|"></td> 
+				        <td th:text="${meetup.fomatcreatedAt}"></td> 
+						<td>
+						    <div class="action-btn-wrap">
+						        <button type="button" class="applicant-btn" th:onclick="|openModal('${meetup.meetupId}')|">신청자 조회</button>
+						        <button type="button" class="edit-btn" th:onclick="|goDetail('${meetup.meetupId}')|">수정</button>
+						        
+						        <form th:action="@{/mypage/meetup/delete(meetupId=${meetup.meetupId} , pstartno=${param.pstartno})}" method="post" style="display: inline-block; margin: 0;">
+						            <button type="submit" class="delete-btn">삭제</button>
+						        </form>                                             
+						    </div>
+						</td>
+				    </tr>
+				    
+				    <tr th:if="${#lists.isEmpty(meetupList)}">
+				        <td colspan="7" style="padding: 40px 0; color: #94a3b8;">작성한 모집글이 존재하지 않습니다.</td>
+				    </tr>
+				</tbody>
+			</table>
+			
+			<div class="pagination">
+			    <th:block th:if="${paging.start > paging.bottomlist}">
+			        <a class="page-link" th:href="@{?(pstartno=${paging.start - 1})}"> &lt; </a>
+			    </th:block>
+			
+			    <th:block th:if="${paging.end >= paging.start}">
+			        <a th:each="i : ${#numbers.sequence(paging.start, paging.end)}"
+			           th:href="@{?(pstartno=${i})}"
+			           th:text="${i}"
+			           class="page-link"
+			           th:classappend="${i == paging.current} ? 'active'">1</a>
+			    </th:block>
+			
+			    <th:block th:if="${paging.pagetotal > paging.end}">
+			        <a class="page-link" th:href="@{?(pstartno=${paging.end + 1})}"> &gt; </a>
+			    </th:block>
+			</div>		
+
+		</div>
+		<div class="modal-overlay" id="applicantModal">
+		    <div class="modal-window">
+		        <div class="modal-header">
+		            <h3>행사 신청자 목록</h3>
+		            <button class="modal-close" onclick="closeModal()">&times;</button>
+		        </div>
+		        <div class="modal-body">
+		            <table class="modal-table">
+							<thead>
+							    <tr>
+							        <th style="width: 15%; text-align: left;">회원명</th>
+							        <th style="width: 15%;">신청일</th>
+							        <th style="width: 10%;">상태</th>
+							        <th style="width: 30%;">처리</th>
+							        <th style="width: 30%; text-align: left;">AI 한줄평</th>
+							    </tr>
+							</thead>
+		                <tbody id="modalBody"></tbody>
+		            </table>
+		        </div>
+		    </div>
+		</div>
+	<script th:inline="javascript">
+	    const modal = document.getElementById('applicantModal');
+	    
+	 // 타임리프에서 애플리케이션 컨텍스트 패스 가져오기 (기본은 빈 문자열이며 세팅에 따라 채워짐)
+	    const contextPath = /*[[@{/}]]*/ ''; 
+	    
+	    // 1. 거절 버튼을 눌렀을 때 실행되는 함수
+	    function handleReject(applicationId, status, btn) {
+	        // 버튼 바로 앞에 있는 인풋창을 찾아서 값을 가져옵니다.
+	        const reasonInput = btn.parentElement.querySelector('.reject-reason');
+	        const reasonValue = reasonInput ? reasonInput.value.trim() : '';
+	        
+	        if (!reasonValue) {
+	            alert('거절 사유를 입력해주세요.');
+	            if(reasonInput) reasonInput.focus();
+	            return;
+	        }
+	        changeStatus(applicationId, status, btn, reasonValue);
+	    }
+
+	    // 2. 상태 변경 처리 함수 (승인 / 거절 / 노쇼 공용)
+	    function changeStatus(applicationId, status, btn, reason){
+	        // 거절 사유가 넘어오면 파라미터에 붙이고, 없으면 빈 값 처리
+	        const reasonParam = reason ? '&rejectReason=' + encodeURIComponent(reason) : '';
+	        
+	        fetch('/mypage/updateApplyStatus?status=' + status + '&applicationId=' + applicationId + reasonParam)
+	            .then(res => res.json())
+	            .then(data => { 
+	                
+	                // 1) 상태 텍스트 변경
+	                const statusTd = btn.closest("td").previousElementSibling;
+	                const statusSpan = statusTd.querySelector("span");
+	                
+	                let statusText = '대기';
+	                if(status === 'APPROVED') statusText = '승인';
+	                if(status === 'REJECTED') statusText = '거절';
+	                if(status === 'NOSHOW') statusText = '노쇼';
+	                statusSpan.innerHTML = statusText;
+	                
+	                // 2) 버튼 영역 동적 변경 (모달창을 닫지 않아도 즉시 UI 반영)
+	                if(status === 'APPROVED'){
+	                    // 승인 상태가 되면 -> 거절 입력 폼 + 노쇼 버튼 노출
+	                    btn.parentElement.innerHTML = `
+	                    <div style="display: inline-flex; align-items: center; vertical-align: middle; white-space: nowrap;">
+	                        <input type="text" class="reject-reason" placeholder="거절 사유 입력" style="flex-shrink: 0; width: 120px;" />
+	                        <button class="btn-reject" style="flex-shrink: 0; margin-left: 4px;" onClick="handleReject(${applicationId}, 'REJECTED', this)">거절</button>
+	                        <button class="btn-noshow" style="flex-shrink: 0; margin-left: 4px; background: #64748b; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;" onClick="changeStatus(${applicationId}, 'NOSHOW', this)">노쇼</button>
+	                    </div>
+	                    `;
+	                } else if(status === 'REJECTED') {
+	                    // 거절 상태가 되면 -> 승인 버튼 + 노쇼 버튼 + 방금 입력한 거절 사유(reason) 표시
+	                    const reasonText = reason ? `<span class="reject-reason-text" style="margin-left: 8px; color: #ef4444; font-size: 13px;">(${reason})</span>` : '';
+	                    btn.parentElement.innerHTML = `
+	                    <div style="display: inline-flex; align-items: center; vertical-align: middle;">
+	                        <button class="btn-approve" onclick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>
+	                        <button class="btn-noshow" style="flex-shrink: 0; margin-left: 4px; background: #64748b; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;" onClick="changeStatus(${applicationId}, 'NOSHOW', this)">노쇼</button>
+	                        ${reasonText}
+	                    </div>
+	                    `;
+	                } else if(status === 'NOSHOW') {
+	                    // 노쇼 상태가 되면 -> 다시 원상복구 할 수 있도록 '승인' 버튼 배치 (거절 창도 띄우고 싶다면 추가 가능)
+	                    btn.parentElement.innerHTML = `
+	                    <div style="display: inline-flex; align-items: center; vertical-align: middle;">
+	                        <button class="btn-approve" onclick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>
+	                    </div>
+	                    `;
+	                }
+	            })
+	            .catch(error => {
+	                alert("관리자에게 문의하세요.");
+	            })
+	    }
+	    
+	    let currentMeetupId = null;
+	    function openModal(meetupId) {
+	        fetch('/mypage/meetupMember?meetupId=' + meetupId)
+	        .then(res => res.json())
+	        .then(data => {
+	            const tbody = document.getElementById("modalBody")
+	            const list = data.list;
+	            let html= '';
+	            let button = ''
+	    
+	            for(var i= 0; i < list.length; i++){
+	                const item = list[i];
+	                
+	                let status = "대기";
+	                if(item.applyStatus === "APPROVED") status = "승인";
+	                if(item.applyStatus === "REJECTED") status = "거절";
+	                if(item.applyStatus === "NOSHOW") status = "노쇼";
+	                
+	                const applicationId = item.applicationId;
+
+	                // 3) 상태별 초기 버튼 구성 변경
+	                if (item.applyStatus === 'PENDING') {
+	                    button = `
+	                        <div style="display: inline-flex; align-items: center; vertical-align: middle; white-space: nowrap;">
+	                            <button class="btn-approve" onclick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>
+	                            <input type="text" class="reject-reason" placeholder="거절 사유 입력" style="flex-shrink: 0; margin-left: 5px; width: 120px;" />
+	                            <button class="btn-reject" style="flex-shrink: 0; margin-left: 4px;" onClick="handleReject(${applicationId}, 'REJECTED', this)">거절</button>
+	                            <button class="btn-noshow" style="flex-shrink: 0; margin-left: 4px; background: #64748b; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;" onClick="changeStatus(${applicationId}, 'NOSHOW', this)">노쇼</button>
+	                        </div>
+	                    `;
+	                } else if (item.applyStatus === 'APPROVED') {
+	                    button = `
+	                        <div style="display: inline-flex; align-items: center; vertical-align: middle; white-space: nowrap;">
+	                            <input type="text" class="reject-reason" placeholder="거절 사유 입력" style="flex-shrink: 0; width: 120px;" />
+	                            <button class="btn-reject" style="flex-shrink: 0; margin-left: 4px;" onClick="handleReject(${applicationId}, 'REJECTED', this)">거절</button>
+	                            <button class="btn-noshow" style="flex-shrink: 0; margin-left: 4px; background: #64748b; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;" onClick="changeStatus(${applicationId}, 'NOSHOW', this)">노쇼</button>
+	                        </div>
+	                    `;
+	                } else if (item.applyStatus === 'REJECTED') {
+	                    const reasonText = item.rejectReason
+	                        ? `<span class="reject-reason-text" style="margin-left: 8px; color: #ef4444; font-size: 13px;">(${item.rejectReason})</span>`
+	                        : '';
+	                    button = `
+	                        <div style="display: inline-flex; align-items: center; vertical-align: middle;">
+	                            <button class="btn-approve" onclick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>
+	                            <button class="btn-noshow" style="flex-shrink: 0; margin-left: 4px; background: #64748b; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;" onClick="changeStatus(${applicationId}, 'NOSHOW', this)">노쇼</button>
+	                            ${reasonText}
+	                        </div>
+	                    `;
+	                } else if (item.applyStatus === 'NOSHOW') {
+	                    button = `
+	                        <div style="display: inline-flex; align-items: center; vertical-align: middle;">
+	                            <button class="btn-approve" onclick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>
+	                        </div>
+	                    `;
+	                }
+	                    
+	                const aiSummary = item.aiSummary ? item.aiSummary : '-';
+	                
+	                html += `
+	                <tr>
+	                    <td style="width: 15%; text-align: left; font-weight: bold;">${item.nickname}</td>
+	                    <td style="width: 15%; text-align: center;">${item.applyAt}</td>
+	                    <td style="width: 10%; text-align: center;"><span class="state-text-wait">${status}</span></td>
+	                    <td style="width: 30%; text-align: center;">${button}</td>
+	                    <td style="width: 30%; text-align: left; font-size: 13px; color:#555; word-break: break-all;">${aiSummary}</td>
+	                </tr>
+	                `;
+	            }
+	            tbody.innerHTML = html;
+	            modal.classList.add('active');
+	            document.body.style.overflow = 'hidden';
+	        })
+	        .catch(error => {
+	            alert("관리자에게 문의하세요.");
+	        })
+	    }
+	    
+	    function closeModal() {
+	        modal.classList.remove('active');
+	        document.body.style.overflow = ''; 
+	    }
+	    
+	    window.onclick = function(event) {
+	        if (event.target == modal) {
+	            closeModal();
+	        }
+	    }
+	    
+	    function goDetail(meetupId){
+	        location.href = "/mypage/update?meetupId=" + meetupId;
+	    }
+	</script>		
+		
+	</div>
+</body>
+</html>

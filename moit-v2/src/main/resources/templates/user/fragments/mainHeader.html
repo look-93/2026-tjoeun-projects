@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<body>
+	<th:block th:fragment="mainHeader">
+		<header>
+			<div class="container header-inner">
+    <!-- 좌측 로고 + 메뉴 -->
+    <div class="left-group">
+        <a th:href="@{/user/main}" class="logo">
+            MOIT
+        </a>
+    </div>
+
+    <!-- 우측 그룹 -->
+    
+
+        <div class="header-slogan">
+            <span>우리들의 취향 맞춤 소모임 플랫폼</span>
+        </div>
+        
+		<div class="header-right">
+		
+		<nav class="main-menu">
+            <a th:href="@{/meetup/list}"
+               th:classappend="${menu == 'meetup'} ? 'active' : ''">
+                모집찾기
+            </a>
+
+            <a class="inquiry-btn"
+               th:href="@{/questions/write(category='ADMIN')}">
+                💬 관리자 1:1 문의
+            </a>
+        </nav>
+		
+        <nav>        	
+            <!-- 로그인 안한 상태 -->
+            <div sec:authorize="isAnonymous()">
+                <a class="nav-link inquiry-btn"
+                   th:href="@{/user/member/login}">
+                    로그인
+                </a>
+
+                <a class="nav-link inquiry-btn"
+                   th:href="@{/user/member/join}">
+                    회원가입
+                </a>
+            </div>
+
+            <!-- 로그인한 상태 -->
+            <nav sec:authorize="isAuthenticated()">
+			
+			    <a th:href="@{/user/member/mypage}">
+			        <div class="profile">
+			
+			            <div class="profile-img"
+			                 th:text="${#strings.substring(#authentication.principal.nickname,0,1)}">
+			            </div>
+			
+			            <div class="profile-info">
+			                <strong th:text="${#authentication.principal.nickname + '님'}">
+			                </strong>
+			                
+							<span th:switch="${#authentication.principal.typeName}">
+                                <span th:case="'ROLE_MEMBER'">
+                                    일반회원
+                                </span>
+
+                                <span th:case="'ROLE_PARTNER'">
+                                    제휴업체
+                                </span>
+
+                                <span th:case="'ROLE_ADMIN'">
+                                    관리자
+                                </span>
+
+                                <span th:case="*"
+                                      th:text="${#authentication.principal.typeName}">
+                                </span>
+
+                            </span>
+			            </div>
+			
+			        </div>
+			    </a>
+			
+			
+			    <form th:action="@{/user/member/logout}"
+			          method="post"
+			          class="logout-form">
+			
+			        <input type="hidden"
+			               th:name="${_csrf.parameterName}"
+			               th:value="${_csrf.token}">
+			
+			        <button class="logout-btn">
+			            로그아웃
+			        </button>
+			
+			    </form>
+			
+			</nav>
+        </nav>
+    </div>
+</div>
+</header>
+		
+	</th:block>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head lang="ko">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOIT</title>
+<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+	<th:block th:replace="~{user/fragments/header :: header}" />
+	<div class="container">
+		<div layout:fragment="content">
+			<div class="mw-main-content">
+				<div class="mw-write-container"> 
+					<form th:action="${meetup == null} ? @{/meetup/write} : @{/mypage/update}" method="post" enctype="multipart/form-data">
+						
+						<input type="hidden" name="meetupId" th:value="${meetup != null} ? ${meetup.meetupId} : '0'" />
+						
+						<div class="mw-detail-wrap">
+							<div class="mw-left-panel">
+							
+								<!-- 이미지등록 -->
+								<div class="mw-image-box" style="position: relative;">
+								    <div style="position: relative; width: 100%; height:350px;">
+								
+								        <button type="button" id="prevBtn" class="mw-slide-btn left" onclick="moveSlide(-1)"
+								            th:style="${images != null and images.size() > 1} ? 'display: block;' : 'display: none;'">
+								            〈</button>
+								
+								        <button type="button" id="nextBtn" class="mw-slide-btn right" onclick="moveSlide(1)"
+								            th:style="${images != null and images.size() > 1} ? 'display: block;' : 'display: none;'">
+								            〉</button>
+								
+								        <div class="mw-main-image" id="mwMainImage" 
+								             style="width: 100%; height: 350px; border-radius: var(--radius); overflow-x: hidden; background: #f5f5f5; display: flex; align-items: center; scroll-snap-type: x mandatory; scroll-behavior: smooth;">
+								
+								            <span id="placeholderText"
+								                  th:if="${images == null or #lists.isEmpty(images)}"
+								                  style="color: #999; margin: auto;"> 대표 이미지를 등록해주세요 </span>
+								
+								            <th:block th:if="${images != null and !images.isEmpty()}">
+								                <img th:each="img : ${images}"
+								                     th:src="@{|/upload/meetup/${img.imagePath}|}"
+								                     alt="저장된 모집글 이미지"
+								                     style="width: 100%; max-width: 100%; height: 100%; object-fit: cover; border-radius: 5px; flex-shrink: 0; scroll-snap-align: start;">
+								                     </th:block>
+								            
+								        </div>
+								
+								    </div>
+								    
+								    <div class="mw-thumb-list" style="margin-top: 15px;">
+								        <input type="file" name="files" id="imageInput" multiple style="width:100%;" onchange="previewFiles(event)">
+								    </div>
+								</div>				
+								
+			                    <!-- 이미지등록 -->
+			                    
+								<div class="mw-content-box">
+									<div class="mw-detail-badge" th:text="${meetup != null} ? '모임 수정하기' : '새 모임 등록'">새 모임 등록</div>
+					
+									<div class="mw-form-group">
+										<label>모임 제목</label>
+										<input type="text" name="title" class="mw-form-input" placeholder="모임 제목을 입력하세요" 
+											   th:value="${meetup != null} ? ${meetup.title} : ''">
+									</div>
+					
+									<div class="mw-form-group">
+										<label>카테고리</label>
+										<select id="categoryId" name="categoryId" class="mw-form-input">
+											<option value="">선택</option>
+											<option th:each="category : ${childCategoryList}" 
+													th:value="${category.categoryId}" 
+													th:text="${category.categoryName}"
+													th:selected="${meetup != null and category.categoryId == meetup.categoryId}">카테고리명</option>
+										</select>
+									</div>
+					
+									<div class="mw-form-group" style="margin-bottom: 0;">
+										<label>모임 소개</label>
+										<textarea name="content" class="mw-form-input" placeholder="모임에 대한 설명을 작성해주세요" 
+												  th:text="${meetup != null} ? ${meetup.content} : ''"></textarea>
+									</div>
+								</div>
+							</div>
+				
+							<div>
+								<div class="mw-side-box">
+									<h3>모집 정보</h3>
+					
+									<div class="mw-form-group">
+										<label>최소 인원</label>
+										<input type="number" name="minParticipants" class="mw-form-input" min="1" max="100" 
+											   th:value="${meetup != null} ? ${meetup.minParticipants} : 0">
+									</div>
+					
+									<div class="mw-form-group">
+										<label>최대 인원</label>
+										<input type="number" name="maxParticipants" class="mw-form-input" min="1" max="100" 
+											   th:value="${meetup != null} ? ${meetup.maxParticipants} : 0">
+									</div>  
+					
+									<div class="mw-form-group">
+										<label>지역</label>
+										<select id="sigunguId" name="sigunguId" class="mw-form-select">
+											<option value="">지역 선택</option>
+											<option th:each="sigungu : ${sigunguList}" 
+													th:value="${sigungu.sigunguId}" 
+													th:text="${sigungu.name}"
+													th:selected="${meetup != null and sigungu.sigunguId == meetup.sigunguId}">지역명</option>
+										</select>
+									</div>
+									
+									<div class="mw-form-group">
+										<label>모임 일시</label>
+										<input type="datetime-local" name="meetupAt" class="mw-form-input" 
+											   th:value="${meetup != null} ? ${meetup.meetupAt} : ''">
+									</div>
+			
+									<div class="mw-form-group">
+										<label>상태</label>
+										<select id="status" name="status" class="mw-form-select">
+											<option value="RECRUITING" th:selected="${meetup != null and meetup.status == 'RECRUITING'}">모집중</option>
+											<option value="CLOSED" th:selected="${meetup != null and meetup.status == 'CLOSED'}">종료됨</option>
+										</select>
+									</div>
+					
+									<button type="submit" class="mw-btn-submit" 
+											th:text="${meetup != null} ? '모임 수정하기' : '모임 등록하기'">
+										모임 등록하기
+									</button>
+								</div>
+								
+								<div class="mw-side-box">
+									<h3>작성 가이드</h3>
+									<p class="mw-guide-text">
+										• 모임 목적을 명확히 작성해주세요.<br>
+										• 장소와 시간을 정확히 입력해주세요.<br>
+										• 참가 조건이 있다면 소개글에 작성해주세요.
+									</p>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	<script th:inline="javascript">
+	    window.onload = function() {
+	        const sigunguId = document.getElementById("sigunguId");
+	        const categoryId = document.getElementById("categoryId");
+	        const status = document.getElementById("status");
+
+	        const meetup = [[${meetup}]];
+	       
+	        // meetup 객체가 존재할 때만 값을 세팅합니다.
+	        if (meetup != null) {
+	            if(status) status.value = meetup.status;
+	            if(sigunguId) sigunguId.value = meetup.sigunguId;
+	            if(categoryId) categoryId.value = meetup.categoryId;
+	        }       
+	    }
+	    
+	    
+	 	// 이미지를 한 장씩 넘기기 위한 슬라이드 이동 함수
+	    function moveSlide(direction) {
+	        const container = document.getElementById("mwMainImage");
+	        // 이미지 한 장의 가로 폭(너비)을 구합니다.
+	        const containerWidth = container.clientWidth; 
+	        
+	        // 현재 스크롤 위치에서 이미지 한 장 크기만큼 좌(-) 또는 우(+)로 스크롤 이동
+	        container.scrollLeft += (direction * containerWidth);
+	    }
+	 
+	 	// 이미지 선택 시 화면에 보여지는 기능
+	    function previewFiles(event){
+	    	const mwMainImage = document.getElementById("mwMainImage");
+	    	const placeholderText = document.getElementById("placeholderText");
+	    	const prevBtn = document.getElementById("prevBtn");
+	        const nextBtn = document.getElementById("nextBtn");
+	    	const files = event.target.files;
+	    	
+	    	//새 파일 선택 시 기존에 생성된 이미지 지우기(텍스트 숨김)
+	    	if(placeholderText) placeholderText.style.display="none";
+	    	//기존 이미지 미리보기 삭제
+	    	const oldImages = mwMainImage.querySelectorAll("img");
+	    	oldImages.forEach(img => img.remove());
+	    	
+	    	if(files.length > 1){
+	    		prevBtn.style.display = "block"
+	    		nextBtn.style.display = "block"
+	    	}else {
+	    		prevBtn.style.display = "none"
+		    	nextBtn.style.display = "none"	    		
+	    	}
+	    	
+	    	for(let i=0; i < files.length; i++){
+	    		const file = files[i];
+	    		const reader = new FileReader();
+	    		
+	    		reader.onload = function(event){
+	    			const img = document.createElement('img');
+	    			img.src = event.target.result;
+	    			//미리보기 이미지 스타일(원하는 크기로)
+	    			img.style.width = "100%";
+	    			img.style.height = "100%";
+	    			img.style.objectFit = "cover";
+	    			img.style.borderRadius = "5px";
+	    			img.style.flexShrink = "0";     /* 가로 배열 시 이미지 찌그러짐 방지 (필수) */
+	                img.style.scrollSnapAlign = "start"; /* 자석 스크롤 기준점 설정 */
+	    			
+	    			mwMainImage.appendChild(img);	
+	    		};
+	    		reader.readAsDataURL(file);
+	    	}
+	    	
+	    }
+	</script>
+	</div>
+	<th:block th:replace="~{user/fragments/footer :: footer}" />
+</body>
+</html>

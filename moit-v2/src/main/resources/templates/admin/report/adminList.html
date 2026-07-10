@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{admin/layouts/adminLayout}">
+<!--    #1. layout 렌더링    -->
+<head lang="ko">
+<meta charset="UTF-8">
+<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+	<div layout:fragment="content">
+		<!-- 각자파트 -->
+
+ 		<div class="admin-list-page"> 
+ 			<section class="admin-list-card"> 
+				<div class="admin-list-card-head">
+
+					<div class="admin-list-card-title">관리자 신고목록</div>
+					<div class="admin-list-filters">
+						<a th:href="@{/admin/report/adminList}"
+							class="admin-list-filter-btn"
+							th:classappend="${targetType == null and status == null and deleteYn == null ? 'active' : ''}">
+							전체
+						</a>
+
+						<a th:href="@{/admin/report/adminList(targetType='MEETUP', deleteYn='N')}"
+							class="admin-list-filter-btn"
+							th:classappend="${targetType == 'MEETUP' ? 'active' : ''}">
+							MEETUP
+						</a>
+
+						<a th:href="@{/admin/report/adminList(targetType='REVIEW', deleteYn='N')}"
+							class="admin-list-filter-btn"
+							th:classappend="${targetType == 'REVIEW' ? 'active' : ''}">
+							REVIEW
+						</a>
+
+						<a th:href="@{/admin/report/adminList(status='PENDING', deleteYn='N')}"
+							class="admin-list-filter-btn"
+							th:classappend="${status == 'PENDING' ? 'active' : ''}">
+							PENDING
+						</a>
+
+						<a th:href="@{/admin/report/adminList(deleteYn='Y')}"
+							class="admin-list-filter-btn"
+							th:classappend="${deleteYn == 'Y' ? 'active' : ''}">
+							DELETE
+						</a>
+					</div>
+				</div>
+				
+				
+				<!-- 신고 검색(작성자, 사유, 날짜) - 관리자 -->
+				<form th:action="@{/admin/report/adminList}" method="get" class="admin-list-search-form">
+					<div class="admin-list-option">
+						<select id="searchType" name="searchType" title="검색 유형">
+							<option value="memberId" th:selected="${searchType == 'memberId'}">작성자</option>
+							<option value="reasonCode" th:selected="${searchType == 'reasonCode'}">사유</option>
+							<option value="createdAt" th:selected="${searchType == 'createdAt'}">날짜</option>
+						</select>
+					</div>
+					
+					<input type="text" id="keyword" name="keyword" class="admin-list-keyword" th:value="${keyword}" placeholder="검색어를 입력해주세요.">
+					<button type="submit" class="admin-list-btn">검색</button>
+				</form>
+
+
+
+				<div class="admin-list-table-wrap">
+					<table class="admin-list-table">
+						<thead>
+							<tr>
+								<th>신고번호</th>
+								<th>대상</th>
+								<th>대상ID</th>
+								<th>신고자</th>
+								<th>사유</th>
+								<th>상태</th>
+								<th>신고일</th>
+								<th>상세</th>
+							</tr>
+						</thead>
+
+						<tbody>
+							<tr th:each="dto : ${list}">
+								<td th:text="${dto.reportId}"></td>
+								<td th:text="${dto.targetType}"></td>
+								<td th:text="${dto.targetId}"></td>
+								<td th:text="${dto.memberId}"></td>
+								<td th:text="${dto.reasonCode}"></td>
+								<td>
+									<span th:if="${dto.status == 'PENDING'}"
+										class="admin-list-status pending"
+										th:text="${dto.status}">
+									</span>
+									<span th:if="${dto.status == 'APPROVED'}"
+										class="admin-list-status approved"
+										th:text="${dto.status}">
+									</span>
+									<span th:if="${dto.status == 'REJECTED'}"
+										class="admin-list-status rejected"
+										th:text="${dto.status}">
+									</span>
+								</td>
+								<td th:text="${dto.createdAt}"></td>
+								<td>
+									<a class="admin-list-link"
+										th:href="@{/admin/report/adminDetail(reportId=${dto.reportId})}">보기</a>
+								</td>
+							</tr>
+						</tbody>
+
+						<tfoot>
+							<tr>
+								<td colspan="8">
+									<ul class="admin-list-pagination">
+										<li th:if="${paging.start > paging.bottomlist}">
+											<a class="admin-list-page-btn"
+												th:href="@{/admin/report/adminList(
+													pstartno=${paging.start-1},
+													targetType=${targetType},
+													status=${status},
+													deleteYn=${deleteYn})}">
+												이전
+											</a>
+										</li>
+										
+										<li th:each="i : ${#numbers.sequence(paging.start, paging.end)}">
+											<a th:href="@{/admin/report/adminList(
+													pstartno=${i},
+													targetType=${targetType},
+													status=${status},
+													deleteYn=${deleteYn})}"
+												class="admin-list-page-btn"
+												th:classappend="${i == paging.current ? 'active' : ''}"
+												th:text="${i}">
+											</a>
+										</li>
+
+										<li th:if="${paging.end < paging.pagetotal}">
+											<a class="admin-list-page-btn"
+												th:href="@{/admin/report/adminList(
+													pstartno=${paging.end+1},
+													targetType=${targetType},
+													status=${status},
+													deleteYn=${deleteYn})}">
+												다음
+											</a>
+										</li>
+									</ul>
+								</td>
+							</tr>
+						</tfoot>
+
+					</table>
+				</div>
+			</section>
+
+		</div>
+	</div>
+
+	<th:block th:replace="~{user/fragments/footer :: footer}" />
+</body>
+</html>
