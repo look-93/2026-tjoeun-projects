@@ -62,6 +62,16 @@ public class OpenAiService {
                         .get(0)
                         .path("text")
                         .asText();
+
+            System.out.println("===== GPT 응답 시작 =====");
+            System.out.println(textResult);
+            System.out.println("===== GPT 응답 끝 =====");
+
+            textResult = textResult
+                    .replace("```json", "")
+                    .replace("```", "")
+                    .trim();
+
             return objectMapper.readValue(textResult, AiAnalysisResult.class);
             
         } catch (Exception e) {
