@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.moit.review.client.OpenAiReviewService;
 import com.moit.review.dao.ReviewMapper;
 import com.moit.review.dto.ReviewDto;
 
@@ -18,6 +19,8 @@ import com.moit.review.dto.ReviewDto;
 public class ReviewServiceImpl implements ReviewService {
 	
 	@Autowired ReviewMapper reviewmapper;
+	@Autowired
+	private OpenAiReviewService openAiReviewService;
 	
 	
 	//사용자
@@ -233,6 +236,16 @@ public class ReviewServiceImpl implements ReviewService {
 
 	   
 	    return reviewmapper.getLikeCount(reviewId); 
+	}
+	
+	
+	@Override
+	public String reviewAnalysis(Integer meetupId) {
+
+	    List<ReviewDto> reviewList =
+	            reviewmapper.selectUserReview(meetupId, "latest");
+
+	    return openAiReviewService.reviewAnalysis(reviewList);
 	}
 
 	

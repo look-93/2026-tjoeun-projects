@@ -23,6 +23,10 @@
                  data-path="/mypage/meetupApplyInfo">
                  내 신청모임
               </a>
+              <a th:href="@{/mypage/review}"
+                  th:classappend="${menu == 'review'} ? ' active'">
+                  내 작성후기
+              </a> 
               <a th:href="@{/questions/myQuestion}">내 문의내역</a>
 <!--               <a href="#">내 관심모임</a>
               <a href="#">내 문의내역</a>

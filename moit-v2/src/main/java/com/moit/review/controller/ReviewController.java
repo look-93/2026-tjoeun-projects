@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,14 +16,19 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.moit.member.dto.UserDto;
+import com.moit.review.client.OpenAiReviewService;
 import com.moit.review.dto.ReviewDto;
 import com.moit.review.service.ReviewService;
+import com.moit.security.CustomUserDetails;
 
 @Controller
 public class ReviewController {
 
     @Autowired
     ReviewService reviewService;
+    @Autowired
+	private OpenAiReviewService openAiReviewService;
 
 
     // 후기 작성 페이지
@@ -38,11 +44,22 @@ public class ReviewController {
     public String insertUserReview_post(
             ReviewDto dto,
             @RequestParam(value = "attachedImages", required = false)
-            MultipartFile[] attachedImages) {
+            MultipartFile[] attachedImages,Authentication authentication) {
 
 
         // 시큐리티 적용 후 변경
-        dto.setMemberId(2);
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		}
+        dto.setMemberId(memberId);
 
 
         System.out.println("===== 후기 등록 Controller =====");
@@ -92,14 +109,26 @@ public class ReviewController {
     public String selectReviewByMemberId(
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "sort", required = false, defaultValue = "latest") String sort,
-            Model model) {
+            Model model, Authentication authentication) {
 
         // 시큐리티 적용 후 로그인 회원 id로 변경
-        int memberId = 2;
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 
+        //int memberId = 2;
 
         List<ReviewDto> myReviewList =
                 reviewService.selectReviewByMemberId(memberId, keyword, sort);
-
+        
+        model.addAttribute("dto" , user); 
         model.addAttribute("myReviews", myReviewList);
         model.addAttribute("keyword", keyword);
         model.addAttribute("sort", sort);
@@ -252,5 +281,19 @@ public class ReviewController {
         
         return resultBody;
     }
+    
+    @PostMapping("/meetup/review/analysis")
+    @ResponseBody
+	public String activeReviewAiAnalysis(@RequestParam("meetupId") int meetupId) {
+		
+		// 1. 해당 모임 아이디로 등록된 후기 리스트 전체 조회 
+		List<ReviewDto> reviewList = reviewService.selectUserReview(meetupId, "latest");
+		
+		// 2. 가공되지 않은 후기 리스트를 AI 서비스단으로 넘겨 프롬프트 분석 결과 문자열 수신
+		String aiReportResult = openAiReviewService.reviewAnalysis(reviewList);
+		
+		
+		return aiReportResult;
+	}
 
 }
