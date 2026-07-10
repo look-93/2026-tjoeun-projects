@@ -117,7 +117,16 @@
 				html+=`
 				<div class="card">
 					<a href="/meetup/detail?meetupId=${meetup.meetupId}">
-						<div class="card-img"></div>
+					
+						<div class="card-img">
+						${meetup.imagePath 
+		                    ? `<img src="/upload/meetup/${meetup.imagePath}" alt="${meetup.title}" />`
+		                    : `<div class="meetup-no-image">
+		                           <span class="icon">🖼️</span>
+		                           <span>등록된 이미지가 없습니다.</span>
+		                       </div>`
+		                }
+						</div>
 		
 						<div class="card-body">
 		
@@ -234,7 +243,7 @@
 		    )
 		    .then(res => res.json())
 		    .then(data => {
-				 //console.log(data)
+				 console.log(data.hasLike)
 		        // 서버에서 true/false 반환한다고 가정
 		        if (data.hasLike) {
 		            el.innerText = "❤️";

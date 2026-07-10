@@ -169,7 +169,7 @@ textarea{
 
             <div class="info-row">
                 <div class="info-label">등록일</div>
-                <div class="info-value" th:text="${data.createdAt != null ? #dates.format(data.createdAt,'yyyy.MM.dd HH:mm:ss') : '-'}"></div>
+                <div class="info-value" th:text="${#dates.format(data.createdAt,'yyyy.MM.dd HH:mm:ss')}"></div>
             </div>
 
             <div class="info-row">

@@ -10,7 +10,7 @@ import com.moit.qna.dto.QuestionDto;
 public interface QuestionMapper {
 
     // 전체 문의 목록 조회
-    List<QuestionDto> findAll(Map<String, Integer> map);
+    List<QuestionDto> findAll(Map<String, Object> map);
 
     // 문의 상세 조회
     QuestionDto findById(int questionId);
@@ -32,7 +32,9 @@ public interface QuestionMapper {
 
     // 전체 문의 수
     int findAllCnt();
-
+    // 검색 결과 수
+    int findSearchCnt(Map<String, Object> map);
+    
     // 답변 대기 수
     int findPendingCnt();
 
@@ -46,10 +48,13 @@ public interface QuestionMapper {
     List<QuestionDto> findMyQuestions(Map<String, Object> map);
     
     // 내 문의 총 개수 조회
-    int findMyQuestionCnt(int memberId);
+    int findMyQuestionCnt(Map<String, Object> map);
     
     // 답변 삭제 시 문의 상태 변경
     void updateStatusPending(int questionId);
+    
+    // 관리자용 선택 삭제
+    void deleteSelected(List<Integer> ids);
     
     //
     List<QuestionDto> selectByParentId(int parentId);

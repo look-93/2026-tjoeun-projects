@@ -49,13 +49,17 @@ public interface ReportsMapper {
 	/////////////////////////////////////////////
 	// 단순 조회용 쿼리 (로그인/마이페이지 호출용 member_info.trust_score - DB 부하 0%)
 	public ReportsDto findMemberTrustInfo(ReportsDto dto);
-	// 실시간 신뢰도 점수 산출 쿼리
+	
+	// 실시간 신뢰도 점수 산출 쿼리 (3개)
 	// approved_cnt = 모임 참여 승인 횟수 (+2)
 	public int selectApprovedCnt(int reportId);
 	// noshow_cnt = 모임 노쇼 횟수 (-10)
 	public int selectNoshowCnt(int reportId);
 	// report_cnt = 내가 작성한 MEETUP/REVIEW가 신고 승인된 횟수 (-5)
 	public int selectReportCnt(int reportId);
+
+	// 실시간 신뢰도 점수 산출 쿼리 (1개)
+	public int calTrustScore(int reportId);
 	
 	// 계산된 신뢰도 점수 업데이트 쿼리
 	public int updateMemberTrustScore(ReportsDto dto);

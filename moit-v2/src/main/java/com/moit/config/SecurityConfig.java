@@ -27,7 +27,7 @@ public class SecurityConfig {
 
 		//1. 허용경로
 		http.authorizeHttpRequests(auth -> auth.requestMatchers("/user/member/join", "/user/member/login", "/user/checkLoginId" , "/user/checkNickname" , "/api/**").permitAll()
-											   .requestMatchers("/user/member/mypage", "/user/member/update", "/user/member/delete","/user/member/socialInfo").authenticated()
+											   .requestMatchers("/user/member/mypage", "/user/member/update", "/user/member/delete","/user/member/socialInfo","/user/advertisement/**").authenticated()
 											   .anyRequest().permitAll()
 				
 								  )
@@ -57,7 +57,7 @@ public class SecurityConfig {
 								  )
 								  //4. csrf 예외처리								  
 								  .csrf(csrf -> csrf
-										  .ignoringRequestMatchers("/user/member/join", "/user/member/update", "/user/member/delete")
+										  .ignoringRequestMatchers("/user/member/join", "/user/member/update", "/user/member/delete", "/questions/deleteSelected")
 										  // Spring Security는 POST, PUT, DELETE 등의 요청에 CSRF 토큰이 있는지 검사
 										  // Thymeleaf + Spring Security + <form> → CSRF 토큰이 자동으로 추가
 										  // 왜추가했지..???

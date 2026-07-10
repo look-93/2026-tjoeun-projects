@@ -56,7 +56,7 @@ public class ApiEmail {
 								, "text/html; charset=UTF-8");
 			
 			Transport.send(message);
-			System.out.println("....... successfully .......");
+			System.out.println("....... sendEmail successfully .......");
 	
 		} catch (Exception e) { e.printStackTrace(); }
 

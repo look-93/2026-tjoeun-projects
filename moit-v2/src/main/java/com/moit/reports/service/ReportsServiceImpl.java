@@ -10,8 +10,6 @@ import com.moit.reports.api.ApiEmail;
 import com.moit.reports.dao.ReportsMapper;
 import com.moit.reports.dto.ReportsDto;
 
-import javassist.compiler.ast.Keyword;
-
 @Service
 public class ReportsServiceImpl implements ReportsService {
 	@Autowired ReportsMapper dao;
@@ -43,12 +41,12 @@ public class ReportsServiceImpl implements ReportsService {
 		// 중복 신고 select count(*) 쿼리 호출
 		int count = dao.doubleReport(dto);
 		// 이미 신고가 존재하면 insert를 하지 않고 -1(또는 특정 에러코드) 반환
-//		if (count > 0) { return -1; }
+		if (count > 0) { return -1; }
 
 		// 신고 난사 select count(*) 쿼리 호출
 		int todayCnt = dao.TodayReport(dto);
 		// 5회 이상 신고하면 insert를 하지 않고 -2 반환
-//		if (todayCnt >= 5) { return -2; }
+		if (todayCnt >= 5) { return -2; }
 		
 		return dao.insertUserReport(dto);
 	}
@@ -79,25 +77,29 @@ public class ReportsServiceImpl implements ReportsService {
 			int targetMemberId = dao.selectTargetMemberId(dto); // 신고당한 대상 아이디(정보) 불러오기
 			dto.setTargetMemberId(targetMemberId);	
 			
-			int approvedCnt = dao.selectApprovedCnt(targetMemberId);
-			int noshowCnt = dao.selectNoshowCnt(targetMemberId);
-			int reportCnt = dao.selectReportCnt(targetMemberId);
-			
-			int trustScore = 100 + (approvedCnt * 2) - (noshowCnt * 10) - (reportCnt * 5);
-			int reportStatusId = 1; // 1=정상 2=주의 3=정지
-			
-			if( trustScore >= 80 ) {
-				reportStatusId = 1;	
-			} else if ( trustScore >= 40 ) {
-				reportStatusId = 2;
+			// 신뢰도 점수 sql 쿼리 3개
+//			int approvedCnt = dao.selectApprovedCnt(targetMemberId);
+//			int noshowCnt = dao.selectNoshowCnt(targetMemberId);
+//			int reportCnt = dao.selectReportCnt(targetMemberId);
+			// 계산
+//			int trustScore = 100 + (approvedCnt * 2) - (noshowCnt * 10) - (reportCnt * 5);
+
+			// 신뢰도 점수 sql 쿼리 1개
+			int calTrustScore = dao.calTrustScore(targetMemberId);
+
+			int reportStatusId = 1;
+			if( calTrustScore >= 80 ) {
+				reportStatusId = 1;				// 1=정상,클린한 유저
+			} else if ( calTrustScore >= 40 ) {
+				reportStatusId = 2;				// 2=주의,선 넘은 어그로 유저
 			} else {
-				reportStatusId = 3;
+				reportStatusId = 3;				// 3=정지,진실의 방으로...
 			}
 			
 			ReportsDto updateDto = new ReportsDto();
-			updateDto.setMemberId(targetMemberId);
-			updateDto.setTrustScore(trustScore);
-			updateDto.setReportStatusId(reportStatusId);
+			updateDto.setMemberId(targetMemberId);			// 신고대상id
+			updateDto.setTrustScore(calTrustScore);			// 신뢰도점수
+			updateDto.setReportStatusId(reportStatusId);	// 상태 번호 (status_name 출력)
 			
 			dao.updateMemberTrustScore(updateDto);		// 신뢰도 점수 update
 			dao.updateMemberReportStatusId(updateDto);	// 뱃지 상태 update
@@ -109,11 +111,12 @@ public class ReportsServiceImpl implements ReportsService {
 		String subject = "신고 처리되지 않음.";
 		String content = "신고 처리되지 않음.";
 		if( "APPROVED".equals(dto.getStatus()) ) {
-			subject = "[제목] 신고 처리가 승인 되었습니다.";
-			content = "[내용] 신고 처리가 승인 되었습니다.";
+			subject = "[APPROVED] 신고 처리가 승인 되었습니다.";
+			content = "[APPROVED] 신고 처리가 승인 되었습니다.";
+			
 		} else if( "REJECTED".equals(dto.getStatus()) ) {
-			subject = "[제목] 신고 처리가 반려 되었습니다.";
-			content = "[내용] 신고 처리가 반려 되었습니다.";
+			subject = "[REJECTED] 신고 처리가 반려 되었습니다.";
+			content = "[REJECTED] 신고 처리가 반려 되었습니다.";
 		}
 		
 		// apiEmail Email
@@ -213,7 +216,7 @@ public class ReportsServiceImpl implements ReportsService {
 				
 			} else { System.out.println("메일 전송 실패..."); }
 		}
-		return dao.selectThreeDaysAgo(dto);
+		return targetList;
 	}
 
 	

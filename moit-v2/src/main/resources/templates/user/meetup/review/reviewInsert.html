@@ -6,7 +6,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MOIT</title>
-
 <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 
@@ -14,24 +13,24 @@
 
 	<th:block th:replace="~{user/fragments/header :: header}" />
 
-
 	<div class="container">
 
 		<div layout:fragment="content">
 
 			<div class="rw-page-wrapper">
 				<div class="rw-container">
-					<input type="hidden" name="meetupId" th:value="${param.meetupId}">
-					<!-- <div th:text="${param.meetupId}"></div> -->
 
 					<form
 						th:action="${review == null} ? @{/meetup/review/insert} : @{/meetup/review/update}"
 						method="post" enctype="multipart/form-data">
 
+
 						<input type="hidden" name="reviewId"
 							th:value="${review != null ? review.reviewId : 0}"> <input
 							type="hidden" name="meetupId"
 							th:value="${review != null ? review.meetupId : param.meetupId}">
+						<!-- 수정 페이지 출처 유지 -->
+						<input type="hidden" name="from" th:value="${from}">
 
 
 						<div class="rw-card">
@@ -39,7 +38,6 @@
 
 							<div class="rw-header-badge"
 								th:text="${review == null ? '리뷰 등록' : '리뷰 수정'}">리뷰 등록</div>
-
 
 
 							<div class="rw-main-title">
@@ -93,29 +91,34 @@
 
 									<div class="rw-toggle-info">
 
-										<span class="rw-toggle-title" id="toggle-status-text">
-											리뷰 전체 공개 </span> <span class="rw-toggle-desc"> 다른 이용자들이 이 후기를
-											볼 수 있도록 공개합니다. </span>
+										<span class="rw-toggle-title"> 리뷰 공개 여부 </span> <span
+											class="rw-toggle-desc"> 다른 이용자들에게 후기를 공개할지 선택합니다. </span>
 
 
 									</div>
 
 
 
-
-									<label class="rw-switch"> <input type="checkbox"
-										name="isPublic" id="rw-public-toggle" value="Y"
-										th:checked="${review == null or review.isPublic == 'Y'}"
-										onchange="updateToggleText(this)"> <span
-										class="rw-slider"></span>
+									<div class="rw-public-radio">
 
 
-									</label>
+										<label> <input type="radio" name="isPublic" value="Y"
+											th:checked="${review == null or review.isPublic == 'Y'}">
+											공개
+										</label> <label> <input type="radio" name="isPublic" value="N"
+											th:checked="${review != null and review.isPublic == 'N'}">
+											비공개
+										</label>
+
+
+									</div>
 
 
 								</div>
 
+
 							</div>
+
 
 
 
@@ -139,14 +142,17 @@
 
 
 
-							<!-- 사진 -->
+
+							<!-- 이미지 -->
 							<div class="rw-form-group">
 
 								<label>사진 업로드 (선택)</label> <input type="file"
 									name="attachedImages" multiple class="rw-input-field"
 									accept="image/*">
 
+
 							</div>
+
 
 
 
@@ -155,7 +161,6 @@
 							<button type="submit" class="rw-submit-btn"
 								th:text="${review != null ? '수정 완료하기' : '리뷰 등록하기'}">리뷰
 								등록하기</button>
-
 
 
 						</div>
@@ -173,37 +178,7 @@
 	</div>
 
 
-
 	<th:block th:replace="~{user/fragments/footer :: footer}" />
-
-
-
-	<script>
-
-function updateToggleText(checkbox) {
-
-	const statusText = document.getElementById('toggle-status-text');
-
-	if(checkbox.checked) {
-		statusText.innerText = "리뷰 전체 공개";
-	} else {
-		statusText.innerText = "리뷰 비공개";
-	}
-
-}
-
-
-window.addEventListener('DOMContentLoaded', () => {
-
-	const toggle = document.getElementById('rw-public-toggle');
-
-	if(toggle) {
-		updateToggleText(toggle);
-	}
-
-});
-
-</script>
 
 
 </body>
