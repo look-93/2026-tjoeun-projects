@@ -577,10 +577,6 @@
 			    )
 			) DESC,
 	        DBMS_RANDOM.VALUE
-	
-	      ORDER BY
-           a.priority_score DESC,
-           DBMS_RANDOM.VALUE
    
        FETCH FIRST 1 ROW ONLY
 	
