@@ -35,7 +35,8 @@
               <a href="#">비밀번호 변경</a>
               <a href="#">회원 탈퇴</a>   
 
-              <a th:href="@{/user/advertisement/list}"
+              <a  sec:authorize="hasRole('PARTNER')"
+              	  th:href="@{/user/advertisement/list}"
                   th:classappend="${menu == 'advertisement'} ? ' active'">
                    내 광고내역(제휴용)
                </a>         
