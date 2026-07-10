@@ -29,11 +29,6 @@ body {
     min-height: 100vh; /* 화면 높이를 최소 100% 확보 */
 }
 
-html {
-    /* 스크롤바가 사라져도 화면 튕김을 방지하는 마법의 속성 */
-    scrollbar-gutter: stable;
-}
-
 a {
     text-decoration: none;
     color: inherit;
@@ -144,18 +139,18 @@ nav a {
     color: white !important;
 }
 
-.nav-btn-primary:hover {
+.nav--primary:hover {
     background: #5367f0;
 }
 
 /* 관리자문의 버튼 (아웃라인 스타일) */
-.nav-btn-secondary {
+.nav--secondary {
     background: transparent;
     color: #444 !important;
     border: 1px solid #ddd;
 }
 
-.nav-btn-secondary:hover {
+.nav--secondary:hover {
     background: #f1f5f9;
     border-color: #ccc;
 }
@@ -229,7 +224,7 @@ AD
     margin-bottom:10px;
 }
 
-.ad-btn{
+.ad-{
     background:var(--c4);
     color:white;
     padding:10px 20px;
@@ -607,7 +602,7 @@ SECTION
     margin-bottom: 10px;
 }
 
-.meetupList-top-ad-btn {
+.meetupList-top-ad- {
     background: var(--c4);
     color: white;
     padding: 12px 20px;
@@ -615,54 +610,6 @@ SECTION
     text-decoration: none;
 }
 
-/* =========================
-   MEETUP CREATE BUTTON / SEARCH MEETUP
-========================= */
-.btn-search-meetup {
-    background: var(--c4);
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 12px;
-    cursor: pointer;
-
-    font-weight: 600;
-
-    transition: all 0.2s ease;
-}
-
-/* hover */
-.btn-search-meetup:hover {
-    background: #5367f0;
-    box-shadow: 0 6px 15px rgba(83, 103, 240, 0.25);
-}
-
-.btn-create-meetup {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 12px 18px;
-    border-radius: 12px;
-
-    background: linear-gradient(135deg, var(--c4), var(--c3));
-    color: white;
-
-    font-size: 14px;
-    font-weight: 700;
-
-    text-decoration: none;
-
-    box-shadow: var(--shadow);
-
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-
-/* hover */
-.btn-create-meetup:hover {
-    background: linear-gradient(135deg, #5367f0, var(--c4));
-}
 
 /* ==================================================
    MAIN CONTENT AREA (main- 접두사 추가 파트)
@@ -691,12 +638,12 @@ SECTION
     margin-bottom: 25px;
 }
 
-.main-hero-btn {
+.main-hero- {
     display: flex;
     gap: 15px;
 }
 
-.main-btn {
+.main- {
     border: none;
     padding: 14px 28px;
     border-radius: 50px;
@@ -704,12 +651,12 @@ SECTION
     font-weight: 600;
 }
 
-.main-btn-primary {
+.main--primary {
     background: var(--c4);
     color: white;
 }
 
-.main-btn-light {
+.main--light {
     background: white;
     color: var(--text);
 }
@@ -2760,6 +2707,7 @@ textarea.mw-form-input {
    }
 }
 
+>>>>>>> origin/main
 @charset "UTF-8";
 
 /* ==============================
@@ -4110,47 +4058,38 @@ textarea.mw-form-input {
 
 /* 페이징 */
 
-/* ========== Advertisement Pagination (NEW) ========== */
-
-.ad-pagination {
+.pagination {
     display: flex;
     justify-content: center;
     list-style: none;
     gap: 6px;
     margin-top: 30px;
     padding: 0;
-    margin: 0;
 }
 
-.ad-page-item .ad-page-link {
+.page-item .page-link {
     display: block;
     padding: 8px 14px;
     border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 6px;
     text-decoration: none;
     color: #333;
     background: #fff;
-    font-size: 14px;
-    white-space: nowrap; /* 글씨 튀어나오는 문제 해결 */
 }
 
-.ad-page-item.active .ad-page-link {
-    background: var(--c4);
+.page-item.active .page-link {
+    background: #0d6efd;
     color: #fff;
-    border-color: var(--c4);
-    font-weight: 600;
+    border-color: #0d6efd;
 }
 
-.ad-page-item.disabled .ad-page-link {
-    opacity: .4;
+.page-item.disabled .page-link {
+    opacity: .5;
     pointer-events: none;
 }
 
-.ad-pagination-wrap {
-    margin-top: 30px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
+.pagination-wrap{
+    margin-top:30px;
 }
 
 /* 빈 목록 */

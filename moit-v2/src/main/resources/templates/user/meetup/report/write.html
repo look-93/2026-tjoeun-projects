@@ -7,8 +7,13 @@
 <meta charset="UTF-8">
 </head>
 <body>
-    <div layout:fragment="content">
-        <main class="write-page">
+	<th:block th:replace="~{user/fragments/header :: header}" />
+	<div class="container">
+			<div layout:fragment="content">
+				<!-- 페이지 내용 -->
+
+
+<main class="write-page">
 
 	<section class="write-layout">
 		<form class="write-card write-form-card"
@@ -22,7 +27,12 @@
 			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 			<input type="hidden" name="targetType" th:value="${dto.targetType}" />
 			<input type="hidden" name="targetId" th:value="${dto.targetId}" />
-
+			
+			<!-- 중복신고방지 ajax -->
+			<div class="doubleReport_result"></div>
+			<!-- 본인아이디신고방지 ajax -->
+			<div class="reportMe_result"></div>
+			
 			<div class="write-field">
 				<label class="write-label">
 					신고 사유
@@ -78,6 +88,11 @@
 					<span id="detailCount">0</span> / 200
 				</div>
 			</div>
+			
+			<!-- 알람메시지 -->
+			<div th:if="${result}" class="write-result-alert-message" role="alert">
+				<span th:text="${result}"></span>
+			</div>
 
 			<div class="write-actions">
 				<button type="button" class="write-btn" onclick="history.back()">취소</button>
@@ -87,6 +102,7 @@
 	</section>
 </main>
 
+</div>
 <script>
 	const reasonDetail = document.getElementById('reasonDetail');
 	const detailCount = document.getElementById('detailCount');
@@ -94,6 +110,20 @@
 	reasonDetail.addEventListener('input', function() {
 		detailCount.textContent = reasonDetail.value.length;
 	});
+	
+//	중복 신고 방지 (AJAX)
+//	if select(*) 신고 이력이 있다면
+//	ajax로 신고 불가능하게
+//	memberId, targetType, targetId
+//window.addEventListner("load", function() {
+//	let memberId = document.getElementById("memberId");
+//	let target = document.quertSelector(".doubleReport_result");
+	
+//	memberId.addEventListener("keyup", function(e) {
+		
+//	})
+//})
+
 </script>
     </div>
 </body>

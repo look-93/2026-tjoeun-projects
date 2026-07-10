@@ -1,31 +1,16 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html xmlns:th="http://www.thymeleaf.org"
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{admin/layouts/adminLayout}">
+<!--    #1. layout 렌더링    -->
 <head lang="ko">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- <title>MOIT | 모집글 목록</title> -->
-<title>MOIT</title>
 <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-	<th:block th:replace="~{user/fragments/header :: header}" />
-	<div class="container">
-			<div layout:fragment="content">
-				<!-- 페이지 내용 -->
+	<div layout:fragment="content">
+		<!-- 각자파트 -->
 
-<div class="container-fluid">
-
-	<div class="row">
-		<!-- 메인 -->
-		<div class="col-md-10 p-4">
-
-		<!-- 상단 -->
-		<div class="topbar d-flex justify-content-between align-items-center">
-			<h3>신고관리</h3>
-			<div>관리자님</div>
-		</div>
-
-		<!-- 신고목록 -->
  		<div class="admin-list-page"> 
  			<section class="admin-list-card"> 
 				<div class="admin-list-card-head">
@@ -38,19 +23,19 @@
 							전체
 						</a>
 
-						<a th:href="@{/admin/report/adminList(targetType='MEETUP')}"
+						<a th:href="@{/admin/report/adminList(targetType='MEETUP', deleteYn='N')}"
 							class="admin-list-filter-btn"
 							th:classappend="${targetType == 'MEETUP' ? 'active' : ''}">
 							MEETUP
 						</a>
 
-						<a th:href="@{/admin/report/adminList(targetType='REVIEW')}"
+						<a th:href="@{/admin/report/adminList(targetType='REVIEW', deleteYn='N')}"
 							class="admin-list-filter-btn"
 							th:classappend="${targetType == 'REVIEW' ? 'active' : ''}">
 							REVIEW
 						</a>
 
-						<a th:href="@{/admin/report/adminList(status='PENDING')}"
+						<a th:href="@{/admin/report/adminList(status='PENDING', deleteYn='N')}"
 							class="admin-list-filter-btn"
 							th:classappend="${status == 'PENDING' ? 'active' : ''}">
 							PENDING
@@ -63,6 +48,23 @@
 						</a>
 					</div>
 				</div>
+				
+				
+				<!-- 신고 검색(작성자, 사유, 날짜) - 관리자 -->
+				<form th:action="@{/admin/report/adminList}" method="get" class="admin-list-search-form">
+					<div class="admin-list-option">
+						<select id="searchType" name="searchType" title="검색 유형">
+							<option value="memberId" th:selected="${searchType == 'memberId'}">작성자</option>
+							<option value="reasonCode" th:selected="${searchType == 'reasonCode'}">사유</option>
+							<option value="createdAt" th:selected="${searchType == 'createdAt'}">날짜</option>
+						</select>
+					</div>
+					
+					<input type="text" id="keyword" name="keyword" class="admin-list-keyword" th:value="${keyword}" placeholder="검색어를 입력해주세요.">
+					<button type="submit" class="admin-list-btn">검색</button>
+				</form>
+
+
 
 				<div class="admin-list-table-wrap">
 					<table class="admin-list-table">
@@ -156,11 +158,7 @@
 
 		</div>
 	</div>
-</div>
-</div>
 
-			</div>
-	</div>
 	<th:block th:replace="~{user/fragments/footer :: footer}" />
 </body>
 </html>
