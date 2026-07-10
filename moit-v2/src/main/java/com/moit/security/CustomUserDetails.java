@@ -40,6 +40,7 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 	} 
 	
 	@Override
+
 	   public Collection<? extends GrantedAuthority> getAuthorities() {
 			
 			if(user.getMemberId() != null && user.getMemberId() == 0){

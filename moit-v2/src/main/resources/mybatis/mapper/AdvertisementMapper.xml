@@ -577,9 +577,8 @@
 			    )
 			) DESC,
 	        DBMS_RANDOM.VALUE
-	
-	    FETCH FIRST 1 ROW ONLY
-
+   
+       FETCH FIRST 1 ROW ONLY
 	
 	</select>
 	
@@ -910,12 +909,14 @@
 	
 	        NVL(c.clicks,0),
 	
-	        ROUND(
-	            NVL(c.clicks,0)
-	            /
-	            NULLIF(i.impressions,0)
-	            * 100
-	        ,2),
+	        NVL(
+			    ROUND(
+			        NVL(c.clicks,0)
+			        /
+			        NULLIF(i.impressions,0)
+			        *100
+			    ,2)
+			,0),
 	
 	        CASE
 	            WHEN NVL(i.impressions,0) >= 10000

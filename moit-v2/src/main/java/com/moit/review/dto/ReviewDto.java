@@ -15,4 +15,12 @@ public class ReviewDto {
 	private boolean deleteYn;
 	private String createdAt;
 	private String updatedAt;
+	
+	//이미지 테이블
+    private int imageId;
+    private String imagePath;
+   
+  
+	
+	
 }

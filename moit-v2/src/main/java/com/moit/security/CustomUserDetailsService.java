@@ -41,8 +41,7 @@ public class CustomUserDetailsService implements UserDetailsService{
 	    
 	    if (dto == null) {
             throw new UsernameNotFoundException( "회원정보를 찾을 수 없습니다 : " + username);
-        }	  
-	    	    
+
 	    return new CustomUserDetails( dto, authDto );
 
 	}

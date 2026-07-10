@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,8 +25,10 @@ import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
 import com.moit.meetup.service.MeetupService;
+import com.moit.member.dto.UserDto;
 import com.moit.review.dto.ReviewDto;
 import com.moit.review.service.ReviewService;
+import com.moit.security.CustomUserDetails;
 import com.moit.util.UtilPaging;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -104,7 +107,6 @@ public class MeetupController {
 			meetupSearchDto.setPstartno(1);
 		}
 		
-		//System.out.println(meetupSearchDto.getCategoryId());
 		Map<String, Object> map = new HashMap<>();
 		map.put("paging", new UtilPaging(meetupService.findAllMeetupCountBy(meetupSearchDto), pstartno));
 		map.put("searchList", meetupService.findAllMeetupBy(pstartno, meetupSearchDto));
@@ -120,12 +122,18 @@ public class MeetupController {
 	@ResponseBody
 	public Map<String, Object> meetupLike(MeetupLikeDto meetupLikeDto, Authentication authentication, MeetupDto meetupdto) {
 		
-		/*
-		 * CustomUser user = (CustomUser) authentication.getPrincipal(); int memberId =
-		 * userMeetupService.findByMamberId(user.getUsername());
-		 * meetupLikeDto.setMemberId(memberId);
-		 */	
-		meetupLikeDto.setMemberId(1);
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 
+		meetupLikeDto.setMemberId(memberId);
 		Map<String, Object> result = new HashMap<>();
 		
 		//meetupLikeDto.setMemberId(3);
@@ -135,15 +143,26 @@ public class MeetupController {
 		return result;	
 	}	
 	
-	/*모임상세조회*/
+
+	/* 사용자 - 모임상세조회 */
 	@GetMapping("/meetup/detail")
 	public String detail(Model model, Authentication authentication, 
 						MeetupApplicationDto meetupApplicationDto, 
+						@RequestParam(value = "keyword", required = false) String keyword,   // ★ 추가
 						@RequestParam(value = "sort", required = false, defaultValue = "latest")  String sort,
 			            HttpServletRequest request, HttpSession session	) {
 		
-		Integer memberId =
-				 (Integer)session.getAttribute("loginMemberId");
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 
 		
 		String sessionId =
 		        session.getId();
@@ -151,48 +170,70 @@ public class MeetupController {
 //		CustomUser user = (CustomUser) authentication.getPrincipal(); 
 //		int memberId = userMeetupService.findByMamberId(user.getUsername());
 //		meetupApplicationsDto.setMemberId(memberId);
-		
-		AdvertisementDto desidebar = advertisementService.selectTopAdvertisement( "MEETUP_DETAIL_SIDEBAR" , memberId, sessionId);
+	    AdvertisementDto desidebar =
+	            advertisementService.selectTopAdvertisement("MEETUP_DETAIL_SIDEBAR", memberId, sessionId);
 
-		meetupApplicationDto.setMemberId(2);
-		model.addAttribute("desidebarAd", desidebar);
-		// 광고가 존재하면 노출 증가
-		if(desidebar != null){
+	    meetupApplicationDto.setMemberId(memberId);
+	    model.addAttribute("desidebarAd", desidebar);
 
-		    boolean counted =
-		        advertisementService.insertImpressionLog(
-		            desidebar.getAdId(),
-                    "MEETUP_DETAIL_SIDEBAR",
-		            request,
-		            session
-		        );
+	    // 광고가 존재하면 노출 증가
+	    if (desidebar != null) {
+	        advertisementService.updateImpressions(desidebar.getAdId());
+	    }
 
-		    if(counted){
-		        advertisementService.updateImpressions(
-		            desidebar.getAdId()
-		        );
-		    }
-		}
-		
-		meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
-		model.addAttribute("applyInfo",meetupService.findApplyInfo(meetupApplicationDto));
-		model.addAttribute("detail", meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
-		model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
-		List<ReviewDto> reviewList = reviewService.selectUserReview(meetupApplicationDto.getMeetupId(), sort);
-		model.addAttribute("reviews", reviewList);
-		
-		return "user/meetup/detail";
+	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
+	    model.addAttribute("applyInfo", meetupService.findApplyInfo(meetupApplicationDto));
+	    model.addAttribute("detail", meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
+	    model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
+	    //로그인한 사용자 html 로 전달(후기)
+	    model.addAttribute("loginMemberId", memberId);
+	    //  기존 부분
+	    // List<ReviewDto> reviewList =
+	    //        reviewService.selectUserReview(meetupApplicationDto.getMeetupId(), sort);
+	    // model.addAttribute("reviews", reviewList);
+
+	    // ★ 추가 시작
+	    List<ReviewDto> reviewList;
+
+	    if (keyword != null && !keyword.isBlank()) {
+	        reviewList = reviewService.selectReviewByContent(
+	                meetupApplicationDto.getMeetupId(),
+	                keyword,
+	                sort);
+	    } else {
+	        reviewList = reviewService.selectUserReview(
+	                meetupApplicationDto.getMeetupId(),
+	                sort);
+	    }
+
+	    model.addAttribute("reviews", reviewList);
+	    model.addAttribute("keyword", keyword);
+	    model.addAttribute("sort", sort);
+	    // ★ 추가 끝
+	    
+	    return "user/meetup/detail";
 	}
 	
 	//모집신청
+	@PreAuthorize("isAuthenticated()")
 	@PostMapping("/meetup/applyMeetup")
 	@ResponseBody
 	public Map<String, Object> applyMeetup(@RequestBody MeetupApplicationDto  meetupApplicationDto, MeetupDto meetupdto, Authentication authentication) {
 		Map<String, Object> map = new HashMap<>();
-//		CustomUser user = (CustomUser) authentication.getPrincipal();		
-//		int memberId = userMeetupService.findByMamberId(user.getUsername());		
-//		meetupApplicationsDto.setMemberId(memberId);
-		meetupApplicationDto.setMemberId(2);
+		
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 		
+
+		meetupApplicationDto.setMemberId(memberId);
 
 		boolean result = meetupService.insertApplication(meetupApplicationDto ) > 0;
 		map.put("result", result);
@@ -201,33 +242,54 @@ public class MeetupController {
 		
 
 	//모집신청취소
+	@PreAuthorize("isAuthenticated()")
 	@PostMapping("/meetup/cancelApplyMeetup")
 	@ResponseBody
 	public Map<String, Object> cancelApplyMeetup(@RequestBody MeetupApplicationDto  meetupApplicationDto, MeetupDto meetupdto, Authentication authentication) {
 		Map<String, Object> map = new HashMap<>();
-//		CustomUser user = (CustomUser) authentication.getPrincipal();		
-//		int memberId = userMeetupService.findByMamberId(user.getUsername());		
-//		meetupApplicationsDto.setMemberId(memberId);
-		meetupApplicationDto.setMemberId(2);
+		
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 
+		meetupApplicationDto.setMemberId(memberId);
 
 		boolean result = meetupService.cancelApplyMeetup(meetupApplicationDto ) > 0;
 		map.put("result", result);
 		return map;
 	}	
 	
+
 	
 	//마이페이지 - 내 모집글 정보
+	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/mypage/myMeetupInfo")
 	public String myMeetupList(Model model, MeetupDto meetupdto, Authentication authentication, @RequestParam(value="pstartno", defaultValue="1") int pstartno) {
 		// 멤버완료 취합 후 적용
-//		CustomUser user = (CustomUser) authentication.getPrincipal();		
-//		int memberId = userMeetupService.findByMamberId(user.getUsername());		
-//		meetupdto.setMemberId(memberId);
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 
 		
-		meetupdto.setMemberId(2);
+		model.addAttribute("dto" , user); 
+		meetupdto.setMemberId(memberId);
 		//SystSystem.out.println(meetupdto.getMeetupId());em.out.println(meetupService.selectMyMeetup(pstartno,meetupdto));
 		//System.out.println(meetupdto.getMeetupId());
-		model.addAttribute("meetupStats", meetupService.selectMyPageStats(meetupdto.getMemberId())); //통계
+		model.addAttribute("meetupStats", meetupService.selectMyPageStats(memberId)); //통계
 		model.addAttribute("meetupList", meetupService.selectMyMeetup(pstartno,meetupdto));
 		model.addAttribute("paging", new UtilPaging(meetupService.selectMyMeetupTotalCnt(meetupdto), pstartno));
 		
@@ -277,11 +339,19 @@ public class MeetupController {
 							   Authentication authentication, 
 							   @RequestParam(value = "files", required = false) List<MultipartFile> files) {
 		// 멤버완료 취합 후 적용
-//		CustomUser user = (CustomUser) authentication.getPrincipal();		
-//		int memberId = userMeetupService.findByMamberId(user.getUsername());		
-//		meetupdto.setMemberId(memberId);
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 
 		
-		meetupdto.setMemberId(2);
+		meetupdto.setMemberId(memberId);
 		//System.out.println(meetupdto.getMeetupId());
 		
 		//System.out.println(files + "ddddddddddddddddddddddddddddddddddddddd");
@@ -308,26 +378,44 @@ public class MeetupController {
 	@PostMapping("/mypage/update")
 	public String updateMeetup(Model model, MeetupDto meetupdto, RedirectAttributes rttr, Authentication authentication, @RequestParam(value = "files", required = false) List<MultipartFile> files) {
 		// 멤버완료 취합 후 적용
-//		CustomUser user = (CustomUser) authentication.getPrincipal();		
-//		int memberId = userMeetupService.findByMamberId(user.getUsername());		
-//		meetupdto.setMemberId(memberId);
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 
 		
-		meetupdto.setMemberId(2);
+		meetupdto.setMemberId(memberId);
 		boolean result = meetupService.updateMeetup(meetupdto, files) > 0;		
 		rttr.addFlashAttribute("result", result);		
 		return "redirect:/mypage/myMeetupInfo";
 	}		
 
 	//마이페이지 내 신청글 조회
+	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/mypage/meetupApplyInfo")
 		public String myMeetupApplyList(Model model, MeetupDto meetupdto, Authentication authentication, @RequestParam(value="pstartno", defaultValue="1") int pstartno) {
 			// 멤버완료 취합 후 적용
-//			CustomUser user = (CustomUser) authentication.getPrincipal();		
-//			int memberId = userMeetupService.findByMamberId(user.getUsername());		
-//			meetupdto.setMemberId(memberId);
+			String loginId     = null, provider = null;
+			UserDto user=null;
+			Object principal = authentication.getPrincipal();
+			Integer memberId = null;
+			//1. local
+			if(   principal   instanceof CustomUserDetails ) {
+				CustomUserDetails  users = (CustomUserDetails)principal;
+				user=users.getUser();
+				loginId    =  users.getUser().getLoginId();
+				memberId = users.getUser().getMemberId();
+			} 
 			
-			meetupdto.setMemberId(2);		
-			model.addAttribute("meetupStats", meetupService.selectMyPageStats(meetupdto.getMemberId()));
+			meetupdto.setMemberId(memberId);		
+			model.addAttribute("dto" , user); 
+			model.addAttribute("meetupStats", meetupService.selectMyPageStats(memberId));
 			model.addAttribute("applyList", meetupService.selectMyMeetupApply(pstartno,meetupdto));
 			model.addAttribute("paging", new UtilPaging(meetupService.selectMyMeetupApplyTotalCnt(meetupdto), pstartno));
 			//model.addAttribute("menu", "meetupApply");

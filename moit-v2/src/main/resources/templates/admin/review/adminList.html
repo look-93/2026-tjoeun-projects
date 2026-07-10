@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layouts/adminLayout}">
+<head lang="ko">
+<meta charset="UTF-8">
+<title>관리자 - 후기 관리</title>
+</head>
+<body>
+	<div layout:fragment="content">
+		<div class="row mb-4">
+			<div class="col-md-4">
+				<div class="card-box">
+					<h6>전체 후기 수</h6>
+					<div class="stat-number" th:text="${#lists.size(adminReviews)}">0</div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="card-box">
+					<h6>검색된 후기 수</h6>
+					<div class="stat-number" th:text="${(keyword != null and !keyword.isBlank()) or memberId > 0 ? #lists.size(adminReviews) : '-'}">-</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="table-box mb-4">
+			<form th:action="@{/admin/review/list}" method="get">
+				<div class="row g-2">
+					<div class="col-md-4">
+						<input type="text" name="keyword" class="form-control" th:value="${keyword}" placeholder="후기 내용 검색">
+					</div>
+					<div class="col-md-3">
+						<input type="number" name="memberId" class="form-control" th:value="${memberId > 0 ? memberId : ''}" placeholder="작성자 회원번호 검색">
+					</div>
+					<div class="col-md-2">
+						<button type="submit" class="btn btn-primary w-100">검색</button>
+					</div>
+					<div class="col-md-1">
+						<a th:href="@{/admin/review/list}" class="btn btn-outline-secondary w-100">초기화</a>
+					</div>
+				</div>
+			</form>
+		</div>
+
+		<div class="table-box">
+			<table class="table table-hover align-middle">
+				<thead class="table-light">
+					<tr>
+						<th width="80">후기번호</th>
+						<th width="100">모임번호</th>
+						<th width="100">작성자ID</th>
+						<th>후기 내용</th>
+						<th width="80">평점</th>
+						<th width="100">공개여부</th>
+						<th width="120">등록일</th>
+						<th width="180" class="text-center">관리</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:if="${#lists.isEmpty(adminReviews)}">
+						<td colspan="8" class="text-center py-4 text-muted">조회된 후기가 없습니다.</td>
+					</tr>
+					
+					<tr th:each="review : ${adminReviews}">
+						<td th:text="${review.reviewId}">1</td>
+						<td th:text="${review.meetupId}">10</td>
+						<td>
+							<span class="badge bg-secondary" th:text="${'No. ' + review.memberId}">No. 2</span>
+						</td>
+						<td>
+							<div class="text-truncate" style="max-width: 400px;" th:text="${review.content}">
+								후기 내용이 여기에 출력됩니다.
+							</div>
+						</td>
+						<td>
+							<span style="color: #FBBF24;">★</span> 
+							<span th:text="${review.rating}">5</span>
+						</td>
+						<td>
+							<span th:if="${review.isPublic == 'Y' or review.isPublic == null}" class="badge bg-success">공개</span>
+							<span th:if="${review.isPublic == 'N'}" class="badge bg-danger">숨김(비공개)</span>
+						</td>
+						<td th:text="${review.createdAt != null and #strings.length(review.createdAt) >= 10 ? #strings.substring(review.createdAt, 0, 10) : review.createdAt}">2026-06-01</td>
+						<td>
+							<div class="d-flex justify-content-center gap-1">
+								
+								<form th:action="@{/admin/review/hide}" method="post" onsubmit="return confirm('이 후기를 비공개(숨김) 처리하시겠습니까?');">
+									<input type="hidden" th:name="${_csrf != null ? _csrf.parameterName : '_csrf'}" th:value="${_csrf != null ? _csrf.token : ''}" th:if="${_csrf != null}"/>
+									<input type="hidden" name="reviewId" th:value="${review.reviewId}">
+									<button type="submit" class="btn btn-sm btn-warning" th:disabled="${review.isPublic == 'N'}">숨김</button>
+								</form>
+								
+								<form th:action="@{/admin/review/delete}" method="post" onsubmit="return confirm('정말 이 후기를 영구 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.');">
+									<input type="hidden" th:name="${_csrf != null ? _csrf.parameterName : '_csrf'}" th:value="${_csrf != null ? _csrf.token : ''}" th:if="${_csrf != null}"/>
+									<input type="hidden" name="reviewId" th:value="${review.reviewId}">
+									<button type="submit" class="btn btn-sm btn-danger">삭제</button>
+								</form>
+								
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<nav th:if="${!#lists.isEmpty(adminReviews)}">
+				<ul class="pagination justify-content-center">
+					<li class="page-item active"><a class="page-link" href="#">1</a></li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</body>
+</html>
