@@ -12,14 +12,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
-public class OpenAiService {
+public class OpenAiService2 {
 	@Value("${openai.api.key}") private String apiKey;
 	
 	private static final String API_URL="https://api.openai.com/v1/chat/completions"; //1. 주소고정
 	private final ObjectMapper objectMapper = new ObjectMapper();
 	private final RestClient restClient;
 	
-    public OpenAiService(RestClient.Builder restClientBuilder) {
+    public OpenAiService2(RestClient.Builder restClientBuilder) {
         this.restClient = restClientBuilder.baseUrl(API_URL).build();
     }	
 	
