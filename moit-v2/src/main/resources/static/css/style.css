@@ -29,11 +29,6 @@ body {
     min-height: 100vh; /* 화면 높이를 최소 100% 확보 */
 }
 
-html {
-    /* 스크롤바가 사라져도 화면 튕김을 방지하는 마법의 속성 */
-    scrollbar-gutter: stable;
-}
-
 a {
     text-decoration: none;
     color: inherit;
@@ -144,18 +139,18 @@ nav a {
     color: white !important;
 }
 
-.nav-btn-primary:hover {
+.nav--primary:hover {
     background: #5367f0;
 }
 
 /* 관리자문의 버튼 (아웃라인 스타일) */
-.nav-btn-secondary {
+.nav--secondary {
     background: transparent;
     color: #444 !important;
     border: 1px solid #ddd;
 }
 
-.nav-btn-secondary:hover {
+.nav--secondary:hover {
     background: #f1f5f9;
     border-color: #ccc;
 }
@@ -229,7 +224,7 @@ AD
     margin-bottom:10px;
 }
 
-.ad-btn{
+.ad-{
     background:var(--c4);
     color:white;
     padding:10px 20px;
@@ -367,6 +362,7 @@ SECTION
     overflow: hidden;
     box-shadow: var(--shadow);
     transition: .3s;
+    cursor: pointer;
 }
 
 .card:hover {
@@ -376,6 +372,45 @@ SECTION
 .card-img {
     height: 180px;
     background: linear-gradient(135deg, var(--c2), var(--c3));
+    
+    /* 1. 혹시라도 이미지가 삐져나오면 잘라버리는 안전장치 */
+    overflow: hidden; 
+    position: relative;
+}
+
+/* 2. 카드 이미지 안의 <img> 태그 스타일 지정 */
+.card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block; /* 👈 하단 미세 공백 제거 및 완벽한 블록화 */
+}
+
+/* 💡 디테일 페이지 스타일을 참고해서 만든 카드용 '이미지 없음' 스타일 */
+.meetup-no-image {
+    width: 100%;
+    height: 100%; /* 부모인 .card-img의 180px을 그대로 채움 */
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* 세로 가운데 정렬 */
+    align-items: center;     /* 가로 가운데 정렬 */
+    gap: 6px;                /* 아이콘과 텍스트 사이 간격 */
+
+    /* 카드 자체에 그라데이션 배경이 있으므로 배경은 투명하게, 테두리는 점선으로 어우러지게 설정 */
+    background: #f9f9f9;
+	overflow: hidden; 
+    position: relative;
+    /* 그라데이션 배경 위에서 글자가 잘 보이도록 흰색 계열로 지정 */
+    color: #999;
+    font-size: 13px; /* 카드는 작으므로 글씨 크기를 약간 축소 */
+    font-weight: 500;
+}
+
+/* 🖼️ 아이콘 크기 제어 */
+.meetup-no-image .icon {
+    font-size: 22px; /* 아이콘 크기도 카드 비율에 맞춰 조정 */
 }
 
 .card-body {
@@ -567,7 +602,7 @@ SECTION
     margin-bottom: 10px;
 }
 
-.meetupList-top-ad-btn {
+.meetupList-top-ad- {
     background: var(--c4);
     color: white;
     padding: 12px 20px;
@@ -575,54 +610,6 @@ SECTION
     text-decoration: none;
 }
 
-/* =========================
-   MEETUP CREATE BUTTON / SEARCH MEETUP
-========================= */
-.btn-search-meetup {
-    background: var(--c4);
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 12px;
-    cursor: pointer;
-
-    font-weight: 600;
-
-    transition: all 0.2s ease;
-}
-
-/* hover */
-.btn-search-meetup:hover {
-    background: #5367f0;
-    box-shadow: 0 6px 15px rgba(83, 103, 240, 0.25);
-}
-
-.btn-create-meetup {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 12px 18px;
-    border-radius: 12px;
-
-    background: linear-gradient(135deg, var(--c4), var(--c3));
-    color: white;
-
-    font-size: 14px;
-    font-weight: 700;
-
-    text-decoration: none;
-
-    box-shadow: var(--shadow);
-
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-
-/* hover */
-.btn-create-meetup:hover {
-    background: linear-gradient(135deg, #5367f0, var(--c4));
-}
 
 /* ==================================================
    MAIN CONTENT AREA (main- 접두사 추가 파트)
@@ -651,12 +638,12 @@ SECTION
     margin-bottom: 25px;
 }
 
-.main-hero-btn {
+.main-hero- {
     display: flex;
     gap: 15px;
 }
 
-.main-btn {
+.main- {
     border: none;
     padding: 14px 28px;
     border-radius: 50px;
@@ -664,12 +651,12 @@ SECTION
     font-weight: 600;
 }
 
-.main-btn-primary {
+.main--primary {
     background: var(--c4);
     color: white;
 }
 
-.main-btn-light {
+.main--light {
     background: white;
     color: var(--text);
 }
@@ -692,11 +679,19 @@ SECTION
     border-radius: 20px;
     text-align: center;
     box-shadow: var(--shadow);
+    cursor: pointer; /* 마우스 오버 시 손가락 모양으로 변경 */
+    transition: all 0.2s ease; /* 부드러운 전환 효과 */
 }
 
 .main-category-card span {
     display: block;
     margin-top: 10px;
+}
+
+/* 마우스를 올렸을 때(hover) 스타일 */
+.main-category-card:hover {
+    background-color: #f5f5f5; /* 배경색을 살짝 밝게 변경 */
+    transform: translateY(-2px); /* 카드가 위로 2px 살짝 들리는 효과 */
 }
 
 /* CARD WRAP */
@@ -813,6 +808,12 @@ footer {
 /* ==================================================
    MYPAGE CONTENT AREA (마이페이지 전용 스타일 추가)
    ================================================== */
+.mypage-page-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-top: 30px;   /* 👈 여기서 간격을 강제로 고정 */
+}
 
 /* 1. 상단 프로필 카드 */
 .mypage-profile-card {
@@ -823,7 +824,7 @@ footer {
     display: flex;
     align-items: center;
     gap: 25px;
-    margin-top: 30px;
+    margin-top: 0px;
     margin-bottom: 25px;
 }
 
@@ -2533,8 +2534,8 @@ textarea.mw-form-input {
 
 .modal-window {
     background: white;
-    width: 750px;
-    max-width: 90%;
+    width: 1000px;
+    max-width: 95%;
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     overflow: hidden;
@@ -2576,7 +2577,7 @@ textarea.mw-form-input {
 
 .modal-body {
     padding: 24px;
-    max-height: 450px;
+    max-height: 650px;
     overflow-y: auto;
 }
 
@@ -2706,6 +2707,7 @@ textarea.mw-form-input {
    }
 }
 
+>>>>>>> origin/main
 @charset "UTF-8";
 
 /* ==============================
@@ -3863,6 +3865,55 @@ textarea.mw-form-input {
     margin-bottom:25px;
 }
 
+/* 버튼 영역 */
+.ad-list-action{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 공통 버튼 */
+.ad-list-btn{
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 60px;
+    height: 34px;
+
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+
+    transition: .2s;
+}
+
+/* 상세 */
+.ad-list-btn-detail{
+    background: #4a90e2;
+    color: #fff;
+}
+
+.ad-list-btn-detail:hover{
+    background: #357abd;
+    color: #fff;
+}
+
+/* 삭제 */
+.ad-list-btn-delete{
+    background: #e74c3c;
+    color: #fff;
+}
+
+.ad-list-btn-delete:hover{
+    background: #c0392b;
+}
+
 /* 테이블 */
 
 .table {
@@ -4056,47 +4107,38 @@ textarea.mw-form-input {
 
 /* 페이징 */
 
-/* ========== Advertisement Pagination (NEW) ========== */
-
-.ad-pagination {
+.pagination {
     display: flex;
     justify-content: center;
     list-style: none;
     gap: 6px;
     margin-top: 30px;
     padding: 0;
-    margin: 0;
 }
 
-.ad-page-item .ad-page-link {
+.page-item .page-link {
     display: block;
     padding: 8px 14px;
     border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 6px;
     text-decoration: none;
     color: #333;
     background: #fff;
-    font-size: 14px;
-    white-space: nowrap; /* 글씨 튀어나오는 문제 해결 */
 }
 
-.ad-page-item.active .ad-page-link {
-    background: var(--c4);
+.page-item.active .page-link {
+    background: #0d6efd;
     color: #fff;
-    border-color: var(--c4);
-    font-weight: 600;
+    border-color: #0d6efd;
 }
 
-.ad-page-item.disabled .ad-page-link {
-    opacity: .4;
+.page-item.disabled .page-link {
+    opacity: .5;
     pointer-events: none;
 }
 
-.ad-pagination-wrap {
-    margin-top: 30px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
+.pagination-wrap{
+    margin-top:30px;
 }
 
 /* 빈 목록 */
@@ -4363,6 +4405,28 @@ textarea.mw-form-input {
 
 .member-ad-no-image img {
     width:300px;
+}
+
+.member-ad-image-box{
+    position: relative;
+    display: inline-block;
+}
+
+.member-ad-image-type{
+    position: absolute;
+    top: 10px;
+    left: 10px;
+
+    background: rgba(0,0,0,.7);
+    color: #fff;
+
+    padding: 4px 10px;
+    border-radius: 6px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    z-index: 10;
 }
 
 /* 정보 */

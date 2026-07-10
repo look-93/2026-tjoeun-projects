@@ -38,6 +38,7 @@ public interface ReportsService {
     // 관리자 신고 목록 카운트 (동적 조건 반영)
     public int selectAdminReportsCnt(HashMap<String, Object> map);
 	
+    
 	
 /*	// ��ü �Ű� ��� ��� ��ȸ
 	public List<ReportsDto> selectAdminReport( HashMap<String, Object> map );

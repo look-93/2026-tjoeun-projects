@@ -123,7 +123,7 @@
 		
 		</div>
 		<!-- 각자파트 -->	
-	<script th:inline="javascript" >
+		<script th:inline="javascript" >
 		//csrf 토큰
 		const csrfToken = document.querySelector('meta[name="_csrf"]').content;
 		const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
@@ -131,7 +131,7 @@
 		let currentPage = 1;
 	
 	
-	 	// 페이지가가 처음 로드될 때 실행
+	 	// 페이지가 처음 로드될 때 실행
 		window.addEventListener("DOMContentLoaded",function(){
 			loadMeetup(1);
 			

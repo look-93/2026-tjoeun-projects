@@ -54,17 +54,7 @@ public class AdvertisementController {
 			loginId    =  users.getUser().getLoginId();
 			memberId = users.getUser().getMemberId();
 		} 
-		    	
 
-		/*
-		 * Integer loginMemberId = (Integer) session.getAttribute("loginMemberId");
-		 */
-
-        if (memberId == null) {
-        	memberId = 12;
-        }
-
-        
         dto.setAdvertiserId(memberId);
 
         int page = dto.getPage() <= 0 ? 1 : dto.getPage();
@@ -86,8 +76,8 @@ public class AdvertisementController {
         if (totalPage == 0) { totalPage = 1; }
 
         model.addAttribute("list", list);
-        model.addAttribute("dto", dto);
         model.addAttribute("search", dto);
+        model.addAttribute("dto" , user); 
         model.addAttribute("totalCnt", totalCnt);
         model.addAttribute("totalPage", totalPage);
         model.addAttribute("menu", "advertisement");
@@ -117,18 +107,23 @@ public class AdvertisementController {
             @RequestParam(value = "imageTypes", required = false)
             List<String> imageTypes,
 
-            HttpSession session) {
+            Authentication authentication) {
 
         try {
 
-            Integer loginMemberId =
-                    (Integer) session.getAttribute("loginMemberId");
+        	String loginId     = null, provider = null;
+    		UserDto user=null;
+    		Object principal = authentication.getPrincipal();
+    		Integer memberId = null;
+    		//1. local
+    		if(   principal   instanceof CustomUserDetails ) {
+    			CustomUserDetails  users = (CustomUserDetails)principal;
+    			user=users.getUser();
+    			loginId    =  users.getUser().getLoginId();
+    			memberId = users.getUser().getMemberId();
+    		}
 
-            if (loginMemberId == null) {
-                loginMemberId = 12;
-            }
-
-            dto.setAdvertiserId(loginMemberId);
+            dto.setAdvertiserId(memberId);
 
             advertisementService.insertAdvertisement(dto);
 
@@ -177,24 +172,29 @@ public class AdvertisementController {
     @GetMapping("/detail")
     public String detail(
             @RequestParam int adId,
-            HttpSession session,
+            Authentication authentication,
             Model model) {
 
         AdvertisementDto dto =
                 advertisementService.selectAdvertisementOne(adId);
 
-        Integer loginMemberId =
-                (Integer) session.getAttribute("loginMemberId");
-
-        if (loginMemberId == null) {
-            loginMemberId = 12;
-        }
+        String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		}
 
         if (dto == null) {
             return "redirect:/user/advertisement/list";
         }
 
-        if (dto.getAdvertiserId() != loginMemberId) {
+        if (dto.getAdvertiserId() != memberId) {
             return "redirect:/user/advertisement/list";
         }
 
@@ -207,24 +207,29 @@ public class AdvertisementController {
     @GetMapping("/edit")
     public String edit(
             @RequestParam int adId,
-            HttpSession session,
+            Authentication authentication,
             Model model) {
 
         AdvertisementDto dto =
                 advertisementService.selectAdvertisementOne(adId);
 
-        Integer loginMemberId =
-                (Integer) session.getAttribute("loginMemberId");
-
-        if (loginMemberId == null) {
-            loginMemberId = 12;
-        }
+        String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		}
 
         if (dto == null) {
             return "redirect:/user/advertisement/list";
         }
 
-        if (dto.getAdvertiserId() != loginMemberId) {
+        if (dto.getAdvertiserId() != memberId) {
             return "redirect:/user/advertisement/list";
         }
 
@@ -248,14 +253,19 @@ public class AdvertisementController {
             @RequestParam(value = "imageTypes", required = false)
             List<String> imageTypes,
 
-            HttpSession session) {
+            Authentication authentication) {
 
-        Integer loginMemberId =
-                (Integer) session.getAttribute("loginMemberId");
-
-        if (loginMemberId == null) {
-            loginMemberId = 12;
-        }
+    	String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		}
 
         AdvertisementDto origin =
                 advertisementService.selectAdvertisementOne(dto.getAdId());
@@ -264,11 +274,11 @@ public class AdvertisementController {
             return "redirect:/user/advertisement/list";
         }
 
-        if (origin.getAdvertiserId() != loginMemberId) {
+        if (origin.getAdvertiserId() != memberId) {
             return "redirect:/user/advertisement/list";
         }
 
-        dto.setAdvertiserId(loginMemberId);
+        dto.setAdvertiserId(memberId);
 
         advertisementService.updateAdvertisement(
                 dto,
@@ -322,25 +332,29 @@ public class AdvertisementController {
     @PostMapping("/delete")
     public String delete(
             @RequestParam int adId,
-            HttpSession session) {
+            Authentication authentication) {
 
         AdvertisementDto dto =
                 advertisementService.selectAdvertisementOne(adId);
 
-        Integer loginMemberId =
-                (Integer) session.getAttribute("loginMemberId");
-
-        if (loginMemberId == null) {
-            loginMemberId = 12;
-            // return "redirect:/member/login";
-        }
+        	String loginId     = null, provider = null;
+    		UserDto user=null;
+    		Object principal = authentication.getPrincipal();
+    		Integer memberId = null;
+    		//1. local
+    		if(   principal   instanceof CustomUserDetails ) {
+    			CustomUserDetails  users = (CustomUserDetails)principal;
+    			user=users.getUser();
+    			loginId    =  users.getUser().getLoginId();
+    			memberId = users.getUser().getMemberId();
+    		}
 
         // 권한 체크
         if (dto == null) {
             return "redirect:/user/advertisement/list";
         }
 
-        if (dto.getAdvertiserId() != loginMemberId) {
+        if (dto.getAdvertiserId() != memberId) {
             return "redirect:/user/advertisement/list";
         }
 

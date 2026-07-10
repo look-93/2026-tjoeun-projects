@@ -41,8 +41,6 @@
 
             </div>
 
-
-
             <div class="member-ad-stat-card">
 
                 <div class="member-ad-label">
@@ -56,15 +54,11 @@
 
             </div>
 
-
-
-
             <div class="member-ad-stat-card">
 
                 <div class="member-ad-label">
                     CTR
                 </div>
-
 
                 <div class="member-ad-stat-number">
 
@@ -72,23 +66,15 @@
                           th:text="${#numbers.formatDecimal(dto.clicks * 100.0 / dto.impressions,1,2)} + '%'">
                     </span>
 
-
                     <span th:unless="${dto.impressions > 0}">
                         0.00%
                     </span>
 
-
                 </div>
-
 
             </div>
 
-
         </div>
-
-
-
-
 
         <!-- =================
              이미지
@@ -97,31 +83,32 @@
         <div class="member-ad-image-area"
              th:if="${dto.imageList != null and !#lists.isEmpty(dto.imageList)}">
 
-
             <div class="member-ad-image-box"
                  th:each="img:${dto.imageList}">
-
+                 
+                 <!-- 위치 표시 -->
+		        <div class="member-ad-image-type"
+				     th:text="${
+				        img.imageType == 'MAIN' ? '메인' :
+				        img.imageType == 'SIDEBAR' ? '사이드바' :
+				        img.imageType == 'DETAIL' ? '상세' :
+				        img.imageType
+				     }">
+				</div>
 
                 <img th:src="${img.imageUrl}"
                      class="member-ad-image">
 
             </div>
 
-
         </div>
-
-
 
         <div class="member-ad-no-image"
              th:unless="${dto.imageList != null and !#lists.isEmpty(dto.imageList)}">
 
-
             <img src="/upload/no-image.png">
 
         </div>
-
-
-
 
 
         <!-- =================
@@ -253,6 +240,18 @@
 				     th:unless="${dto.updatedAt != null}">
 				    -
 				</div>
+			
+			</div>
+			
+			<div class="member-ad-info-box">
+
+			    <div class="member-ad-label">
+			        광고 등급
+			    </div>
+			
+			    <div class="member-ad-value"
+			         th:text="${dto.adGrade == 'PREMIUM' ? '프리미엄' : '일반'}">
+			    </div>
 			
 			</div>
 
