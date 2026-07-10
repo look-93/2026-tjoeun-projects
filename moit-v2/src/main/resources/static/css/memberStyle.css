@@ -215,6 +215,108 @@ footer{margin-top:50px;background:white;padding:30px;text-align:center;}
     position:relative;
 }
 
+/* ===================================
+   회원정보 수정 성별 버튼 전용 CSS
+   HTML 수정 없이 적용
+=================================== */
+
+.member-edit-form .gender-select {
+    display: flex;
+    gap: 15px;
+}
+
+
+/* 성별 카드 */
+.member-edit-form .gender-card {
+
+    flex: 1;
+    height: 50px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+
+    border: 2px solid #e5e7eb;
+    border-radius: 18px;
+
+    cursor: pointer;
+    transition: .25s;
+
+    background: #fff;
+
+    position: relative;
+
+    /* 기존 column 영향 제거 */
+    flex-direction: row;
+
+    font-size: 18px;
+    font-weight: 600;
+}
+
+
+/* hover */
+.member-edit-form .gender-card:hover {
+
+    border-color: #6C7BFF;
+
+    box-shadow: 0 10px 25px rgba(0,0,0,.08);
+
+}
+
+
+/* 선택 상태 */
+.member-edit-form 
+.gender-select input:checked + .gender-card {
+
+    border-color: #5B6EFF;
+
+    background: #F4F7FF;
+
+    color: #5B6EFF;
+
+    box-shadow: 0 10px 25px rgba(91,110,255,.18);
+
+}
+
+
+/* 선택 체크 아이콘 */
+.member-edit-form 
+.gender-select input:checked + .gender-card::after {
+
+    content:"✔";
+
+    position:absolute;
+
+    width:24px;
+    height:24px;
+
+    right:10px;
+    top:10px;
+
+
+    background:#5B6EFF;
+
+    color:white;
+
+    border-radius:50%;
+
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+
+    font-size:12px;
+
+}
+
+
+
+
 .logout-form {
     display: inline-block;
     margin-left: 15px;
@@ -344,6 +446,75 @@ footer{margin-top:50px;background:white;padding:30px;text-align:center;}
     flex-direction:column;
     align-items:center;
     margin-bottom:40px;
+}
+
+/* 프로필 + 회원등급 가로 배치 */
+.profile-grade-wrap{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center; /* 가운데 정렬 추가 */
+
+    gap:60px;
+
+    width:100%;
+
+    margin:0 auto 40px;
+
+}
+
+
+/* 프로필 영역 */
+.profile-upload{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    gap:15px;
+
+}
+
+
+/* 회원등급 박스 */
+.member-grade-box{
+
+    width:220px;
+
+    height:120px;
+
+    border:1px solid #e5e7eb;
+
+    border-radius:18px;
+
+    padding:25px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    background:#fff;
+
+}
+
+
+/* 등급 텍스트 */
+.member-grade{
+
+    margin-top:12px;
+
+    font-size:20px;
+
+    font-weight:700;
+
+    color:#5B6EFF;
+
 }
 
 .profile-preview{
@@ -483,5 +654,74 @@ footer{margin-top:50px;background:white;padding:30px;text-align:center;}
 .btn-primary:hover{
 
     opacity:.9;
+
+}
+
+.member-grade {
+
+    height:40px;
+
+    display:flex;
+    align-items:center;
+
+    padding:0 12px;
+
+    border:1px solid #e5e7eb;
+
+    border-radius:8px;
+
+    background:#f9fafb;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    color:#374151;
+
+}
+
+/* ===========================
+   비밀번호 변경 페이지
+=========================== */
+
+.password-change-form .mypage-info-grid{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:20px;
+
+}
+
+
+.password-change-form .form-group{
+
+    width:100%;
+
+}
+
+
+.password-change-form input{
+
+    width:100%;
+
+}
+
+.admin-notice{
+
+    margin-bottom:20px;
+
+    padding:12px;
+
+    border-radius:8px;
+
+    background:#eef6ff;
+
+    color:#2563eb;
+
+    font-size:14px;
+
+    text-align:center;
 
 }

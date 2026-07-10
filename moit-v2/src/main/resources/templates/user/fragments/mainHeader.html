@@ -36,7 +36,7 @@
 		
         <nav>        	
             <!-- 로그인 안한 상태 -->
-            <div sec:authorize="isAnonymous()">
+            <div sec:authorize="isAnonymous() or hasAuthority('ROLE_SOCIAL')">
                 <a class="nav-link inquiry-btn"
                    th:href="@{/user/member/login}">
                     로그인
@@ -49,7 +49,7 @@
             </div>
 
             <!-- 로그인한 상태 -->
-            <nav sec:authorize="isAuthenticated()">
+            <nav sec:authorize="hasAnyAuthority('ROLE_MEMBER','ROLE_PARTNER','ROLE_ADMIN')">
 			
 			    <a th:href="@{/user/member/mypage}">
 			        <div class="profile">
