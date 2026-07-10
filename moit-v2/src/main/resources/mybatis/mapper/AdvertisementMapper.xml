@@ -526,6 +526,7 @@
 
    <!-- 위치별 광고 조회 -->
 	<select id="selectTopAdvertisement"
+		parameterType="map"
         resultMap="AdvertisementWithImageMap">
 
 	    SELECT 
@@ -721,17 +722,6 @@
 	      AND status = 'CLOSED'
 	
 	</select>
-	<!-- 광고 클릭수 증가 -->
-	<update id="updateClickCount">
-
-	    UPDATE advertisements
-	
-	    SET click_count =
-	        click_count + 1
-	
-	    WHERE ad_id = #{adId}
-	
-	</update>
 	
 	<!-- 클릭 로그 -->
 	<insert id="insertClickLog">
@@ -982,5 +972,143 @@
 	
 	
 	</insert> -->
+	
+	
+	<!-- 광고 만료예정 찾기 30일 -->
+	<select id="selectReminder30List"
+	        resultType="com.moit.advertisement.dto.AdvertisementDto">
+	
+		SELECT
+		    a.ad_id,
+		    a.title,
+		    a.end_datetime,
+		    m.nickname AS member_name,
+		    m.email
+		FROM advertisements a
+		JOIN members m
+		    ON a.advertiser_id = m.member_id
+		WHERE a.approval_status = 'APPROVED'
+		  AND a.status = 'OPEN'
+		  AND a.delete_yn = 'N'
+		  AND reminder_30d_sent = 'N'
+		  AND extension_status='NONE'
+		  AND end_datetime > CURRENT_TIMESTAMP
+		  AND a.end_datetime >= TRUNC(SYSDATE + 30)
+		  AND a.end_datetime &lt; TRUNC(SYSDATE + 30) + 1
+	
+	</select>
+	
+	<!-- 광고 만료예정 찾기 14일 -->
+	<select id="selectReminder14List"
+	        resultType="com.moit.advertisement.dto.AdvertisementDto">
+	
+		SELECT
+		    a.ad_id,
+		    a.title,
+		    a.end_datetime,
+		    m.nickname AS member_name,
+		    m.email
+		FROM advertisements a
+		JOIN members m
+		    ON a.advertiser_id = m.member_id
+		WHERE a.approval_status = 'APPROVED'
+		  AND a.status = 'OPEN'
+		  AND a.delete_yn = 'N'
+		  AND a.reminder_14d_sent = 'N'
+		  AND a.extension_status='NONE'
+		  AND a.end_datetime >= TRUNC(SYSDATE + 14)
+		  AND a.end_datetime &lt; TRUNC(SYSDATE + 14) + 1
+	
+	</select>
+	
+	<!-- 광고 만료메일 발송시 상태변경 -->
+	<update id="updateReminder30Sent">
+
+		UPDATE advertisements
+		SET reminder_30d_sent='Y',
+        	updated_at=CURRENT_TIMESTAMP
+		WHERE ad_id=#{adId}
+	
+	</update>
+	
+	<update id="updateReminder14Sent">
+
+		UPDATE advertisements
+		SET reminder_14d_sent='Y',
+        	updated_at=CURRENT_TIMESTAMP
+		WHERE ad_id=#{adId}
+	
+	</update>
+	
+	<!-- 연장신청 광고 조회 -->
+	<select id="selectExtensionList"
+	        resultType="com.moit.advertisement.dto.AdvertisementDto">
+	
+	    SELECT
+	        a.ad_id,
+	        a.title,
+	        a.end_datetime,
+    		a.extension_request_end_datetime,
+        	a.extension_status,
+	        a.updated_at,
+	        m.nickname,
+	        m.email
+	
+	    FROM advertisements a
+	
+	    JOIN members m
+	        ON a.advertiser_id = m.member_id
+	
+	    WHERE a.delete_yn='N'
+			  AND a.extension_status='WAITING'
+	
+	    ORDER BY a.updated_at DESC
+	
+	</select>
+	
+	<!-- 연장 신청 (1회만) -->
+
+	<update id="requestExtension">
+	
+	
+	    UPDATE advertisements
+	
+	    SET
+	
+	        extension_request_end_datetime =
+	        #{extensionRequestEndDatetime},
+	
+	        extension_status='WAITING',
+	        
+	        reminder_30d_sent='N',
+			reminder_14d_sent='N',
+	
+	        updated_at=CURRENT_TIMESTAMP
+	
+	
+	    WHERE ad_id=#{adId}	
+	      AND advertiser_id=#{advertiserId}	
+	      AND delete_yn='N'
+	      AND extension_status='NONE'
+	
+	
+	</update>
+	
+	<update id="updateExtensionApprove">
+
+		UPDATE advertisements
+		
+		SET
+		    end_datetime =
+			extension_request_end_datetime,					
+			extension_request_end_datetime=NULL,			
+			extension_status='APPROVED',			
+			updated_at=CURRENT_TIMESTAMP
+		
+		WHERE ad_id=#{adId}
+			AND extension_status='WAITING'
+			AND status='OPEN'
+	
+	</update>
 
 </mapper>

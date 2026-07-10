@@ -34,6 +34,9 @@ public interface AdvertisementMapper {
 	List<AdvertisementDto> searchWaitingList(AdvertisementSearchDto dto);
 
 	int selectWaitingTotalCnt(AdvertisementSearchDto dto);
+	
+	// 연장 신청 조회목록
+	List<AdvertisementDto> selectExtensionList();
 
     // 상세 조회
     AdvertisementDto selectAdvertisementOne(int adId);
@@ -49,6 +52,9 @@ public interface AdvertisementMapper {
 
     // 승인 상태 변경
     int updateApprovalStatus(AdvertisementDto dto);
+    
+    // 연장승인 상태 변경
+    void updateExtensionApprove(AdvertisementDto dto);
     
     // 상태 변경
     int updateAdvertisementStatus(AdvertisementDto dto);
@@ -146,5 +152,15 @@ public interface AdvertisementMapper {
     );
     
  // 광고 일일 통계 생성
-    void insertDailyStatistics();
+    //void insertDailyStatistics();
+    
+    
+    // 광고 만료 메일 30일/14일
+    List<AdvertisementDto> selectReminder30List();
+
+    List<AdvertisementDto> selectReminder14List();
+
+    int updateReminder30Sent(int adId);
+
+    int updateReminder14Sent(int adId);
 }

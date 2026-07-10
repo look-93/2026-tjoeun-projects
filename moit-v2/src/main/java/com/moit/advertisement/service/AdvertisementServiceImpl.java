@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class AdvertisementServiceImpl implements AdvertisementService {
 
 	private final AdvertisementMapper advertisementMapper;
+	private final MailService mailService;
 	private static final String UPLOAD_PATH = "C:/upload/ad";
 
 	// 스케쥴러
@@ -100,6 +101,12 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	@Override
 	public int selectWaitingTotalCnt(AdvertisementSearchDto dto) {
 		return advertisementMapper.selectWaitingTotalCnt(dto);
+	}
+	
+	// 기간연장 승인 대기 목록
+	@Override
+	public List<AdvertisementDto> selectExtensionList(){
+	    return advertisementMapper.selectExtensionList();
 	}
 
 	// 상세 조회
@@ -239,6 +246,13 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	@Override
 	public int updateAdvertisementStatus(AdvertisementDto dto) {
 		return advertisementMapper.updateAdvertisementStatus(dto);
+	}
+	
+	// 연장승인 상태 변경
+	@Override
+	@Transactional
+	public void updateExtensionApprove(AdvertisementDto dto){
+	    advertisementMapper.updateExtensionApprove(dto);
 	}
 	
 	// 승인 설정
@@ -474,18 +488,48 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	    return true;
 	}
 	
-	@Override
-	@Transactional
-	public void insertDailyStatistics(){
-
-	    advertisementMapper.insertDailyStatistics();
-
-	}
+	// 일일통계 
+//	@Override
+//	@Transactional
+//	public void insertDailyStatistics(){
+//
+//	    advertisementMapper.insertDailyStatistics();
+//
+//	}
 
 	@Override
 	public void createDailyStatistics() {
 		
 	}
 	
+	
+	@Override
+	public void sendReminderMail() {
+
+	    // 30일
+	    List<AdvertisementDto> reminder30 =
+	            advertisementMapper.selectReminder30List();
+
+	    for (AdvertisementDto ad : reminder30) {
+
+	        mailService.sendAdvertisementReminderMail(ad, 30);
+
+	        advertisementMapper.updateReminder30Sent(ad.getAdId());
+
+	    }
+
+	    // 14일
+	    List<AdvertisementDto> reminder14 =
+	            advertisementMapper.selectReminder14List();
+
+	    for (AdvertisementDto ad : reminder14) {
+
+	        mailService.sendAdvertisementReminderMail(ad, 14);
+
+	        advertisementMapper.updateReminder14Sent(ad.getAdId());
+
+	    }
+
+	}
 	
 }

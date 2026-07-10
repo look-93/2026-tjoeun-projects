@@ -183,6 +183,30 @@
                               th:if="${ad.status=='CLOSED'}">
                             종료
                         </span>
+                        
+                         <!-- 연장 신청 가능 -->
+					    <br>
+					    
+					    <!-- 이미 신청한 경우 -->
+						<button
+						    class="ad-extension-wait"
+						    th:if="${ad.extensionStatus == 'WAITING'}">
+						
+						    연장 승인 대기
+						
+						</button>
+					
+					    <!-- 연장 신청 가능 -->
+						<a
+						    th:if="${(ad.reminder30dSent == 'Y'
+						          or ad.reminder14dSent == 'Y')
+						          and ad.extensionStatus == 'NONE'}"
+						    th:href="@{/advertisement/extensionForm(adId=${ad.adId})}"
+						    class="ad-extension-btn">
+						
+						    연장 신청
+						
+						</a>
 
                     </td>
 

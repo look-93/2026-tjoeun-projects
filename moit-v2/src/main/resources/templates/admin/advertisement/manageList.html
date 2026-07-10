@@ -21,6 +21,12 @@
 			</a>
 			
 			<a class="btn btn-sm"
+			   th:classappend="${tab == 'extension'} ? 'btn-primary' : 'btn-secondary'"
+			   th:href="@{/admin/advertisement/manageList(tab='extension')}">
+			    연장 신청
+			</a>
+			
+			<a class="btn btn-sm"
 			   th:classappend="${tab == 'status'} ? 'btn-primary' : 'btn-secondary'"
 			   th:href="@{/admin/advertisement/manageList(tab='status')}">
 			    운영 관리
@@ -156,6 +162,75 @@
 		
 		</div>
 		
+		<!-- 연장 신청 관리 -->
+
+		<div th:if="${tab == 'extension'}">
+
+			<h4>광고 연장 신청 관리</h4>
+
+			<table class="table table-hover">
+
+				<thead>
+					<tr>
+						<th>번호</th>
+						<th>광고명</th>
+						<th>광고주</th>
+						<th>현재 종료일</th>
+						<th>변경 종료일</th>
+						<th>신청일</th>
+						<th>관리</th>
+					</tr>
+				</thead>
+
+				<tbody>
+
+					<tr th:each="ad, stat : ${list}">
+
+						<td th:text="${stat.index+1}"></td>
+
+						<td th:text="${ad.title}"></td>
+
+						<td th:text="${ad.memberName}"></td>
+
+						<td th:text="${#temporals.format(ad.endDatetime,'yyyy-MM-dd')}"></td>
+
+						<td
+							th:text="${#temporals.format(ad.extensionEndDatetime,'yyyy-MM-dd')}"></td>
+
+						<td
+							th:text="${#temporals.format(ad.extensionRequestedAt,'yyyy-MM-dd')}"></td>
+
+						<td>
+
+							<form th:action="@{/admin/advertisement/extensionApprove}"
+								method="post">
+
+								<input type="hidden" name="adId" th:value="${ad.adId}">
+
+								<button class="btn btn-success btn-sm">승인</button>
+
+							</form>
+
+							<form th:action="@{/admin/advertisement/extensionReject}"
+								method="post">
+
+								<input type="hidden" name="adId" th:value="${ad.adId}">
+
+								<button class="btn btn-danger btn-sm">거절</button>
+
+							</form>
+
+						</td>
+
+					</tr>
+
+				</tbody>
+
+			</table>
+
+
+		</div>
+
 		<!-- 운영 관리 탭 -->
 		<div th:if="${tab == 'status'}">
 		
