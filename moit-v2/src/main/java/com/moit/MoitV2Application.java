@@ -10,4 +10,4 @@ public class MoitV2Application {
 		SpringApplication.run(MoitV2Application.class, args);
 	}
 
-}
+} 
