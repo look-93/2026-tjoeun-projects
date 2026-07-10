@@ -40,15 +40,24 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 	} 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		if(authDto == null || authDto.getAuthList() == null || authDto.getAuthList().isEmpty()) {
-			return List.of( new SimpleGrantedAuthority("ROLE_MEMBER"));
-		} // 권한 없으면 ROLE_MEMBER
-		
-		return authDto.getAuthList().stream()
-	            .filter( a->a.getAuth() != null  &&  !a.getAuth().isBlank() )
-	            .map(    a-> new SimpleGrantedAuthority(a.getAuth()))
-	            .collect(Collectors.toList());
+
+	    if (authDto == null || authDto.getTypeName() == null) {
+	        return List.of(new SimpleGrantedAuthority("ROLE_MEMBER"));
+	    }
+
+	    return List.of(new SimpleGrantedAuthority(authDto.getTypeName()));
 	}
+//	@Override
+//	public Collection<? extends GrantedAuthority> getAuthorities() {
+//		if(authDto == null || authDto.getAuthList() == null || authDto.getAuthList().isEmpty()) {
+//			return List.of( new SimpleGrantedAuthority("ROLE_MEMBER"));
+//		} // 권한 없으면 ROLE_MEMBER
+//		
+//		return authDto.getAuthList().stream()
+//	            .filter( a->a.getAuth() != null  &&  !a.getAuth().isBlank() )
+//	            .map(    a-> new SimpleGrantedAuthority(a.getAuth()))
+//	            .collect(Collectors.toList());
+//	}
 //	@Override public String getPassword() { return user.getPassword(); }
 //	@Override public String getUsername() { return user.getEmail() + ":" + user.getProvider(); }	
 
