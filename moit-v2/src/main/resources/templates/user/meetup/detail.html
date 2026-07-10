@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-   layout:decorate="~{user/meetup/layouts/meetupDetailLayout}">
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{user/meetup/layouts/meetupDetailLayout}">
+
 <head lang="ko">
 <meta charset="UTF-8">
 <title>모임 상세 보기</title>
 </head>
 <body>
+
    <div layout:fragment="content">
       <div class="meetup-detail-wrap">
          <input type="hidden" name="meetupId" th:value="${param.meetupId}"
@@ -189,18 +191,124 @@
                         <p class="meetup-detail-comment-text">초보인데 참여 가능할까요?</p>
                      </div>
 
-                     <div class="meetup-detail-comment">
-                        <div class="meetup-detail-comment-user">
-                           <div class="meetup-detail-comment-name">작성자</div>
-                           <div class="meetup-detail-comment-date">2026.06.18</div>
-                        </div>
-                        <p class="meetup-detail-comment-text">네 초보도 환영입니다!</p>
-                     </div>
-                  </div>
-               </div>
-            </div>
 
-         </div>
+			<div class="meetup-detail-right">
+				<div class="meetup-detail-side-box">
+					<h3>모집 정보</h3>
+					<div class="meetup-detail-info-row">
+						<span>인원</span> <span
+							th:text="${detail.totalParticipants + ' / ' + detail.maxParticipants}"></span>
+					</div>
+					<div class="meetup-detail-info-row">
+						<span>지역</span> <span th:text="${detail.sidoName}"></span>
+					</div>
+
+					<div id="applyArea">
+						<button th:if="${applyInfo == null}"
+							class="meetup-detail-btn meetup-detail-btn-primary"
+							th:onclick="|applyMeetup(${detail.meetupId})|">신청하기</button>
+
+
+						<button th:if="${applyInfo != null}"
+							class="meetup-detail-btn meetup-detail-btn-danger"
+							th:onclick="|applyCancelMeetup(${applyInfo.applicationId})|">
+							신청취소</button>
+					</div>
+				</div>
+
+				<div class="meetup-detail-side-box">
+					<h3>작성자</h3>
+					<p class="meetup-detail-author" th:text="${detail.nickname}"></p>
+					<a type="button" class="meetup-detail-inquiry-btn"
+						th:href="@{/questions/write(meetupId=${detail.meetupId})}">💬
+						모임글 문의하기</a>
+				</div>
+
+				<div class="meetup-detail-side-box">
+					<h3>추천 모임</h3>
+					<div class="meetup-detail-recom-card">
+						<img
+							src="https://images.unsplash.com/photo-1501555088652-021faa106b9b">
+						<div class="meetup-detail-recom-info">
+							<div class="meetup-detail-recom-title">북한산 등산</div>
+							<div class="meetup-detail-recom-tag">서울</div>
+						</div>
+					</div>
+					<div class="meetup-detail-recom-card">
+						<img
+							src="https://images.unsplash.com/photo-1533240332313-0db49b459ad6">
+						<div class="meetup-detail-recom-info">
+							<div class="meetup-detail-recom-title">트레킹</div>
+							<div class="meetup-detail-recom-tag">경기</div>
+						</div>
+					</div>
+				</div>
+
+				<section class="ad-banner" th:if="${desidebarAd != null}"
+					th:classappend="${desidebarAd.imageList != null and !desidebarAd.imageList.isEmpty()} ? ' has-image' : ''">
+					<a th:href="@{/user/advertisement/click(adId=${desidebarAd.adId})}">
+						<img
+						th:if="${desidebarAd.imageList != null and !desidebarAd.imageList.isEmpty()}"
+						th:src="@{${desidebarAd.imageList[0].imageUrl}}" alt="광고">
+						<div
+							th:if="${desidebarAd.imageList == null or desidebarAd.imageList.size() == 0}">
+							광고 이미지 준비중</div>
+					</a>
+				</section>
+			</div>
+		</div>
+
+		<div id="meetupReviewModal" class="meetup-detail-modal-overlay"
+			onclick="closeReviewModal(event)">
+			<div class="meetup-detail-modal-content">
+				<div class="meetup-detail-modal-header">
+					<h2>모임 후기 작성</h2>
+					<button class="meetup-detail-modal-close"
+						onclick="document.getElementById('meetupReviewModal').classList.remove('active')">&times;</button>
+				</div>
+
+				<form id="meetupReviewForm" onsubmit="submitReview(event)">
+					<div class="meetup-detail-modal-group">
+						<label>이 모임은 어떠셨나요?</label>
+						<div class="meetup-detail-modal-stars">
+							<input type="radio" id="star5" name="rating" value="5" checked><label
+								for="star5">★</label> <input type="radio" id="star4"
+								name="rating" value="4"><label for="star4">★</label> <input
+								type="radio" id="star3" name="rating" value="3"><label
+								for="star3">★</label> <input type="radio" id="star2"
+								name="rating" value="2"><label for="star2">★</label> <input
+								type="radio" id="star1" name="rating" value="1"><label
+								for="star1">★</label>
+						</div>
+					</div>
+
+					<div class="meetup-detail-modal-group">
+						<label for="reviewText">상세한 후기를 남겨주세요</label>
+						<textarea id="reviewText" rows="5"
+							placeholder="모임의 분위기, 좋았던 점 등을 공유해주세요. (최소 10자 이상)" required></textarea>
+					</div>
+
+					<div class="meetup-detail-modal-group">
+						<label>사진 첨부 (선택)</label> <input type="file" id="reviewImages"
+							accept="image/*" multiple style="display: none;"
+							onchange="previewFiles(event)">
+						<div class="meetup-detail-file-btn"
+							onclick="document.getElementById('reviewImages').click()">
+							📸 사진 업로드하기</div>
+						<div id="imagePreviewContainer"
+							class="meetup-detail-preview-container"></div>
+					</div>
+
+					<div class="meetup-detail-modal-footer">
+						<button type="button" class="meetup-detail-modal-btn cancel"
+							onclick="document.getElementById('meetupReviewModal').classList.remove('active')">취소</button>
+						<button type="submit" class="meetup-detail-modal-btn submit">등록하기</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<script th:inline="javascript">
 
          <div class="meetup-detail-right">
             <div class="meetup-detail-side-box">
@@ -324,6 +432,7 @@
       </div>
 
       <script th:inline="javascript">
+
         function showTab(i){
             const tabs = document.querySelectorAll(".meetup-detail-tab-btn");
             const panels = document.querySelectorAll(".meetup-detail-tab-panel");
@@ -422,6 +531,57 @@
                })
             }
         
+
+        //후기 기능 (검색하고 다시 현재 페이지 유지)
+        window.onload = function () {
+
+            const params = new URLSearchParams(window.location.search);
+
+            if (params.get("tab") === "review") {
+                showTab(2);
+            }
+
+        }
+        //좋아요(비동기처리)
+        function toggleLike(btn){
+
+            const reviewId = btn.dataset.reviewId;
+
+            fetch("/meetup/review/like/" + reviewId,{
+                method:"POST",
+                headers:getCsrfHeaders()
+            })
+            .then(res=>res.json())
+            .then(data=>{
+
+                btn.querySelector("span").innerText=data.likesCount;
+
+            });
+
+        }
+        
+        function changeSort(sortType) {
+            // 1. 현재 URL 파라미터 상태 가져오기
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            
+            const meetupId = document.getElementById("meetupId").value;
+            urlParams.set("meetupId", meetupId);
+            urlParams.set("sort", sortType);
+            urlParams.set("tab", "review"); // 정렬 후 새로고침 되어도 후기 탭이 바로 뜨게 고정
+            
+            // 3. 기존에 검색한 키워드가 있었다면 유지, 없으면 파라미터에서 제거
+            const keywordInput = document.querySelector("input[name='keyword']");
+            if (keywordInput && keywordInput.value.trim() !== "") {
+                urlParams.set("keyword", keywordInput.value);
+            } else {
+                urlParams.delete("keyword");
+            }
+
+            // 4. 조립된 URL로 페이지 이동 (
+            location.href = "/meetup/detail?" + urlParams.toString();
+        }
+
         function changeMainImg(src) {
             // 메인 이미지 태그를 찾아서 소스(src)를 클릭한 썸네일 주소로 변경
             const mainImg = document.querySelector('.meetup-detail-main-img img');
@@ -429,7 +589,8 @@
                 mainImg.src = src;
             }
         }
+
         </script>
-   </div>
+	</div>
 </body>
 </html>

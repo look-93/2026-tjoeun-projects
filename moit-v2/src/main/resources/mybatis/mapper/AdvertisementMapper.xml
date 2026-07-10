@@ -577,9 +577,8 @@
 			    )
 			) DESC,
 	        DBMS_RANDOM.VALUE
-	
-	    FETCH FIRST 1 ROW ONLY
-
+   
+       FETCH FIRST 1 ROW ONLY
 	
 	</select>
 	

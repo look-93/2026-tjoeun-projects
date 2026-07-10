@@ -18,8 +18,21 @@ public interface ReviewMapper {
 	public int updateUserReview(ReviewDto dto);
 	public int deleteUserReview(ReviewDto dto);
 	public int updateUserReviewHide(ReviewDto dto);
-	public List<ReviewDto> selectReviewByMemberId(@Param("memberId")int memberId,@Param("sort")String sort);
-	public List<ReviewDto> selectReviewByContent(String Keyword);
+	// 마이페이지 목록 + 검색
+	public List<ReviewDto> selectReviewByMemberId(
+	        @Param("memberId") int memberId,
+	        @Param("keyword") String keyword,
+	        @Param("sort") String sort);
+
+	// 모임 상세 검색
+	public List<ReviewDto> selectReviewByContent(
+	        @Param("meetupId") int meetupId,
+	        @Param("keyword") String keyword,
+	        @Param("sort") String sort);
+	//이미지
+	public int insertReviewImage(@Param("reviewId") int reviewId,
+            @Param("imageId") int imageId);
+	public int insertImage(ReviewDto dto);
 	
 	
 	//좋아요 기능
@@ -35,10 +48,17 @@ public interface ReviewMapper {
     public List<ReviewDto>adminSelectReviewList(int memberId);
 	public List<ReviewDto>adminSearchReviewByContent(String keyword);
 	public List<ReviewDto>adminSearchReviewByWriter (int memberId);
-	public int adminHideReview(int id);
-	public int adminDeleteReview(int id);
+	public int adminHideReview(@Param("reviewId")int reviewId);
+	public int adminDeleteReview(@Param("reviewId")int reviewId);
 	
 
-	
+	//관리자 페이징 처리
+	public List<ReviewDto>adminGetReviewList(@Param("keyword") String keyword,
+											@Param("memberId") int memberId,
+											@Param("offset") int offset,
+											@Param("size")int size);
+	//검색 조건 맞춰서
+	public int adminGetReviewCount(@Param("keyword") String keyword, 
+            @Param("memberId") int memberId);
 	
 }
