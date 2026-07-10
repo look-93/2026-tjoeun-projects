@@ -22,10 +22,10 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler{
             Authentication authentication)
             throws IOException {
 		
-		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();		
 		
 		if(user.getAppUserId() == 0) {
-			response.sendRedirect("/user/member/social-info");
+			response.sendRedirect("/user/member/socialInfo");
 			
 			return;
 		}

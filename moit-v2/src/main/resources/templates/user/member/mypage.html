@@ -55,8 +55,12 @@
 					</div>
 
 					<div class="mypage-info-box">
-						<div class="mypage-info-title">가입일</div>
-						<div>2026-01-10</div>
+					    <div class="mypage-info-title">
+					        가입일
+					    </div>
+					
+					    <div th:text="${dto.createdAt}">
+					    </div>
 					</div>
 
 					<div class="mypage-info-box">

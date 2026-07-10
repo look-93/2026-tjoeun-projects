@@ -1,10 +1,12 @@
 package com.moit.member.dto;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import lombok.Data;
 
 @Data
 public class UserDto {
-	private int memberId;
+	private Integer memberId;
 	private String  loginId;
 	private String  mobile;
 	private String  nickname;
@@ -24,4 +26,6 @@ public class UserDto {
 	
 	private String provider;
 	private String providerId;
+	
+	private MultipartFile profileImage;
 }

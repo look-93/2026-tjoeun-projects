@@ -23,9 +23,11 @@ public interface UserService {
 	public UserDto findId(UserDto dto); // 아이디 찾기
 	public UserDto findPasswordUser(UserDto dto); // 비밀번호 찾기(정보조회)
 	public boolean changePassword(UserDto dto); // 비밀번호 재발급(변경)
+	boolean changePassword( int memberId, String currentPassword, String newPassword ); // 비밀번호 변경
+	public UserDto findByMemberId( int memberId);
 	
 	/* security login */
 	public AuthUserDto readByLoginId(UserDto dto); //로그인
 	//public void completeSocialJoin(UserDto dto);
-	public void insertSocialJoin(UserDto dto);
+	public void insertSocialInfo(UserDto dto);
 }

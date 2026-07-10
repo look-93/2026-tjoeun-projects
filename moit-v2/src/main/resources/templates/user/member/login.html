@@ -147,8 +147,8 @@
 	                    <div class="link-row">
 	                        <span>계정이 없으신가요?</span>
 	
-	                        <a th:href="@{/user/member/join}">
-	                            회원가입
+	                        <a th:href="@{/admin/member/join}">
+	                            관리자 회원가입
 	                        </a>
 	                    </div>	
 	                </div>	
@@ -182,11 +182,19 @@
 		
 	</script>
 	<script th:inline="javascript">
-	    const message = [[${errorMessage}]];
-	
-	    if (message != null) {
-	        alert(message);
+	const error = [[${param.error}]];
+
+	if(error != null){
+
+	    if(error == "wait"){
+	        alert("관리자 승인 대기중입니다.");
 	    }
+
+	    if(error == "fail"){
+	        alert("아이디 또는 비밀번호가 틀렸습니다.");
+	    }
+
+	}
 	</script>
 
 </body>

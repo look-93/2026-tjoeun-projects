@@ -36,31 +36,43 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 		this.authDto = authDto;
 		this.attriubutes.put("loginId", user.getLoginId());
 		this.attriubutes.put("provider", user.getProvider());
-		this.statusId = authDto.getStatusId();
+		if(authDto != null){ this.statusId = authDto.getStatusId(); }
 	} 
+	
 	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		if(authDto == null || authDto.getAuthList() == null || authDto.getAuthList().isEmpty()) {
-			return List.of( new SimpleGrantedAuthority("ROLE_MEMBER"));
-		} // 권한 없으면 ROLE_MEMBER
-		
-		return authDto.getAuthList().stream()
-	            .filter( a->a.getAuth() != null  &&  !a.getAuth().isBlank() )
-	            .map(    a-> new SimpleGrantedAuthority(a.getAuth()))
-	            .collect(Collectors.toList());
-	}
-//	@Override public String getPassword() { return user.getPassword(); }
-//	@Override public String getUsername() { return user.getEmail() + ":" + user.getProvider(); }	
+	   public Collection<? extends GrantedAuthority> getAuthorities() {
+			
+			if(user.getMemberId() != null && user.getMemberId() == 0){
+		        return List.of(
+		            new SimpleGrantedAuthority("ROLE_SOCIAL")
+		        );
+		    }
+		   
+	       if (authDto == null || authDto.getTypeName() == null) {
+	           return List.of(new SimpleGrantedAuthority("ROLE_MEMBER"));
+	       }
+
+	       return List.of(new SimpleGrantedAuthority(authDto.getTypeName()));
+	   }	
 
 	public Integer getAppUserId() { return user.getMemberId(); }
 	public String  getEmail()     { return user.getEmail(); }
 	public String  getProvider()  { return user.getProvider(); }
+	public String getProfileUrl(){ return user.getProfileUrl(); }
 	
 	public String getNickname() { return user.getNickname(); }
-	public String getTypeName() { return authDto.getTypeName(); }
+	public String getTypeName() { 
+		if(authDto != null) { return authDto.getTypeName(); }
+		return "ROLE_MEMBER"; 
+    }
 	public Integer getStatusId(){ return statusId; }
     // ★ 중요
-    @Override public String getPassword() {  return authDto.getPassword();  }
+    @Override public String getPassword() { 
+    	
+    	if(authDto != null) { return authDto.getPassword(); }
+    	
+    	return "";  
+    	}
 
 
 
@@ -78,6 +90,8 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 		this.attriubutes.put("loginId", user.getLoginId());
 		this.attriubutes.put("provider", user.getProvider());
 	}
+	
+	public boolean isSocialPending(){ return user.getMemberId() == 0; }
 	
 	@Override public Map<String, Object> getAttributes() { return attriubutes; }
 	          public void setAttributes(Map<String, Object> attributes ) { this.attriubutes = attributes; }
