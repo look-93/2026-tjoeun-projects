@@ -66,6 +66,9 @@ public interface MeetupMapper {
 	//모집글수정
 	public int updateMeetup(MeetupDto meetupDto);
 	
+	//인기 모임 조회
+	public List<MeetupDto>findPopularMeetup();
+	
 	//마이페이지 내 모집글 조회 + paging
 	public List<MeetupDto> selectMyMeetup(MeetupDto meetupDto);
 	public int selectMyMeetupTotalCnt(MeetupDto meetupDto);

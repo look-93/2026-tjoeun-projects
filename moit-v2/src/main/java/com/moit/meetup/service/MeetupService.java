@@ -64,6 +64,9 @@ public interface MeetupService {
 	//모집글 삭제
 	public int updateMeetupDeleteYn(int meetupId);
 	
+	//인기 모임 조회
+	public List<MeetupDto>findPopularMeetup();
+	
 	/* 이미지 삭제 */
 	public int deleteMeetupImages(int meetupId);	
 	public int deleteImages(List<MeetupImageDto> files);

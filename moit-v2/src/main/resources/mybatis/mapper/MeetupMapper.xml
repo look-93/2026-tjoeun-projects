@@ -36,7 +36,7 @@
 		                  COUNT(*) AS total_participants
 				   FROM meetup_applications
 				   WHERE 1=1
-				   AND status ='APPROVED'
+				   AND status ='APPROVED' <!-- 승인된 참가자만 카운트 -->
 				   AND delete_yn = 'N'
 				   GROUP BY meetup_id
 				  ) C ON C.meetup_id = A.meetup_id
@@ -45,7 +45,7 @@
 		LEFT JOIN sidos 	 E ON E.sido_id = D.sido_id 
 		LEFT JOIN categories F ON F.category_id = A.category_id
 		LEFT JOIN categories G ON G.category_id = F.parent_id
-		LEFT JOIN meetup_likes H ON H.meetup_id = A.meetup_id AND H.member_id = A.member_id				  
+		LEFT JOIN meetup_likes H ON H.meetup_id = A.meetup_id AND H.member_id = #{memberId, jdbcType=INTEGER}
 		LEFT JOIN (SELECT COUNT(meetup_id) as like_cnt, 
  						  	meetup_id 
  				     FROM meetup_likes 
@@ -312,6 +312,7 @@
 			   (SELECT COUNT(*) 
 			      FROM meetup_applications 
 			     WHERE meetup_id = A.meetup_id
+			       AND status ='APPROVED'
 			   ) AS total_participants,
 			   
 			   TO_CHAR(A.meetup_At, 'YYYY.MM.DD') as fomatMeetupAt,
@@ -599,8 +600,52 @@
 	   WHERE a.status = 'RECRUITING'
 	     AND a.delete_yn = 'N'
 	     AND a.meetup_at BETWEEN SYSDATE + (2/24)
-	                       AND SYSDATE + (2/24) + (1/1440)
-	
+	                       AND SYSDATE + (2/24) + (1/1440)	
 	</select>
+	
+	<!-- 인기 모임 조회 - 상위 10개 -->
+	<select id="findPopularMeetup" resultType="MeetupDto">
+		SELECT * 
+		FROM (
+			SELECT count(*) as aa, 
+				   ml.meetup_id,
+				   MAX(m.title) AS title,
+				   NVL(MAX(c.total_participants), 0) AS total_participants,
+				   MAX(m.max_participants) AS max_participants,
+				   MAX(sd.name) AS sidoName,
+				   MAX(m.status) AS status,
+				   MAX(j.image_path) as image_path,
+				   ROW_NUMBER() OVER(ORDER BY COUNT(*) DESC ) AS rn
+				   
+			FROM meetup_likes ml
+			LEFT JOIN meetups m ON ml.MEETUP_ID  = m.MEETUP_ID
+			LEFT JOIN (SELECT meetup_id,
+			                  COUNT(*) AS total_participants
+					   FROM meetup_applications
+					   WHERE 1=1
+					   AND status ='APPROVED'
+					   AND delete_yn = 'N'
+					   GROUP BY meetup_id
+					  ) c ON c.meetup_id = ml.meetup_id
+			LEFT JOIN sigungus s ON s.sigungu_id = m.sigungu_id
+			LEFT JOIN sidos sd ON sd.sido_id = s.sido_id
+			LEFT JOIN (
+			    SELECT meetup_id, image_path
+			    FROM (
+			        SELECT mi.meetup_id, 
+			               i.image_path,
+			               ROW_NUMBER() OVER (PARTITION BY mi.meetup_id ORDER BY mi.image_id ASC) as rn
+			        FROM MEETUP_IMAGES mi  
+			        JOIN IMAGES i ON mi.image_id = i.image_id
+			    )
+			    WHERE rn = 1
+			) J ON J.meetup_id = ml.meetup_id		
+			WHERE 1=1
+			AND m.delete_yn = 'N'
+			AND m.status = 'RECRUITING'
+			GROUP BY ml.meetup_id
+		)
+		WHERE rn &lt;= 10
+	</select>	
 	
 </mapper>

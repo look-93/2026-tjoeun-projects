@@ -101,7 +101,22 @@ public class MeetupController {
 	/*2. 모임 리스트 데이터(JSON) 호출*/
 	@GetMapping("/meetup/list/data")
 	@ResponseBody
-	public Map<String, Object> listData(MeetupSearchDto meetupSearchDto, Model model){
+	public Map<String, Object> listData(MeetupSearchDto meetupSearchDto, Model model, Authentication authentication){
+		
+		
+	    Integer memberId = null;
+	    boolean isLogin = false;
+
+	    if (authentication != null
+	            && authentication.isAuthenticated()
+	            && authentication.getPrincipal() instanceof CustomUserDetails) {
+
+	        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+	        memberId = user.getUser().getMemberId();
+	        isLogin = true;
+	    }	
+		
+		meetupSearchDto.setMemberId(memberId);
 		Integer pstartno = meetupSearchDto.getPstartno();
 		
 		if(pstartno == null || pstartno <= 0) {
@@ -468,5 +483,5 @@ public class MeetupController {
 		meetupService.updateMeetupDeleteYn(meetupId);		
 		return "redirect:/mypage/myMeetupInfo?pstartno=" + pstartno;
 	}
-
+	
 }

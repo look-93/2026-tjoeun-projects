@@ -301,6 +301,12 @@ public class MeetupServiceImpl implements MeetupService{
 	    return result;
 	}
 	
+	//인기 모임 조회
+	@Override
+	public List<MeetupDto> findPopularMeetup() {
+		return meetupMapper.findPopularMeetup();
+	}
+
 	//마이페이지 내 모집글 조회 + paging
 	@Override
 	public List<MeetupDto> selectMyMeetup(int pstartno,MeetupDto meetupDto) {

@@ -4093,3 +4093,32 @@ textarea.mw-form-input {
 	    width:100%;
 	}
 }
+
+/* 메인 인기 모임 슬라이더 애니메이션 */
+.slider {
+    overflow: hidden;
+    width: 100%;
+}
+
+.slide-track {
+    display: flex;
+    gap: 20px;
+    width: max-content;
+    animation: scroll 25s linear infinite;
+}
+
+@keyframes scroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(calc(-50%));
+    }
+}
+
+.card {
+    flex: 0 0 280px;
+}
+.slide-track:hover {
+    animation-play-state: paused;
+}

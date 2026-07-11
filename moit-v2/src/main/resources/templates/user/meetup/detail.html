@@ -175,7 +175,7 @@
 						<span>지역</span> <span th:text="${detail.sidoName}"></span>
 					</div>
 
-					<div id="applyArea">
+					<div id="applyArea" th:if="${loginMemberId == detail.memberId ? hidden :''}">
 						<button th:if="${applyInfo == null}" class="meetup-detail-btn meetup-detail-btn-primary" th:onclick="|applyMeetup(${detail.meetupId})|">신청하기</button>
 						<button th:if="${applyInfo != null}" class="meetup-detail-btn meetup-detail-btn-danger" th:onclick="|applyCancelMeetup(${applyInfo.applicationId})|">신청취소</button>
 					</div>

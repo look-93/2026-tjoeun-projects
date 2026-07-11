@@ -114,8 +114,8 @@
 							<thead>
 							    <tr>
 							        <th style="width: 15%; text-align: left;">회원명</th>
-							        <th style="width: 15%;">신청일</th>
-							        <th style="width: 10%;">상태</th>
+							        <th style="width: 10%;">신청일</th>
+							        <th style="width: 15%;">상태</th>
 							        <th style="width: 30%;">처리</th>
 							        <th style="width: 30%; text-align: left;">AI 한줄평</th>
 							    </tr>
@@ -157,11 +157,10 @@
 	                // 1) 상태 텍스트 변경
 	                const statusTd = btn.closest("td").previousElementSibling;
 	                const statusSpan = statusTd.querySelector("span");
-	                
 	                let statusText = '대기';
 	                if(status === 'APPROVED') statusText = '승인';
-	                if(status === 'REJECTED') statusText = '거절';
-	                if(status === 'NOSHOW') statusText = '노쇼';
+	                if(status === 'REJECTED') statusText = `거절${reason ? ': ' + reason : ''}`;
+	                if(status === 'NOSHOW') statusText = '노쇼 ';
 	                statusSpan.innerHTML = statusText;
 	                
 	                // 2) 버튼 영역 동적 변경 (모달창을 닫지 않아도 즉시 UI 반영)
@@ -175,17 +174,15 @@
 	                    </div>
 	                    `;
 	                } else if(status === 'REJECTED') {
-	                    // 거절 상태가 되면 -> 승인 버튼 + 노쇼 버튼 + 방금 입력한 거절 사유(reason) 표시
-	                    const reasonText = reason ? `<span class="reject-reason-text" style="margin-left: 8px; color: #ef4444; font-size: 13px;">(${reason})</span>` : '';
+	                    // 거절 상태가 되면 -> 승인 버튼
+	                    
 	                    btn.parentElement.innerHTML = `
 	                    <div style="display: inline-flex; align-items: center; vertical-align: middle;">
 	                        <button class="btn-approve" onclick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>
-	                        <button class="btn-noshow" style="flex-shrink: 0; margin-left: 4px; background: #64748b; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;" onClick="changeStatus(${applicationId}, 'NOSHOW', this)">노쇼</button>
-	                        ${reasonText}
 	                    </div>
 	                    `;
 	                } else if(status === 'NOSHOW') {
-	                    // 노쇼 상태가 되면 -> 다시 원상복구 할 수 있도록 '승인' 버튼 배치 (거절 창도 띄우고 싶다면 추가 가능)
+	                    // 노쇼 상태가 되면 -> 다시 원상복구 할 수 있도록 '승인' 버튼 배치 
 	                    btn.parentElement.innerHTML = `
 	                    <div style="display: inline-flex; align-items: center; vertical-align: middle;">
 	                        <button class="btn-approve" onclick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>
@@ -205,17 +202,18 @@
 	        .then(data => {
 	            const tbody = document.getElementById("modalBody")
 	            const list = data.list;
+	            
 	            let html= '';
 	            let button = ''
 	    
 	            for(var i= 0; i < list.length; i++){
 	                const item = list[i];
-	                
+	                const reasonText = item.rejectReason
 	                let status = "대기";
 	                if(item.applyStatus === "APPROVED") status = "승인";
-	                if(item.applyStatus === "REJECTED") status = "거절";
+	                if(item.applyStatus === "REJECTED")status = `거절${reasonText ? ': ' + reasonText : ''}`;
 	                if(item.applyStatus === "NOSHOW") status = "노쇼";
-	                
+	                //console.log(reasonText);
 	                const applicationId = item.applicationId;
 
 	                // 3) 상태별 초기 버튼 구성 변경
@@ -224,8 +222,7 @@
 	                        <div style="display: inline-flex; align-items: center; vertical-align: middle; white-space: nowrap;">
 	                            <button class="btn-approve" onclick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>
 	                            <input type="text" class="reject-reason" placeholder="거절 사유 입력" style="flex-shrink: 0; margin-left: 5px; width: 120px;" />
-	                            <button class="btn-reject" style="flex-shrink: 0; margin-left: 4px;" onClick="handleReject(${applicationId}, 'REJECTED', this)">거절</button>
-	                            <button class="btn-noshow" style="flex-shrink: 0; margin-left: 4px; background: #64748b; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;" onClick="changeStatus(${applicationId}, 'NOSHOW', this)">노쇼</button>
+	                            <button class="btn-reject" style="flex-shrink: 0; margin-left: 4px;" onClick="handleReject(${applicationId}, 'REJECTED', this)">거절</button>	                            
 	                        </div>
 	                    `;
 	                } else if (item.applyStatus === 'APPROVED') {
@@ -237,14 +234,9 @@
 	                        </div>
 	                    `;
 	                } else if (item.applyStatus === 'REJECTED') {
-	                    const reasonText = item.rejectReason
-	                        ? `<span class="reject-reason-text" style="margin-left: 8px; color: #ef4444; font-size: 13px;">(${item.rejectReason})</span>`
-	                        : '';
 	                    button = `
 	                        <div style="display: inline-flex; align-items: center; vertical-align: middle;">
-	                            <button class="btn-approve" onclick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>
-	                            <button class="btn-noshow" style="flex-shrink: 0; margin-left: 4px; background: #64748b; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;" onClick="changeStatus(${applicationId}, 'NOSHOW', this)">노쇼</button>
-	                            ${reasonText}
+	                            <button class="btn-approve" onclick="changeStatus(${applicationId}, 'APPROVED', this)">승인</button>	                            
 	                        </div>
 	                    `;
 	                } else if (item.applyStatus === 'NOSHOW') {
@@ -260,8 +252,8 @@
 	                html += `
 	                <tr>
 	                    <td style="width: 15%; text-align: left; font-weight: bold;">${item.nickname}</td>
-	                    <td style="width: 15%; text-align: center;">${item.applyAt}</td>
-	                    <td style="width: 10%; text-align: center;"><span class="state-text-wait">${status}</span></td>
+	                    <td style="width: 10%; text-align: center;">${item.applyAt}</td>
+	                    <td style="width: 15%; text-align: center;"><span class="state-text-wait">${status}</span></td>
 	                    <td style="width: 30%; text-align: center;">${button}</td>
 	                    <td style="width: 30%; text-align: left; font-size: 13px; color:#555; word-break: break-all;">${aiSummary}</td>
 	                </tr>
