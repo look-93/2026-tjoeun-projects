@@ -11,6 +11,7 @@ import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupImageDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
+import com.moit.meetup.dto.MeetupWeatherNotificationDto;
 import com.moit.meetup.dto.TrustScoreDto;
 import com.moit.meetup.dto.common.CategoryDto;
 import com.moit.meetup.dto.common.SidoDto;
@@ -98,6 +99,10 @@ public interface MeetupMapper {
 	//노쇼방지 계산식
 	public TrustScoreDto calculatedScore(int memberId);
 	public int updateAiSummaryAndTrustScore(TrustScoreDto trustScoreDto);
+	
+	//날씨
+	public int insertNotification(MeetupWeatherNotificationDto dto);
+	public List<MeetupDto> selectMeetupsBeforeTwoHours();
 	
 	public MeetupDto findById(int meetupId);
 }

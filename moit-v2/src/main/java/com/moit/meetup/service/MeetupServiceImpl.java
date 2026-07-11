@@ -20,6 +20,7 @@ import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupImageDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
+import com.moit.meetup.dto.MeetupWeatherNotificationDto;
 import com.moit.meetup.dto.TrustScoreDto;
 import com.moit.meetup.dto.common.CategoryDto;
 import com.moit.meetup.dto.common.SidoDto;
@@ -398,6 +399,21 @@ public class MeetupServiceImpl implements MeetupService{
 	@Override
 	public List<CategoryDto> findAllChildCategory() {
 		return meetupMapper.findAllChildCategory();
-	}	
+	}
+	
+	//날씨
+	@Override
+	public int insertNotification(MeetupWeatherNotificationDto dto) {
+		//카카오 or SMS 전송
+		return meetupMapper.insertNotification(dto);
+	}
+
+	@Override
+	public List<MeetupDto> selectMeetupsBeforeTwoHours() {
+		return meetupMapper.selectMeetupsBeforeTwoHours();
+	}
+	
+
+	
 
 }

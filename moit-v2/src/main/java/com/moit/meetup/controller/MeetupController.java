@@ -20,10 +20,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.service.AdvertisementService;
+import com.moit.meetup.client.OpenApiService;
 import com.moit.meetup.dto.MeetupApplicationDto;
 import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
+import com.moit.meetup.dto.openapi.AddressSearchResponse;
 import com.moit.meetup.service.MeetupService;
 import com.moit.member.dto.UserDto;
 import com.moit.review.dto.ReviewDto;
@@ -39,7 +41,7 @@ public class MeetupController {
 	@Autowired MeetupService meetupService;
 	@Autowired AdvertisementService advertisementService;
 	@Autowired ReviewService reviewService;
-	
+	@Autowired OpenApiService openApiService;
 
 	
 	/*1. 모임 리스트 화면(HTML) 호출*/
@@ -117,6 +119,28 @@ public class MeetupController {
 		return map;
 	}
 	
+	/*주소 검색 API 호출*/
+	@GetMapping("/meetup/address-search")
+	@ResponseBody
+	public Map<String, Object> addressSearch(MeetupSearchDto meetupSearchDto, Model model){
+		Integer pstartno = meetupSearchDto.getPstartno();
+		String searchAddress = meetupSearchDto.getSearchAddress();
+		
+		if(pstartno == null || pstartno <= 0) {
+			pstartno = 1;
+			meetupSearchDto.setPstartno(1);
+		}
+	
+		
+		AddressSearchResponse apiResponse = openApiService.addressSearch(searchAddress,pstartno);
+		
+		Map<String, Object> map = new HashMap<>();
+		map.put("paging", new UtilPaging(apiResponse.getTotalCount(), pstartno));
+		map.put("searchList", apiResponse.getList());
+		
+		return map;
+	}
+	
 	/* 좋아요 기능*/
 	@PostMapping("/meetup/list/like")
 	@ResponseBody
@@ -177,16 +201,31 @@ public class MeetupController {
 	    model.addAttribute("desidebarAd", desidebar);
 
 	    // 광고가 존재하면 노출 증가
-	    if (desidebar != null) {
-	        advertisementService.updateImpressions(desidebar.getAdId());
-	    }
+	    if(desidebar != null){
 
+	          boolean counted =
+	              advertisementService.insertImpressionLog(
+	                  desidebar.getAdId(),
+	                    "MEETUP_DETAIL_SIDEBAR",
+	                  request,
+	                  session
+	              );
+
+	          if(counted){
+	              advertisementService.updateImpressions(
+	                  desidebar.getAdId()
+	              );
+	          }
+	      }
+	    
 	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
 	    model.addAttribute("applyInfo", meetupService.findApplyInfo(meetupApplicationDto));
 	    model.addAttribute("detail", meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
 	    model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
+
 	    //로그인한 사용자 html 로 전달(후기)
 	    model.addAttribute("loginMemberId", memberId);
+
 	    //  기존 부분
 	    // List<ReviewDto> reviewList =
 	    //        reviewService.selectUserReview(meetupApplicationDto.getMeetupId(), sort);

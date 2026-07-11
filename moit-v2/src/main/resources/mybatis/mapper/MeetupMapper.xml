@@ -243,8 +243,8 @@
         SELECT MEETUPS_SEQ.NEXTVAL
         FROM DUAL
     </selectKey>
-		INSERT INTO meetups(meetup_id, member_id, title, content, max_participants, min_participants, sigungu_id, category_id, meetup_at)
-		values(#{meetupId}, #{memberId}, #{title}, #{content}, #{maxParticipants}, #{minParticipants}, #{sigunguId}, #{categoryId}, TO_DATE(#{meetupAt}, 'YYYY-MM-DD"T"HH24:MI'))
+		INSERT INTO meetups(meetup_id, member_id, title, content, max_participants, min_participants, sigungu_id, category_id, meetup_at, address, address_detail)
+		values(#{meetupId}, #{memberId}, #{title}, #{content}, #{maxParticipants}, #{minParticipants}, #{sigunguId}, #{categoryId}, TO_DATE(#{meetupAt}, 'YYYY-MM-DD"T"HH24:MI'), #{address}, #{addressDetail})
  	</insert>	
  	
  	<!-- 모집수정 -->
@@ -571,6 +571,36 @@
 	
 	<!-- 노쇼방지 -->
 	
-
+	<!-- 날씨 -->
+	<insert id="insertNotification" parameterType="MeetupWeatherNotificationDto">
+	
+	    INSERT INTO meetup_weather_notifications (
+	        meetup_id,
+	        member_id,
+	        mobile,
+	        message_content,
+	        send_status
+	    )
+	    VALUES (
+	        #{meetupId},
+	        #{memberId},
+	        #{mobile},
+	        #{messageContent},
+	        #{sendStatus}
+	    )
+	
+	</insert>
+	<!-- 모임2시간전 -->
+	<select id="selectMeetupsBeforeTwoHours" resultType="MeetupDto">
+	
+	   SELECT a.*, b.mobile
+	   FROM meetups a
+	   JOIN members b on b.member_id = a.member_id
+	   WHERE a.status = 'RECRUITING'
+	     AND a.delete_yn = 'N'
+	     AND a.meetup_at BETWEEN SYSDATE + (2/24)
+	                       AND SYSDATE + (2/24) + (1/1440)
+	
+	</select>
 	
 </mapper>

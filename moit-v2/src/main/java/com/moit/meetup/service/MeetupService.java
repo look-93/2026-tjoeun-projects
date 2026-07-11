@@ -10,6 +10,7 @@ import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupImageDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
+import com.moit.meetup.dto.MeetupWeatherNotificationDto;
 import com.moit.meetup.dto.common.CategoryDto;
 import com.moit.meetup.dto.common.SidoDto;
 import com.moit.meetup.dto.common.SigunguDto;
@@ -82,4 +83,8 @@ public interface MeetupService {
 	
 	//마이페이지 내모집글 - 신청자목록조회 - 신청,거절
 	public int changeMeetupApplyStatus(MeetupApplicationDto meetupApplicationDto);	
+	
+	//날씨
+	public int insertNotification(MeetupWeatherNotificationDto dto);
+	public List<MeetupDto> selectMeetupsBeforeTwoHours();
 }
