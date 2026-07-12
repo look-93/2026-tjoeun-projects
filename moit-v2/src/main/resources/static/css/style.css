@@ -3933,6 +3933,9 @@ textarea.mw-form-input {
 
     width: 60px;
     height: 34px;
+    
+    /* 쪼그라드는 현상 방지 */
+    flex-shrink: 0;
 
     border: none;
     border-radius: 6px;
@@ -4025,6 +4028,180 @@ textarea.mw-form-input {
     border: 1px solid #f59e0b;
 
 }
+/* 기간연장 모달 */
+.extension-modal{
+
+    display:none;
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(0,0,0,.45);
+
+    justify-content:center;
+
+    align-items:center;
+
+    z-index:9999;
+
+}
+
+
+
+.extension-box{
+
+    width:420px;
+
+    background:#fff;
+
+    border-radius:16px;
+
+    padding:25px;
+
+}
+
+
+
+.extension-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+
+
+.extension-header h3{
+
+    font-size:20px;
+
+    margin:0;
+
+}
+
+
+
+.extension-close{
+
+    border:none;
+
+    background:none;
+
+    font-size:25px;
+
+    cursor:pointer;
+
+}
+
+
+
+.extension-current{
+
+    margin:20px 0;
+
+    padding:12px;
+
+    background:#f3f4f6;
+
+    border-radius:8px;
+
+}
+
+
+
+.extension-input{
+
+    width:100%;
+
+    padding:12px;
+
+    border:1px solid #ddd;
+
+    border-radius:8px;
+
+}
+
+
+
+.extension-guide{
+
+    margin-top:8px;
+
+    font-size:13px;
+
+    color:#777;
+
+}
+
+
+
+.extension-actions{
+
+    margin-top:25px;
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    gap:10px;
+
+}
+
+
+
+.extension-submit{
+
+    background:#2563eb;
+
+    color:white;
+
+    border:none;
+
+    padding:10px 20px;
+
+    border-radius:8px;
+
+}
+
+
+
+.extension-cancel{
+
+    background:#eee;
+
+    border:none;
+
+    padding:10px 20px;
+
+    border-radius:8px;
+
+}
+
+
+.ad-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.ad-table th,
+.ad-table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+
+.ad-table .table-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
 /*==============================*/
 
 /* 테이블 */
@@ -4602,4 +4779,30 @@ textarea.mw-form-input {
 	.member-ad-image-box{
 	    width:100%;
 	}
+}
+/*  광고 모달창 설정   */
+#extensionModal.extension-modal {
+	display: none;
+	position: fixed !important;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.5);
+	z-index: 9999;
+	align-items: center;
+	justify-content: center;
+}
+
+#extensionModal.extension-modal.is-open {
+	display: flex;
+}
+
+#extensionModal .extension-box {
+	background: #fff;
+	border-radius: 8px;
+	min-width: 320px;
+	max-width: 90vw;
+	padding: 24px;
+	box-sizing: border-box;
 }

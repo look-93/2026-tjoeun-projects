@@ -31,6 +31,11 @@
 			   th:href="@{/admin/advertisement/manageList(tab='status')}">
 			    운영 관리
 			</a>
+			
+			<a class="btn btn-sm btn-primary"
+			   th:href="@{/admin/advertisement/statistics}">
+			    📊 통계 대시보드
+			</a>
 		</div>
 		
 		<!-- 승인 관리 탭 -->
@@ -190,15 +195,15 @@
 
 						<td th:text="${ad.title}"></td>
 
-						<td th:text="${ad.memberName}"></td>
+						<td th:text="${ad.nickname}"></td>
 
 						<td th:text="${#temporals.format(ad.endDatetime,'yyyy-MM-dd')}"></td>
 
 						<td
-							th:text="${#temporals.format(ad.extensionEndDatetime,'yyyy-MM-dd')}"></td>
+							th:text="${#temporals.format(ad.extensionRequestEndDatetime,'yyyy-MM-dd')}"></td>
 
 						<td
-							th:text="${#temporals.format(ad.extensionRequestedAt,'yyyy-MM-dd')}"></td>
+							th:text="${#temporals.format(ad.updatedAt,'yyyy-MM-dd')}"></td>
 
 						<td>
 
@@ -208,15 +213,6 @@
 								<input type="hidden" name="adId" th:value="${ad.adId}">
 
 								<button class="btn btn-success btn-sm">승인</button>
-
-							</form>
-
-							<form th:action="@{/admin/advertisement/extensionReject}"
-								method="post">
-
-								<input type="hidden" name="adId" th:value="${ad.adId}">
-
-								<button class="btn btn-danger btn-sm">거절</button>
 
 							</form>
 
@@ -357,6 +353,7 @@
 				        <th>기간</th>
 				        <th>노출수</th>
 				        <th>클릭수</th>
+				        <th>피로도</th>
 				        <th>관리</th>
 				    </tr>
 				</thead>
@@ -425,6 +422,34 @@
 				
 				        <!-- 클릭수 -->
 				        <td th:text="${ad.clicks}"></td>
+				        
+				        <!-- 피로도 -->
+				        <td>
+						    <div th:if="${ad.fatigueScore != null}">
+						        <div class="fw-bold"
+						             th:text="${#numbers.formatDecimal(ad.fatigueScore,1,1) + '점'}">
+						        </div>
+						
+						        <span class="badge bg-success"
+						              th:if="${ad.fatigueStatus == '정상'}">
+						            🟢 정상
+						        </span>
+						
+						        <span class="badge bg-warning text-dark"
+						              th:if="${ad.fatigueStatus == '관심'}">
+						            🟡 관심
+						        </span>
+						
+						        <span class="badge bg-danger"
+						              th:if="${ad.fatigueStatus == '교체 권장'}">
+						            🔴 교체 권장
+						        </span>					
+						    </div>
+						    						
+						    <span th:if="${ad.fatigueScore == null}">
+						        -
+						    </span>
+						</td>
 				
 				        <!-- 관리 (상세 버튼) -->
 				        <td>

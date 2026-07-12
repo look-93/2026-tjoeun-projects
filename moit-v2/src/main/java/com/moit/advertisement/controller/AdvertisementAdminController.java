@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.service.AdvertisementService;
@@ -138,7 +140,7 @@ public class AdvertisementAdminController {
         return "admin/advertisement/detail";
     }
 
-    // 승인 처리
+    // 게시 승인 처리
     @PostMapping("/approve")
     public String approve(@RequestParam int adId,
                           HttpSession session) {
@@ -257,6 +259,72 @@ public class AdvertisementAdminController {
 		
 		 return "redirect:/admin/advertisement/detail?adId=" + dto.getAdId() + "&mode=manage";
 	}
+    
+    // 광고 대시보드 페이지
+    @GetMapping("/statistics")
+    public String statistics() {
+
+        return "admin/advertisement/statistics";
+
+    }
+    // 대시보드 차트
+    // 총 통계
+    @ResponseBody
+    @GetMapping("/chart/summary")
+    public AdvertisementChartDto summary(){
+
+        return advertisementService.selectSummary();
+
+    }
+    // 일일통계 차트
+    @ResponseBody
+    @GetMapping("/chart/daily")
+    public List<AdvertisementChartDto> dailyChart(){
+
+        return advertisementService.selectDailyChart();
+
+    }
+    // ctr 탑5
+    @ResponseBody
+    @GetMapping("/chart/ctr")
+    public List<AdvertisementChartDto> ctrChart(){
+
+        return advertisementService.selectTopCtrChart();
+
+    }
+    // 등급비율
+    @ResponseBody
+    @GetMapping("/chart/grade")
+    public List<AdvertisementChartDto> gradeChart(){
+
+        return advertisementService.selectGradeChart();
+
+    }
+    // 위치별 노출
+    @GetMapping("/chart/position")
+    @ResponseBody
+    public List<AdvertisementChartDto> positionChart() {
+
+        return advertisementService.selectPositionChart();
+
+    }
+    // 연장률
+    @GetMapping("/chart/extension-rate")
+    @ResponseBody
+    public double extensionRate() {
+
+        return advertisementService.selectExtensionRate();
+
+    }
+    // 위치별 ctr 차트
+    @GetMapping("/chart/positionCtr")
+    @ResponseBody
+    public List<AdvertisementChartDto> positionCtrChart(){
+
+        return advertisementService.selectPositionCtrChart();
+
+    }
+    
 
     // 로그인 헬퍼
     private Integer getLogin(HttpSession session) {

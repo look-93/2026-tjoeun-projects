@@ -4,19 +4,23 @@ import java.io.File;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
+import com.moit.advertisement.dto.ExtensionRequestDto;
 import com.moit.advertisement.service.AdvertisementService;
 import com.moit.member.dto.UserDto;
 import com.moit.security.CustomUserDetails;
@@ -65,6 +69,17 @@ public class AdvertisementController {
 
         List<AdvertisementDto> list =
                 advertisementService.searchMyAdvertisement(dto);
+
+        System.out.println("광고 개수 = " + list.size());
+
+        for(AdvertisementDto ad : list){
+            System.out.println(
+                "adId=" + ad.getAdId()
+                + ", title=" + ad.getTitle()
+                + ", end=" + ad.getEndDatetime()
+                + ", extension=" + ad.getExtensionStatus()
+            );
+        }
 
         int totalCnt =
                 advertisementService.selectMyAdvertisementTotalCnt(dto);
@@ -396,5 +411,27 @@ public class AdvertisementController {
 
 
         return "redirect:" + dto.getLandingUrl();
+    }
+    
+    // 광고 기간 연장 신청
+    @PostMapping("/extensionRequest")
+    @ResponseBody
+    public ResponseEntity<?> extensionRequest(
+            @RequestBody ExtensionRequestDto dto,
+            Authentication authentication){
+
+
+        CustomUserDetails user =
+                (CustomUserDetails) authentication.getPrincipal();
+
+
+        dto.setAdvertiserId(user.getAppUserId());
+
+
+        advertisementService.requestExtension(dto);
+
+
+        return ResponseEntity.ok().build();
+
     }
 }
