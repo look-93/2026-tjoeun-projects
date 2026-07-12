@@ -1,5 +1,7 @@
 package com.moit.meetup.controller;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +28,8 @@ import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
 import com.moit.meetup.dto.openapi.AddressSearchResponse;
+import com.moit.meetup.dto.openapi.WeatherInfoRequest;
+import com.moit.meetup.dto.openapi.WeatherInfoResponse;
 import com.moit.meetup.service.MeetupService;
 import com.moit.member.dto.UserDto;
 import com.moit.review.dto.ReviewDto;
@@ -206,6 +210,8 @@ public class MeetupController {
 		String sessionId =
 		        session.getId();
 		
+
+		
 //		CustomUser user = (CustomUser) authentication.getPrincipal(); 
 //		int memberId = userMeetupService.findByMamberId(user.getUsername());
 //		meetupApplicationsDto.setMemberId(memberId);
@@ -233,9 +239,27 @@ public class MeetupController {
 	          }
 	      }
 	    
+	    MeetupDto meetupDto = meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId());
+	    /*날씨*/
+		WeatherInfoRequest weatherRequest  = new WeatherInfoRequest();
+		String dateTime = meetupDto.getMeetupAt();
+
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		LocalDateTime localDateTime = LocalDateTime.parse(dateTime, formatter);
+		
+		weatherRequest.setMeetupDate(localDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));		
+		weatherRequest.setMeetupTime(localDateTime.getHour());		
+		weatherRequest.setNx(meetupDto.getNx());
+		weatherRequest.setNy(meetupDto.getNy());
+		
+		WeatherInfoResponse weatherResponse = openApiService.getWeathreInfo(weatherRequest);
+		/*날씨*/
+		
 	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
 	    model.addAttribute("applyInfo", meetupService.findApplyInfo(meetupApplicationDto));
-	    model.addAttribute("detail", meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
+	    model.addAttribute("detail", meetupDto);
+	    model.addAttribute("weatherResponse", weatherResponse); /*날씨*/
+	    //System.out.println(weatherResponse);
 	    model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
 
 	    //로그인한 사용자 html 로 전달(후기)

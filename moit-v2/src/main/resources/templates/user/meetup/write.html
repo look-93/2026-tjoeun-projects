@@ -117,6 +117,8 @@
 										</p>
 										<input type="text" id="addressText" class="mw-form-input" placeholder="주소" name="address" onclick="showAddressSearchModal()" th:value="${meetup != null} ? ${meetup.address} : ''" readonly/>
 										<input type="text" id="detailAddress" class="mw-form-input" name="addressDetail" th:value="${meetup != null} ? ${meetup.addressDetail} : ''" placeholder="상세주소를 입력하세요"/>
+										<input type="hidden" id="nx" name="nx" th:value="${meetup != null} ? ${meetup.nx} : ''"/>
+										<input type="hidden" id="ny" name="ny" th:value="${meetup != null} ? ${meetup.ny} : ''"/>
 									</div>
 																		
 									
@@ -189,6 +191,8 @@
 		const addressSearchModal = document.getElementById('addressSearchModal');	
 		const sigunguId = document.getElementById('sigunguId');
 		const addressText = document.getElementById('addressText');
+		const nx = document.getElementById('nx');
+		const ny = document.getElementById('ny');
 		
 		let pstartno = 1;
 		
@@ -198,11 +202,13 @@
 		}
 		
 		
-		function selectAddress(text,sigungu){
+		function selectAddress(text,sigungu,nxVal,nyVal){
 			hideAddressSearchModal();		
 			addressText.value = text
 			const foundSigunguId = sigunguList.find(item => item.name === sigungu)?.sigunguId || 1;
-			sigunguId.value = foundSigunguId			
+			sigunguId.value = foundSigunguId
+			nx.value = nxVal
+			ny.value = nyVal
 		}
 		
 		
@@ -252,7 +258,7 @@
 					<td>${info.road}</td>
 					<td>${info.jibun}</td>
 					<td>${info.zipNo}</td>									
-					<td> <button class="btn btn-sm" onclick="selectAddress('${info.address}','${info.sigungu}')">선택</button> </td>
+					<td> <button class="btn btn-sm" onclick="selectAddress('${info.address}','${info.sigungu}','${info.nx}','${info.ny}')">선택</button> </td>
 				</tr>
 	 			`;
 	 		});

@@ -243,8 +243,8 @@
         SELECT MEETUPS_SEQ.NEXTVAL
         FROM DUAL
     </selectKey>
-		INSERT INTO meetups(meetup_id, member_id, title, content, max_participants, min_participants, sigungu_id, category_id, meetup_at, address, address_detail)
-		values(#{meetupId}, #{memberId}, #{title}, #{content}, #{maxParticipants}, #{minParticipants}, #{sigunguId}, #{categoryId}, TO_DATE(#{meetupAt}, 'YYYY-MM-DD"T"HH24:MI'), #{address}, #{addressDetail})
+		INSERT INTO meetups(meetup_id, member_id, title, content, max_participants, min_participants, sigungu_id, category_id, meetup_at, address, address_detail, nx, ny)
+		values(#{meetupId}, #{memberId}, #{title}, #{content}, #{maxParticipants}, #{minParticipants}, #{sigunguId}, #{categoryId}, TO_DATE(#{meetupAt}, 'YYYY-MM-DD"T"HH24:MI'), #{address}, #{addressDetail}, #{nx}, #{ny})
  	</insert>	
  	
  	<!-- 모집수정 -->
@@ -257,7 +257,11 @@
  		   	   category_id 		 = #{categoryId},
  		   	   sigungu_id        = #{sigunguId},
  		   	   meetup_at 	 	 = TO_DATE(#{meetupAt}, 'YYYY-MM-DD"T"HH24:MI'),
- 		   	   status			 = #{status} 		   	   
+ 		   	   status			 = #{status},
+ 		   	   address			 = #{address},
+ 		   	   address_detail    = #{addressDetail},
+ 		   	   nx				 = #{nx},
+ 		   	   ny				 = #{ny} 		   	   	   	   
  		 WHERE meetup_id = #{meetupId}
  	</update> 	 	 	
  	
