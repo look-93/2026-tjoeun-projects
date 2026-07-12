@@ -1,5 +1,5 @@
 package com.moit.qna.ai;
- 
+
 import java.util.List;
 
 import org.springframework.stereotype.Component;

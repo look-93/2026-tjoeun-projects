@@ -1,5 +1,5 @@
 package com.moit.qna.listener;
- 
+
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;

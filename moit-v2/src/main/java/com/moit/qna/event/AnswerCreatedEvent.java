@@ -1,5 +1,5 @@
 package com.moit.qna.event;
- 
+
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 

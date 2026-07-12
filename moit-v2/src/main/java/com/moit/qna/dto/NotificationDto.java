@@ -1,5 +1,5 @@
 package com.moit.qna.dto;
- 
+
 import lombok.Data;
 
 @Data
