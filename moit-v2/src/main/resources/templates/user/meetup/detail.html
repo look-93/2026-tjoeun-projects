@@ -231,20 +231,30 @@
 
 				<div class="meetup-detail-side-box">
 					<h3>추천 모임</h3>
-					<div class="meetup-detail-recom-card">
-						<img src="https://images.unsplash.com/photo-1501555088652-021faa106b9b">
-						<div class="meetup-detail-recom-info">
-							<div class="meetup-detail-recom-title">북한산 등산</div>
-							<div class="meetup-detail-recom-tag">서울</div>
+					
+					
+					<div class="meetup-detail-recom-card"
+					     th:each="meetup : ${recommendMeetupList}"
+					     th:onclick="|location.href='@{/meetup/detail(meetupId=${meetup.meetupId})}'|">						
+				     	<th:block th:if="${meetup.imagePath != null}">
+					        <img th:src="@{|/upload/meetup/${meetup.imagePath}|}" alt="모임 이미지">
+					    </th:block>
+					    <div class="meetup-no-image-div"
+						     th:if="${meetup.imagePath == null}">						    
+						    <span class="icon">🖼️</span>						    
 						</div>
+											
+					    <div class="meetup-detail-recom-info">
+					        <div class="meetup-detail-recom-title"
+					             th:text="${meetup.title}">					            
+					        </div>
+					
+					        <div class="meetup-detail-recom-tag"
+					             th:text="${meetup.sidoName}">					           
+					        </div>
+					    </div>
 					</div>
-					<div class="meetup-detail-recom-card">
-						<img src="https://images.unsplash.com/photo-1533240332313-0db49b459ad6">
-						<div class="meetup-detail-recom-info">
-							<div class="meetup-detail-recom-title">트레킹</div>
-							<div class="meetup-detail-recom-tag">경기</div>
-						</div>
-					</div>
+
 				</div>
 
 				<section class="ad-banner" th:if="${desidebarAd != null}">
@@ -293,6 +303,9 @@
 		</div>
 
 		<script th:inline="javascript">
+		function gotoDetail(meetupId) {
+		    location.href = '/meetup/detail?meetupId=' + meetupId;
+		}
 		function showTab(i){
 			const tabs = document.querySelectorAll(".meetup-detail-tab-btn");
 			const panels = document.querySelectorAll(".meetup-detail-tab-panel");

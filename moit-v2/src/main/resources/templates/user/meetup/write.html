@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MOIT</title>
 <link rel="stylesheet" th:href="@{/css/style.css}">
+<link rel="stylesheet" th:href="@{/css/memberStyle.css}">
 </head>
 <body>
-	<th:block th:replace="~{user/fragments/header :: header}" />
+	<th:block th:replace="~{user/fragments/mainHeader :: mainHeader}" />
 	<div class="container">
 		<div layout:fragment="content">
 			<div class="mw-main-content">
@@ -133,6 +134,7 @@
 										<select id="status" name="status" class="mw-form-select">
 											<option value="RECRUITING" th:selected="${meetup != null and meetup.status == 'RECRUITING'}">모집중</option>
 											<option value="CLOSED" th:selected="${meetup != null and meetup.status == 'CLOSED'}">종료됨</option>
+											<option value="WEATHER_CANCELED" th:selected="${meetup != null and meetup.status == 'WEATHER_CANCELED'}">기상 악화로 인한 취소</option>
 										</select>
 									</div>
 					

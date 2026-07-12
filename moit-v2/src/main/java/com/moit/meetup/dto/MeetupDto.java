@@ -13,6 +13,7 @@ public class MeetupDto {
     private Integer minParticipants;
     private Integer sigunguId;
     private Integer categoryId;
+    private Integer parentId; // 부모 카테고리 아이디
     private String address;
     private String addressDetail;
     private String meetupAt;

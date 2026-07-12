@@ -62,7 +62,7 @@
 				        <td th:text="${meetup.title}">모집명 예시</td>
 				        <td th:text="${meetup.fomatMeetupAt}"></td> 
 				        <td>
-				            <span class="status status-end" th:text="${meetup.status == 'RECRUITING' ? '모집중' : '종료'}"></span>
+				            <span class="status status-end" th:text="${meetup.status == 'RECRUITING' ? '모집중' : meetup.status == 'WEATHER_CANCELED' ? '기상악화로 인한 취소' : '종료'}"></span>
 				        </td>
 				        <td th:text="|${meetup.totalParticipants}/${meetup.maxParticipants}명|"></td> 
 				        <td th:text="${meetup.fomatcreatedAt}"></td> 

@@ -91,12 +91,13 @@
 			<when test="orderType == 'createAt' and orderType != ''"> 
 				A.created_at DESC
 			</when>
-			<when test="orderType == 'list' and orderType != ''">
+			<when test="orderType == 'like' and orderType != ''">
 				NVL(I.like_cnt,0) DESC
 			</when>
 			<when test="orderType == 'meetupAt' and orderType != ''">
-				A.meetup_At ASC
-			</when>		
+			    CASE WHEN A.status = 'CLOSED' THEN 1 ELSE 0 END ASC,
+			    A.meetup_at ASC
+			</when>
 	 		<otherwise>
 				A.created_at DESC
 			</otherwise>
@@ -652,4 +653,61 @@
 		WHERE rn &lt;= 10
 	</select>	
 	
+	<!-- 카테고리별 추천 모임 -->
+	<!-- 많이 참여한 카테고리 참여 횟수 -->
+	<select id="selectRecommendMeetupCount" resultType="MeetupDto" parameterType="int">
+		SELECT
+		    c.parent_id		   
+		FROM meetup_applications ma
+		JOIN meetups m
+		    ON m.meetup_id = ma.meetup_id
+		JOIN categories c
+		    ON c.category_id = m.category_id
+		JOIN categories p
+		    ON p.category_id = c.parent_id
+		WHERE ma.member_id = 36
+		  AND ma.status = 'APPROVED'
+		  AND m.delete_yn = 'N'
+		GROUP BY
+		    c.parent_id,
+		    p.category_name
+		ORDER BY
+		    COUNT(*) DESC
+		FETCH FIRST 2 ROWS ONLY		    
+    </select>
+    
+    <!-- 가장 많이 참여한 부모 카테고리의 모집 중 모임 추천 - 이미 참여한 모임은 제외 -->
+    <select id="selectRecommendMeetups" resultType="MeetupDto" parameterType="MeetupDto">
+	    SELECT m.*, sd.name AS sido_name,j.image_path
+		FROM meetups m
+		JOIN categories c
+		    ON c.category_id = m.category_id
+		LEFT JOIN sigungus s
+		    ON s.sigungu_id = m.sigungu_id
+		LEFT JOIN sidos sd
+		    ON sd.sido_id = s.sido_id
+	    LEFT JOIN (
+		    SELECT meetup_id, image_path
+		    FROM (
+		        SELECT mi.meetup_id, 
+		               i.image_path,
+		               ROW_NUMBER() OVER (PARTITION BY mi.meetup_id ORDER BY mi.image_id ASC) as rn
+		        FROM MEETUP_IMAGES mi  
+		        JOIN IMAGES i ON mi.image_id = i.image_id
+		    )
+		    WHERE rn = 1
+		) J ON J.meetup_id = m.meetup_id
+		WHERE c.parent_id = #{parentId}
+		  AND m.status = 'RECRUITING'
+		  AND m.delete_yn = 'N'
+		  AND NOT EXISTS (
+		      SELECT 1
+		      FROM meetup_applications ma
+		      WHERE ma.meetup_id = m.meetup_id
+		        AND ma.member_id = #{memberId}
+		  )
+		ORDER BY m.created_at DESC
+		FETCH FIRST 1 ROWS ONLY
+    </select>    
+	<!-- 카테고리별 추천 모임 -->
 </mapper>

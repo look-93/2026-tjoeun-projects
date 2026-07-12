@@ -2,6 +2,7 @@ package com.moit.meetup.controller;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -239,7 +240,18 @@ public class MeetupController {
 	          }
 	      }
 	    
+	    
+	    
 	    MeetupDto meetupDto = meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId());
+	    
+	    /*추천모임*/
+	    List<MeetupDto> recommendMeetupList = new ArrayList();
+	    List<MeetupDto> recommendCategories = meetupService.selectRecommendMeetupCount(memberId);
+	    for(MeetupDto dto:recommendCategories) {
+	    	dto.setMemberId(memberId);
+	    	recommendMeetupList.add(meetupService.selectRecommendMeetups(dto));	    	
+	    }
+	    
 	    /*날씨*/
 		WeatherInfoRequest weatherRequest  = new WeatherInfoRequest();
 		String dateTime = meetupDto.getMeetupAt();
@@ -252,12 +264,14 @@ public class MeetupController {
 		weatherRequest.setNx(meetupDto.getNx());
 		weatherRequest.setNy(meetupDto.getNy());
 		
+		
 		WeatherInfoResponse weatherResponse = openApiService.getWeathreInfo(weatherRequest);
 		/*날씨*/
 		
 	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
 	    model.addAttribute("applyInfo", meetupService.findApplyInfo(meetupApplicationDto));
 	    model.addAttribute("detail", meetupDto);
+	    model.addAttribute("recommendMeetupList", recommendMeetupList);	    
 	    model.addAttribute("weatherResponse", weatherResponse); /*날씨*/
 	    //System.out.println(weatherResponse);
 	    model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
@@ -291,6 +305,15 @@ public class MeetupController {
 	    
 	    return "user/meetup/detail";
 	}
+	
+	//모임취소
+	@PostMapping("/meetup/cancel")
+	public String meetupCancel(MeetupDto meetupDto) {
+		
+		
+		return "";
+	}
+	
 	
 	//모집신청
 	@PreAuthorize("isAuthenticated()")
@@ -343,8 +366,6 @@ public class MeetupController {
 		map.put("result", result);
 		return map;
 	}	
-	
-
 	
 	//마이페이지 - 내 모집글 정보
 	@PreAuthorize("isAuthenticated()")

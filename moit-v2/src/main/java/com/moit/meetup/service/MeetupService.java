@@ -90,4 +90,9 @@ public interface MeetupService {
 	//날씨
 	public int insertNotification(MeetupWeatherNotificationDto dto);
 	public List<MeetupDto> selectMeetupsBeforeTwoHours();
+	
+	//많이 참여한 카테고리 참여 횟수
+	public List<MeetupDto> selectRecommendMeetupCount(int memberId);
+	//가장 많이 참여한 부모 카테고리의 모집 중 모임 추천 리스트 조회
+	public MeetupDto selectRecommendMeetups(MeetupDto meetupDto);
 }

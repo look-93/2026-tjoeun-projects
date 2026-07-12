@@ -83,7 +83,9 @@
 		        <div class="slide-track">
 		
 		            <!-- 첫 번째 -->
-		            <div class="card" th:each="meetup : ${popularMeetupList}">
+		            <div class="card"
+					     th:each="meetup : ${popularMeetupList}"
+					     th:onclick="|gotoDetailOrLogin('@{${meetup.meetupId}}')|">
 		            	<div class="card-img">
 							<img th:if="${meetup.imagePath != null}"  th:src="@{/upload/meetup/{file}(file=${meetup.imagePath})}"  alt="${meetup.title}" />
 							<div th:unless="${meetup.imagePath != null}" class="meetup-no-image">

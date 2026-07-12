@@ -418,8 +418,16 @@ public class MeetupServiceImpl implements MeetupService{
 	public List<MeetupDto> selectMeetupsBeforeTwoHours() {
 		return meetupMapper.selectMeetupsBeforeTwoHours();
 	}
-	
 
+	//많이 참여한 카테고리 참여 횟수
+	@Override
+	public List<MeetupDto>  selectRecommendMeetupCount(int memberId) {
+		return meetupMapper.selectRecommendMeetupCount(memberId);
+	}
+	//가장 많이 참여한 부모 카테고리의 모집 중 모임 추천 리스트 조회
+	@Override
+	public MeetupDto selectRecommendMeetups(MeetupDto meetupDto) {
+		return meetupMapper.selectRecommendMeetups(meetupDto);
+	}
 	
-
 }

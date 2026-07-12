@@ -1747,6 +1747,13 @@ footer {
     gap: 12px;
     margin-bottom: 15px;
     align-items: center;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.meetup-detail-recom-card:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
 }
 
 .meetup-detail-recom-card:last-child {
@@ -4173,4 +4180,30 @@ textarea.mw-form-input {
 }
 .slide-track:hover {
     animation-play-state: paused;
+}
+
+/*모임 취소 버튼*/
+.mw-cancel-btn-submit {
+    width: 100%;
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    background: #ef4444;
+    color:#fff;   
+    font-size: 16px;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.meetup-no-image-div{
+    width:60px;
+    height:60px; 
+    display:flex;
+    border-radius: 10px;
+    justify-content:center;
+    align-items:center;
+    font-size:40px;
+    background:#f5f5f5;
+    color:#bbb;
 }

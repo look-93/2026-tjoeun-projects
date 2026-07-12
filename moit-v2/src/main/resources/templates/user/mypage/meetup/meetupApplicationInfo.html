@@ -61,14 +61,16 @@
 				        <td th:text="${apply.fomatMeetupAt}"></td> 
 				        
 				        <td>
-				            <span class="status status-end" th:text="${apply.status == 'RECRUITING' ? '모집중' : '종료'}"></span>
+				            <span class="status status-end" th:text="${apply.status == 'RECRUITING' ? '모집중' : apply.status == 'WEATHER_CANCELED' ? '기상 악화로 인한 취소' : '종료'}"></span>
 				        </td>
 				        <td>
-							<span class="status status-end" 
-							      th:text="${apply.applyStatus == 'PENDING' ? '대기중' : 
-							               (apply.applyStatus == 'APPROVED' ? '승인' : 
-							               (apply.applyStatus == 'REJECTED' ? '거절 : ' + apply.rejectReason : 
-							               (apply.applyStatus == 'NOSHOW' ? '노쇼' : '-')))}">
+							<span class="status status-end"
+						      th:text="${apply.status == 'WEATHER_CANCELED' ? '-' :
+						               apply.applyStatus == 'PENDING' ? '대기중' :
+						               apply.applyStatus == 'APPROVED' ? '승인' :
+						               apply.applyStatus == 'REJECTED' ? '거절 : ' + apply.rejectReason :
+						               apply.applyStatus == 'NOSHOW' ? '노쇼' :
+						               '-'}">
 							</span>
 				        </td>				        
 				        <td>
