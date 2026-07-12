@@ -65,10 +65,11 @@ public interface ReportsMapper {
 	public int updateMemberTrustScore(ReportsDto dto);
 	// 뱃지 업데이트 쿼리
 	public int updateMemberReportStatusId(ReportsDto dto);
+	
 	// 새벽 배치용: 전날 활동 이력(참여/노쇼/신고)이 있는 회원 ID 타겟 추출
-	public int selectTargetMembersYesterday(ReportsDto dto);
+	public List<ReportsDto> selectTargetMembersYesterday();
 	// 3일 전에 신고 상태 변경된 데이터 추출
-	public List<ReportsDto> selectThreeDaysAgo(ReportsDto dto);
+	public List<ReportsDto> selectThreeDaysAgo();
 	
 	
 	

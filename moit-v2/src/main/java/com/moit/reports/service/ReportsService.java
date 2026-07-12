@@ -41,9 +41,12 @@ public interface ReportsService {
     //////////////////
     // email send	//
     //////////////////
-    
+
     // 3일 전에 신고 상태 변경된 데이터 추출
- 	public List<ReportsDto> selectThreeDaysAgo(ReportsDto dto);
+ 	public List<ReportsDto> selectThreeDaysAgo();
+ 	
+	// 새벽배치용 approved, noshow, reportCnt 계산
+    public List<ReportsDto> selectTargetMembersYesterday();
 	
     
 	

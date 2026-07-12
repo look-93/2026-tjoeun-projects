@@ -36,7 +36,7 @@ public class SecurityConfig {
 										  .loginPage("/user/member/login")
 								          .loginProcessingUrl("/login")
 										  //.loginProcessingUrl("/user/member/loginProc") // CustomUserDetailsService -> loadUserByUsername 호출
-										  .defaultSuccessUrl("/user/main", true) // LoginSuccessHandler 동일 / 성공하면 mypage
+										  .defaultSuccessUrl("/user/main", false) // LoginSuccessHandler 동일 / 성공하면 mypage
 										  .failureUrl("/user/member/fail")
 										  .permitAll()
 								  )

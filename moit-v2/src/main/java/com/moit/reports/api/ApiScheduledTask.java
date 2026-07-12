@@ -24,13 +24,20 @@ public class ApiScheduledTask {
 	public void threeSendEmail() { 
 
 		System.out.println("...스케줄러 실행");
-		ReportsDto dto = new ReportsDto();
 		
 		try {
-			service.selectThreeDaysAgo(dto);
+			service.selectThreeDaysAgo();
 		} catch (Exception e) { e.printStackTrace(); }
 		
 		System.out.println("...스케줄러 종료");
 	}
 
+//	새벽 배치용
+	@Scheduled(cron = "0 0 1 * * *")
+	public void yesterdayMember( ) {
+		
+		try {
+			service.selectTargetMembersYesterday();
+		} catch (Exception e) { e.printStackTrace(); }
+	}
 }

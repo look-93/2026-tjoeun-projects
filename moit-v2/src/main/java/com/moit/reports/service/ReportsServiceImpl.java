@@ -156,9 +156,10 @@ public class ReportsServiceImpl implements ReportsService {
 		
 		List<ReportsDto> list = dao.selectAdminReports(map);
 
-		for (ReportsDto dto : list) {
-			Integer targetMemberId = dao.selectTargetMemberId(dto);
+		for (ReportsDto dto : list) { 
+			Integer targetMemberId = dao.selectTargetMemberId(dto); // 신고당한 글 작성자 조회
 			
+			//adminDetail.html
 			if (targetMemberId == null) {
 	            dto.setTargetNickname("대상 없음");
 	            dto.setTrustScore(0);
@@ -197,10 +198,10 @@ public class ReportsServiceImpl implements ReportsService {
 	
 
 	@Override // 3일 전에 신고 상태 변경된 데이터 추출
-	public List<ReportsDto> selectThreeDaysAgo(ReportsDto dto) {
+	public List<ReportsDto> selectThreeDaysAgo() {
 		
-		List<ReportsDto> targetList = dao.selectThreeDaysAgo(dto);
-		System.out.println( targetList.size() );
+		List<ReportsDto> targetList = dao.selectThreeDaysAgo();
+//		System.out.println( targetList.size() );
 		
 		for (ReportsDto target : targetList) {
 			String email = target.getEmail();
@@ -218,6 +219,13 @@ public class ReportsServiceImpl implements ReportsService {
 		}
 		return targetList;
 	}
+
+	// 
+	@Override
+	public List<ReportsDto> selectTargetMembersYesterday() {
+		return dao.selectTargetMembersYesterday();
+	}
+	
 
 	
 

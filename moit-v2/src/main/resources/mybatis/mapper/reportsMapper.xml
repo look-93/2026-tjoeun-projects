@@ -73,21 +73,24 @@
 	<!-- ===== admin ===== -->
 	<!-- ===== admin ===== -->
 	<!-- 신고당한 글 작성자 select (targetMemberId) -->
+	<!-- meetup / review , where = report_id -->
 	<select id="selectTargetMemberId" resultType="int" parameterType="ReportsDto">
 		select target_member_id
 		from (
-			select r.report_id, mt.member_id as target_member_id
+			select	r.report_id,
+					mt.member_id as target_member_id
 			from reports r		join meetups mt		on r.target_id = mt.meetup_id
 			where r.target_type = 'MEETUP'
 			
 			union all
 			
-			select r.report_id, rv.member_id as target_member_id
+			select	r.report_id,
+					rv.member_id as target_member_id
 			from reports r		join reviews rv		on r.target_id = rv.review_id
 			where r.target_type = 'REVIEW'
 		)
 		where report_id = #{reportId}
-	</select> 
+	</select>
 	
 	<!-- 신고당한 글 작성자 select (members.nickname) 
 	<select id="selectNickname" resultType="String" parameterType="ReportsDto">
@@ -171,6 +174,7 @@
 			noshow_cnt = 모임 노쇼 횟수 			→ meetup_applications.status = 'NOSHOW'
 			report_cnt = 내가 작성한 '모임(MEETUP)'이 신고 승인(APPROVED)된 횟수 추출
 			내가 작성한 '후기(REVIEW)'가 신고 승인(APPROVED)된 횟수 추출
+			
 	<select id="calTrustScore" resultType="int">
 	    select 
 	        (mi.trust_score
@@ -281,12 +285,12 @@
 	<!-- 단순 조회용 쿼리 (로그인/마이페이지 호출용 member_info.trust_score - DB 부하 0%) -->
 	<!-- 신고자, 닉네임, 신뢰도 점수, 신고 상태(report_status_id), 신고 상태(code), 신고 상태(name) -->
 	<select id="findMemberTrustInfo" resultType="ReportsDto" parameterType="ReportsDto">
-		select	m.member_id				as targetMemberId,
-				m.nickname				as targetNickname,
-				mi.trust_score			as trustScore,
-				mi.report_status_id		as reportStatusId,
-				mrs.status_code			as statusCode,
-				mrs.status_name			as statusName
+		select	m.member_id				as targetMemberId,	<!-- 신고당한 유저 -->
+				m.nickname				as targetNickname,	<!-- 신고당한 유저 닉네임 -->
+				mi.trust_score			as trustScore,		<!-- 신뢰도 점수 -->
+				mi.report_status_id		as reportStatusId,	<!-- 뱃지 num -->
+				mrs.status_code			as statusCode,		<!-- 뱃지 (eng) -->
+				mrs.status_name			as statusName		<!-- 뱃지 (kor) -->
 		from members m
 			join member_info mi				on m.member_id = mi.member_id
 			join member_report_status mrs	on mi.report_status_id = mrs.report_status_id
@@ -361,12 +365,12 @@
 	<!-- 모임 신청 상태가 'APPROVED' OR 'NOSHOW' 회원 member_id -->
 	<!-- MEETUP 에서 신고 처리가 'APPROVED' 된 모임글 작성자 mt.member_id -->
 	<!-- REVIEW 에서 신고 처리가 'APPROVED' 된 후기글 작성자 rv.member_id -->
-	<select id="selectTargetMembersYesterday" resultType="int">
+	<select id="selectTargetMembersYesterday" resultType="ReportsDto">
 		select member_id
 		from meetup_applications
 		where status in ('APPROVED', 'NOSHOW')
-			and (created_at >= trunc(sysdate) -1 and created_at &lt; trunc(sysdate)
-			or updated_at >= trunc(sysdate) -1 and updated_at &lt; trunc(sysdate))
+			and ( (created_at >= trunc(sysdate) -1 and created_at &lt; trunc(sysdate))
+			or (updated_at >= trunc(sysdate) -1 and updated_at &lt; trunc(sysdate)) )
 				
 		union
 		
@@ -374,18 +378,35 @@
 		from reports r join meetups mt
 			on r.target_type = 'MEETUP' and r.target_id = mt.meetup_id
 		where r.status = 'APPROVED'
-			and (created_at >= trunc(sysdate) -1 and created_at &lt; trunc(sysdate)
-			or updated_at >= trunc(sysdate) -1 and updated_at &lt; trunc(sysdate))
+			and ( (created_at >= trunc(sysdate) -1 and created_at &lt; trunc(sysdate))
+			or (updated_at >= trunc(sysdate) -1 and updated_at &lt; trunc(sysdate)) )
 
 		union
 		
-		select rv.review_id
+		select rv.member_id
 		from reports r join reviews rv
 			on r.target_type = 'REVIEW' and r.target_id = rv.review_id
 		where r.status = 'APPROVED'
-			and (created_at >= trunc(sysdate) -1 and created_at &lt; trunc(sysdate)
-			or updated_at >= trunc(sysdate) -1 and updated_at &lt; trunc(sysdate))
+			and ( (created_at >= trunc(sysdate) -1 and created_at &lt; trunc(sysdate))
+			or (updated_at >= trunc(sysdate) -1 and updated_at &lt; trunc(sysdate)) )
 	</select>
+	
+	<!-- 3일 전에 신고 상태 변경된 데이터 추출 -->
+	<select id="selectThreeDaysAgo" resultType="ReportsDto">
+		select m.email
+		from reports r join members m on r.member_id = m.member_id
+		where r.status = 'APPROVED'
+			and r.updated_at >= trunc(sysdate) - 3
+			and r.updated_at &lt; trunc(sysdate) - 2
+	</select> 
+	
+	<!-- 당일에 신고 상태 변경된 데이터 추출 
+	<select id="selectThreeDaysAgo" resultType="ReportsDto">
+	    select m.email
+	    from reports r join members m on r.member_id = m.member_id
+	    where r.status = 'APPROVED'
+	    	and r.updated_at >= trunc(sysdate) 
+	</select> -->
 	
 	
 	
@@ -485,22 +506,7 @@
 	
  
 
-	<!-- 3일 전에 신고 상태 변경된 데이터 추출 -->
-	<select id="selectThreeDaysAgo" resultType="ReportsDto">
-		select m.email
-		from reports r join members m on r.member_id = m.member_id
-		where r.status = 'APPROVED'
-			and r.updated_at >= trunc(sysdate) - 3
-			and r.updated_at &lt; trunc(sysdate) - 2
-	</select> 
 	
-	<!-- 당일에 신고 상태 변경된 데이터 추출 
-	<select id="selectThreeDaysAgo" resultType="ReportsDto">
-	    select m.email
-	    from reports r join members m on r.member_id = m.member_id
-	    where r.status = 'APPROVED'
-	    	and r.updated_at >= trunc(sysdate) 
-	</select> -->
 </mapper>
 
 
