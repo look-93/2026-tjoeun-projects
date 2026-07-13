@@ -471,13 +471,13 @@
 	
 	            <li class="page-item" th:classappend="${dto.page <= 1} ? 'disabled'">
 	                <a class="page-link"
-	                   th:href="@{/admin/advertisement/manageList(page=${dto.page - 1}, tab=${tab})}">
+	                   th:href="@{/admin/advertisement/manageList(page=${startPage - 1}, tab=${tab})}">
 	                    이전
 	                </a>
 	            </li>
 	
 	            <li class="page-item"
-	                th:each="i : ${#numbers.sequence(1, totalPage)}"
+	                th:each="i : ${#numbers.sequence(startPage,endPage)}"
 	                th:classappend="${dto.page == i} ? 'active'">
 	
 	                <a class="page-link"
@@ -489,7 +489,7 @@
 	
 	            <li class="page-item" th:classappend="${dto.page >= totalPage} ? 'disabled'">
 	                <a class="page-link"
-	                   th:href="@{/admin/advertisement/manageList(page=${dto.page + 1}, tab=${tab})}">
+	                   th:href="@{/admin/advertisement/manageList(page=${endPage + 1}, tab=${tab})}">
 	                    다음
 	                </a>
 	            </li>

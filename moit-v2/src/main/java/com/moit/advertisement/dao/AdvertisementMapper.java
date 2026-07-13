@@ -167,6 +167,9 @@ public interface AdvertisementMapper {
     List<AdvertisementChartDto> selectPositionChart(); // 위치별 노출
     double selectExtensionRate();					   // 연장률
     List<AdvertisementChartDto> selectPositionCtrChart(); // 위치별 ctr
+    
+    // 피로도 갯수
+    Integer selectFatigueWarningCount();
     /// 피로도 
     AdvertisementDto selectAdvertisementStatistics(int adId);
 //    Double selectRecentCtr(int adId);		// 최근 ctr
