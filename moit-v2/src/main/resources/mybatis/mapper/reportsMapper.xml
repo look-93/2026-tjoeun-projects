@@ -92,14 +92,30 @@
 		where report_id = #{reportId}
 	</select>
 	
-	<!-- 신고당한 글 작성자 select (members.nickname) 
-	<select id="selectNickname" resultType="String" parameterType="ReportsDto">
-		select nickname
-		from members
-		where member_id = #{targetMemberId}
-	</select> -->
+	<!-- 신고당한 글 작성자 select (targetMemberId + members.nickname) -->
+	<select id="selectTargetMemberNickname" resultType="String" parameterType="ReportsDto">
+		select target_nickname
+		from (
+			select	r.report_id,
+					m.nickname as target_nickname
+			from reports r
+			join meetups mt		on r.target_id = mt.meetup_id
+			join members m		on mt.member_id = m.member_id
+			where r.target_type = 'MEETUP'
+			
+			union all
+			
+			select	r.report_id,
+					m.nickname as target_nickname
+			from reports r
+			join reviews rv		on r.target_id = rv.review_id
+			join members m		on rv.member_id = m.member_id
+			where r.target_type = 'REVIEW'
+		)
+		where report_id = #{reportId}
+	</select>
 	
-	<!-- APPROVED 승인 건수 조회 (MEETUP + REVIEW) 
+	<!-- APPROVED 승인 건수 조회 (MEETUP + REVIEW) -->
 	<select id="approvedCnt" resultType="int" parameterType="ReportsDto">
 		select count(*)
 		from (
@@ -114,7 +130,7 @@
 			where r.target_type = 'REVIEW' and r.status = 'APPROVED'
 		)		
 		where target_member_id = #{targetMemberId}
-	</select> -->
+	</select> 
 	
 	
 	
@@ -169,18 +185,19 @@
 	
 	<!-- 실시간 신뢰점수 산출 쿼리 (새벽 배치 타겟 정산용 - 인덱스 최적화 완비)
 		기본 점수 100점 + (승인 횟수 * 2) - (노쇼 * 10) - (신고당한 건수 * 5)
+	        (mi.trust_score
 			
 			approved_cnt = 모임 참여 승인 횟수		→ meetup_applications.status = 'APPROVED'
 			noshow_cnt = 모임 노쇼 횟수 			→ meetup_applications.status = 'NOSHOW'
 			report_cnt = 내가 작성한 '모임(MEETUP)'이 신고 승인(APPROVED)된 횟수 추출
-			내가 작성한 '후기(REVIEW)'가 신고 승인(APPROVED)된 횟수 추출
+			내가 작성한 '후기(REVIEW)'가 신고 승인(APPROVED)된 횟수 추출 -->
 			
 	<select id="calTrustScore" resultType="int">
 	    select 
 	        (mi.trust_score
 	         + coalesce(ma.approved_cnt, 0) * 2 
 	         - coalesce(ma.noshow_cnt, 0) * 10 
-	         - (coalesce(r_meet.report_cnt, 0) + coalesce(r_rev.report_cnt, 0)) * 5
+	         - (coalesce(r_met.report_cnt, 0) + coalesce(r_rev.report_cnt, 0)) * 5
 	        ) as calculated_trust_score
 	    from members m
 	    join member_info mi on m.member_id = mi.member_id
@@ -200,17 +217,18 @@
 		    
 		    left join (
 		        select 
-		            met.member_id,
+		            mt.member_id,
 		            count(r.report_id) as report_cnt
 		        from reports r
-		        join meetups met 
-		            on r.target_type = 'MEETUP' and r.target_id = met.meetup_id
-		        where met.member_id = #{memberId}
+		        join meetups mt
+		            on r.target_type = 'MEETUP' and r.target_id = mt.meetup_id
+		        where mt.member_id = #{memberId}
 		          and r.status = 'APPROVED'
+		          and r.delete_yn = 'N'
 		          and r.updated_at >= sysdate - 90 
-		        group by met.member_id
-		    ) r_meet
-		    on m.member_id = r_meet.member_id
+		        group by mt.member_id
+		    ) r_met
+		    on m.member_id = r_met.member_id
 		
 		    left join (
 		        select 
@@ -220,66 +238,15 @@
 		        join reviews rv on r.target_type = 'REVIEW' and r.target_id = rv.review_id
 		        where rv.member_id = #{memberId}
 		          and r.status = 'APPROVED'
+		          and r.delete_yn = 'N'
 		          and r.updated_at >= sysdate - 90 
 		        group by rv.member_id
 		    ) r_rev
 		    on m.member_id = r_rev.member_id
 	
 	    where m.member_id = #{memberId}
-	</select> -->
-	
-	<!-- 날짜 조건 제거 test -->
-<!--        (mi.trust_score  -->
-<!-- 	    join member_info mi 
-	        on m.member_id = mi.member_id -->
-	<select id="calTrustScore" resultType="int">
-	    select 
-	    	( 100
-	         + coalesce(ma.approved_cnt, 0) * 2 
-	         - coalesce(ma.noshow_cnt, 0) * 10 
-	         - (coalesce(r_meet.report_cnt, 0) + coalesce(r_rev.report_cnt, 0)) * 5
-	        ) as calculated_trust_score
-	    from members m
-	
-	    left join (
-	        select 
-	            member_id,
-	            count(case when status = 'APPROVED' then 1 end) as approved_cnt,
-	            count(case when status = 'NOSHOW' then 1 end) as noshow_cnt
-	        from meetup_applications
-	        where member_id = #{memberId}
-	        group by member_id
-	    ) ma on m.member_id = ma.member_id
-	
-	    left join (
-	        select 
-	            met.member_id,
-	            count(r.report_id) as report_cnt
-	        from reports r
-	        join meetups met 
-	            on r.target_type = 'MEETUP' and r.target_id = met.meetup_id
-	        where met.member_id = #{memberId}
-	          and r.status = 'APPROVED'
-	        group by met.member_id
-	    ) r_meet on m.member_id = r_meet.member_id
-	
-	    left join (
-	        select 
-	            rv.member_id,
-	            count(r.report_id) as report_cnt
-	        from reports r
-	        join reviews rv 
-	            on r.target_type = 'REVIEW' and r.target_id = rv.review_id
-	        where rv.member_id = #{memberId}
-	          and r.status = 'APPROVED'
-	        group by rv.member_id
-	    ) r_rev on m.member_id = r_rev.member_id
-	
-	    where m.member_id = #{memberId}
-	</select>
-	
-	
-	
+	</select> 
+
 	
 	
 	<!-- 단순 조회용 쿼리 (로그인/마이페이지 호출용 member_info.trust_score - DB 부하 0%) -->
@@ -305,7 +272,7 @@
 		from meetup_applications
 		where member_id = #{memberId}
 			and status = 'APPROVED'
-			and created_at >= sysdate - 90
+			and updated_at >= sysdate - 90
 	</select> 
 	
 	<!-- noshow_cnt = 모임 노쇼 횟수 (-10) meetup_applications.status = 'NOSHOW' -->
@@ -314,7 +281,7 @@
 		from meetup_applications
 		where member_id = #{memberId}
 			and status = 'NOSHOW'
-			and created_at >= sysdate - 90
+			and updated_at >= sysdate - 90
 	</select> 
 	
 	<!-- report_cnt = 내가 작성한 MEETUP/REVIEW가 신고 승인된 횟수 (-5) -->
@@ -328,7 +295,7 @@
 					and r.target_id = mt.meetup_id
 					and r.status = 'APPROVED'
 					and r.delete_yn = 'N'
-					and r.created_at >= sysdate -90
+					and r.updated_at >= sysdate -90
 					
 			union all
 			
@@ -339,7 +306,7 @@
 					and r.target_id = rv.review_id
 					and r.status = 'APPROVED'
 					and r.delete_yn = 'N'
-					and r.created_at >= sysdate -90
+					and r.updated_at >= sysdate -90
 		)
 		where target_member_id = #{targetMemberId}
 	</select> 
@@ -355,7 +322,7 @@
 		where member_id = #{memberId}
 	</update>
 	<!-- 뱃지 업데이트 쿼리 -->
-	<update id="updateMemberReportStatusId" parameterType="ReportsDto">
+	<update id="updateMemberBadge" parameterType="ReportsDto">
 		update member_info
 		set report_status_id = #{reportStatusId}
 		where member_id = #{memberId}
@@ -366,30 +333,31 @@
 	<!-- MEETUP 에서 신고 처리가 'APPROVED' 된 모임글 작성자 mt.member_id -->
 	<!-- REVIEW 에서 신고 처리가 'APPROVED' 된 후기글 작성자 rv.member_id -->
 	<select id="selectTargetMembersYesterday" resultType="ReportsDto">
-		select member_id
-		from meetup_applications
-		where status in ('APPROVED', 'NOSHOW')
-			and ( (created_at >= trunc(sysdate) -1 and created_at &lt; trunc(sysdate))
-			or (updated_at >= trunc(sysdate) -1 and updated_at &lt; trunc(sysdate)) )
-				
-		union
-		
-		select mt.member_id
-		from reports r join meetups mt
-			on r.target_type = 'MEETUP' and r.target_id = mt.meetup_id
-		where r.status = 'APPROVED'
-			and ( (created_at >= trunc(sysdate) -1 and created_at &lt; trunc(sysdate))
-			or (updated_at >= trunc(sysdate) -1 and updated_at &lt; trunc(sysdate)) )
-
-		union
-		
-		select rv.member_id
-		from reports r join reviews rv
-			on r.target_type = 'REVIEW' and r.target_id = rv.review_id
-		where r.status = 'APPROVED'
-			and ( (created_at >= trunc(sysdate) -1 and created_at &lt; trunc(sysdate))
-			or (updated_at >= trunc(sysdate) -1 and updated_at &lt; trunc(sysdate)) )
+	    select member_id
+	    from meetup_applications
+	    where status in ('APPROVED', 'NOSHOW')
+	        and (updated_at >= trunc(sysdate) -1 and updated_at &lt; trunc(sysdate)) )
+	            
+	    union
+	    
+	    select mt.member_id
+	    from reports r
+	    join meetups mt on r.target_type = 'MEETUP'
+	    					and r.target_id = mt.meetup_id
+	    where r.status = 'APPROVED'
+	        and (r.updated_at >= trunc(sysdate) -1 and r.updated_at &lt; trunc(sysdate)) )
+	
+	    union
+	    
+	    select rv.member_id
+	    from reports r
+	    join reviews rv on r.target_type = 'REVIEW'
+	    					and r.target_id = rv.review_id
+	    where r.status = 'APPROVED'
+	        and (r.updated_at >= trunc(sysdate) -1 and r.updated_at &lt; trunc(sysdate)) )
 	</select>
+	
+	
 	
 	<!-- 3일 전에 신고 상태 변경된 데이터 추출 -->
 	<select id="selectThreeDaysAgo" resultType="ReportsDto">

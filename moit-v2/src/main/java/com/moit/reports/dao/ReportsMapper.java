@@ -30,7 +30,7 @@ public interface ReportsMapper {
 	// 사용자 본인이 작성한 신고 내역 상세 조회
 	public ReportsDto selectUserReportDetail(ReportsDto dto);
 	
-	//	중복 신고 방지
+	// 중복 신고 방지
 	public int doubleReport(ReportsDto dto);
 	// 신고 난사 방지
 	public int TodayReport(ReportsDto dto);
@@ -40,6 +40,8 @@ public interface ReportsMapper {
     // ===== admin =====
 	// 신고당한 글 작성자 조회
 	public Integer selectTargetMemberId(ReportsDto dto);
+	// 신고당한 글 작성자 select (targetMemberId + members.nickname) -->
+	public String selectTargetMemberNickname(ReportsDto dto);
 	// 신고당한 글 작성자 닉네임 조회
 //	public String selectNickname(ReportsDto dto);
 	
@@ -64,7 +66,7 @@ public interface ReportsMapper {
 	// 계산된 신뢰도 점수 업데이트 쿼리
 	public int updateMemberTrustScore(ReportsDto dto);
 	// 뱃지 업데이트 쿼리
-	public int updateMemberReportStatusId(ReportsDto dto);
+	public int updateMemberBadge(ReportsDto dto);
 	
 	// 새벽 배치용: 전날 활동 이력(참여/노쇼/신고)이 있는 회원 ID 타겟 추출
 	public List<ReportsDto> selectTargetMembersYesterday();

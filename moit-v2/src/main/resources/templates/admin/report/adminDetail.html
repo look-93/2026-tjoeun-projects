@@ -78,13 +78,7 @@
 				<div class="admin-detail-row">
 					<div class="admin-detail-label">신고 대상</div>
 					<div class="admin-detail-value"
-						th:text="${dto.targetType}"></div>
-				</div>
-
-				<div class="admin-detail-row">
-					<div class="admin-detail-label">대상 글 번호 ID</div>
-					<div class="admin-detail-value"
-						th:text="${dto.targetId}"></div>
+						th:text="|${dto.targetType} ${dto.targetId}번 글|"></div>
 				</div>
 
 				<div class="admin-detail-row">
@@ -102,7 +96,7 @@
 				<div class="admin-detail-row">
 					<div class="admin-detail-label">신고일</div>
 					<div class="admin-detail-value"
-						th:text="${dto.createdAt}"></div>
+						th:text="|${dto.createdAt}"></div>
 				</div>
 				
 				<div th:if="${dto.updatedAt != null}">

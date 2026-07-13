@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.moit.reports.dao.ReportsMapper;
 import com.moit.reports.dto.ReportsDto;
 import com.moit.reports.service.ReportsService;
 
@@ -12,6 +13,8 @@ public class ApiScheduledTask {
 	
 	@Autowired
 	private ReportsService service;
+	@Autowired
+	private ReportsMapper dao;
 	@Autowired
 	private ApiEmail apiEmail;
 	
@@ -23,21 +26,26 @@ public class ApiScheduledTask {
 	@Scheduled(cron = "0 0 3 * * *")
 	public void threeSendEmail() { 
 
-		System.out.println("...스케줄러 실행");
+		System.out.println("...신고처리 3일 후 sendEmail 스케줄러 실행");
 		
 		try {
 			service.selectThreeDaysAgo();
 		} catch (Exception e) { e.printStackTrace(); }
 		
-		System.out.println("...스케줄러 종료");
+		System.out.println("...신고처리 3일 후 sendEmail 스케줄러 종료");
 	}
 
 //	새벽 배치용
 	@Scheduled(cron = "0 0 1 * * *")
-	public void yesterdayMember( ) {
+	public void yesterdayMembersCal() {
+		
+		// 참여APPROVED/노쇼NOSHOW/신고(reports.status = 'APPROVED' 처리 이력
+		System.out.println("...어제 승인/노쇼/신고 집계 스케줄러 실행");
 		
 		try {
 			service.selectTargetMembersYesterday();
 		} catch (Exception e) { e.printStackTrace(); }
+		
+		System.out.println("...어제 승인/노쇼/신고 집계 스케줄러 종료");
 	}
 }

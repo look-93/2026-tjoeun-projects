@@ -38,7 +38,7 @@ public class ReportsServiceImpl implements ReportsService {
 	@Override // 신고 작성 기능
 	public int insertUserReport(ReportsDto dto) {
 
-		// 중복 신고 select count(*) 쿼리 호출
+		// 중복 신고 select count(*) 쿼리 호출 -> meetup/detail.html 로 빠짐
 		int count = dao.doubleReport(dto);
 		// 이미 신고가 존재하면 insert를 하지 않고 -1(또는 특정 에러코드) 반환
 		if (count > 0) { return -1; }
@@ -78,31 +78,31 @@ public class ReportsServiceImpl implements ReportsService {
 			dto.setTargetMemberId(targetMemberId);	
 			
 			// 신뢰도 점수 sql 쿼리 3개
-//			int approvedCnt = dao.selectApprovedCnt(targetMemberId);
-//			int noshowCnt = dao.selectNoshowCnt(targetMemberId);
-//			int reportCnt = dao.selectReportCnt(targetMemberId);
+			int approvedCnt = dao.selectApprovedCnt(targetMemberId);
+			int noshowCnt = dao.selectNoshowCnt(targetMemberId);
+			int reportCnt = dao.selectReportCnt(targetMemberId);
 			// 계산
-//			int trustScore = 100 + (approvedCnt * 2) - (noshowCnt * 10) - (reportCnt * 5);
+			int trustScore = 100 + (approvedCnt * 2) - (noshowCnt * 10) - (reportCnt * 5);
 
 			// 신뢰도 점수 sql 쿼리 1개
-			int calTrustScore = dao.calTrustScore(targetMemberId);
+//			int calTrustScore = dao.calTrustScore(targetMemberId);
 
 			int reportStatusId = 1;
-			if( calTrustScore >= 80 ) {
+			if( trustScore >= 80 ) {
 				reportStatusId = 1;				// 1=정상,클린한 유저
-			} else if ( calTrustScore >= 40 ) {
+			} else if ( trustScore >= 40 ) {
 				reportStatusId = 2;				// 2=주의,선 넘은 어그로 유저
 			} else {
-				reportStatusId = 3;				// 3=정지,진실의 방으로...
+				trustScore = 3;				// 3=정지,진실의 방으로...
 			}
 			
 			ReportsDto updateDto = new ReportsDto();
 			updateDto.setMemberId(targetMemberId);			// 신고대상id
-			updateDto.setTrustScore(calTrustScore);			// 신뢰도점수
+			updateDto.setTrustScore(trustScore);			// 신뢰도점수
 			updateDto.setReportStatusId(reportStatusId);	// 상태 번호 (status_name 출력)
 			
 			dao.updateMemberTrustScore(updateDto);		// 신뢰도 점수 update
-			dao.updateMemberReportStatusId(updateDto);	// 뱃지 상태 update
+			dao.updateMemberBadge(updateDto);	// 뱃지 상태 update
 		}
 		
 		
@@ -220,10 +220,30 @@ public class ReportsServiceImpl implements ReportsService {
 		return targetList;
 	}
 
-	// 
+	// 새벽배치용
 	@Override
 	public List<ReportsDto> selectTargetMembersYesterday() {
-		return dao.selectTargetMembersYesterday();
+		
+		// 어제 새벽 활동 회원 조회 (참여APPROVED/노쇼NOSHOW/신고(reports.status = 'APPROVED') 처리 이력)
+		List<ReportsDto> yesterdayMembers = dao.selectTargetMembersYesterday();
+		
+		for (ReportsDto member : yesterdayMembers) { 
+			int memberId = member.getTargetMemberId();
+			
+			// 최근 90일치 이력만 계산
+			int cal = dao.calTrustScore(memberId);
+		
+			// 계산된 신뢰점수를 member_info.trust_score에 반영(UPDATE)
+			// 신뢰도, 뱃지 점수 update
+			ReportsDto dto = new ReportsDto();
+			dto.setTrustScore(cal);
+				
+//			int targetMemberId = dao.selectTargetMemberId(member);
+			dao.updateMemberTrustScore(dto);
+			dao.updateMemberBadge(dto);
+		}
+
+		return yesterdayMembers;
 	}
 	
 
