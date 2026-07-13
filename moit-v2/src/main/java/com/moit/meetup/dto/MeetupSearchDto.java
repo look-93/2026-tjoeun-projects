@@ -15,6 +15,8 @@ public class MeetupSearchDto {
    	private String orderType;
    	private Integer categoryId;
    	private Integer pstartno;
+   	
+   	private String searchAddress;
 
    	private String adminSearchText;
 }

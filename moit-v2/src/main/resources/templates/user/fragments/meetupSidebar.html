@@ -8,14 +8,6 @@
 
 			<div class="category meetupList-category" id="meetupList-category"></div>
 			
-			<div sec:authorize="isAuthenticated()">
-		    로그인됨
-		</div>
-		
-		<div sec:authentication="principal.authorities">
-		    권한 확인
-		</div>
-
 			<section class="side-ad"
 		             th:if="${sidebarAd != null}"
 		             th:classappend="${sidebarAd.imageList != null and !sidebarAd.imageList.isEmpty()} ? ' has-image' : ''">

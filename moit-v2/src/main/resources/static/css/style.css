@@ -1495,6 +1495,58 @@ footer {
     background: #ffd6d6;
 }
 
+/******************detail 날씨*********************/
+.meetup-detail-weather-content-box{
+    display:flex;
+    align-items:center;
+    gap:18px;
+
+    padding:12px 18px;
+    background:#eafcff;
+    border:1px solid #e9eef5;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+
+.weather-title{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:15px;
+    font-weight:700;
+    color:#333;
+    white-space:nowrap;
+}
+
+.weather-info{
+    display:flex;
+    align-items:center;
+    gap:20px;
+    flex-wrap:wrap;
+}
+
+.weather-item{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    font-size:14px;
+    color:#555;
+}
+
+.weather-label{
+    color:#888;
+}
+
+.weather-value{
+    font-weight:700;
+    color:#222;
+}
+
+.weather-empty{
+    font-size:14px;
+    color:#888;
+}
+/******************detail 날씨*********************/
 /* ================= TABS ================= */
 .meetup-detail-tabs {
     background: white;
@@ -1695,6 +1747,13 @@ footer {
     gap: 12px;
     margin-bottom: 15px;
     align-items: center;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.meetup-detail-recom-card:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
 }
 
 .meetup-detail-recom-card:last-child {
@@ -4296,6 +4355,60 @@ textarea.mw-form-input {
 	}
 }
 
+/* 메인 인기 모임 슬라이더 애니메이션 */
+.slider {
+    overflow: hidden;
+    width: 100%;
+}
+
+.slide-track {
+    display: flex;
+    gap: 20px;
+    width: max-content;
+    animation: scroll 25s linear infinite;
+}
+
+@keyframes scroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(calc(-50%));
+    }
+}
+
+.card {
+    flex: 0 0 280px;
+}
+.slide-track:hover {
+    animation-play-state: paused;
+}
+
+/*모임 취소 버튼*/
+.mw-cancel-btn-submit {
+    width: 100%;
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    background: #ef4444;
+    color:#fff;   
+    font-size: 16px;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.meetup-no-image-div{
+    width:60px;
+    height:60px; 
+    display:flex;
+    border-radius: 10px;
+    justify-content:center;
+    align-items:center;
+    font-size:40px;
+    background:#f5f5f5;
+    color:#bbb;
+
 .review-like-btn{
     display:inline-flex;
     align-items:center;
@@ -4351,5 +4464,4 @@ textarea.mw-form-input {
 	max-width: 90vw;
 	padding: 24px;
 	box-sizing: border-box;
-
 }

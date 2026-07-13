@@ -20,6 +20,7 @@ import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupImageDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
+import com.moit.meetup.dto.MeetupWeatherNotificationDto;
 import com.moit.meetup.dto.TrustScoreDto;
 import com.moit.meetup.dto.common.CategoryDto;
 import com.moit.meetup.dto.common.SidoDto;
@@ -119,7 +120,7 @@ public class MeetupServiceImpl implements MeetupService{
 	public int insertMeetup(MeetupDto meetupDto, List<MultipartFile> files) {
 	    // 1. 모집글 데이터 insert
 	    int result = meetupMapper.insertMeetup(meetupDto);
-	    
+	    System.out.println(meetupDto.getMeetupAt());
 	    // 2. 업로드 된 파일이 존재하면 저장 실행
 	    if (files != null && !files.isEmpty()) {
 	        List<MeetupImageDto> imageList = new ArrayList<>();         
@@ -178,7 +179,7 @@ public class MeetupServiceImpl implements MeetupService{
 	@Override
 	@Transactional(rollbackFor = Exception.class) // 모든 예외에 대해 롤백 보장
 	public int updateMeetup(MeetupDto meetupDto, List<MultipartFile> files) {
-	    
+	    System.out.println(meetupDto.getMeetupAt());
 	    // 1. 새 파일이 실제로 존재하는지 엄격하게 검증
 	    boolean hasNewFiles = files != null && files.stream().anyMatch(file -> !file.isEmpty());
 	    
@@ -300,6 +301,12 @@ public class MeetupServiceImpl implements MeetupService{
 	    return result;
 	}
 	
+	//인기 모임 조회
+	@Override
+	public List<MeetupDto> findPopularMeetup() {
+		return meetupMapper.findPopularMeetup();
+	}
+
 	//마이페이지 내 모집글 조회 + paging
 	@Override
 	public List<MeetupDto> selectMyMeetup(int pstartno,MeetupDto meetupDto) {
@@ -398,6 +405,29 @@ public class MeetupServiceImpl implements MeetupService{
 	@Override
 	public List<CategoryDto> findAllChildCategory() {
 		return meetupMapper.findAllChildCategory();
-	}	
+	}
+	
+	//날씨
+	@Override
+	public int insertNotification(MeetupWeatherNotificationDto dto) {
+		//카카오 or SMS 전송
+		return meetupMapper.insertNotification(dto);
+	}
 
+	@Override
+	public List<MeetupDto> selectMeetupsBeforeTwoHours() {
+		return meetupMapper.selectMeetupsBeforeTwoHours();
+	}
+
+	//많이 참여한 카테고리 참여 횟수
+	@Override
+	public List<MeetupDto>  selectRecommendMeetupCount(int memberId) {
+		return meetupMapper.selectRecommendMeetupCount(memberId);
+	}
+	//가장 많이 참여한 부모 카테고리의 모집 중 모임 추천 리스트 조회
+	@Override
+	public MeetupDto selectRecommendMeetups(MeetupDto meetupDto) {
+		return meetupMapper.selectRecommendMeetups(meetupDto);
+	}
+	
 }

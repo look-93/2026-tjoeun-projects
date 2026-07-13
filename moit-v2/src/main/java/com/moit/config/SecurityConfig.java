@@ -38,7 +38,7 @@ public class SecurityConfig {
 											   .requestMatchers( "/user/member/socialInfo" )									   
 											   .hasAuthority("ROLE_SOCIAL")
 											   .anyRequest()
-											   .permitAll()				
+											   .permitAll()			
 								  )
 								  //2. 로그인처리
 								  .formLogin(form -> form 
