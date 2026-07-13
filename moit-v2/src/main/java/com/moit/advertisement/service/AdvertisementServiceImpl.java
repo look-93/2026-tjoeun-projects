@@ -3,6 +3,9 @@ package com.moit.advertisement.service;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,7 +18,9 @@ import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
+import com.moit.advertisement.dto.DashboardAiDto;
 import com.moit.advertisement.dto.ExtensionRequestDto;
+import com.moit.advertisement.type.AdvertisementPosition;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -28,6 +33,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	private final AdvertisementMapper advertisementMapper;
 	private final MailService mailService;
 	private static final String UPLOAD_PATH = "C:/upload/ad";
+	private final AiSummaryService aiSummaryService;
 
 	// 스케쥴러
 	@Override
@@ -566,7 +572,31 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	// 위치별 노출
 	@Override
 	public List<AdvertisementChartDto> selectPositionChart() {
-	    return advertisementMapper.selectPositionChart();
+
+	    List<AdvertisementChartDto> dbList =
+	            advertisementMapper.selectPositionChart();
+
+	    return Arrays.stream(AdvertisementPosition.values())
+	            .map(position -> {
+
+	                return dbList.stream()
+	                        .filter(dto ->
+	                                position.name()
+	                                .equals(dto.getPosition()))
+	                        .findFirst()
+	                        .orElseGet(() -> {
+
+	                            AdvertisementChartDto empty =
+	                                    new AdvertisementChartDto();
+
+	                            empty.setPosition(position.name());
+	                            empty.setImpressions(0);
+
+	                            return empty;
+	                        });
+
+	            })
+	            .toList();
 	}
 	// 연장률
 	@Override
@@ -576,9 +606,123 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	// 위치별 ctr 차트
 	@Override
 	public List<AdvertisementChartDto> selectPositionCtrChart() {
-		System.out.println("===== 위치별 CTR 조회 =====");
-		return advertisementMapper.selectPositionCtrChart();
+
+	    System.out.println("===== 위치별 CTR 조회 =====");
+
+	    List<AdvertisementChartDto> dbList =
+	            advertisementMapper.selectPositionCtrChart();
+
+
+	    return Arrays.stream(AdvertisementPosition.values())
+	            .map(position -> {
+
+	                return dbList.stream()
+	                        .filter(dto ->
+	                                position.name()
+	                                .equals(dto.getPosition()))
+	                        .findFirst()
+	                        .orElseGet(() -> {
+
+	                            AdvertisementChartDto empty =
+	                                    new AdvertisementChartDto();
+
+	                            empty.setPosition(position.name());
+	                            empty.setCtr(0.0);
+
+	                            return empty;
+	                        });
+
+	            })
+	            .toList();
 	}
+	
+	// AI 통계 요약
+	@Override
+	public DashboardAiDto getDashboardAiData() {
+
+	    DashboardAiDto dto = new DashboardAiDto();
+
+	    // 1. 상단 요약
+	    AdvertisementChartDto chartSummary = advertisementMapper.selectSummary();
+
+	    dto.setTotalAd(chartSummary.getTotalAd());
+	    dto.setTotalImp(chartSummary.getTotalImp());
+	    dto.setTotalClick(chartSummary.getTotalClick());
+	    dto.setAvgCtr(chartSummary.getAvgCtr());
+
+	    // 2. 연장률
+	    dto.setExtensionRate(
+	            advertisementMapper.selectExtensionRate()
+	    );
+
+	    // 3. 가장 CTR 높은 위치 / 낮은 위치
+	    List<AdvertisementChartDto> ctrList =
+	            advertisementMapper.selectPositionCtrChart();
+
+	    if (!ctrList.isEmpty()) {
+
+	        ctrList.sort(
+	            Comparator.comparing(
+	            		AdvertisementChartDto::getCtr
+	            )
+	        );
+
+	        dto.setWorstPosition(
+	                ctrList.get(0).getPosition());
+
+	        dto.setBestPosition(
+	                ctrList.get(ctrList.size()-1).getPosition());
+	    }
+
+	    // 4. 광고 등급
+	    List<AdvertisementChartDto> gradeList  =
+	            advertisementMapper.selectGradeChart();
+
+	    if(!gradeList.isEmpty()){
+
+	    	gradeList.sort((a,b)->b.getCount()-a.getCount());
+
+	        dto.setTopGrade(
+	        		gradeList.get(0).getAdGrade());
+	    }
+
+	 // 5. 교체 권장 광고 개수
+	    AdvertisementSearchDto searchDto = new AdvertisementSearchDto();
+	    searchDto.setPage(1);
+	    searchDto.setSize(1000); // 광고 수보다 충분히 크게
+
+	    List<AdvertisementDto> adList =
+	            advertisementMapper.searchByAdmin(searchDto);
+
+	    int warningCount = 0;
+
+	    for (AdvertisementDto ad : adList) {
+
+	        AdvertisementDto stat =
+	                getAdvertisementStatistics(ad.getAdId());
+
+	        if (stat != null &&
+	            "교체 권장".equals(stat.getFatigueStatus())) {
+
+	            warningCount++;
+	        }
+	    }
+
+	    dto.setFatigueWarningCount(warningCount);
+
+	 // AI 요약 생성
+	    String summary = aiSummaryService.createSummary(dto);
+
+	    dto.setSummary(summary);
+
+	    dto.setCreatedAt(
+	            LocalDateTime.now()
+	                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+	    );
+	    
+	    return dto;
+	}
+	
 ///////////////////////////////////////////////
 	// 피로도
 	@Override

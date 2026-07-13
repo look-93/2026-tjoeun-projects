@@ -591,6 +591,7 @@
         SELECT COUNT(*)
         FROM advertisements
         WHERE delete_yn = 'N'
+        AND approval_status = 'APPROVED'
 
     </select>
     
@@ -1104,9 +1105,9 @@
 	    SELECT
 	        position,
 	        COUNT(*) AS impressions	
-	    FROM advertisement_impression_log	
+	    FROM advertisement_impression_log
+	    WHERE position IS NOT NULL	
 	    GROUP BY position	
-	    ORDER BY position	
 	</select>
 	
 	<!-- 광고 위치별 CTR 차트 -->
@@ -1141,7 +1142,6 @@
 	        GROUP BY position
 	    ) c
 	        ON i.position = c.position
-	    ORDER BY ctr DESC
 	
 	</select>
 <!-- ====== 피로도 ===== -->	
