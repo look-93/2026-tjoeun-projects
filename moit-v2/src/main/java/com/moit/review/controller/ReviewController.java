@@ -263,11 +263,23 @@ public class ReviewController {
     //좋아요 기능 (비동기 처리)
     @PostMapping("/meetup/review/like/{reviewId}")
     @ResponseBody
-    public Map<String, Object> toggleReviewLike(@PathVariable("reviewId") int reviewId) {
+    public Map<String, Object> toggleReviewLike(@PathVariable("reviewId") int reviewId, Authentication authentication) {
         
         Map<String, Object> resultBody = new HashMap<>();
         
-        int memberId = 2; 
+        String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 
+		
+        //int memberId = 2; 
         
         try {
             int updatedLikesCount = reviewService.toggleReviewLike(reviewId, memberId);
