@@ -16,33 +16,34 @@ import com.moit.member.dto.UserDto;
 @Service //##
 public class CustomUserDetailsService implements UserDetailsService{
 
-	@Autowired UserMapper dao;	
-	
-	@Override
-	public UserDetails loadUserByUsername(String username)
-	        throws UsernameNotFoundException {
+   @Autowired UserMapper dao;   
+   
+   @Override
+   public UserDetails loadUserByUsername(String username)
+           throws UsernameNotFoundException {
 
 
-	    AuthUserDto authDto = dao.readByLoginId(username);
+       AuthUserDto authDto = dao.readByLoginId(username);
 
-	    if(authDto == null){
-	        throw new UsernameNotFoundException( "사용자를 찾을 수 없습니다 : " + username );
-	    }
-	   
-	    if(authDto.getStatusId() == 2) {
-	        throw new BadCredentialsException("WAIT");
-	    }
-	    
-	    UserDto user = new UserDto();
+       if(authDto == null){
+           throw new UsernameNotFoundException( "사용자를 찾을 수 없습니다 : " + username );
+       }
+      
+       if(authDto.getStatusId() == 2) {
+           throw new BadCredentialsException("WAIT");
+       }
+       
+       UserDto user = new UserDto();
 
-	    user.setLoginId( username );
-	    
-	    UserDto dto = dao.findByLoginId(user);
-	    
-	    if (dto == null) {
+       user.setLoginId( username );
+       
+       UserDto dto = dao.findByLoginId(user);
+       
+       if (dto == null) {
             throw new UsernameNotFoundException( "회원정보를 찾을 수 없습니다 : " + username);
-
-	    return new CustomUserDetails( dto, authDto );
-
-	}
+        }     
+              
+       return new CustomUserDetails( dto, authDto );
+   }
 }
+
