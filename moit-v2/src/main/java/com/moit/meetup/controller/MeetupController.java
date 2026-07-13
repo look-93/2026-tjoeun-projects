@@ -194,11 +194,14 @@ public class MeetupController {
 	    }
 
 	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
+
+      model.addAttribute("user", user);
 	    model.addAttribute("applyInfo", meetupService.findApplyInfo(meetupApplicationDto));
 	    model.addAttribute("detail", meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
 	    model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
 	    //로그인한 사용자 html 로 전달(후기)
 	    model.addAttribute("loginMemberId", memberId);
+
 	    //  기존 부분
 	    // List<ReviewDto> reviewList =
 	    //        reviewService.selectUserReview(meetupApplicationDto.getMeetupId(), sort);
