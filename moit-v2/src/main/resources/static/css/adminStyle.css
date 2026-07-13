@@ -207,6 +207,15 @@ body{
     color: #dc3545;
 }
 
+.badge{
+    font-size:12px;
+    margin-top:4px;
+}
+
+.fw-bold{
+    font-size:15px;
+}
+
 /* hover 느낌 */
 .status-select:hover {
     box-shadow: 0 0 0 2px rgba(0,0,0,0.05);

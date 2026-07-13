@@ -178,7 +178,19 @@ public class MeetupController {
 
 	    // 광고가 존재하면 노출 증가
 	    if (desidebar != null) {
-	        advertisementService.updateImpressions(desidebar.getAdId());
+	        boolean counted =
+	            advertisementService.insertImpressionLog(
+	                desidebar.getAdId(),
+	                "MEETUP_DETAIL_SIDEBAR",
+	                request,
+	                session
+	            );
+
+	        if(counted){
+	            advertisementService.updateImpressions(
+	                desidebar.getAdId()
+	            );
+	        }
 	    }
 
 	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
