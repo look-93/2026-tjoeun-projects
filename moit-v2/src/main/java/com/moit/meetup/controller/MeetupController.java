@@ -1,5 +1,8 @@
 package com.moit.meetup.controller;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -20,12 +23,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.service.AdvertisementService;
+import com.moit.meetup.client.OpenApiService;
 import com.moit.meetup.dto.MeetupApplicationDto;
 import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
+import com.moit.meetup.dto.openapi.AddressSearchResponse;
+import com.moit.meetup.dto.openapi.WeatherInfoRequest;
+import com.moit.meetup.dto.openapi.WeatherInfoResponse;
 import com.moit.meetup.service.MeetupService;
 import com.moit.member.dto.UserDto;
+import com.moit.reports.dto.ReportsDto;
+import com.moit.reports.service.ReportsService;
 import com.moit.review.dto.ReviewDto;
 import com.moit.review.service.ReviewService;
 import com.moit.security.CustomUserDetails;
@@ -39,8 +48,8 @@ public class MeetupController {
 	@Autowired MeetupService meetupService;
 	@Autowired AdvertisementService advertisementService;
 	@Autowired ReviewService reviewService;
-	
-
+	@Autowired OpenApiService openApiService;
+	@Autowired ReportsService reportsService;
 	
 	/*1. 모임 리스트 화면(HTML) 호출*/
 	@GetMapping("/meetup/list")
@@ -99,7 +108,22 @@ public class MeetupController {
 	/*2. 모임 리스트 데이터(JSON) 호출*/
 	@GetMapping("/meetup/list/data")
 	@ResponseBody
-	public Map<String, Object> listData(MeetupSearchDto meetupSearchDto, Model model){
+	public Map<String, Object> listData(MeetupSearchDto meetupSearchDto, Model model, Authentication authentication){
+		
+		
+	    Integer memberId = null;
+	    boolean isLogin = false;
+
+	    if (authentication != null
+	            && authentication.isAuthenticated()
+	            && authentication.getPrincipal() instanceof CustomUserDetails) {
+
+	        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+	        memberId = user.getUser().getMemberId();
+	        isLogin = true;
+	    }	
+		
+		meetupSearchDto.setMemberId(memberId);
 		Integer pstartno = meetupSearchDto.getPstartno();
 		
 		if(pstartno == null || pstartno <= 0) {
@@ -113,6 +137,28 @@ public class MeetupController {
 		map.put("sidoList", meetupService.findAllSido());
 		map.put("categorys", meetupService.findAllCategory());
 		//System.out.println(meetupSearchDto.getSearchText());
+		
+		return map;
+	}
+	
+	/*주소 검색 API 호출*/
+	@GetMapping("/meetup/address-search")
+	@ResponseBody
+	public Map<String, Object> addressSearch(MeetupSearchDto meetupSearchDto, Model model){
+		Integer pstartno = meetupSearchDto.getPstartno();
+		String searchAddress = meetupSearchDto.getSearchAddress();
+		
+		if(pstartno == null || pstartno <= 0) {
+			pstartno = 1;
+			meetupSearchDto.setPstartno(1);
+		}
+	
+		
+		AddressSearchResponse apiResponse = openApiService.addressSearch(searchAddress,pstartno);
+		
+		Map<String, Object> map = new HashMap<>();
+		map.put("paging", new UtilPaging(apiResponse.getTotalCount(), pstartno));
+		map.put("searchList", apiResponse.getList());
 		
 		return map;
 	}
@@ -150,7 +196,7 @@ public class MeetupController {
 						MeetupApplicationDto meetupApplicationDto, 
 						@RequestParam(value = "keyword", required = false) String keyword,   // ★ 추가
 						@RequestParam(value = "sort", required = false, defaultValue = "latest")  String sort,
-			            HttpServletRequest request, HttpSession session	) {
+			            HttpServletRequest request, HttpSession session,ReportsDto reportsDto) {
 		
 		String loginId     = null, provider = null;
 		UserDto user=null;
@@ -167,6 +213,8 @@ public class MeetupController {
 		String sessionId =
 		        session.getId();
 		
+
+		
 //		CustomUser user = (CustomUser) authentication.getPrincipal(); 
 //		int memberId = userMeetupService.findByMamberId(user.getUsername());
 //		meetupApplicationsDto.setMemberId(memberId);
@@ -177,28 +225,74 @@ public class MeetupController {
 	    model.addAttribute("desidebarAd", desidebar);
 
 	    // 광고가 존재하면 노출 증가
-	    if (desidebar != null) {
-	        boolean counted =
-	            advertisementService.insertImpressionLog(
-	                desidebar.getAdId(),
-	                "MEETUP_DETAIL_SIDEBAR",
-	                request,
-	                session
-	            );
 
-	        if(counted){
-	            advertisementService.updateImpressions(
-	                desidebar.getAdId()
-	            );
-	        }
+	    if(desidebar != null){
+	          boolean counted =
+	              advertisementService.insertImpressionLog(
+	                  desidebar.getAdId(),
+	                    "MEETUP_DETAIL_SIDEBAR",
+	                  request,
+	                  session
+	              );
+
+	          if(counted){
+	              advertisementService.updateImpressions(
+	                  desidebar.getAdId()
+	              );
+	          }
+	      }
+	    
+	    
+	    
+	    MeetupDto meetupDto = meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId());
+	    
+	    /*추천모임*/
+	    List<MeetupDto> recommendMeetupList = new ArrayList();
+	    List<MeetupDto> recommendCategories = meetupService.selectRecommendMeetupCount(memberId);
+	    for(MeetupDto dto:recommendCategories) {
+	    	dto.setMemberId(memberId);
+	    	recommendMeetupList.add(meetupService.selectRecommendMeetups(dto));	    	
 	    }
+	    
+	    /*날씨*/
+		WeatherInfoRequest weatherRequest  = new WeatherInfoRequest();
+		String dateTime = meetupDto.getMeetupAt();
 
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		LocalDateTime localDateTime = LocalDateTime.parse(dateTime, formatter);
+		
+		weatherRequest.setMeetupDate(localDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));		
+		weatherRequest.setMeetupTime(localDateTime.getHour());		
+		weatherRequest.setNx(meetupDto.getNx());
+		weatherRequest.setNy(meetupDto.getNy());
+		System.out.println(localDateTime);
+		System.out.println(localDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+		System.out.println(localDateTime.getHour());
+		
+		WeatherInfoResponse weatherResponse = openApiService.getWeathreInfo(weatherRequest);
+		/*날씨*/
+		
 	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
+	    
+	    reportsDto.setMemberId(memberId); // 로그인한 멤버아이디
+	    reportsDto.setTargetType("MEETUP"); // 모임글 신고 = meetup
+	    reportsDto.setTargetId(meetupApplicationDto.getMeetupId()); //모임글아이디
+	    
+	    int checkDoubleReport =  reportsService.checkDoubleReport(reportsDto);
+	    
+	    //System.out.println(checkDoubleReport + "dddddddddddddddddddddddddddddddddddddddddddddddddd");
+	    model.addAttribute("checkDoubleReport", checkDoubleReport);
+        model.addAttribute("user", user);
 	    model.addAttribute("applyInfo", meetupService.findApplyInfo(meetupApplicationDto));
-	    model.addAttribute("detail", meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
+	    model.addAttribute("detail", meetupDto);
+	    model.addAttribute("recommendMeetupList", recommendMeetupList);	    
+	    model.addAttribute("weatherResponse", weatherResponse); /*날씨*/
+	    System.out.println(weatherResponse);
 	    model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
+
 	    //로그인한 사용자 html 로 전달(후기)
 	    model.addAttribute("loginMemberId", memberId);
+
 	    //  기존 부분
 	    // List<ReviewDto> reviewList =
 	    //        reviewService.selectUserReview(meetupApplicationDto.getMeetupId(), sort);
@@ -225,6 +319,15 @@ public class MeetupController {
 	    
 	    return "user/meetup/detail";
 	}
+	
+	//모임취소
+	@PostMapping("/meetup/cancel")
+	public String meetupCancel(MeetupDto meetupDto) {
+		
+		
+		return "";
+	}
+	
 	
 	//모집신청
 	@PreAuthorize("isAuthenticated()")
@@ -277,8 +380,6 @@ public class MeetupController {
 		map.put("result", result);
 		return map;
 	}	
-	
-
 	
 	//마이페이지 - 내 모집글 정보
 	@PreAuthorize("isAuthenticated()")
@@ -366,7 +467,7 @@ public class MeetupController {
 		meetupdto.setMemberId(memberId);
 		//System.out.println(meetupdto.getMeetupId());
 		
-		//System.out.println(files + "ddddddddddddddddddddddddddddddddddddddd");
+		//System.out.println(meetupdto.getMeetupAt() + "ddddddddddddddddddddddddddddddddddddddd");
 		
 		boolean result = meetupService.insertMeetup(meetupdto, files) > 0;		
 		rttr.addFlashAttribute("result", result);
@@ -441,5 +542,5 @@ public class MeetupController {
 		meetupService.updateMeetupDeleteYn(meetupId);		
 		return "redirect:/mypage/myMeetupInfo?pstartno=" + pstartno;
 	}
-
+	
 }

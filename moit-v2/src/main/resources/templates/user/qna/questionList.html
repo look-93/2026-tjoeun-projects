@@ -280,11 +280,9 @@
                     <tr th:if="${#lists.isEmpty(list)}">
                         <td colspan="7">등록된 문의가 없습니다.</td>
                     </tr>
-
-                    <tr th:each="q : ${list}"
-                        th:unless="${#lists.isEmpty(list)}"
+                    <tr th:each="q, stat : ${list}"
                         th:onclick="|location.href='@{/questions/{id}(id=${q.questionId})}'|">
-                        <td th:text="${q.questionId}"></td>
+                        <td th:text="${totalCnt - (page - 1) * 10 - stat.index}"></td>
                         <td th:text="${q.category == 'MEETUP'} ? '모임 문의' : '관리자 문의'"></td>
                         <td th:text="${q.title}"></td>
                         <td>
@@ -303,7 +301,7 @@
 
             </table>
 
-            <div class="paging">
+            <div class="paging"  th:if="${totalPage > 0}">
 
                 <a th:if="${startPage > 1}"
                    th:href="@{/questions/myQuestion(
