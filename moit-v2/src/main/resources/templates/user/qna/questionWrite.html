@@ -39,9 +39,8 @@ padding:12px 28px;border-radius:8px;border:1px solid #d9dfea;cursor:pointer;
 		              onsubmit="return ck()">
 		
 		            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-		            <!-- 임시 -->
-		            <!-- <input type="hidden" name="memberId" value="1"> -->
-		            <input type="hidden" name="parentId" value="1">
+
+		            <input th:if="${meetupId != null}" type="hidden" name="parentId" th:value="${meetupId}">
 		            <input type="hidden" name="category" th:value="${category}">
 		            <input type="hidden" name="deleteYn" value="N">
 		

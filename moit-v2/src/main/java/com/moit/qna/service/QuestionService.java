@@ -150,7 +150,7 @@ public class QuestionService {
         questionMapper.deleteSelected(ids);
     }
     
-    //
+    //해당 모임의 문의 목록
     public List<QuestionDto> selectByParentId(int parentId){
         return questionMapper.selectByParentId(parentId);
     }

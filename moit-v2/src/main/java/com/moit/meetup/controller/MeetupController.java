@@ -26,6 +26,7 @@ import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
 import com.moit.meetup.service.MeetupService;
 import com.moit.member.dto.UserDto;
+import com.moit.qna.service.QuestionService;
 import com.moit.review.dto.ReviewDto;
 import com.moit.review.service.ReviewService;
 import com.moit.security.CustomUserDetails;
@@ -39,7 +40,7 @@ public class MeetupController {
 	@Autowired MeetupService meetupService;
 	@Autowired AdvertisementService advertisementService;
 	@Autowired ReviewService reviewService;
-	
+	@Autowired QuestionService questionService;
 
 	
 	/*1. 모임 리스트 화면(HTML) 호출*/
@@ -222,6 +223,11 @@ public class MeetupController {
 	    model.addAttribute("keyword", keyword);
 	    model.addAttribute("sort", sort);
 	    // ★ 추가 끝
+	    // qna 추가
+	    model.addAttribute(
+	    	    "qnaList",
+	    	    questionService.selectByParentId(meetupApplicationDto.getMeetupId())
+	    	);
 	    
 	    return "user/meetup/detail";
 	}

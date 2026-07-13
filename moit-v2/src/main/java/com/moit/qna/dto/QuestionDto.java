@@ -6,7 +6,7 @@ import lombok.Data;
 public class QuestionDto {
 
     private int questionId;
-    private int parentId;
+    private Integer parentId;
     private int memberId;
 
     private String category;   // MEETUP, ADMIN
@@ -21,7 +21,7 @@ public class QuestionDto {
     private java.sql.Timestamp updatedAt;
 
     // JOIN
-    private String memberName;
+    private String nickname;
     private AnswerDto answer;
     
     // AI 분석 결과

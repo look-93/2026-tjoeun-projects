@@ -157,9 +157,14 @@ public class QuestionController {
     
     // 모임글 문의 등록
     @GetMapping("/write")
-    public String write(QuestionDto dto,
-                        @RequestParam(defaultValue="MEETUP") String category, Model model) {
+    public String write(
+    		@RequestParam(required = false) Integer meetupId,
+            @RequestParam(defaultValue = "MEETUP") String category,
+            Model model) {
         model.addAttribute("category", category);
+        if(meetupId != null){
+            model.addAttribute("meetupId", meetupId);
+        }
         return "user/qna/questionWrite";
     }
    
@@ -177,6 +182,10 @@ public class QuestionController {
 			memberId = users.getUser().getMemberId();
 		} 
 		dto.setMemberId(memberId);
+		// 관리자 문의일 경우 parentId = 0
+		if(dto.getParentId() == null){
+		    dto.setParentId(0);
+		}
         questionService.register(dto);
         rttr.addFlashAttribute("msg", "문의가 등록되었습니다.");
         return "redirect:/questions/" + dto.getQuestionId();
