@@ -59,7 +59,9 @@
 
 					<tr th:each="meetup, status : ${meetupList}">
 				        <td th:text="${paging.listtotal - ((paging.current - 1) * paging.onepagelist) - status.index}"></td>
-				        <td th:text="${meetup.title}">모집명 예시</td>
+				        <td>
+				        	<a th:href="@{/meetup/detail(meetupId=${meetup.meetupId})}"  th:text="${meetup.title}"></a>
+				        </td>
 				        <td th:text="${meetup.fomatMeetupAt}"></td> 
 				        <td>
 				            <span class="status status-end" th:text="${meetup.status == 'RECRUITING' ? '모집중' : meetup.status == 'WEATHER_CANCELED' ? '기상악화로 인한 취소' : '종료'}"></span>

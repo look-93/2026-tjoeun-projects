@@ -120,7 +120,7 @@ public class MeetupServiceImpl implements MeetupService{
 	public int insertMeetup(MeetupDto meetupDto, List<MultipartFile> files) {
 	    // 1. 모집글 데이터 insert
 	    int result = meetupMapper.insertMeetup(meetupDto);
-	    
+	    System.out.println(meetupDto.getMeetupAt());
 	    // 2. 업로드 된 파일이 존재하면 저장 실행
 	    if (files != null && !files.isEmpty()) {
 	        List<MeetupImageDto> imageList = new ArrayList<>();         
@@ -179,7 +179,7 @@ public class MeetupServiceImpl implements MeetupService{
 	@Override
 	@Transactional(rollbackFor = Exception.class) // 모든 예외에 대해 롤백 보장
 	public int updateMeetup(MeetupDto meetupDto, List<MultipartFile> files) {
-	    
+	    System.out.println(meetupDto.getMeetupAt());
 	    // 1. 새 파일이 실제로 존재하는지 엄격하게 검증
 	    boolean hasNewFiles = files != null && files.stream().anyMatch(file -> !file.isEmpty());
 	    

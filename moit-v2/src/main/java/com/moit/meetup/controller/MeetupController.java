@@ -263,7 +263,9 @@ public class MeetupController {
 		weatherRequest.setMeetupTime(localDateTime.getHour());		
 		weatherRequest.setNx(meetupDto.getNx());
 		weatherRequest.setNy(meetupDto.getNy());
-		
+		System.out.println(localDateTime);
+		System.out.println(localDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+		System.out.println(localDateTime.getHour());
 		
 		WeatherInfoResponse weatherResponse = openApiService.getWeathreInfo(weatherRequest);
 		/*날씨*/
@@ -273,7 +275,7 @@ public class MeetupController {
 	    model.addAttribute("detail", meetupDto);
 	    model.addAttribute("recommendMeetupList", recommendMeetupList);	    
 	    model.addAttribute("weatherResponse", weatherResponse); /*날씨*/
-	    //System.out.println(weatherResponse);
+	    System.out.println(weatherResponse);
 	    model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
 
 	    //로그인한 사용자 html 로 전달(후기)
@@ -453,7 +455,7 @@ public class MeetupController {
 		meetupdto.setMemberId(memberId);
 		//System.out.println(meetupdto.getMeetupId());
 		
-		//System.out.println(files + "ddddddddddddddddddddddddddddddddddddddd");
+		//System.out.println(meetupdto.getMeetupAt() + "ddddddddddddddddddddddddddddddddddddddd");
 		
 		boolean result = meetupService.insertMeetup(meetupdto, files) > 0;		
 		rttr.addFlashAttribute("result", result);
