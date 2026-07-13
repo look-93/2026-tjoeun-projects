@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.moit.member.oauth2.Oauth2UserService;
+import com.moit.security.CustomLoginFailureHandler;
 import com.moit.security.SocialLoginSuccessHandler;
 
 import lombok.RequiredArgsConstructor;
@@ -20,16 +21,24 @@ public class SecurityConfig {
 	
 	private final Oauth2UserService oauthUserService;
 	private final SocialLoginSuccessHandler socialLoginSuccessHandler;
+	private final CustomLoginFailureHandler customLoginFailureHandler;
 	
 	// http 경로설정
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception  { 
 
 		//1. 허용경로
-		http.authorizeHttpRequests(auth -> auth.requestMatchers("/user/member/join", "/user/member/login", "/user/checkLoginId" , "/user/checkNickname" , "/api/**").permitAll()
-											   .requestMatchers("/user/member/mypage", "/user/member/update", "/user/member/delete","/user/member/socialInfo","/user/advertisement/**").authenticated()
-											   .anyRequest().permitAll()
-				
+		http.authorizeHttpRequests(auth -> auth.requestMatchers("/user/member/join", "/user/member/login", "/user/checkLoginId" , "/user/checkNickname" , "/user/member/checkPassword" ,"/api/**", "/admin/member/join","/meetup/list","/user/advertisement/click").permitAll()
+
+											   .requestMatchers("/user/member/mypage", "/user/member/update", "/user/member/delete","/user/advertisement/**"
+	                                                   ,"/meetup/write/**" ,"/meetup/detail/**", "/mypage/**").authenticated()
+											   // 관리자 영역(추후 활성화 예정)
+											   //.requestMatchers("/admin/**")
+											   //.hasRole("ADMIN")
+											   .requestMatchers( "/user/member/socialInfo" )									   
+											   .hasAuthority("ROLE_SOCIAL")
+											   .anyRequest()
+											   .permitAll()				
 								  )
 								  //2. 로그인처리
 								  .formLogin(form -> form 
@@ -37,7 +46,7 @@ public class SecurityConfig {
 								          .loginProcessingUrl("/login")
 										  //.loginProcessingUrl("/user/member/loginProc") // CustomUserDetailsService -> loadUserByUsername 호출
 										  .defaultSuccessUrl("/user/main", false) // LoginSuccessHandler 동일 / 성공하면 mypage
-										  .failureUrl("/user/member/fail")
+										  .failureHandler(customLoginFailureHandler)
 										  .permitAll()
 								  )
 								  //3. 로그아웃

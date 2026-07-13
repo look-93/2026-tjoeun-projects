@@ -34,11 +34,6 @@
 	     WHERE member_id = #{memberId}	
   </update>
 	
-  <update id="updateMemberInfo" parameterType="UserDto">	
-	    UPDATE member_info
-	       SET gender = #{gender}, birth = #{birth}
-	     WHERE member_id = #{memberId}	
-  </update>
   
   <select id="findByEmail" parameterType="String" resultType="UserDto">
 		SELECT
@@ -52,7 +47,7 @@
   <select id="findByLoginId" resultType="UserDto" parameterType="UserDto">
 		SELECT
 	    m.member_id, m.login_id, m.mobile, m.nickname, m.email, m.password, m.profile_url, m.member_type_id, m.status_id,	
-	    mi.gender, mi.birth, mi.point, mi.trust_score, mi.login_ip, mi.join_ip, mi.ai_summary
+	    TO_CHAR(m.created_at,'YYYY-MM-DD') AS created_at, mi.gender,  TO_CHAR(mi.birth,'YYYY-MM-DD') AS birth, mi.point, mi.trust_score, mi.login_ip, mi.join_ip, mi.ai_summary
 	
 		FROM members m
 		JOIN member_info mi
@@ -83,7 +78,7 @@
   <!-- 방금 insert된 회원 번호에 info 추가 -->
   <insert id="insertInfo" parameterType="UserDto">
   	insert into member_info(member_id,gender,birth,join_ip) 
-  	values(members_seq.currval,#{gender},#{birth},#{joinIp})
+  	values(members_seq.currval,NVL(#{gender, jdbcType=VARCHAR}, 'N'),#{birth, jdbcType=DATE},NVL(#{joinIp, jdbcType=VARCHAR}, '0.0.0.0'))
   </insert>
   
   <insert id="insertSocialInfo">
@@ -118,13 +113,39 @@
             <if test="nickname != null and nickname != ''">nickname = #{nickname},</if>
             <if test="password != null and password != ''">password = #{password},</if>
             <if test="mobile != null and mobile != ''">mobile = #{mobile},</if>
-            <if test="memberTypeId > 0">member_type_id = #{memberTypeId},</if>
-            <if test="statusId > 0">status_id = #{statusId},</if>
-            <if test="deleteYn != null and deleteYn != ''">delete_yn = #{deleteYn},</if>
+            <!-- <if test="memberTypeId > 0">member_type_id = #{memberTypeId},</if> -->
+            <!-- <if test="statusId > 0">status_id = #{statusId},</if> -->
+            <!-- <if test="deleteYn != null and deleteYn != ''">delete_yn = #{deleteYn},</if> -->
             <if test="profileUrl != null and profileUrl != ''">profile_url = #{profileUrl},</if>
         </set>
-        WHERE login_id = #{loginId}
+        WHERE member_id=#{memberId}
     </update>
+    
+    <!-- 회원정보(info) 수정 -->
+    <update id="updateMemberInfo">
+		UPDATE member_info		
+			<set>		
+				<if test="gender != null">
+				gender=#{gender},
+				</if>	
+					
+				<if test="birth != null and birth != ''">
+				birth=#{birth},
+				</if>	
+			</set>		
+		WHERE member_id=#{memberId}	
+	</update>
+	
+	<select id="findByMemberId" parameterType="int" resultType="UserDto">
+	    SELECT
+	        member_id,
+	        login_id,
+	        password,
+	        profile_url
+	    FROM members
+	    WHERE member_id = #{memberId}
+	      AND delete_yn = 'N'	
+	</select>	
     
     <!-- 회원 목록 -->
     <select id="select10" parameterType="java.util.HashMap" resultType="UserDto">

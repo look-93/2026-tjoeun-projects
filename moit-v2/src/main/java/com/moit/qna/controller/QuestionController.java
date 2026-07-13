@@ -2,6 +2,7 @@ package com.moit.qna.controller;
 
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,10 +16,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.service.MeetupService;
+import com.moit.meetup.service.MeetupServiceImpl;
+import com.moit.member.dto.UserDto;
 import com.moit.qna.dto.AnswerDto;
 import com.moit.qna.dto.QuestionDto;
 import com.moit.qna.service.AnswerService;
 import com.moit.qna.service.QuestionService;
+import com.moit.security.CustomUserDetails;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +37,8 @@ public class QuestionController {
 
     private final QuestionService questionService;
     private final AnswerService answerService;
-    private final MeetupService meetupService;
+    //private final MeetupService meetupService;
+    private final MeetupServiceImpl meetupService;
     
     //관리자용 선택 삭제
     @PostMapping("/deleteSelected")
@@ -47,11 +52,22 @@ public class QuestionController {
     public String myQuestion(@RequestParam(defaultValue="1") int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String keyword,
-            HttpSession session,Model model) {
+            HttpSession session,Model model, Authentication authentication) {
     	//MemberDto loginUser = (MemberDto)session.getAttribute("loginUser");
-        
-        //int memberId = loginUser.getMemberId();
-        int memberId = 1; // 임시 나중에 삭제
+               
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 
+    	
+        //int memberId = 1; // 임시 나중에 삭제
         int pageSize = 10;
         int start = (page - 1) * pageSize;
         List<QuestionDto> list = questionService.getMyQuestions(
@@ -65,9 +81,11 @@ public class QuestionController {
         int endPage = startPage + pageBlock - 1;
         if (endPage > totalPage) { endPage = totalPage; }
         
+        model.addAttribute("dto" , user); 
         model.addAttribute("list", list);
         model.addAttribute("page", page);
         model.addAttribute("totalPage", totalPage);
+        model.addAttribute("totalCnt", totalCnt);
         
         model.addAttribute("startPage", startPage);
         model.addAttribute("endPage", endPage);
@@ -86,7 +104,16 @@ public class QuestionController {
             @RequestParam(required=false) String status,
             @RequestParam(required=false) String startDate,
             @RequestParam(required=false) String endDate,
-            Model model){
+            Model model,
+            Authentication authentication) {
+    	
+        UserDto user = null;
+        if (authentication != null &&
+            authentication.getPrincipal() instanceof CustomUserDetails users) {
+            user = users.getUser();
+        }
+        model.addAttribute("dto", user);
+    	
         int pageSize = 10;
         int start = (page - 1) * pageSize;
         List<QuestionDto> list = questionService.getList(start, pageSize, type, keyword, status, startDate, endDate );
@@ -107,6 +134,7 @@ public class QuestionController {
         model.addAttribute("totalPage", totalPage);
         model.addAttribute("startPage", startPage);
         model.addAttribute("endPage", endPage);
+        model.addAttribute("totalCnt", totalCnt);
         
         model.addAttribute("type", type);
         model.addAttribute("keyword", keyword);
@@ -124,7 +152,7 @@ public class QuestionController {
         model.addAttribute("answeredCnt", questionService.getAnsweredCnt());
         // 오늘 등록된 문의 수
         model.addAttribute("todayCnt", questionService.getTodayCnt());
-        return "user/qna/adminQuestionList";
+        return "admin/qna/adminQuestionList";
     }
     
     // 모임글 문의 등록
@@ -136,7 +164,19 @@ public class QuestionController {
     }
    
     @PostMapping("/write")
-    public String writePost(QuestionDto dto, RedirectAttributes rttr) {
+    public String writePost(QuestionDto dto, RedirectAttributes rttr, Authentication authentication) {
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 
+		dto.setMemberId(memberId);
         questionService.register(dto);
         rttr.addFlashAttribute("msg", "문의가 등록되었습니다.");
         return "redirect:/questions/" + dto.getQuestionId();
@@ -144,10 +184,10 @@ public class QuestionController {
     
     // 문의 상세 화면 + 답변 조회 + 버튼 권한
     @GetMapping("/{id}")
-    public String detail(@PathVariable int id, HttpSession session, Model model,  RedirectAttributes rttr) {
+    public String detail(@PathVariable int id, HttpSession session, Model model,  RedirectAttributes rttr, Authentication authentication) {
         QuestionDto data = questionService.getDetail(id);
 
-        boolean canAnswer = canAnswer(data, session);
+        boolean canAnswer = canAnswer(data, session, authentication);
 
         model.addAttribute("data", data);
         model.addAttribute("canAnswer", canAnswer);
@@ -157,10 +197,10 @@ public class QuestionController {
 
     // 문의 수정 화면 이동
     @GetMapping("/edit/{id}")
-    public String editForm(@PathVariable int id, HttpSession session, Model model, RedirectAttributes rttr) {
+    public String editForm(@PathVariable int id, HttpSession session, Model model, RedirectAttributes rttr, Authentication authentication) {
         QuestionDto question = questionService.getDetail(id);
-
-        if(!canEdit(question, session)){
+        //System.out.println(question);
+        if(!canEdit(question, session, authentication)){
             rttr.addFlashAttribute("msg", "작성자 또는 관리자만 수정할 수 있습니다.");
             return "redirect:/questions/" + id;
         }
@@ -169,10 +209,10 @@ public class QuestionController {
     }
 
     @PostMapping("/edit")
-    public String edit(QuestionDto dto, HttpSession session, RedirectAttributes rttr) {
+    public String edit(QuestionDto dto, HttpSession session, RedirectAttributes rttr, Authentication authentication) {
         QuestionDto question = questionService.getDetail(dto.getQuestionId());
 
-        if(!canEdit(question, session)){
+        if(!canEdit(question, session,authentication)){
             rttr.addFlashAttribute("msg", "작성자 또는 관리자만 수정할 수 있습니다.");
             return "redirect:/questions/" + dto.getQuestionId();
         }
@@ -182,10 +222,10 @@ public class QuestionController {
 
     // 문의 삭제 처리
     @GetMapping("/delete/{id}")
-    public String delete(@PathVariable int id, HttpSession session, RedirectAttributes rttr) {
+    public String delete(@PathVariable int id, HttpSession session, RedirectAttributes rttr, Authentication authentication) {
 	    QuestionDto question =questionService.getDetail(id);
 	    
-	    if(!canEdit(question, session)){
+	    if(!canEdit(question, session, authentication)){
 	        rttr.addFlashAttribute("msg", "작성자 또는 관리자만 삭제할 수 있습니다.");
 	        return "redirect:/questions/" + id;
 	    }
@@ -195,10 +235,10 @@ public class QuestionController {
 
     // 답변 등록 + 문의 상태 변경 (관리자 전용)
     @PostMapping("/answer")
-    public String answerWrite(AnswerDto dto, HttpSession session, RedirectAttributes rttr) {
+    public String answerWrite(AnswerDto dto, HttpSession session, RedirectAttributes rttr, Authentication authentication) {
         QuestionDto question = questionService.getDetail(dto.getQuestionId());
         
-        if(!canAnswer(question, session)){
+        if(!canAnswer(question, session, authentication)){
             rttr.addFlashAttribute("msg", "모임장 또는 관리자만 답변할 수 있습니다.");
             return "redirect:/questions/" + dto.getQuestionId();
         }
@@ -208,10 +248,9 @@ public class QuestionController {
     
     // 답변 작성
     @GetMapping("/answer/write/{id}")
-    public String answerForm(@PathVariable int id, HttpSession session, Model model,  RedirectAttributes rttr) {
+    public String answerForm(@PathVariable int id, HttpSession session, Model model,  RedirectAttributes rttr, Authentication authentication) {
         QuestionDto question = questionService.getDetail(id);
-        
-        if(!canAnswer(question, session)){
+        if(!canAnswer(question, session, authentication)){
             rttr.addFlashAttribute("msg", "모임장 또는 관리자만 답변할 수 있습니다.");
             return "redirect:/questions/" + id;
         }
@@ -221,10 +260,10 @@ public class QuestionController {
     
     // 답변 수정 화면
     @GetMapping("/answer/edit/{questionId}")
-    public String answerEditForm(@PathVariable int questionId, HttpSession session, Model model) {
+    public String answerEditForm(@PathVariable int questionId, HttpSession session, Model model, Authentication authentication) {
         QuestionDto question = questionService.getDetail(questionId);
         
-        if(!canAnswer(question, session)){
+        if(!canAnswer(question, session, authentication)){
             return "redirect:/questions/" + questionId;
         }
         model.addAttribute("data", question);
@@ -234,10 +273,10 @@ public class QuestionController {
 
     // 답변 수정 처리
     @PostMapping("/answer/edit")
-    public String answerEdit(AnswerDto dto, HttpSession session, RedirectAttributes rttr) {
+    public String answerEdit(AnswerDto dto, HttpSession session, RedirectAttributes rttr, Authentication authentication) {
         QuestionDto question = questionService.getDetail(dto.getQuestionId());
         
-        if(!canAnswer(question, session)){
+        if(!canAnswer(question, session, authentication)){
         	rttr.addFlashAttribute("msg", "답변 수정 권한이 없습니다.");
             return "redirect:/questions/" + dto.getQuestionId();
         }
@@ -248,10 +287,10 @@ public class QuestionController {
     // 답변 삭제
     @GetMapping("/answer/delete/{answerId}/{questionId}")
     public String answerDelete(@PathVariable int answerId,@PathVariable int questionId,
-    		HttpSession session, RedirectAttributes rttr) {
+    		HttpSession session, RedirectAttributes rttr, Authentication authentication) {
         QuestionDto question = questionService.getDetail(questionId);
         
-        if(!canAnswer(question, session)){
+        if(!canAnswer(question, session, authentication)){
             rttr.addFlashAttribute("msg", "답변 삭제 권한이 없습니다.");
             return "redirect:/questions/" + questionId;
         }
@@ -260,55 +299,56 @@ public class QuestionController {
     }
 
     // 답변 권한 확인 메서드
-    private boolean canAnswer(QuestionDto question, HttpSession session){ // <- HttpSession session로 수정
-        // ===== 로그인 연동 시 사용할 코드 =====
-//      MemberDto loginUser = (MemberDto) session.getAttribute("loginUser");
-//      if(loginUser == null){
-//          return false;
-//      }
-//      // 관리자 문의
-//      if("ADMIN".equals(question.getCategory())){
-//          return loginUser.getMemberTypeId() == 3
-//              || loginUser.getMemberTypeId() == 4;
-//      }
-//      // 모임 문의
-//      if(loginUser.getMemberTypeId() == 3
-//          || loginUser.getMemberTypeId() == 4){
-//          return true;
-//      }
-//      MeetupDto meetup = meetupService.getDetail(question.getParentId());
-//      return meetup != null && meetup.getMemberId() == loginUser.getMemberId();
-      // ===== 임시 테스트 코드 =====
-    	int loginMemberId = 1;
+    private boolean canAnswer(QuestionDto question, HttpSession session, Authentication authentication){ // <- HttpSession session로 수정
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 
+		if(user == null){
+		    return false;
+		}
     	// 관리자 문의
-        if("ADMIN".equals(question.getCategory())){
-            return true;   // 로그인 붙으면 관리자 권한 체크로 변경
-        }
+		if ("ADMIN".equals(question.getCategory())) {
+		    return user.getMemberTypeId() == 3 ||
+		           user.getMemberTypeId() == 4;
+		}
         // 모임 문의
-        MeetupDto meetup = meetupService.getDetail(question.getParentId());
-        if(meetup != null && meetup.getMemberId() == loginMemberId){
-            return true;
-        }
-        return false;
+		if(user.getMemberTypeId() == 3 || user.getMemberTypeId() == 4){
+		    return true;
+			}
+			MeetupDto meetup = meetupService.getDetail(question.getParentId());
+			return meetup != null && meetup.getMemberId() == memberId;
     }
     
     // 문의 수정/삭제 권한 확인
-    private boolean canEdit(QuestionDto question, HttpSession session){
-        // ===== 로그인 연동 시 사용할 코드 =====
-//        MemberDto loginUser = (MemberDto) session.getAttribute("loginUser");
-//        if(loginUser == null){
-//            return false;
-//        }
-//        return question.getMemberId() == loginUser.getMemberId()
-//            || loginUser.getMemberTypeId() == 3
-//            || loginUser.getMemberTypeId() == 4;
-        // ===== 임시 테스트 코드 =====
-        int loginMemberId = 1;
-        // 작성자
-        if(question.getMemberId() == loginMemberId){ 
-        	return true; 
-        }
-        return false;
+    private boolean canEdit(QuestionDto question, HttpSession session, Authentication authentication){
+		String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 
+		if(user == null){
+		    return false;
+		}
+		if(question.getMemberId() == memberId){
+		    return true;
+		}
+		if(user.getMemberTypeId() == 3 || user.getMemberTypeId() == 4){
+		    return true;
+		}
+		return false;
     }
-    
 }

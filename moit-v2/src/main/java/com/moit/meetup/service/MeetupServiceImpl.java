@@ -36,7 +36,9 @@ public class MeetupServiceImpl implements MeetupService{
 	@Autowired OpenAiService2 openAiService;
 	
 	private static final String UPLOAD_PATH = "C:/upload/meetup";
-
+	
+	public MeetupDto getDetail(int meetupId){ return meetupMapper.findById(meetupId); }
+	
 	//사용자 - 목록 조회 + paging
 	@Override
 	public List<MeetupDto> findAllMeetupBy(int pstartno, MeetupSearchDto meetupSearchDto) {

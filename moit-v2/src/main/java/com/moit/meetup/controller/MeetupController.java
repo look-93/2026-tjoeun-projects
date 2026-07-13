@@ -178,16 +178,29 @@ public class MeetupController {
 
 	    // 광고가 존재하면 노출 증가
 	    if (desidebar != null) {
-	        advertisementService.updateImpressions(desidebar.getAdId());
+	        boolean counted =
+	            advertisementService.insertImpressionLog(
+	                desidebar.getAdId(),
+	                "MEETUP_DETAIL_SIDEBAR",
+	                request,
+	                session
+	            );
+
+	        if(counted){
+	            advertisementService.updateImpressions(
+	                desidebar.getAdId()
+	            );
+	        }
 	    }
 
 	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
-	    model.addAttribute("applyInfo",
-	            meetupService.findApplyInfo(meetupApplicationDto));
 
-	    model.addAttribute("detail",
-	            meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
-	    model.addAttribute("user", user);
+      model.addAttribute("user", user);
+	    model.addAttribute("applyInfo", meetupService.findApplyInfo(meetupApplicationDto));
+	    model.addAttribute("detail", meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
+	    model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
+	    //로그인한 사용자 html 로 전달(후기)
+	    model.addAttribute("loginMemberId", memberId);
 
 	    //  기존 부분
 	    // List<ReviewDto> reviewList =
@@ -213,7 +226,6 @@ public class MeetupController {
 	    model.addAttribute("sort", sort);
 	    // ★ 추가 끝
 	    
-
 	    return "user/meetup/detail";
 	}
 	

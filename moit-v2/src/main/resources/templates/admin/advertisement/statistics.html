@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{admin/layouts/adminLayout}">
+
+<head>
+<title>광고 대시보드</title>
+</head>
+<body>
+	<div layout:fragment="content">
+
+		<div class="container-fluid">
+
+			<h2 class="mb-4">📊 광고 통계 Dashboard</h2>
+
+			<!-- 상단 요약 -->
+			<div class="row mb-4">
+
+				<div class="col-md-3">
+			        <div class="card shadow-sm border-0 h-100">
+			            <div class="card-body text-center">
+			                <h6 class="text-muted mb-2">총 광고</h6>
+			                <h2 id="totalAd" class="fw-bold text-primary">0</h2>
+			            </div>
+			        </div>
+			    </div>
+
+				<div class="col-md-3">
+			        <div class="card shadow-sm border-0 h-100">
+			            <div class="card-body text-center">
+			                <h6 class="text-muted mb-2">총 노출</h6>
+			                <h2 id="totalImp" class="fw-bold text-success">0</h2>
+			                <small id="impChange"></small>
+			            </div>
+			        </div>
+			    </div>
+			
+			    <div class="col-md-3">
+			        <div class="card shadow-sm border-0 h-100">
+			            <div class="card-body text-center">
+			                <h6 class="text-muted mb-2">총 클릭</h6>
+			                <h2 id="totalClick" class="fw-bold text-warning">0</h2>
+			                <small id="clickChange"></small>
+			            </div>
+			        </div>
+			    </div>
+			
+			    <div class="col-md-3">
+			        <div class="card shadow-sm border-0 h-100">
+			            <div class="card-body text-center">
+			                <h6 class="text-muted mb-2">평균 CTR</h6>
+			                <h2 id="avgCtr" class="fw-bold text-danger">0%</h2>
+			                <small id="ctrChange"></small>
+			            </div>
+			        </div>
+			    </div>
+			
+			</div>
+
+			<!-- 최근 7일 -->
+			<div class="card shadow-sm mb-4">
+
+				<div class="card-header">최근 7일 광고 통계</div>
+
+				<div class="card-body" style="height:400px;">
+
+					<canvas id="dailyChart"></canvas>
+
+				</div>
+
+			</div>
+
+			<!-- 하단 -->
+			<div class="row">
+
+				<div class="col-md-6">
+
+					<div class="card shadow-sm mb-4">
+
+						<div class="card-header">CTR TOP5</div>
+
+						<div class="card-body" style="height:350px;">
+
+							<canvas id="ctrChart"></canvas>
+
+						</div>
+
+					</div>
+
+				</div>
+
+				<div class="col-md-3">
+					<div class="card shadow-sm mb-4">				
+						<div class="card-header">
+							광고 등급 비율
+						</div>
+				
+						<div class="card-body d-flex align-items-center"
+						     style="height:350px;">				
+							<!-- 등급 차트 -->
+							<div class="w-100" style="height:300px; min-width:0;">
+								<div style="position:relative; width:100%; height:100%; margin-top:20px;">
+						          <canvas id="gradeChart"></canvas>
+						        </div>
+							</div>			
+						</div>				
+					</div>				
+				</div>
+				<div class="col-md-3">
+					<div class="card shadow-sm mb-4">				
+						<div class="card-header">
+							광고 연장률
+						</div>
+				
+						<div class="card-body d-flex align-items-center"
+						     style="height:350px;">						
+							<!-- 연장률 -->
+							<div class="text-center ms-5" style="min-width:0;">
+							    <h1 id="renewRate"
+							        class="fw-bold text-primary display-5">
+							        0%
+							    </h1>							
+							    <p class="text-muted mb-0">
+							        전체 광고 대비<br> 연장 승인 비율
+							    </p>							
+							</div>
+						</div>				
+					</div>				
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-md-6">
+					<div class="card shadow-sm">
+						<div class="card-header">위치별 노출</div>
+						<div class="card-body" style="height:350px; padding-left:20px;">
+							<div style="position:relative; width:100%; height:100%; margin-top:20px;">
+			                    <canvas id="positionChart"></canvas>
+			                </div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="card shadow-sm">
+						<div class="card-header">광고 위치별 CTR</div>
+						<div class="card-body" style="height:350px; padding-left:20px;">
+							<div style="position:relative; width:100%; height:100%; margin-top:20px;">
+			                    <canvas id="positionCtrChart"></canvas>
+			                </div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		</div>
+
+
+	<th:block layout:fragment="script">
+
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+		<script>
+
+			document.addEventListener("DOMContentLoaded", function () {
+				// 상단 요약
+				fetch("/admin/advertisement/chart/summary")
+				.then(response=>response.json())
+				.then(data=>{
+					document.getElementById("totalAd").textContent = data.totalAd.toLocaleString();  
+					document.getElementById("totalImp").textContent = data.totalImp.toLocaleString();
+				    document.getElementById("totalClick").textContent = data.totalClick.toLocaleString();  
+				    document.getElementById("avgCtr").textContent = data.avgCtr + "%";
+				    document.getElementById("impChange").innerHTML =
+				        data.impChange >= 0
+				        ? `<span class="text-success">▲ ${data.impChange}%</span>`
+				        : `<span class="text-danger">▼ ${Math.abs(data.impChange)}%</span>`;
+			        document.getElementById("clickChange").innerHTML =
+			            data.clickChange >= 0
+			            ? `<span class="text-success">▲ ${data.clickChange}%</span>`
+			            : `<span class="text-danger">▼ ${Math.abs(data.clickChange)}%</span>`;
+		            document.getElementById("ctrChange").innerHTML =
+		                data.ctrChange >= 0
+		                ? `<span class="text-success">▲ ${data.ctrChange}%p</span>`
+		                : `<span class="text-danger">▼ ${Math.abs(data.ctrChange)}%p</span>`;
+				});
+				// 일일 차트
+			    fetch("/admin/advertisement/chart/daily")
+			        .then(response => response.json())
+			        .then(data => {	
+			            const labels = data.map(item => item.statDate);
+			            const impressions = data.map(item => item.impressions);
+			            const clicks = data.map(item => item.clicks);
+	
+			            const ctx = document.getElementById("dailyChart");
+	
+			            new Chart(ctx, {	
+			                type: 'line',	
+			                data: {	
+			                    labels: labels,	
+			                    datasets: [	
+			                        {
+			                            label: '노출수',
+			                            data: impressions,
+			                            borderWidth: 2,
+			                            tension: 0.3
+			                        },	
+			                        {
+			                            label: '클릭수',
+			                            data: clicks,
+			                            borderWidth: 2,
+			                            tension: 0.3
+			                        }	
+			                    ]	
+			                },	
+			                options: {	
+			                    responsive: true,	
+			                    maintainAspectRatio: false,	
+			                    scales: {
+			                        y: {
+			                            beginAtZero: true
+			                        }
+			                    }	
+			                }	
+			            });	
+			        }).catch(error => console.error(error));
+		
+			    // CTR TOP5 
+			    fetch("/admin/advertisement/chart/ctr")
+			        .then(response => response.json())
+			        .then(data => {
+			            const labels = data.map(item => item.title);
+			            const ctr = data.map(item => item.ctr);
+
+			            new Chart(document.getElementById("ctrChart"), {
+			                type: "bar",
+			                data: {
+			                    labels: labels,
+			                    datasets: [
+			                        {
+			                            label: "CTR (%)",
+			                            data: ctr,
+			                            borderWidth: 1
+			                        }
+			                    ]
+			                },
+			                options: {
+			                    responsive: true,
+			                    maintainAspectRatio: false,
+
+			                    scales: {
+			                        y: {
+			                            beginAtZero: true
+			                        }
+			                    }
+			                }
+			            });
+			        });
+			    
+			 // 광고 등급 비율
+			    fetch("/admin/advertisement/chart/grade")
+				    .then(res => res.json())
+				    .then(data => {
+				        const counts = data.map(item => item.count);
+				        const total = counts.reduce((a,b)=>a+b,0);
+				        const labels = data.map(item => {
+				            const percent = (item.count/total*100).toFixed(1);
+				            return `${item.adGrade} (${percent}%)`;
+				        });
+	
+				        new Chart(document.getElementById("gradeChart"), {
+				            type: "pie",
+				            data: {
+				                labels: labels,
+				                datasets: [{
+				                    data: counts
+				                }]
+				            },
+				            plugins:[ChartDataLabels],
+				            options: {
+				                responsive: true,
+				                plugins:{
+				                    legend:{
+				                        position:'bottom'
+				                    },
+				                    datalabels:{
+				                        color:'#fff',
+				                        font:{
+				                            weight:'bold',
+				                            size:14
+				                        },
+				                        formatter:function(value){
+				                            return (value/total*100).toFixed(1)+"%";
+				                        }
+				                    }
+				                }
+				            }
+				        });
+				    });
+			 	// 광고 연장률
+			    fetch("/admin/advertisement/chart/extension-rate")
+			    .then(res => res.json())
+			    .then(data => {
+
+			        document.getElementById("renewRate")
+			                .textContent = data + "%";
+
+			    })
+			    .catch(error => console.error(error));
+			 	// 위치별 노출
+			    fetch("/admin/advertisement/chart/position")
+			    .then(res => res.json())
+			    .then(data => {
+			        const labels = data.map(item => item.position);
+			        const values = data.map(item => item.impressions);
+
+			        new Chart(document.getElementById("positionChart"), {
+			            type: "bar",
+			            data: {
+			                labels: labels,
+			                datasets: [{
+			                    label: "노출수",
+			                    data: values
+			                }]
+			            },
+			            options: {
+			                responsive: true,
+			                plugins: {
+			                    legend: {
+			                        display: false
+			                    }
+			                },
+			                scales:{
+			                    y:{
+			                        beginAtZero:true
+			                    }
+			                }
+			            }
+			        });
+			    });
+				// 위치별 ctr
+				fetch("/admin/advertisement/chart/positionCtr")
+				.then(res => res.json())
+				.then(data => {
+					console.log(data);
+					console.log(data.map(item => item.ctr));
+				    const labels = data.map(item => item.position);
+				    const ctr = data.map(item => item.ctr);
+	
+				    new Chart(document.getElementById("positionCtrChart"), {
+				        type: "bar",
+				        data: {
+				            labels: labels,
+				            datasets: [{
+				                label: "CTR (%)",
+				                data: ctr
+				            }]
+				        },
+				        options:{
+				            responsive:true,
+				            maintainAspectRatio:false,
+				            scales:{
+				                y:{
+				                    beginAtZero:true
+				                }
+				            }
+				        }
+				    });
+				});
+			 	
+			});
+		
+	    </script>
+
+	</th:block>
+	</div>
+</body>
+</html>

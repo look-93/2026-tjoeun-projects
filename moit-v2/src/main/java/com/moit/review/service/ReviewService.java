@@ -40,7 +40,8 @@ List<ReviewDto> selectReviewByContent(int meetupId,
     //좋아요 
 	int toggleReviewLike(int reviewId, int memberId);
 	
-	//페이징처리
+	//openai
+	public String reviewAnalysis(Integer meetupId);
 	
 	
 	
