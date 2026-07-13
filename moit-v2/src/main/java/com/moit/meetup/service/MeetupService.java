@@ -13,6 +13,7 @@ import com.moit.meetup.dto.MeetupSearchDto;
 import com.moit.meetup.dto.common.CategoryDto;
 import com.moit.meetup.dto.common.SidoDto;
 import com.moit.meetup.dto.common.SigunguDto;
+import com.moit.reports.dto.ReportsDto;
 
 public interface MeetupService {
 	// 사용자 - 목록 조회 + paging
