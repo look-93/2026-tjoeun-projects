@@ -85,6 +85,7 @@ public class QuestionController {
         model.addAttribute("list", list);
         model.addAttribute("page", page);
         model.addAttribute("totalPage", totalPage);
+        model.addAttribute("totalCnt", totalCnt);
         
         model.addAttribute("startPage", startPage);
         model.addAttribute("endPage", endPage);
@@ -103,7 +104,16 @@ public class QuestionController {
             @RequestParam(required=false) String status,
             @RequestParam(required=false) String startDate,
             @RequestParam(required=false) String endDate,
-            Model model){
+            Model model,
+            Authentication authentication) {
+    	
+        UserDto user = null;
+        if (authentication != null &&
+            authentication.getPrincipal() instanceof CustomUserDetails users) {
+            user = users.getUser();
+        }
+        model.addAttribute("dto", user);
+    	
         int pageSize = 10;
         int start = (page - 1) * pageSize;
         List<QuestionDto> list = questionService.getList(start, pageSize, type, keyword, status, startDate, endDate );
@@ -124,6 +134,7 @@ public class QuestionController {
         model.addAttribute("totalPage", totalPage);
         model.addAttribute("startPage", startPage);
         model.addAttribute("endPage", endPage);
+        model.addAttribute("totalCnt", totalCnt);
         
         model.addAttribute("type", type);
         model.addAttribute("keyword", keyword);
@@ -141,7 +152,7 @@ public class QuestionController {
         model.addAttribute("answeredCnt", questionService.getAnsweredCnt());
         // 오늘 등록된 문의 수
         model.addAttribute("todayCnt", questionService.getTodayCnt());
-        return "user/qna/adminQuestionList";
+        return "admin/qna/adminQuestionList";
     }
     
     // 모임글 문의 등록
@@ -289,25 +300,6 @@ public class QuestionController {
 
     // 답변 권한 확인 메서드
     private boolean canAnswer(QuestionDto question, HttpSession session, Authentication authentication){ // <- HttpSession session로 수정
-        // ===== 로그인 연동 시 사용할 코드 =====
-//      MemberDto loginUser = (MemberDto) session.getAttribute("loginUser");
-//      if(loginUser == null){
-//          return false;
-//      }
-//      // 관리자 문의
-//      if("ADMIN".equals(question.getCategory())){
-//          return loginUser.getMemberTypeId() == 3
-//              || loginUser.getMemberTypeId() == 4;
-//      }
-//      // 모임 문의
-//      if(loginUser.getMemberTypeId() == 3
-//          || loginUser.getMemberTypeId() == 4){
-//          return true;
-//      }
-//      MeetupDto meetup = meetupService.getDetail(question.getParentId());
-//      return meetup != null && meetup.getMemberId() == loginUser.getMemberId();
-      // ===== 임시 테스트 코드 =====
-    	
 		String loginId     = null, provider = null;
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
@@ -319,32 +311,24 @@ public class QuestionController {
 			loginId    =  users.getUser().getLoginId();
 			memberId = users.getUser().getMemberId();
 		} 
-		
-    	//int loginMemberId = 1;
+		if(user == null){
+		    return false;
+		}
     	// 관리자 문의
-        if("ADMIN".equals(question.getCategory())){
-            return true;   // 로그인 붙으면 관리자 권한 체크로 변경
-        }
+		if ("ADMIN".equals(question.getCategory())) {
+		    return user.getMemberTypeId() == 3 ||
+		           user.getMemberTypeId() == 4;
+		}
         // 모임 문의
-        MeetupDto meetup = meetupService.getDetail(question.getParentId());
-        if(meetup != null && meetup.getMemberId() == memberId){
-            return true;
-        }
-        return false;
+		if(user.getMemberTypeId() == 3 || user.getMemberTypeId() == 4){
+		    return true;
+			}
+			MeetupDto meetup = meetupService.getDetail(question.getParentId());
+			return meetup != null && meetup.getMemberId() == memberId;
     }
     
     // 문의 수정/삭제 권한 확인
     private boolean canEdit(QuestionDto question, HttpSession session, Authentication authentication){
-        // ===== 로그인 연동 시 사용할 코드 =====
-//        MemberDto loginUser = (MemberDto) session.getAttribute("loginUser");
-//        if(loginUser == null){
-//            return false;
-//        }
-//        return question.getMemberId() == loginUser.getMemberId()
-//            || loginUser.getMemberTypeId() == 3
-//            || loginUser.getMemberTypeId() == 4;
-        // ===== 임시 테스트 코드 =====
-    	
 		String loginId     = null, provider = null;
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
@@ -356,13 +340,15 @@ public class QuestionController {
 			loginId    =  users.getUser().getLoginId();
 			memberId = users.getUser().getMemberId();
 		} 
-		
-        //int loginMemberId = 1;
-        // 작성자
-        if(question.getMemberId() == memberId){ 
-        	return true; 
-        }
-        return false;
+		if(user == null){
+		    return false;
+		}
+		if(question.getMemberId() == memberId){
+		    return true;
+		}
+		if(user.getMemberTypeId() == 3 || user.getMemberTypeId() == 4){
+		    return true;
+		}
+		return false;
     }
-    
 }
