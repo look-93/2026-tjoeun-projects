@@ -6,9 +6,11 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
+import com.moit.advertisement.dto.ExtensionRequestDto;
 
 @Mapper
 public interface AdvertisementMapper {
@@ -34,6 +36,9 @@ public interface AdvertisementMapper {
 	List<AdvertisementDto> searchWaitingList(AdvertisementSearchDto dto);
 
 	int selectWaitingTotalCnt(AdvertisementSearchDto dto);
+	
+	// 연장 신청 조회목록
+	List<AdvertisementDto> selectExtensionList();
 
     // 상세 조회
     AdvertisementDto selectAdvertisementOne(int adId);
@@ -49,6 +54,12 @@ public interface AdvertisementMapper {
 
     // 승인 상태 변경
     int updateApprovalStatus(AdvertisementDto dto);
+    
+    // 연장승인 상태 변경
+    void updateExtensionApprove(AdvertisementDto dto);
+    
+    //  광고 연장 신청
+    int requestExtension(ExtensionRequestDto dto);
     
     // 상태 변경
     int updateAdvertisementStatus(AdvertisementDto dto);
@@ -146,5 +157,29 @@ public interface AdvertisementMapper {
     );
     
  // 광고 일일 통계 생성
-    void insertDailyStatistics();
+    int insertDailyStatistics();
+    
+//////////// 광고 통계 차트
+    AdvertisementChartDto selectSummary(); // 총 통계
+    List<AdvertisementChartDto> selectDailyChart();    // 일일통계
+    List<AdvertisementChartDto> selectTopCtrChart();   // ctr 탑5
+    List<AdvertisementChartDto> selectGradeChart();	   // 등급비율
+    List<AdvertisementChartDto> selectPositionChart(); // 위치별 노출
+    double selectExtensionRate();					   // 연장률
+    List<AdvertisementChartDto> selectPositionCtrChart(); // 위치별 ctr
+    /// 피로도 
+    AdvertisementDto selectAdvertisementStatistics(int adId);
+//    Double selectRecentCtr(int adId);		// 최근 ctr
+//    Double selectPreviousCtr(int adId);		// 이전 ctr
+//    Double selectRepeatRate(int adId);		// 반복 노출률
+    
+    
+    // 광고 만료 메일 30일/14일
+    List<AdvertisementDto> selectReminder30List();
+
+    List<AdvertisementDto> selectReminder14List();
+
+    int updateReminder30Sent(int adId);
+
+    int updateReminder14Sent(int adId);
 }

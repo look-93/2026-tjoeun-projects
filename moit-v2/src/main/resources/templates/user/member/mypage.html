@@ -55,8 +55,12 @@
 					</div>
 
 					<div class="mypage-info-box">
-						<div class="mypage-info-title">가입일</div>
-						<div>2026-01-10</div>
+					    <div class="mypage-info-title">
+					        가입일
+					    </div>
+					
+					    <div th:text="${dto.createdAt}">
+					    </div>
 					</div>
 
 					<div class="mypage-info-box">
@@ -70,43 +74,6 @@
 
 		</div>
 
-		<div class="mypage-table-section">
-
-			<h2>신청한 모임</h2>
-
-			<table class="mypage-table">
-				<thead>
-					<tr>
-						<th>모임명</th>
-						<th>모임일</th>
-						<th>상태</th>
-						<th>후기</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td class="mypage-table-title">코딩 스터디</td>
-						<td>2026.06.10</td>
-						<td><span class="mypage-status status-end">종료</span></td>
-						<td><button class="mypage-btn mypage-btn-review">후기
-								작성</button></td>
-					</tr>
-					<tr>
-						<td class="mypage-table-title">운동 모임</td>
-						<td>2026.05.15</td>
-						<td><span class="mypage-status status-end">종료</span></td>
-						<td><button class="mypage-btn mypage-btn-complete" disabled>작성완료</button></td>
-					</tr>
-					<tr>
-						<td class="mypage-table-title">독서 모임</td>
-						<td>2026.07.20</td>
-						<td><span class="mypage-status status-progress">진행중</span></td>
-						<td>-</td>
-					</tr>
-				</tbody>
-			</table>
-
-		</div>
 	</div>
 </body>
 </html>

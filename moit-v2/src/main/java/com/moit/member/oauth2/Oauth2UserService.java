@@ -19,11 +19,14 @@ import com.moit.member.dto.AuthUserDto;
 import com.moit.member.dto.UserDto;
 import com.moit.security.CustomUserDetails;
 
+import jakarta.servlet.http.HttpSession;
+
 @Service
 public class Oauth2UserService extends DefaultOAuth2UserService{
 	
 	@Autowired UserMapper dao;	
 	@Autowired PasswordEncoder passwordEncoder;
+	@Autowired HttpSession session;
 	
 	// alt + shift + s (override)
 	@Transactional
@@ -52,84 +55,72 @@ public class Oauth2UserService extends DefaultOAuth2UserService{
 		String providerId = info.getProviderId();
 		String img = info.getImage(); //##
 		
-//		UserDto param = new UserDto(); 
-//		param.setProvider(provider); 
-//		param.setProviderId(providerId);
 		
 		UserDto user = dao.findByEmail(email); // 마이페이지
 		
 		if(user == null){
+			
+			 UserDto socialUser = new UserDto();
 
-			user = new UserDto();
+			    socialUser.setEmail(email);
+			    socialUser.setNickname(nickname);
+			    socialUser.setProvider(provider);
+			    socialUser.setProviderId(providerId);
+			    socialUser.setProfileUrl(img);
 
-		    user.setLoginId(provider + "_" + providerId);
+			    // ★ 회원가입 전 임시 저장
+			    session.setAttribute("socialUser", socialUser);
 
-		    user.setEmail(email);
-
-		    user.setNickname(nickname);
-
-		    user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-
-		    user.setProvider(provider);
-
-		    user.setProviderId(providerId);
-
-		    user.setProfileUrl(img);
-
-		    user.setMemberTypeId(1);
-
-		    user.setStatusId(5); //
+			    // 로그인 객체는 임시 생성
+			    user = new UserDto();
+			    
+			    user.setMemberId(0);
+			    user.setLoginId(provider + "_" + providerId);
+			    user.setEmail(email);
+			    user.setNickname(nickname);
+			    user.setProvider(provider);
+			    user.setProviderId(providerId);
+			    user.setProfileUrl(img);
 		    
-		    user.setMobile(null);
-
-		    dao.insertSocial(user);
-		    dao.insertSocialInfo(user);
-
-		    //user = dao.findByEmail(email);
 		}
 		
-//		// 이미 연동된 회원인지 확인    
-//		if(user == null) { 
-//			throw new OAuth2AuthenticationException("먼저 일반회원으로 가입한 후 마이페이지에서 소셜 계정을 연동해주세요.");
-//		}
-//		
-//		// 최초 소셜 연동
-//		if(user.getProvider() == null){
-//
-//		    user.setProvider(provider);
-//		    user.setProviderId(providerId);
-//
-//		    dao.connectProvider(user);
-//		}
-//		
-//		else{
-//
-//		    if(!provider.equals(user.getProvider())){
-//		        throw new OAuth2AuthenticationException(
-//		                "다른 소셜 계정으로 연동된 회원입니다.");
-//		    }
-//
-//		    if(!providerId.equals(user.getProviderId())){
-//		        throw new OAuth2AuthenticationException(
-//		                "등록되지 않은 소셜 계정입니다.");
-//		    }
-//
-//		}
-			
-		AuthUserDto authDto =
-		        dao.readByLoginId(user.getLoginId());
+		CustomUserDetails customUser;
 		
-		CustomUserDetails customUser = new CustomUserDetails(user,authDto);
-		
-		Map<String,Object> attributes = new HashMap<>(oAuth2User.getAttributes());
-		
-		attributes.put("provider", provider);
-		attributes.put("providerId", providerId);
-		attributes.put("email", email);
-		attributes.put("nickname", nickname);
-		attributes.put("profileUrl", img);
-		
-		customUser.setAttributes(attributes);
+		if(user.getMemberId() == 0) {
+
+		    Map<String,Object> attributes = new HashMap<>();
+
+		    attributes.put("provider", provider);
+		    attributes.put("providerId", providerId);
+		    attributes.put("email", email);
+		    attributes.put("nickname", nickname);
+		    attributes.put("profileUrl", img);
+
+		    customUser = new CustomUserDetails(user, attributes);
+
+
+		} else {
+
+		    AuthUserDto authDto = dao.readByLoginId(user.getLoginId());
+
+		    if(authDto == null) {
+
+		        Map<String,Object> attributes = new HashMap<>();
+
+		        attributes.put("provider", provider);
+		        attributes.put("providerId", providerId);
+		        attributes.put("email", email);
+		        attributes.put("nickname", nickname);
+		        attributes.put("profileUrl", img);
+
+		        customUser = new CustomUserDetails(user, attributes);
+
+		    } else {
+
+		        customUser = new CustomUserDetails(user, authDto);
+
+		    }
+		}
 		
 		return customUser;
 	}

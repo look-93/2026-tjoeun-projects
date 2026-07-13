@@ -211,9 +211,11 @@
 					</div>
 				</div>
 
-				<section class="ad-banner" th:if="${desidebarAd != null}">
-					<a th:href="@{/user/advertisement/click(adId=${desidebarAd.adId})}">
-						<img th:if="${desidebarAd.imageList != null and !desidebarAd.imageList.isEmpty()}" th:src="@{${desidebarAd.imageList[0].imageUrl}}" alt="광고">
+				<section class="ad-banner" th:if="${desidebarAd != null}"
+						  th:classappend="${desidebarAd.imageList != null and !desidebarAd.imageList.isEmpty()} ? ' has-image' : ''">
+					<a th:href="@{/user/advertisement/click(adId=${desidebarAd.adId},  position='MEETUP_DETAIL_SIDEBAR')}">
+						<img th:if="${desidebarAd.imageList != null and !desidebarAd.imageList.isEmpty()}" 
+							 th:src="@{${desidebarAd.imageList[0].imageUrl}}" alt="광고">
 						<div th:if="${desidebarAd.imageList == null or desidebarAd.imageList.size() == 0}">광고 이미지 준비중</div>
 					</a>
 				</section>
