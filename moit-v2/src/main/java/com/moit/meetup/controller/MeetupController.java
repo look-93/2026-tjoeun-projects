@@ -26,6 +26,8 @@ import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
 import com.moit.meetup.service.MeetupService;
 import com.moit.member.dto.UserDto;
+import com.moit.reports.dto.ReportsDto;
+import com.moit.reports.service.ReportsService;
 import com.moit.review.dto.ReviewDto;
 import com.moit.review.service.ReviewService;
 import com.moit.security.CustomUserDetails;
@@ -39,6 +41,7 @@ public class MeetupController {
 	@Autowired MeetupService meetupService;
 	@Autowired AdvertisementService advertisementService;
 	@Autowired ReviewService reviewService;
+	@Autowired ReportsService reportsService;
 	
 
 	
@@ -150,7 +153,7 @@ public class MeetupController {
 						MeetupApplicationDto meetupApplicationDto, 
 						@RequestParam(value = "keyword", required = false) String keyword,   // ★ 추가
 						@RequestParam(value = "sort", required = false, defaultValue = "latest")  String sort,
-			            HttpServletRequest request, HttpSession session	) {
+			            HttpServletRequest request, HttpSession session,ReportsDto reportsDto) {
 		
 		String loginId     = null, provider = null;
 		UserDto user=null;
@@ -194,8 +197,16 @@ public class MeetupController {
 	    }
 
 	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
-
-      model.addAttribute("user", user);
+	    
+	    reportsDto.setMemberId(memberId); // 로그인한 멤버아이디
+	    reportsDto.setTargetType("MEETUP"); // 모임글 신고 = meetup
+	    reportsDto.setTargetId(meetupApplicationDto.getMeetupId()); //모임글아이디
+	    
+	    int checkDoubleReport =  reportsService.checkDoubleReport(reportsDto);
+	    
+	    //System.out.println(checkDoubleReport + "dddddddddddddddddddddddddddddddddddddddddddddddddd");
+	    model.addAttribute("checkDoubleReport", checkDoubleReport);
+        model.addAttribute("user", user);
 	    model.addAttribute("applyInfo", meetupService.findApplyInfo(meetupApplicationDto));
 	    model.addAttribute("detail", meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
 	    model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
