@@ -4780,6 +4780,37 @@ textarea.mw-form-input {
 	    width:100%;
 	}
 }
+
+.review-like-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+
+    padding:6px 14px;
+    margin-top:10px;
+
+    border:1px solid #e5e7eb;
+    border-radius:20px;
+
+    background:#ffffff;
+    color:#374151;
+
+    font-size:14px;
+    font-weight:600;
+
+    cursor:pointer;
+    transition:all .2s ease;
+}
+
+.review-like-btn:hover{
+    background:#fff7d6;
+    border-color:#facc15;
+    color:#d97706;
+}
+
+.review-like-btn:active{
+    transform:scale(.96);
+
 /*  광고 모달창 설정   */
 #extensionModal.extension-modal {
 	display: none;
@@ -4805,4 +4836,5 @@ textarea.mw-form-input {
 	max-width: 90vw;
 	padding: 24px;
 	box-sizing: border-box;
+
 }

@@ -155,6 +155,12 @@
 									<span th:each="star : ${#numbers.sequence(1,5)}" th:text="${star <= review.rating ? '★' : '☆'}"> </span>
 								</div>
 								<p class="meetup-detail-comment-text" th:text="${review.content}">후기 내용</p>
+								<!-- -좋아요 추가 -->
+									<button class="review-like-btn"
+								        th:data-review-id="${review.reviewId}"
+								        onclick="toggleReviewLike(this)">
+								    👍 <span th:text="${review.likesCount}">0</span>
+	                                </button>
 							</div>
 						</div> <div class="meetup-detail-tab-panel">
 							<h3>Q&A</h3>
@@ -314,7 +320,7 @@
 			})
 			.catch(err => console.log(err));
 		}
-		
+		/**********모임신청*********/
 		function applyCancelMeetup(applicationId){
 			fetch("/meetup/cancelApplyMeetup", {
 				headers: getCsrfHeaders(),
@@ -332,6 +338,7 @@
 		}
 		
 		function changeMainImg(src) {
+			// 메인 이미지 태그를 찾아서 소스(src)를 클릭한 썸네일 주소로 변경
 			const mainImg = document.querySelector('.meetup-detail-main-img img');
 			if (mainImg) mainImg.src = src;
 		}
@@ -373,6 +380,25 @@
 				});
 			}
 		});
+		
+		function toggleReviewLike(btn) {
+
+		    const reviewId = btn.dataset.reviewId;
+
+		    fetch(`/meetup/review/like/${reviewId}`, {
+		        method: "POST",
+		        headers: getCsrfHeaders()
+		    })
+		    .then(res => res.json())
+		    .then(data => {
+		        if (data.success) {
+		            btn.querySelector("span").innerText = data.likesCount;
+		        } else {
+		            alert(data.message);
+		        }
+		    })
+		    .catch(err => console.log(err));
+		}
 		</script>
 	</div>
 </body>
