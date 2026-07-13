@@ -5,9 +5,11 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
+import com.moit.advertisement.dto.ExtensionRequestDto;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -103,14 +105,33 @@ public interface AdvertisementService {
 	// 노출 로그
 	boolean insertImpressionLog(int adId, String position, HttpServletRequest request, HttpSession session);
 
-	// 
-	void createDailyStatistics();
-
 	// 일일통계
-//	void insertDailyStatistics();
+	void insertDailyStatistics();
 	
+	// 통계 차트
+	// 총 통계
+	AdvertisementChartDto selectSummary();
+	// 7일치 통계차트
+	List<AdvertisementChartDto> selectDailyChart();
+	// ctr 탑5
+	List<AdvertisementChartDto> selectTopCtrChart();
+	// 등급비율
+	List<AdvertisementChartDto> selectGradeChart();
+	// 위치별 노출
+	List<AdvertisementChartDto> selectPositionChart(); 
+	// 연장률
+	double selectExtensionRate();	
+	// 위치별 ctr 차트
+	List<AdvertisementChartDto> selectPositionCtrChart();
+	
+	// 피로도
+	AdvertisementDto getAdvertisementStatistics(int adId);
+
 	// 메일 발송
 	void sendReminderMail();
+
+	void requestExtension(ExtensionRequestDto dto);
+
 
 
 }

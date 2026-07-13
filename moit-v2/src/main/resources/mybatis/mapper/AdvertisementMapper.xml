@@ -877,7 +877,7 @@
 	</insert>
 
 	<!-- 광고 일일 통계 생성 -->
-	<!-- <insert id="insertDailyStatistics">
+	<insert id="insertDailyStatistics">
 	
 	    INSERT INTO advertisement_daily_statistics
 	    (
@@ -915,7 +915,7 @@
 	                    /
 	                    NULLIF(i.impressions,0)
 	                    *100
-	                 ,2) < 1
+	                 ,2) &lt; 1
 	            THEN 80
 	
 	            WHEN NVL(i.impressions,0) >= 5000
@@ -924,7 +924,7 @@
 	                    /
 	                    NULLIF(i.impressions,0)
 	                    *100
-	                 ,2) < 3
+	                 ,2) &lt; 3
 	            THEN 50
 	
 	            ELSE 10
@@ -943,7 +943,7 @@
 	        FROM advertisement_impression_log
 	
 	        WHERE viewed_at >= TRUNC(SYSDATE)-1
-	        AND viewed_at < TRUNC(SYSDATE)
+	        AND viewed_at &lt; TRUNC(SYSDATE)
 	
 	        GROUP BY ad_id
 	
@@ -962,7 +962,7 @@
 	        FROM advertisement_click_log
 	
 	        WHERE clicked_at >= TRUNC(SYSDATE)-1
-	        AND clicked_at < TRUNC(SYSDATE)
+	        AND clicked_at &lt; TRUNC(SYSDATE)
 	
 	        GROUP BY ad_id
 	
@@ -970,10 +970,341 @@
 	
 	    ON a.ad_id = c.ad_id
 	
+		WHERE NOT EXISTS (
+		    SELECT 1
+		    FROM advertisement_daily_statistics s
+		    WHERE s.ad_id = a.ad_id
+		      AND s.stat_date = TRUNC(SYSDATE)-1
+		)
 	
-	</insert> -->
+	</insert>
 	
+	<!-- 광고 통계 차트  -->
+	<!-- 총 통계 차트  -->
+	<select id="selectSummary"
+	        resultType="com.moit.advertisement.dto.AdvertisementChartDto">	
+	    WITH today AS (
+		    SELECT
+		        SUM(impressions) imp,
+		        SUM(clicks) click
+		    FROM advertisement_daily_statistics
+		    WHERE stat_date = TRUNC(SYSDATE)-1		
+		),		
+		yesterday AS (		
+		    SELECT
+		        SUM(impressions) imp,
+		        SUM(clicks) click
+		    FROM advertisement_daily_statistics
+		    WHERE stat_date = TRUNC(SYSDATE)-2		
+		)		
+		SELECT		
+		    (SELECT COUNT(*) FROM advertisements) totalAd,		
+		    today.imp totalImp,		
+		    today.click totalClick,		
+		    ROUND(today.click / NULLIF(today.imp,0) *100,2) avgCtr,		
+		    ROUND((today.imp-yesterday.imp)
+		          /NULLIF(yesterday.imp,0)*100,2) impChange,		
+		    ROUND((today.click-yesterday.click)
+		          /NULLIF(yesterday.click,0)*100,2) clickChange,		
+		    ROUND(
+		        (today.click/NULLIF(today.imp,0)*100)
+		        -
+		        (yesterday.click/NULLIF(yesterday.imp,0)*100)
+		    ,2) ctrChange		
+		FROM today,yesterday
+	</select>
 	
+	<!-- 일일통계 차트  -->
+	<select id="selectDailyChart"
+        resultType="com.moit.advertisement.dto.AdvertisementChartDto">
+
+	    SELECT
+		    TO_CHAR(stat_date,'MM-DD') AS statDate,
+	        SUM(impressions) AS impressions,	
+	        SUM(clicks) AS clicks	
+		FROM advertisement_daily_statistics		
+		WHERE stat_date >= TRUNC(SYSDATE)-7
+	
+	    GROUP BY stat_date	
+	    ORDER BY stat_date
+	
+	</select>
+	
+	<!-- 광고 통계 차트 상위 5개 -->
+	<select id="selectTopCtrChart"
+	        resultType="com.moit.advertisement.dto.AdvertisementChartDto">
+	
+	    SELECT *
+	    FROM (	
+	        SELECT	
+	        	a.ad_id,
+	            a.title,	
+	            COUNT(DISTINCT c.click_id) AS click_count,
+        		COUNT(DISTINCT i.impression_id) AS impression_count,
+	            ROUND(
+	                COUNT(DISTINCT c.click_id)
+	                /
+	                NULLIF(COUNT(DISTINCT i.impression_id),0)
+	                *100
+	            ,2) AS ctr	
+	        FROM advertisements a
+	
+	        LEFT JOIN advertisement_impression_log i
+		        ON a.ad_id = i.ad_id	
+		        AND i.position IS NOT NULL	
+		    LEFT JOIN advertisement_click_log c
+		        ON a.ad_id = c.ad_id
+	        GROUP BY 
+	        	a.ad_id,
+	        	a.title	
+	        HAVING COUNT(DISTINCT i.impression_id) >= 10
+	        
+	        ORDER BY ctr DESC	
+	    )	
+	    WHERE ROWNUM &lt;= 5
+	
+	</select>
+	
+	<!-- 광고 등급비율 -->
+	<select id="selectGradeChart"
+	        resultType="com.moit.advertisement.dto.AdvertisementChartDto">	
+	    SELECT	
+	        ad_grade,
+	        COUNT(*) count	
+	    FROM advertisements	
+	    GROUP BY ad_grade	
+	    ORDER BY ad_grade	
+	</select>
+	
+	<!-- 광고 연장비율 -->
+	<select id="selectExtensionRate"
+	        resultType="double">
+	
+	    SELECT
+	        ROUND(
+	            SUM(
+	                CASE 
+	                    WHEN extension_status='APPROVED'
+	                    THEN 1 
+	                    ELSE 0 
+	                END
+	            )
+	            /
+	            NULLIF(COUNT(*),0)
+	            * 100
+	        ,2)
+	    FROM advertisements
+	    WHERE delete_yn='N'
+	
+	</select>
+	
+	<!-- 광고 위치별 노출 차트 -->
+	<select id="selectPositionChart"
+	        resultType="com.moit.advertisement.dto.AdvertisementChartDto">	
+	    SELECT
+	        position,
+	        COUNT(*) AS impressions	
+	    FROM advertisement_impression_log	
+	    GROUP BY position	
+	    ORDER BY position	
+	</select>
+	
+	<!-- 광고 위치별 CTR 차트 -->
+	<select id="selectPositionCtrChart"
+	        resultType="com.moit.advertisement.dto.AdvertisementChartDto">
+	
+	    SELECT
+	        i.position,
+	        i.impressions,
+	        NVL(c.clicks, 0) AS clicks,
+	        ROUND(
+	            NVL(c.clicks, 0)
+	            / NULLIF(i.impressions, 0)
+	            * 100
+	        , 2) AS ctr
+	    FROM
+	    (
+	        SELECT
+	            position,
+	            COUNT(*) AS impressions
+	        FROM advertisement_impression_log
+	        WHERE position IS NOT NULL
+	        GROUP BY position
+	    ) i
+	    LEFT JOIN
+	    (
+	        SELECT
+	            position,
+	            COUNT(*) AS clicks
+	        FROM advertisement_click_log
+	        WHERE position IS NOT NULL
+	        GROUP BY position
+	    ) c
+	        ON i.position = c.position
+	    ORDER BY ctr DESC
+	
+	</select>
+<!-- ====== 피로도 ===== -->	
+	<!-- 피로도 -->
+	<select id="selectAdvertisementStatistics"
+	        parameterType="int"
+	        resultType="com.moit.advertisement.dto.AdvertisementDto">	
+			SELECT
+			    a.ad_id,
+			    a.title,			
+			    /* 총 노출 */
+			    (
+			        SELECT COUNT(*)
+			        FROM advertisement_impression_log i
+			        WHERE i.ad_id = a.ad_id
+			    ) AS impressions,			
+			    /* 총 클릭 */
+			    (
+			        SELECT COUNT(*)
+			        FROM advertisement_click_log c
+			        WHERE c.ad_id = a.ad_id
+			    ) AS clicks,			
+			    /* 전채 CTR */
+			    ROUND(
+			        (
+			            SELECT COUNT(*)
+			            FROM advertisement_click_log c
+			            WHERE c.ad_id = a.ad_id
+			        )
+			        /
+			        NULLIF(
+			            (
+			                SELECT COUNT(*)
+			                FROM advertisement_impression_log i
+			                WHERE i.ad_id = a.ad_id
+			            ),
+			        0)
+			    *100,2) AS ctr,
+			     /* 최근 7일 CTR */
+		        ROUND(
+		            (
+		                SELECT COUNT(*)
+		                FROM advertisement_click_log c
+		                WHERE c.ad_id = a.ad_id
+		                  AND c.clicked_at >= SYSDATE - 7
+		            )
+		            /
+		            NULLIF(
+		                (
+		                    SELECT COUNT(*)
+		                    FROM advertisement_impression_log i
+		                    WHERE i.ad_id = a.ad_id
+		                      AND i.viewed_at >= SYSDATE - 7
+		                ),
+		                0)
+		          * 100, 2
+		        ) AS recentCtr,
+			    /* 이전 7일 CTR */
+		        ROUND(
+		            (
+		                SELECT COUNT(*)
+		                FROM advertisement_click_log c
+		                WHERE c.ad_id = a.ad_id
+		                  AND c.clicked_at >= SYSDATE - 14
+		                  AND c.clicked_at &lt; SYSDATE - 7
+		            )
+		            /
+		            NULLIF(
+		                (
+		                    SELECT COUNT(*)
+		                    FROM advertisement_impression_log i
+		                    WHERE i.ad_id = a.ad_id
+		                      AND i.viewed_at >= SYSDATE - 14
+		                      AND i.viewed_at &lt; SYSDATE - 7
+		                ),
+		                0
+		            )
+		            * 100,
+		            2
+		        ) AS previousCtr,			
+			    /* 반복 노출률 */
+		        ROUND(
+		            (
+		                SELECT COUNT(*)
+		                FROM advertisement_impression_log i
+		                WHERE i.ad_id = a.ad_id
+		                	AND i.viewed_at >= SYSDATE - 14
+		            )
+		            /
+		            NULLIF(
+		                (
+		                    SELECT COUNT(DISTINCT NVL(TO_CHAR(i.member_id), i.session_id))
+		                    FROM advertisement_impression_log i
+		                    WHERE i.ad_id = a.ad_id
+		                    	AND i.viewed_at >= SYSDATE - 14
+		                ), 0
+		            ), 2
+		        ) AS repeatRate
+			FROM advertisements a
+			WHERE a.ad_id = #{adId}	
+	</select>
+
+
+	<!-- 최근 14일 ctr -->
+	<select id="selectRecentCtr" resultType="double">	
+		SELECT
+			NVL(
+			ROUND(
+			COUNT(DISTINCT c.click_id)
+			/
+			NULLIF(COUNT(DISTINCT i.impression_id),0)
+			*100
+			,2)
+			,0)
+		FROM advertisement_impression_log i
+		
+		LEFT JOIN advertisement_click_log c
+		ON i.impression_id = c.impression_id
+		
+		WHERE i.ad_id=#{adId}
+		AND i.created_at >= SYSDATE-14	
+	</select>
+	<!-- 이전 14일 ctr -->
+	<select id="selectPreviousCtr" resultType="double">
+		SELECT
+			NVL(
+			ROUND(
+			COUNT(DISTINCT c.click_id)
+			/
+			NULLIF(COUNT(DISTINCT i.impression_id),0)
+			*100
+			,2)
+			,0)
+		FROM advertisement_impression_log i
+		
+		LEFT JOIN advertisement_click_log c
+		ON i.impression_id = c.impression_id
+		
+		WHERE i.ad_id=#{adId}
+		AND i.created_at BETWEEN SYSDATE-28 AND SYSDATE-14	
+	</select>
+	<!-- 반복 노출률 -->
+	<select id="selectRepeatRate" resultType="double">
+		SELECT		
+			ROUND(			
+				(
+					COUNT(*)					
+					-					
+					COUNT(
+					DISTINCT
+					NVL(TO_CHAR(member_id),ip_address)
+				)				
+			)			
+			/			
+			NULLIF(COUNT(*),0)			
+			*100			
+			,2)		
+		FROM advertisement_impression_log		
+		WHERE ad_id=#{adId}		
+	</select>
+
+	
+<!-- ==================================== -->	
 	<!-- 광고 만료예정 찾기 30일 -->
 	<select id="selectReminder30List"
 	        resultType="com.moit.advertisement.dto.AdvertisementDto">
@@ -990,9 +1321,9 @@
 		WHERE a.approval_status = 'APPROVED'
 		  AND a.status = 'OPEN'
 		  AND a.delete_yn = 'N'
-		  AND reminder_30d_sent = 'N'
-		  AND extension_status='NONE'
-		  AND end_datetime > CURRENT_TIMESTAMP
+		  AND a.reminder_30d_sent = 'N'
+		  AND a.extension_status='NONE'
+		  AND a.end_datetime > CURRENT_TIMESTAMP
 		  AND a.end_datetime >= TRUNC(SYSDATE + 30)
 		  AND a.end_datetime &lt; TRUNC(SYSDATE + 30) + 1
 	
@@ -1067,33 +1398,22 @@
 	</select>
 	
 	<!-- 연장 신청 (1회만) -->
-
 	<update id="requestExtension">
-	
-	
-	    UPDATE advertisements
-	
-	    SET
-	
-	        extension_request_end_datetime =
-	        #{extensionRequestEndDatetime},
-	
-	        extension_status='WAITING',
-	        
-	        reminder_30d_sent='N',
-			reminder_14d_sent='N',
-	
-	        updated_at=CURRENT_TIMESTAMP
-	
-	
-	    WHERE ad_id=#{adId}	
-	      AND advertiser_id=#{advertiserId}	
-	      AND delete_yn='N'
-	      AND extension_status='NONE'
-	
-	
+
+		UPDATE advertisements		
+		SET		
+			extension_request_end_datetime =
+			#{extensionRequestEndDatetime},			
+			extension_status='WAITING',			
+			updated_at=CURRENT_TIMESTAMP
+				
+		WHERE ad_id=#{adId}		
+			AND advertiser_id=#{advertiserId}			
+			AND delete_yn='N'			
+			AND extension_status='NONE'	
+			
 	</update>
-	
+	<!-- 연장 승인 -->
 	<update id="updateExtensionApprove">
 
 		UPDATE advertisements
