@@ -710,4 +710,11 @@
 		FETCH FIRST 1 ROWS ONLY
     </select>    
 	<!-- 카테고리별 추천 모임 -->
+	
+	<!-- 카테고리 찾아오기 -->	
+	<select id="selectCategoryId" resultType="int" parameterType="String">
+	    SELECT category_id
+	    FROM categories
+	    WHERE category_name = #{categoryName}
+	</select>
 </mapper>
