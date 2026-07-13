@@ -50,7 +50,19 @@ public class ReportsServiceImpl implements ReportsService {
 		
 		return dao.insertUserReport(dto);
 	}
+	
+	//모임 신고 더블 체크
+	@Override
+	public int checkDoubleReport(ReportsDto dto) {
 
+	    int count = dao.doubleReport(dto);
+
+	    if(count > 0) {
+	        return -1;
+	    }
+	    return 0;
+	}
+	
 	@Override // 신고 수정 화면 update
 	public int updateUserReport(ReportsDto dto) {
 		return dao.updateUserReport(dto);

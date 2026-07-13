@@ -53,9 +53,15 @@
                <div class="meetup-detail-content-top">
                   <div class="meetup-detail-badge"
                      th:text="${detail.status == 'RECRUITING' ? '모집중' : '모집마감'}"></div>
-                  <a 
+<!--                   <a 
                      th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${param.meetupId})}"
-                     class="meetup-detail-report-btn" type="button">th:if="${user.memberId != detail.memberId}"모임 신고 </a>
+                     class="meetup-detail-report-btn" type="button">th:if="${user.memberId != detail.memberId}"모임 신고 </a> -->
+                     <a th:if="${user.memberId != detail.memberId}"
+					   th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${detail.meetupId})}"
+					   class="meetup-detail-report-btn"
+					  th:onclick="|return checkReportDuplicate(this, ${checkDoubleReport ?: 0});|">
+					   모임 신고
+					</a>
                </div>
                <h1 class="meetup-detail-title" th:text="${detail.title}"></h1>
             </div>
@@ -403,6 +409,18 @@
 		        }
 		    })
 		    .catch(err => console.log(err));
+		}
+		
+		function checkReportDuplicate(element, checkDoubleReport) {
+
+		    console.log("신고 중복 체크:", checkDoubleReport);
+
+		    if(Number(checkDoubleReport) === -1) {
+		        alert("이미 신고된 모임글입니다.");
+		        return false;
+		    }
+
+		    return true;
 		}
 		</script>
 	</div>
