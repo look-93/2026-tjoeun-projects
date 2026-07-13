@@ -18,12 +18,15 @@ import com.moit.member.dto.AuthUserDto;
 import com.moit.member.dto.MyPageDto;
 import com.moit.member.dto.UserDto;
 import com.moit.member.dto.UserJoinDto;
+import com.moit.member.enums.PasswordChangeResult;
+import com.moit.security.PasswordLeakService;
 
 @Service
 public class UserServiceImpl  implements UserService{
  
 	@Autowired  UserMapper dao;
 	@Autowired  @Qualifier("passwordEncoder") PasswordEncoder  pwencoder;
+	@Autowired PasswordLeakService passwordLeakService;
 	
 	@Value("${resource.path}") private String resourcePath;
 	
@@ -40,6 +43,12 @@ public class UserServiceImpl  implements UserService{
 		// 닉네임 중복검사
 		map.put("nickname", dto.getNickname());
 		if(dao.findUser(map) != null) { return -1; }
+		
+		// 비밀번호 유출검사(HIBP)
+		int leakCount = passwordLeakService.getLeakCount(dto.getPassword());
+		
+		if(leakCount == -1) { System.out.println("HIBP API 호출실패"); }
+		if(leakCount > 0) { return -2; }
 		
 		// 비밀번호 암호화 
 		dto.setPassword(pwencoder.encode(dto.getPassword()));
@@ -142,18 +151,17 @@ public class UserServiceImpl  implements UserService{
 	
 	@Override public UserDto findPasswordUser(UserDto dto) { return dao.findPasswordUser(dto); }
 	
+	//비밀번호 찾기 후 변경
 	@Override
 	public boolean changePassword(UserDto dto) {
 		
-		int result = dao.changePassword(dto);
+		int leakCount = passwordLeakService.getLeakCount(dto.getPassword());
 		
-		if(result == 0) { return false; }
+		if(leakCount > 0) { return false; }
 		
-		dto.setPassword(pwencoder.encode(dto.getPassword()));
+		dto.setPassword(pwencoder.encode(dto.getPassword()));		
 		
-		dao.changePassword(dto);
-		
-		return true;
+		return dao.changePassword(dto) > 0;
 	}
 	
 //	@Transactional
@@ -178,23 +186,56 @@ public class UserServiceImpl  implements UserService{
 	}
 	
 	@Override public UserDto findByMemberId(int memberId) { return dao.findByMemberId(memberId); }
-
+	
+	// 로그인 후 비밀번호 변경
+//	@Override
+//	public boolean changePassword(int memberId, String currentPassword, String newPassword) {
+//		UserDto user = dao.findByMemberId(memberId);
+//		
+//		if(!pwencoder.matches(currentPassword, user.getPassword())) {
+//			return false;
+//		}
+//		
+//		int leakCount = passwordLeakService.getLeakCount(newPassword);
+//		
+//		if(leakCount > 0) {return false;}
+//		
+//		UserDto dto = new UserDto();
+//		
+//		dto.setMemberId(memberId);
+//		dto.setPassword(pwencoder.encode(newPassword));
+//		
+//		dao.changePassword(dto);
+//		
+//		return true;
+//	}
 	@Override
-	public boolean changePassword(int memberId, String currentPassword, String newPassword) {
-		UserDto user = dao.findByMemberId(memberId);
+	public PasswordChangeResult changePassword(
+	        int memberId,
+	        String currentPassword,
+	        String newPassword) {
 		
-		if(!pwencoder.matches(currentPassword, user.getPassword())) {
-			return false;
-		}
-		
-		UserDto dto = new UserDto();
-		
-		dto.setMemberId(memberId);
-		dto.setPassword(pwencoder.encode(newPassword));
-		
-		dao.changePassword(dto);
-		
-		return true;
+	    UserDto user = dao.findByMemberId(memberId);
+
+	    // 현재 비밀번호 확인
+	    if (!pwencoder.matches(currentPassword, user.getPassword())) {
+	        return PasswordChangeResult.WRONG_PASSWORD;
+	    }
+
+	    // HIBP 검사
+	    int leakCount = passwordLeakService.getLeakCount(newPassword);
+
+	    if (leakCount == -1) {  return PasswordChangeResult.API_ERROR;  }
+	    if (leakCount > 0) {  return PasswordChangeResult.LEAKED_PASSWORD;  }
+
+	    UserDto dto = new UserDto();
+
+	    dto.setMemberId(memberId);
+	    dto.setPassword( pwencoder.encode(newPassword) );
+
+	    dao.changePassword(dto);
+	    
+	    return PasswordChangeResult.SUCCESS;
 	}
 
 	

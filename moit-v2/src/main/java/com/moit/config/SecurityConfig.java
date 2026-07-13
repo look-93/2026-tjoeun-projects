@@ -28,7 +28,7 @@ public class SecurityConfig {
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception  { 
 
 		//1. 허용경로
-		http.authorizeHttpRequests(auth -> auth.requestMatchers("/user/member/join", "/user/member/login", "/user/checkLoginId" , "/user/checkNickname" , "/api/**", "/admin/member/join","/meetup/list").permitAll()
+		http.authorizeHttpRequests(auth -> auth.requestMatchers("/user/member/join", "/user/member/login", "/user/checkLoginId" , "/user/checkNickname" , "/user/member/checkPassword" , "/api/**", "/admin/member/join","/meetup/list").permitAll()
 											   .requestMatchers("/user/member/mypage", "/user/member/update", "/user/member/delete","/user/advertisement/**"
 	                                                   ,"/meetup/write/**" ,"/meetup/detail/**", "/mypage/**").authenticated()
 											   // 관리자 영역(추후 활성화 예정)
