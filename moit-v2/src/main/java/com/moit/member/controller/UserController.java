@@ -63,7 +63,7 @@ public class UserController {
 		}
 		else if(result==-2) {
 			rttr.addFlashAttribute("msg","유출된 비밀번호입니다. 다른 비밀번호를 입력해주세요.");
-			return "redirecta:/user/member/join";
+			return "redirect:/user/member/join";
 		}
 		
 		rttr.addFlashAttribute("msg", "회원가입에 실패했습니다.");	
