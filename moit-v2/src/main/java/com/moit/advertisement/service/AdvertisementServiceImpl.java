@@ -723,6 +723,17 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	    return dto;
 	}
 	
+	@Override
+	public void saveAiSummary(String summary) {
+	    advertisementMapper.insertAiSummary(summary);
+	}
+	@Override
+	public DashboardAiDto getLatestAiSummary() {
+
+	    return advertisementMapper.selectLatestAiSummary();
+
+	}
+	
 ///////////////////////////////////////////////
 	// 피로도
 	@Override

@@ -49,12 +49,18 @@ public class AiSummaryServiceImpl implements AiSummaryService {
                     아래 형식만 출력한다.
 
                     📈 AI 운영 분석
-
-                    • ...
-                    • ...
-                    • ...
-                    • ...
-                    • ...
+                    
+					• 첫 번째 분석
+					• 두 번째 분석
+					• 세 번째 분석
+					• 네 번째 분석
+					• 다섯 번째 분석
+					
+					규칙
+					- 제목은 첫 줄에만 출력한다.
+					- 빈 줄은 절대 넣지 않는다.
+					- 정확히 5개의 • 항목만 출력한다.
+					- 다른 설명은 절대 하지 않는다.
                     """
                     .formatted(
                             dto.getTotalAd(),
@@ -95,8 +101,19 @@ public class AiSummaryServiceImpl implements AiSummaryService {
 
             JsonNode root = objectMapper.readTree(response.getBody());
 
-            return root.get("output_text").asText();
+            for (JsonNode node : root.path("output")) {
 
+                if ("message".equals(node.path("type").asText())) {
+
+                    for (JsonNode content : node.path("content")) {
+
+                        if ("output_text".equals(content.path("type").asText())) {
+                            return content.path("text").asText();
+                        }
+                    }
+                }
+            }
+            return "AI 응답이 없습니다.";
         } catch (Exception e) {
 
             e.printStackTrace();

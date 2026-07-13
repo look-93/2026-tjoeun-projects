@@ -341,7 +341,7 @@ public class AdvertisementAdminController {
     @ResponseBody
     public DashboardAiDto aiSummary() {
 
-        return advertisementService.getDashboardAiData();
+        return advertisementService.getLatestAiSummary();
 
     }
 

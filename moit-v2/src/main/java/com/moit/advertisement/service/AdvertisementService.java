@@ -126,6 +126,9 @@ public interface AdvertisementService {
 	List<AdvertisementChartDto> selectPositionCtrChart();
 	// AI 통계 요약
 	DashboardAiDto getDashboardAiData();
+	DashboardAiDto getLatestAiSummary(); 
+    void saveAiSummary(String summary); 
+	
 	
 	// 피로도
 	AdvertisementDto getAdvertisementStatistics(int adId);
@@ -134,7 +137,5 @@ public interface AdvertisementService {
 	void sendReminderMail();
 
 	void requestExtension(ExtensionRequestDto dto);
-
-
 
 }

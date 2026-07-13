@@ -401,12 +401,7 @@
 				.then(res => res.json())
 				.then(data => {
 
-				    const lines = data.summary
-				        .split("\n")
-				        .map(line => "• " + line)
-				        .join("<br>");
-
-				    document.getElementById("aiSummary").innerHTML = lines;
+				    document.getElementById("aiSummary").innerHTML = data.summary.replace(/\n/g, "<br>");
 				    document.getElementById("aiCreatedAt").textContent = data.createdAt;
 
 				})

@@ -10,6 +10,7 @@ import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
+import com.moit.advertisement.dto.DashboardAiDto;
 import com.moit.advertisement.dto.ExtensionRequestDto;
 
 @Mapper
@@ -175,6 +176,11 @@ public interface AdvertisementMapper {
 //    Double selectRecentCtr(int adId);		// 최근 ctr
 //    Double selectPreviousCtr(int adId);		// 이전 ctr
 //    Double selectRepeatRate(int adId);		// 반복 노출률
+    
+    ///////
+    void insertAiSummary(String summary);
+
+    DashboardAiDto selectLatestAiSummary();
     
     
     // 광고 만료 메일 30일/14일

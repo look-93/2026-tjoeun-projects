@@ -1302,6 +1302,30 @@
 		FROM advertisement_impression_log		
 		WHERE ad_id=#{adId}		
 	</select>
+	
+<!-- =========== ai 요약 ============= -->
+	<!-- 요약 저장 -->
+	<insert id="insertAiSummary">
+
+	    INSERT INTO advertisement_ai_summary
+	    VALUES(
+	        seq_advertisement_ai_summary.NEXTVAL,
+	        #{summary},
+	        SYSDATE
+	    )
+	
+	</insert>
+	
+	<!-- 요약 조회 -->
+	<select id="selectLatestAiSummary"
+	        resultType="com.moit.advertisement.dto.DashboardAiDto">
+	
+	    SELECT *
+	    FROM advertisement_ai_summary
+	    ORDER BY created_at DESC
+	    FETCH FIRST 1 ROWS ONLY
+	
+	</select>
 
 	
 <!-- ==================================== -->	
