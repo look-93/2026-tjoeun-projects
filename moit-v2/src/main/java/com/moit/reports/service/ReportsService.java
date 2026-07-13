@@ -25,7 +25,8 @@ public interface ReportsService {
 	// 신고 내역 삭제 (update delete_yn = 'Y')
 	public int deleteUserReport(ReportsDto dto);
 	
-	
+	//모임 신고 더블 체크
+	public int checkDoubleReport(ReportsDto dto);
 	
 	// ===== admin =====
 	// ===== admin =====
@@ -37,6 +38,16 @@ public interface ReportsService {
 
     // 관리자 신고 목록 카운트 (동적 조건 반영)
     public int selectAdminReportsCnt(HashMap<String, Object> map);
+    
+    //////////////////
+    // email send	//
+    //////////////////
+
+    // 3일 전에 신고 상태 변경된 데이터 추출
+ 	public List<ReportsDto> selectThreeDaysAgo();
+ 	
+	// 새벽배치용 approved, noshow, reportCnt 계산
+    public List<ReportsDto> selectTargetMembersYesterday();
 	
     
 	

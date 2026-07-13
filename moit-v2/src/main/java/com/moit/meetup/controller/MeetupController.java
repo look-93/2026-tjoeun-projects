@@ -33,6 +33,8 @@ import com.moit.meetup.dto.openapi.WeatherInfoRequest;
 import com.moit.meetup.dto.openapi.WeatherInfoResponse;
 import com.moit.meetup.service.MeetupService;
 import com.moit.member.dto.UserDto;
+import com.moit.reports.dto.ReportsDto;
+import com.moit.reports.service.ReportsService;
 import com.moit.review.dto.ReviewDto;
 import com.moit.review.service.ReviewService;
 import com.moit.security.CustomUserDetails;
@@ -47,7 +49,7 @@ public class MeetupController {
 	@Autowired AdvertisementService advertisementService;
 	@Autowired ReviewService reviewService;
 	@Autowired OpenApiService openApiService;
-
+	@Autowired ReportsService reportsService;
 	
 	/*1. 모임 리스트 화면(HTML) 호출*/
 	@GetMapping("/meetup/list")
@@ -194,7 +196,7 @@ public class MeetupController {
 						MeetupApplicationDto meetupApplicationDto, 
 						@RequestParam(value = "keyword", required = false) String keyword,   // ★ 추가
 						@RequestParam(value = "sort", required = false, defaultValue = "latest")  String sort,
-			            HttpServletRequest request, HttpSession session	) {
+			            HttpServletRequest request, HttpSession session,ReportsDto reportsDto) {
 		
 		String loginId     = null, provider = null;
 		UserDto user=null;
@@ -223,8 +225,8 @@ public class MeetupController {
 	    model.addAttribute("desidebarAd", desidebar);
 
 	    // 광고가 존재하면 노출 증가
-	    if(desidebar != null){
 
+	    if(desidebar != null){
 	          boolean counted =
 	              advertisementService.insertImpressionLog(
 	                  desidebar.getAdId(),
@@ -271,6 +273,16 @@ public class MeetupController {
 		/*날씨*/
 		
 	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
+	    
+	    reportsDto.setMemberId(memberId); // 로그인한 멤버아이디
+	    reportsDto.setTargetType("MEETUP"); // 모임글 신고 = meetup
+	    reportsDto.setTargetId(meetupApplicationDto.getMeetupId()); //모임글아이디
+	    
+	    int checkDoubleReport =  reportsService.checkDoubleReport(reportsDto);
+	    
+	    //System.out.println(checkDoubleReport + "dddddddddddddddddddddddddddddddddddddddddddddddddd");
+	    model.addAttribute("checkDoubleReport", checkDoubleReport);
+        model.addAttribute("user", user);
 	    model.addAttribute("applyInfo", meetupService.findApplyInfo(meetupApplicationDto));
 	    model.addAttribute("detail", meetupDto);
 	    model.addAttribute("recommendMeetupList", recommendMeetupList);	    

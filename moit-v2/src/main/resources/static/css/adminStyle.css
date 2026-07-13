@@ -207,6 +207,15 @@ body{
     color: #dc3545;
 }
 
+.badge{
+    font-size:12px;
+    margin-top:4px;
+}
+
+.fw-bold{
+    font-size:15px;
+}
+
 /* hover 느낌 */
 .status-select:hover {
     box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
@@ -709,6 +718,7 @@ body{
    flex: 1;
 }
 
+
 .detail-status.pending {
    background: #fff1d6;
    color: #de8c00;
@@ -717,6 +727,8 @@ body{
    background: #fff1d6;
    color: #de8c00;
 }
+
+
 .admin-list-status.pending {
    background: #fff1d6;
    color: #de8c00;
@@ -726,6 +738,7 @@ body{
    color: #de8c00;
 }
 
+
 .detail-status.approved {
    background: #def7e9;
    color: #24945b;
@@ -734,6 +747,8 @@ body{
    background: #def7e9;
    color: #24945b;
 }
+
+
 .admin-list-status.approved {
    background: #def7e9;
    color: #24945b;
@@ -751,6 +766,7 @@ body{
    background: #ffe5e5;
    color: #d32f2f;
 }
+
 .admin-list-status.rejected {
    background: #ffe5e5;
    color: #d32f2f;

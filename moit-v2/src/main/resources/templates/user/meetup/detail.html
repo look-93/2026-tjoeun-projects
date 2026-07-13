@@ -15,7 +15,6 @@
             <a href="/meetup/list" class="meetup-detail-back-link">
                <span class="back-arrow">←</span> 목록으로
             </a>
-            
             <!-- 날씨알림 -->
 			<div class="meetup-detail-weather-content-box">
 			
@@ -95,9 +94,15 @@
                <div class="meetup-detail-content-top">
                   <div class="meetup-detail-badge"
                      th:text="${detail.status == 'RECRUITING' ? '모집중' : '모집마감'}"></div>
-                  <a
+<!--                   <a 
                      th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${param.meetupId})}"
-                     class="meetup-detail-report-btn" type="button"> 모임 신고 </a>
+                     class="meetup-detail-report-btn" type="button">th:if="${user.memberId != detail.memberId}"모임 신고 </a> -->
+                     <a th:if="${user.memberId != detail.memberId}"
+					   th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${detail.meetupId})}"
+					   class="meetup-detail-report-btn"
+					  th:onclick="|return checkReportDuplicate(this, ${checkDoubleReport ?: 0});|">
+					   모임 신고
+					</a>
                </div>
                <h1 class="meetup-detail-title" th:text="${detail.title}"></h1>
             </div>
@@ -115,7 +120,6 @@
                      <h3>모임 안내</h3>
                      <p th:text="${detail.content}"></p>
                   </div>
-
 						<div class="meetup-detail-tab-panel">
 							<p th:text="${detail.nickname + ' 외 ' + (detail.totalParticipants == null || detail.totalParticipants == 0 ? 0 : detail.totalParticipants - 1 ) + '명'}"></p>
 						</div>
@@ -186,7 +190,13 @@
 										<div class="meetup-detail-comment-date" th:text="${review.createdAt}">2026.06.15</div>
 									</div>
 									<div>
-										<a th:href="@{/user/meetup/report/write(targetType='REVIEW', targetId=${review.reviewId})}" class="btn btn-outline-danger"> 리뷰 신고 </a>
+										                              <!-- <button class="meetup-detail-report-btn">신고</button> -->
+                     <a 
+                      th:href="@{/user/meetup/report/write(targetType='REVIEW', targetId=${review.reviewId})}"              
+                      class="meetup-detail-report-btn" 
+                      style="background-color: #ffeded; color: #e53935; border: none; border-radius: 12px; padding: 4px 10px; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; transition: background 0.2s;">
+                      th:if="${user.memberId != detail.memberId}"리뷰 신고
+                    </a>
 										<button class="meetup-detail-report-btn" style="background-color: #FEF08A; color: #15803D; border: none; border-radius: 12px; padding: 4px 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s;"
 											th:onclick="|location.href='/meetup/review/update/${review.reviewId}?meetupId=${detail.meetupId}'|">수정</button>
 										<a class="meetup-detail-report-btn" style="background-color: #BFDBFE; color: #1D4ED8; border: none; border-radius: 12px; padding: 4px 10px; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; transition: background 0.2s;"
@@ -197,6 +207,12 @@
 									<span th:each="star : ${#numbers.sequence(1,5)}" th:text="${star <= review.rating ? '★' : '☆'}"> </span>
 								</div>
 								<p class="meetup-detail-comment-text" th:text="${review.content}">후기 내용</p>
+								<!-- -좋아요 추가 -->
+									<button class="review-like-btn"
+								        th:data-review-id="${review.reviewId}"
+								        onclick="toggleReviewLike(this)">
+								    👍 <span th:text="${review.likesCount}">0</span>
+	                                </button>
 							</div>
 						</div> <div class="meetup-detail-tab-panel">
 							<h3>Q&A</h3>
@@ -257,9 +273,11 @@
 
 				</div>
 
-				<section class="ad-banner" th:if="${desidebarAd != null}">
-					<a th:href="@{/user/advertisement/click(adId=${desidebarAd.adId})}">
-						<img th:if="${desidebarAd.imageList != null and !desidebarAd.imageList.isEmpty()}" th:src="@{${desidebarAd.imageList[0].imageUrl}}" alt="광고">
+				<section class="ad-banner" th:if="${desidebarAd != null}"
+						  th:classappend="${desidebarAd.imageList != null and !desidebarAd.imageList.isEmpty()} ? ' has-image' : ''">
+					<a th:href="@{/user/advertisement/click(adId=${desidebarAd.adId},  position='MEETUP_DETAIL_SIDEBAR')}">
+						<img th:if="${desidebarAd.imageList != null and !desidebarAd.imageList.isEmpty()}" 
+							 th:src="@{${desidebarAd.imageList[0].imageUrl}}" alt="광고">
 						<div th:if="${desidebarAd.imageList == null or desidebarAd.imageList.size() == 0}">광고 이미지 준비중</div>
 					</a>
 				</section>
@@ -367,7 +385,7 @@
 			})
 			.catch(err => console.log(err));
 		}
-		
+		/**********모임신청*********/
 		function applyCancelMeetup(applicationId){
 			fetch("/meetup/cancelApplyMeetup", {
 				headers: getCsrfHeaders(),
@@ -385,6 +403,7 @@
 		}
 		
 		function changeMainImg(src) {
+			// 메인 이미지 태그를 찾아서 소스(src)를 클릭한 썸네일 주소로 변경
 			const mainImg = document.querySelector('.meetup-detail-main-img img');
 			if (mainImg) mainImg.src = src;
 		}
@@ -426,6 +445,37 @@
 				});
 			}
 		});
+		
+		function toggleReviewLike(btn) {
+
+		    const reviewId = btn.dataset.reviewId;
+
+		    fetch(`/meetup/review/like/${reviewId}`, {
+		        method: "POST",
+		        headers: getCsrfHeaders()
+		    })
+		    .then(res => res.json())
+		    .then(data => {
+		        if (data.success) {
+		            btn.querySelector("span").innerText = data.likesCount;
+		        } else {
+		            alert(data.message);
+		        }
+		    })
+		    .catch(err => console.log(err));
+		}
+		
+		function checkReportDuplicate(element, checkDoubleReport) {
+
+		    console.log("신고 중복 체크:", checkDoubleReport);
+
+		    if(Number(checkDoubleReport) === -1) {
+		        alert("이미 신고된 모임글입니다.");
+		        return false;
+		    }
+
+		    return true;
+		}
 		</script>
 	</div>
 </body>

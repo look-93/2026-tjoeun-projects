@@ -27,6 +27,8 @@ public class QuestionAiAnalysisService {
             dto.setAnalysisStatus(result.getAnalysis());
             dto.setAggressionScore(result.getScore());
         } catch (Exception e) {
+            e.printStackTrace();
+
             // OpenAI 호출 실패 시 관리자 검토 대상으로 저장
             dto.setAnalysisStatus("PENDING_REVIEW");
             dto.setAggressionScore(0);

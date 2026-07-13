@@ -28,7 +28,8 @@ public class SecurityConfig {
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception  { 
 
 		//1. 허용경로
-		http.authorizeHttpRequests(auth -> auth.requestMatchers("/user/member/join", "/user/member/login", "/user/checkLoginId" , "/user/checkNickname" , "/api/**", "/admin/member/join","/meetup/list").permitAll()
+		http.authorizeHttpRequests(auth -> auth.requestMatchers("/user/member/join", "/user/member/login", "/user/checkLoginId" , "/user/checkNickname" , "/user/member/checkPassword" ,"/api/**", "/admin/member/join","/meetup/list","/user/advertisement/click").permitAll()
+
 											   .requestMatchers("/user/member/mypage", "/user/member/update", "/user/member/delete","/user/advertisement/**"
 	                                                   ,"/meetup/write/**" ,"/meetup/detail/**", "/mypage/**").authenticated()
 											   // 관리자 영역(추후 활성화 예정)
@@ -44,7 +45,7 @@ public class SecurityConfig {
 										  .loginPage("/user/member/login")
 								          .loginProcessingUrl("/login")
 										  //.loginProcessingUrl("/user/member/loginProc") // CustomUserDetailsService -> loadUserByUsername 호출
-										  .defaultSuccessUrl("/user/main", true) // LoginSuccessHandler 동일 / 성공하면 mypage
+										  .defaultSuccessUrl("/user/main", false) // LoginSuccessHandler 동일 / 성공하면 mypage
 										  .failureHandler(customLoginFailureHandler)
 										  .permitAll()
 								  )

@@ -72,6 +72,8 @@ public class AdvertisementDto {
 
     // 관계
     private int advertiserId;
+ // 화면 조회용
+    private String nickname;
 
     // 시스템
     private String deleteYn;
@@ -82,4 +84,19 @@ public class AdvertisementDto {
     private String email;
     private String memberName;
     private long dday;
+    
+ // ===== 통계 =====
+//    private Integer impressions;
+//    private Integer clicks;
+    private Double ctr;
+
+    // 최근 성과
+    private Double recentCtr;
+    private Double previousCtr;
+    private Double ctrDecrease;
+    private Double repeatRate;
+
+    // 피로도
+//    private Double fatigueScore;
+    private String fatigueStatus;
 }
