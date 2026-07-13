@@ -19,8 +19,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.moit.member.dto.UserDto;
+import com.moit.member.enums.PasswordChangeResult;
 import com.moit.member.service.UserService;
 import com.moit.security.CustomUserDetails;
+import com.moit.security.PasswordLeakService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,6 +34,7 @@ import jakarta.servlet.http.HttpSession;
 public class UserController {
 
 	@Autowired UserService service;
+	@Autowired PasswordLeakService passwordLeakService;
 	
 	// 회원가입
 	@PreAuthorize("isAnonymous()")
@@ -57,6 +60,10 @@ public class UserController {
 		else if(result==-1){
 			rttr.addFlashAttribute("msg", "이미 사용중인 닉네임입니다.");
 			return "redirect:/user/member/join"; 
+		}
+		else if(result==-2) {
+			rttr.addFlashAttribute("msg","유출된 비밀번호입니다. 다른 비밀번호를 입력해주세요.");
+			return "redirecta:/user/member/join";
 		}
 		
 		rttr.addFlashAttribute("msg", "회원가입에 실패했습니다.");	
@@ -295,16 +302,46 @@ public class UserController {
 			                    RedirectAttributes rttr) {
 		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 		
-		boolean result = service.changePassword(user.getAppUserId(),currentPassword,newPassword);
+//		boolean result = service.changePassword(user.getAppUserId(),currentPassword,newPassword);
+//		
+//		if(!result) { 
+//			rttr.addFlashAttribute("msg","현재 비밀번호가 일치하지 않습니다."); 
+//			return "redirect:/user/member/passwordChange";
+//		}
+//		
+//		rttr.addFlashAttribute("msg","비밀번호가 변경되었습니다.");
+//		
+//		return "redirect:/user/member/mypage";	
 		
-		if(!result) { 
-			rttr.addFlashAttribute("msg","현재 비밀번호가 일치하지 않습니다."); 
-			return "redirect:/user/member/passwordChange";
+		PasswordChangeResult result = service.changePassword( user.getAppUserId(), currentPassword, newPassword );
+
+		switch (result) {
+		    case SUCCESS:  rttr.addFlashAttribute( "msg", "비밀번호가 변경되었습니다." );
+		        return "redirect:/user/member/mypage";
+
+		    case WRONG_PASSWORD:  rttr.addFlashAttribute( "msg", "현재 비밀번호가 일치하지 않습니다." );
+		        return "redirect:/user/member/passwordChange";
+
+		    case LEAKED_PASSWORD:  rttr.addFlashAttribute( "msg", "유출된 비밀번호입니다. 다른 비밀번호를 사용해주세요." );
+		        return "redirect:/user/member/passwordChange";
+
+		    case API_ERROR:  rttr.addFlashAttribute( "msg", "비밀번호 보안 검사를 수행할 수 없습니다. 잠시 후 다시 시도해주세요." );
+		        return "redirect:/user/member/passwordChange";
+
+		    default: rttr.addFlashAttribute( "msg", "알 수 없는 오류가 발생했습니다." );
+		        return "redirect:/user/member/passwordChange";
 		}
+	}
+	
+	// 비밀번호 유출 검사
+	@ResponseBody
+	@GetMapping("checkPassword")
+	public Map<String,Object> checkPassword(@RequestParam String password){
+		int leakCount = passwordLeakService.getLeakCount(password);
 		
-		rttr.addFlashAttribute("msg","비밀번호가 변경되었습니다.");
+		if(leakCount == -1) { return Map.of("safe",true , "count",0, "error",true); }
 		
-		return "redirect:/user/member/mypage";		
+		return Map.of("safe", leakCount == 0, "count" , leakCount , "error" , false);
 	}
 	
 }

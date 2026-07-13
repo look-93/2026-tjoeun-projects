@@ -140,7 +140,7 @@
 	    SELECT
 	        member_id,
 	        login_id,
-	        password
+	        password,
 	        profile_url
 	    FROM members
 	    WHERE member_id = #{memberId}
