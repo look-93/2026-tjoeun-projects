@@ -21,7 +21,11 @@
 
         <!-- 아이디 -->
         <div class="form-group-inline"> 
-        	<input type="text" id="loginId" name="loginId" placeholder="아이디" required>
+        	<input type="text" 
+        		   id="loginId" 
+        		   name="loginId" 
+        		   th:value="${dto != null ? dto.loginId : ''}"
+        		   placeholder="아이디" required>
         </div>
 
         <div id="idCheck" class="target"></div>
@@ -30,6 +34,13 @@
         <div class="form-group">
             <input type="password" id="password" name="password" placeholder="비밀번호" required>
         </div>
+        
+        <!-- 비밀번호 강도 -->
+        <div class="strength-bar">
+		    <div id="strengthFill"></div>		
+		</div>
+		
+		<div id="strengthText" class="target"></div>
         
         <!-- 비밀번호 유출검사 -->
         <div id="passwordLeakCheck" class="target"></div>
@@ -42,7 +53,11 @@
 
         <!-- 닉네임 -->
         <div class="form-group-inline">
-            <input type="text" id="nickname" name="nickname" placeholder="닉네임" required>
+            <input type="text" 
+            	   id="nickname" 
+            	   name="nickname" 
+            	   th:value="${dto != null ? dto.nickname : ''}"
+            	   placeholder="닉네임" required>
         </div>
 
         <div id="nickCheck" class="target"></div>
@@ -86,12 +101,22 @@
 
         <!-- 이메일 -->
         <div class="form-group">
-            <input type="email" id="email" name="email" placeholder="이메일" required>
+            <input type="email" 
+            	   id="email" 
+            	   name="email" 
+            	   th:value="${dto != null ? dto.email : ''}"
+            	   placeholder="이메일" required>
         </div>
 
         <!-- 휴대폰 -->
         <div class="form-group">
-            <input type="tel" id="mobile" name="mobile" placeholder="전화번호" required>
+            <input type="tel" 
+            	   id="mobile" 
+            	   name="mobile"
+            	   pattern="[0-9]{11}"
+				   maxlength="11" 
+            	   th:value="${dto != null ? dto.mobile : ''}"
+            	   placeholder="전화번호" required>
 
             <div class="hint">
                 '-' 없이 숫자만 입력해주세요.
@@ -214,6 +239,64 @@
 		    });
 		}
 		
+		// 비밀번호 강도
+		function checkPasswordStrength() {
+
+		    const password = document.getElementById("password");
+		    const fill = document.getElementById("strengthFill");
+		    const text = document.getElementById("strengthText");
+
+		    password.addEventListener("keyup", function () {
+
+		    	const value = this.value;
+		        let score = 0;
+
+		        const rules = {
+		            length: value.length >= 8,
+		            upper: /[A-Z]/.test(value),
+		            lower: /[a-z]/.test(value),
+		            number: /[0-9]/.test(value),
+		            special: /[!@#$%^&*()_\-+=<>?/]/.test(value)
+		        };
+
+		        if (rules.length) score++;
+		        if (rules.upper) score++;
+		        if (rules.lower) score++;
+		        if (rules.number) score++;
+		        if (rules.special) score++;
+
+		        fill.style.width = (score * 20) + "%";
+
+		        switch (score) {
+		            case 0:
+		            case 1:
+		                fill.style.background = "#dc3545";
+		                text.textContent = "매우 약함";
+		                break;
+
+		            case 2:
+		                fill.style.background = "#fd7e14";
+		                text.textContent = "약함";
+		                break;
+
+		            case 3:
+		                fill.style.background = "#ffc107";
+		                text.textContent = "보통";
+		                break;
+
+		            case 4:
+		                fill.style.background = "#20c997";
+		                text.textContent = "강함";
+		                break;
+
+		            case 5:
+		                fill.style.background = "#198754";
+		                text.textContent = "매우 강함";
+		                break;
+		        }
+		    });
+		}
+		
 		// 아이디 중복검사
 		checkDuplicate( "loginId", "idCheck", loginIdUrl, "아이디" );
 		
@@ -222,6 +305,9 @@
 		
 		// 비밀번호 유출검사
 		checkPasswordLeak();
+		
+		// 비밀번호 강도
+		checkPasswordStrength();
 		
 		// 비밀번호 확인
 		const password=document.getElementById("password");
@@ -236,7 +322,18 @@
 		        passTarget.textContent="비밀번호가 일치하지 않습니다.";
 		        passTarget.className="target text-danger";		
 		    }		
-		});			
+		});	
+		
+		
+		
+	</script>
+	
+	<script th:inline="javascript">
+    const message = [[${msg}]];
+
+    if (message != null) {
+        alert(message);
+    }
 	</script>
 
 </body>

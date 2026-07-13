@@ -204,6 +204,14 @@
         DELETE FROM members WHERE login_id = #{loginId}
     </delete>
     
+    <!-- 회원 소프트딜리트 -->
+    <update id="deleteMember">
+	    UPDATE members
+	    SET delete_yn='Y',
+	        status_id=4
+	    WHERE member_id=#{memberId}
+	</update>
+    
     <!-- 아이디 찾기 -->
     <select id="findId" parameterType="UserDto" resultType="UserDto">
 	    SELECT login_id

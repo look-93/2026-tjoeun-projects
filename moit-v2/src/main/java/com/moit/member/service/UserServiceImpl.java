@@ -59,7 +59,7 @@ public class UserServiceImpl  implements UserService{
 		else if(dto.getMemberTypeId()==3) { dto.setStatusId(2); } // 관리자
 		
 		if(dto.getProfileUrl() == null) {
-		    dto.setProfileUrl("/moit.png");
+		    dto.setProfileUrl("/upload/profile/moit.png");
 		}
 		
 		dao.insert(dto);
@@ -236,6 +236,19 @@ public class UserServiceImpl  implements UserService{
 	    dao.changePassword(dto);
 	    
 	    return PasswordChangeResult.SUCCESS;
+	}
+	
+	@Transactional
+	@Override
+	public boolean deleteMember(int memberId,String password) {
+
+		UserDto user = dao.findByMemberId(memberId);
+		
+		if(!pwencoder.matches(password, user.getPassword())) { return false; }
+		
+		dao.deleteMember(memberId);
+		
+		return true;
 	}
 
 	

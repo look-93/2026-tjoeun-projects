@@ -20,6 +20,7 @@ public interface UserService {
 	public List<UserDto> select10(Map<String,Object> paramMap); // 회원리스트 페이징 조회
 	public int selectCnt(Map<String,Object> paramMap); // 조건별 전체 회원 수 조회
 	public int deleteUser(String loginId); // 관리자기능 - 회원 삭제
+	public boolean deleteMember(int memberId , String password);
 	public UserDto findByLoginId(UserDto dto);// 마이페이지
 	public UserDto findId(UserDto dto); // 아이디 찾기
 	public UserDto findPasswordUser(UserDto dto); // 비밀번호 찾기(정보조회)

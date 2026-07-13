@@ -50,6 +50,9 @@ public interface UserMapper {
     
     UserDto findByMemberId(int memberId);
     
+    //12. 회원탈퇴
+    boolean deleteMember(int memberId);
+    
     /* security */
     // 로그인
     AuthUserDto readByLoginId(String username);

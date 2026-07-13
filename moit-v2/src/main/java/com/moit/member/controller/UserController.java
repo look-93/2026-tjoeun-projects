@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.moit.meetup.service.MeetupService;
 import com.moit.member.dto.UserDto;
 import com.moit.member.enums.PasswordChangeResult;
 import com.moit.member.service.UserService;
@@ -35,6 +37,7 @@ public class UserController {
 
 	@Autowired UserService service;
 	@Autowired PasswordLeakService passwordLeakService;
+	@Autowired MeetupService meetupService;
 	
 	// 회원가입
 	@PreAuthorize("isAnonymous()")
@@ -53,20 +56,22 @@ public class UserController {
 			rttr.addFlashAttribute("msg", "회원가입이 완료되었습니다.");
 			return "redirect:/user/member/login"; 
 		}
-		else if(result==0) {
+		
+		// 실패 시 입력 값 유지
+		rttr.addFlashAttribute("dto",dto);
+		
+		if(result==0) {
 			rttr.addFlashAttribute("msg", "이미 사용중인 아이디입니다.");
-			return "redirect:/user/member/join"; 
 		}
 		else if(result==-1){
 			rttr.addFlashAttribute("msg", "이미 사용중인 닉네임입니다.");
-			return "redirect:/user/member/join"; 
 		}
 		else if(result==-2) {
 			rttr.addFlashAttribute("msg","유출된 비밀번호입니다. 다른 비밀번호를 입력해주세요.");
-			return "redirecta:/user/member/join";
 		}
-		
-		rttr.addFlashAttribute("msg", "회원가입에 실패했습니다.");	
+		else {
+			rttr.addFlashAttribute("msg", "회원가입에 실패했습니다.");	
+		}
 		return "redirect:/user/member/join"; 
 	}
 	
@@ -162,7 +167,9 @@ public class UserController {
 	    // DB에서 최신 회원정보 조회
 	    UserDto user = service.findByLoginId(searchDto);
 
-	    model.addAttribute("dto", user);
+	    model.addAttribute("dto", user);	    
+
+	    model.addAttribute("meetupStats",  meetupService.selectMyPageStats(user.getMemberId()));
 
 	    return "user/member/mypage"; 
 	}
@@ -250,15 +257,22 @@ public class UserController {
 	}
 	
 	@PostMapping("memberEdit")
-	public String memberEdit(UserDto dto, Authentication authentication, RedirectAttributes rttr) {
+	public String memberEdit(UserDto dto,
+						     @RequestParam(value = "profileImage", required = false)
+							 MultipartFile profileImage,
+							 Authentication authentication, 
+							 RedirectAttributes rttr) {
 		
 		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 		
 		 dto.setMemberId( user.getAppUserId() );
 		 dto.setLoginId(user.getUsername());
 		 
+		 dto.setProfileImage(profileImage);
+		 
 		 UserDto loginUser = service.findByLoginId(dto);
 		 
+		 // 닉네임 중복검사
 		 if (!loginUser.getNickname().equals(dto.getNickname())) {
 
 		        UserDto check = service.findUser(
@@ -268,7 +282,7 @@ public class UserController {
 		            rttr.addFlashAttribute("msg", "이미 사용중인 닉네임입니다.");
 		            return "redirect:/user/member/memberEdit";
 		        }
-		    }
+		    }		 
 
 		    int result = service.updateUser(dto);
 
@@ -342,6 +356,44 @@ public class UserController {
 		if(leakCount == -1) { return Map.of("safe",true , "count",0, "error",true); }
 		
 		return Map.of("safe", leakCount == 0, "count" , leakCount , "error" , false);
+	}
+	
+	// 회원탈퇴
+	@GetMapping("/memberDelete")
+	public String memberDeletePage(Authentication authentication, Model model) {
+		
+		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+
+	    UserDto dto = new UserDto();
+	    dto.setLoginId(user.getUsername());
+
+	    dto = service.findByLoginId(dto);
+
+	    model.addAttribute("dto", dto);
+
+	    return "user/member/memberDelete";
+		}
+	
+	@PostMapping("/memberDelete")
+	public String memberDelete(@RequestParam String password,
+							   Authentication authentication,
+							   HttpServletRequest request,
+							   HttpServletResponse response,
+							   RedirectAttributes rttr) {
+		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+		
+		boolean result = service.deleteMember(user.getAppUserId(), password);
+		
+		if(!result) {
+			rttr.addFlashAttribute("msg","비밀번호가 일치하지 않습니다.");
+			
+			return "redirect:/user/member/memberDelete";
+		}
+		
+		new SecurityContextLogoutHandler()
+			.logout(request, response, authentication);
+			
+		return "redirect:/user/member/login";		
 	}
 	
 }

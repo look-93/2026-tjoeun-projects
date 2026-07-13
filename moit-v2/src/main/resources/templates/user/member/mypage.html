@@ -15,27 +15,28 @@
 
 				<div class="mypage-stat-card">
 					📝
-					<h3>12</h3>
-					<p >내 모집글</p>
+					<h3 th:text="${meetupStats.meetupCount}"></h3>
+					<p>작성한 모집글</p>
 				</div>
 
 				<div class="mypage-stat-card">
 					👥
-					<h3>8</h3>
+					<h3 th:text="${meetupStats.applicationCount}"></h3>
 					<p>신청 모임</p>
 				</div>
 
 				<div class="mypage-stat-card">
 					⭐
-					<h3>16</h3>
+					<h3 th:text="${meetupStats.reviewCount}"></h3>
 					<p>작성 후기</p>
 				</div>
 
 				<div class="mypage-stat-card">
 					❤️
-					<h3>6</h3>
+					<h3 th:text="${meetupStats.likeCount}"></h3>
 					<p>관심 모임</p>
 				</div>
+				
 			</div>
 
 			<div class="mypage-user-info">
