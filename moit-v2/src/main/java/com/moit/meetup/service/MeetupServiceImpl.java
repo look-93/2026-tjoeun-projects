@@ -433,7 +433,7 @@ public class MeetupServiceImpl implements MeetupService{
 	
 	//카테고리명으로 카테고리찾기
 	@Override
-	public int selectCategoryId(String category) {
+	public Integer selectCategoryId(String category) {
 		return meetupMapper.selectCategoryId(category);
 	}
 	

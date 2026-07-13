@@ -556,8 +556,9 @@ public class MeetupController {
 	public RecommendMeetupResponseDto meetupWriteAiRecommended(@RequestBody RecommendMeetupRequestDto request) throws JsonMappingException, JsonProcessingException{
 		String keyword = request.getKeyword();
 		String aiPrompt = """
-				사용자가 입력한 키워드를 바탕으로 모임 정보를 생성해.
-
+				사용자가 입력한 키워드를 바탕으로 많이 모을수 있는, 재미있는, 사용자들이 클릭하고 싶은 모임 정보를 생성해.
+				category는 웬만해서 입력한 키워드로 해줘. 
+				
 				키워드: %s
 
 				아래 JSON 형식으로만 응답해.

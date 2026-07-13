@@ -99,5 +99,5 @@ public interface MeetupService {
 	public MeetupDto selectRecommendMeetups(MeetupDto meetupDto);
 	
 	//카테고리명으로 카테고리 찾기
-	public int selectCategoryId(String category);
+	public Integer selectCategoryId(String category);
 }

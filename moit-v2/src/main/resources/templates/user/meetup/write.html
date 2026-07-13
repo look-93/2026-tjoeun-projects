@@ -4,16 +4,14 @@
 	  layout:decorate="~{user/layouts/layout}">
 <head lang="ko">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=zsvqwbdx6e&callback=initMap"></script>
 <title>MOIT</title>
-<link rel="stylesheet" th:href="@{/css/style.css}">
-<link rel="stylesheet" th:href="@{/css/memberStyle.css}">
 </head>
 <body>
 <div layout:fragment="content">
 	<div class="mw-main-content">
 		<div class="mw-write-container"> 
-			<form th:action="${meetup == null} ? @{/meetup/write} : @{/mypage/update}" method="post" enctype="multipart/form-data">
+			<form th:action="${meetup == null} ? @{/meetup/write} : @{/mypage/update}" method="post" enctype="multipart/form-data" onsubmit="return validateMeetupForm();">
 				
 				<input type="hidden" name="meetupId" th:value="${meetup != null} ? ${meetup.meetupId} : '0'" />
 				
@@ -44,7 +42,7 @@
 						                     th:src="@{|/upload/meetup/${img.imagePath}|}"
 						                     alt="저장된 모집글 이미지"
 						                     style="width: 100%; max-width: 100%; height: 100%; object-fit: cover; border-radius: 5px; flex-shrink: 0; scroll-snap-align: start;">
-						                     </th:block>
+						            </th:block>
 						            
 						        </div>
 						
@@ -92,13 +90,13 @@
 							<div class="mw-form-group">
 								<label>최소 인원</label>
 								<input type="number" name="minParticipants" class="mw-form-input" min="1" max="100" 
-									   th:value="${meetup != null} ? ${meetup.minParticipants} : 0">
+									   th:value="${meetup != null} ? ${meetup.minParticipants} : 1">
 							</div>
 			
 							<div class="mw-form-group">
 								<label>최대 인원</label>
 								<input type="number" name="maxParticipants" class="mw-form-input" min="1" max="100" 
-									   th:value="${meetup != null} ? ${meetup.maxParticipants} : 0">
+									   th:value="${meetup != null} ? ${meetup.maxParticipants} : 10">
 							</div>  
 			
 				<!-- 			<div class="mw-form-group">
@@ -114,18 +112,20 @@
 							
 							<div class="mw-form-group">
 								<label>주소</label>
-								<p class="mw-guide-text" id="addressGuidText">
-								</p>
+								<p class="mw-guide-text" id="addressGuidText"></p>
 								<input type="text" id="addressText" class="mw-form-input" placeholder="주소" name="address" onclick="showAddressSearchModal()" th:value="${meetup != null} ? ${meetup.address} : ''" readonly/>
 								<input type="text" id="detailAddress" class="mw-form-input" name="addressDetail" th:value="${meetup != null} ? ${meetup.addressDetail} : ''" placeholder="상세주소를 입력하세요"/>
 								<input type="hidden" id="nx" name="nx" th:value="${meetup != null} ? ${meetup.nx} : ''"/>
 								<input type="hidden" id="ny" name="ny" th:value="${meetup != null} ? ${meetup.ny} : ''"/>
+								<input type="hidden" id="longitude" name="longitude" th:value="${meetup != null} ? ${meetup.longitude} : ''"/>
+								<input type="hidden" id="latitude" name="latitude" th:value="${meetup != null} ? ${meetup.latitude} : ''"/>
 							</div>
-																
+														
+								
 							
 							<div class="mw-form-group">
 								<label>모임 일시</label>
-								<input type="datetime-local" name="meetupAt" class="mw-form-input" 
+								<input type="datetime-local" name="meetupAt" id="meetupAt" class="mw-form-input" 
 									   th:value="${meetup != null} ? ${meetup.meetupAt} : ''">
 							</div>
 	
@@ -143,8 +143,12 @@
 								모임 등록하기
 							</button>
 						</div>
-						
-						
+						<!-- 지도 -->
+						<div class="mw-side-box">
+						    <h3>모임 위치</h3>						
+						    <div id="map" style="width:100%; height:300px; border-radius:8px;"></div>
+						</div>
+						<!-- 지도 -->
 						<div class="mw-side-box">
 							<h3>작성 가이드</h3>
 							<p class="mw-guide-text">
@@ -195,6 +199,18 @@
 			const addressText = document.getElementById('addressText');
 			const nx = document.getElementById('nx');
 			const ny = document.getElementById('ny');
+			const longitude = document.getElementById('longitude');
+			const latitude = document.getElementById('latitude');
+			
+	 	    const title = document.getElementById("title");
+	 	    const categoryId = document.getElementById("categoryId");
+	 	    const content = document.getElementById("content");	 	   
+	 	    const meetupAt = document.getElementById("meetupAt");
+	 	    
+	 	    
+	 	    
+	 	   
+	 	    
 			
 			let pstartno = 1;
 			
@@ -204,19 +220,22 @@
 			}
 			
 			
-			function selectAddress(text,sigungu,nxVal,nyVal){
+			function selectAddress(text,sigungu,nxVal,nyVal,longitudeVal,latitudeVal){
 				hideAddressSearchModal();		
-				addressText.value = text
+				addressText.value = text;
 				const foundSigunguId = sigunguList.find(item => item.name === sigungu)?.sigunguId || 1;
-				sigunguId.value = foundSigunguId
-				nx.value = nxVal
-				ny.value = nyVal
+				sigunguId.value = foundSigunguId;
+				nx.value = nxVal;
+				ny.value = nyVal;
+				longitude.value = longitudeVal;
+				latitude.value = latitudeVal;
+				
+				moveMap(latitudeVal, longitudeVal);
 			}
-			
 			
 			function showAddressSearchModal(){
 				addressSearchModal.classList.add('active');           
-				document.body.style.overflow = 'hidden';
+				document.body.style.overflow = 'hidden';부평동
 			}
 			
 			function hideAddressSearchModal() {
@@ -258,8 +277,8 @@
 						<td>${info.address}</td>
 						<td>${info.road}</td>
 						<td>${info.jibun}</td>
-						<td>${info.zipNo}</td>									
-						<td> <button class="btn btn-sm" onclick="selectAddress('${info.address}','${info.sigungu}','${info.nx}','${info.ny}')">선택</button> </td>
+						<td>${info.zipNo}</td>
+						<td> <button class="btn btn-sm" onclick="selectAddress('${info.address}','${info.sigungu}','${info.nx}','${info.ny}','${info.longitude}','${info.latitude}')">선택</button> </td>
 					</tr>
 		 			`;
 		 		});
@@ -375,8 +394,7 @@
 		    	}
 		    	
 		    }
-		 	
-	
+
 		 	//모임제목, 카테고리 컨텐츠 추가
 		    setTimeout(() => {
 		        const titleInput = document.getElementById("title");
@@ -430,10 +448,9 @@
 		 				titleInput.value = data.title;
 		 				
 		 				//카테고리
-		 				    // 카테고리
-    if (data.categoryId) {
-        categorySelect.value = data.categoryId;
-    }
+					    if (data.categoryId) {
+					        categorySelect.value = data.categoryId;
+					    }
 		 				
 		 				//내용
 		 				contentInput.value = data.content;
@@ -447,6 +464,97 @@
 		 		}, 1000);
 		 		
 		 	});
+		 	
+		 	//네이버 지도
+		 	let map;
+		 	let marker;
+		 	
+		 	//처음 화면 로드
+		 	function initMap() {
+
+		 	    let lat = document.getElementById("latitude").value;
+		 	    let lon = document.getElementById("longitude").value;
+
+		 	    let defaultPos;
+
+		 	    // 수정 화면이고 기존 좌표가 있으면
+		 	    if (lat && lon) {
+		 	        defaultPos = new naver.maps.LatLng(
+		 	            parseFloat(lat),
+		 	            parseFloat(lon)
+		 	        );
+		 	    } else {
+		 	        // 신규 작성
+		 	        defaultPos = new naver.maps.LatLng(37.5665, 126.9780);
+		 	    }
+
+		 	    map = new naver.maps.Map('map', {
+		 	        center: defaultPos,
+		 	        zoom: 15
+		 	    });
+
+		 	    marker = new naver.maps.Marker({
+		 	        position: defaultPos,
+		 	        map: map
+		 	    });
+		 	}	 	
+		 	
+		 	window.onload = function () {
+		 	    initMap();
+		 	};
+		 	
+		 	//주소 입력 후 위도,경도 값 받아와서 지도 보여주기
+			function moveMap(lat, lon) {
+			
+			    const position = new naver.maps.LatLng(
+			        parseFloat(lat),
+			        parseFloat(lon)
+			    );
+			
+			    map.setCenter(position);
+			    marker.setPosition(position);
+			}
+		 	
+		 	function validateMeetupForm() {
+							
+		 	    if (!title.value.trim()) {
+		 	        alert("모임 제목을 입력해주세요.");
+		 	        document.getElementById("title").focus();
+		 	        return false;
+		 	    }
+
+		 	    if (!categoryId.value) {
+		 	        alert("카테고리를 선택해주세요.");
+		 	        document.getElementById("categoryId").focus();
+		 	        return false;
+		 	    }
+
+		 	    if (!content.value.trim()) {
+		 	        alert("모임 소개를 입력해주세요.");
+		 	        document.getElementById("content").focus();
+		 	        return false;
+		 	    }
+
+		 	    if (!addressText.value.trim()) {
+		 	        alert("모임 장소를 선택해주세요.");
+		 	        document.getElementById("addressText").focus();
+		 	        return false;
+		 	    }
+
+		 	    if (!meetupAt.value) {
+		 	        alert("모임 날짜와 시간을 선택해주세요.");
+		 	        document.getElementById("meetupAt").focus();
+		 	        return false;
+		 	    }
+		 	    
+		 	    if (!sigunguId.value) {
+		 	        alert("주소를 입력하세요.");
+		 	        document.getElementById("sigunguId").focus();
+		 	        return false;
+		 	    }		 	    
+
+		 	    return true;
+		 	}
 		</script>
 </div>	
 </body>
