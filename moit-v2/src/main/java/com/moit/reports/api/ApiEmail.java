@@ -24,8 +24,8 @@ public class ApiEmail {
 	public String password;
 	
 	
-	// 2. 이메일 보내기				본문내용		받는사람
-	public void sendMail(String content, String to) {
+	// 2. 이메일 보내기				제목				본문내용		받는사람
+	public void sendMail(String subject, String content, String to) {
 		Properties props = new Properties();
 		props.put("mail.smtp.host", host); // 어떤 메일 서버 쓸지.
 		props.put("mail.smtp.auth", "true"); // 아이디/비밀번호 인증 사용 여부
@@ -50,14 +50,13 @@ public class ApiEmail {
 		try {
 			message.setFrom(new InternetAddress(user)); // 보내는 사람
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(to)); // 받는 사람
-			message.setSubject("Moit 신고 문의 처리"); // 제목
-			message.setContent( "Moit 신고 문의 처리가 완료 되었습니다.<br>"
-								+ content
+			message.setSubject( subject ); // 제목
+			message.setContent( content
 								+ "<br>(이 메일은 자동 발송된 안내 메일입니다.)"
 								, "text/html; charset=UTF-8");
 			
 			Transport.send(message);
-			System.out.println("....... successfully .......");
+			System.out.println("....... sendEmail successfully .......");
 	
 		} catch (Exception e) { e.printStackTrace(); }
 
