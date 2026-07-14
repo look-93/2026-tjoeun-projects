@@ -55,10 +55,9 @@
 			        <div class="profile">
 			
 			            <div class="profile-img">
-			            	<img th:if="${#authentication.principal.profileUrl != null}"
-						         th:src="@{${#authentication.principal.profileUrl}}"
-						         alt="프로필">
-			            </div>
+			            	<img th:src="@{${#authentication.principal.profileUrl}}"
+					             alt="프로필">
+			            </div>			            
 			
 			            <div class="profile-info">
 			                <strong th:text="${#authentication.principal.nickname + '님'}">

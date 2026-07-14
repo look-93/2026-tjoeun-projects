@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.member.dto.AuthUserDto;
+import com.moit.member.dto.InterestDto;
 import com.moit.member.dto.MyPageDto;
 import com.moit.member.dto.UserDto;
 import com.moit.member.dto.UserJoinDto;
@@ -28,9 +29,12 @@ public interface UserService {
 	//boolean changePassword( int memberId, String currentPassword, String newPassword ); // 비밀번호 변경
 	PasswordChangeResult changePassword(int memberId, String currentPassword, String newPassword);
 	public UserDto findByMemberId( int memberId);
-	
+	public List<String> getInterestList(int memberId);//관심사
 	/* security login */
 	public AuthUserDto readByLoginId(UserDto dto); //로그인
 	//public void completeSocialJoin(UserDto dto);
 	public void insertSocialInfo(UserDto dto);
+	List<InterestDto> getAllInterest();
+	List<Integer> getInterestIds(Integer memberId);
+	public void updateInterest( Integer memberId, List<Integer> interestIds );
 }

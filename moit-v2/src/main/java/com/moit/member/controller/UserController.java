@@ -1,5 +1,6 @@
 package com.moit.member.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import com.moit.security.CustomUserDetailsService;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,6 +41,7 @@ public class UserController {
 	@Autowired UserService service;
 	@Autowired PasswordLeakService passwordLeakService;
 	@Autowired MeetupService meetupService;
+	@Autowired CustomUserDetailsService customUserDetailsService;
 	
 	// 회원가입
 	@PreAuthorize("isAnonymous()")
@@ -69,6 +73,10 @@ public class UserController {
 		else if(result==-2) {
 			rttr.addFlashAttribute("msg","유출된 비밀번호입니다. 다른 비밀번호를 입력해주세요.");
 		}
+		else if(result==-3) {
+		    rttr.addFlashAttribute( "msg", "이미 등록된 전화번호입니다."
+		    );
+		}
 		else {
 			rttr.addFlashAttribute("msg", "회원가입에 실패했습니다.");	
 		}
@@ -96,6 +104,19 @@ public class UserController {
 
         return Map.of("exists", dto != null);
     }
+	
+	// 전화번호 중복검사
+	@ResponseBody
+	@GetMapping("/checkMobile")
+	public Map<String, Boolean> checkMobile(
+	        @RequestParam String mobile) {
+
+	    UserDto dto = service.findUser(
+	            Map.of("mobile", mobile)
+	    );
+
+	    return Map.of("exists", dto != null);
+	}
 	
 	// 로그인
 	@PreAuthorize("isAnonymous()")
@@ -152,6 +173,7 @@ public class UserController {
         return "redirect:/user/member/login";
     }
 	
+    // 마이페이지
 	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/mypage") public String  mypage( Authentication   authentication , Model model  ) {  
 		CustomUserDetails principal =
@@ -170,7 +192,11 @@ public class UserController {
 	    model.addAttribute("dto", user);	    
 
 	    model.addAttribute("meetupStats",  meetupService.selectMyPageStats(user.getMemberId()));
+	    
+	    List<String> interests = service.getInterestList(user.getMemberId());
 
+	    model.addAttribute("interests", interests);
+	    
 	    return "user/member/mypage"; 
 	}
 	
@@ -251,6 +277,13 @@ public class UserController {
 		
 		dto = service.findByLoginId(dto);
 		
+		// 전체 관심사
+	    model.addAttribute( "interestList", service.getAllInterest() );
+
+
+	    // 선택된 관심사
+	    dto.setInterestIds( service.getInterestIds(dto.getMemberId()) );
+		
 		model.addAttribute("dto",dto);
 		
 		return "user/member/memberEdit";		
@@ -260,6 +293,8 @@ public class UserController {
 	public String memberEdit(UserDto dto,
 						     @RequestParam(value = "profileImage", required = false)
 							 MultipartFile profileImage,
+							 @RequestParam(value="interestIds", required=false)
+							 List<Integer> interestIds,
 							 Authentication authentication, 
 							 RedirectAttributes rttr) {
 		
@@ -285,8 +320,16 @@ public class UserController {
 		    }		 
 
 		    int result = service.updateUser(dto);
+		    
+		    service.updateInterest( dto.getMemberId(), interestIds );
 
 		    if(result == 1){
+		    	CustomUserDetails newUser = (CustomUserDetails) customUserDetailsService.loadUserByUsername(dto.getLoginId());
+
+		        Authentication newAuthentication = new UsernamePasswordAuthenticationToken( newUser, authentication.getCredentials(), newUser.getAuthorities());
+		        
+		        SecurityContextHolder.getContext() .setAuthentication(newAuthentication);
+		        
 		        rttr.addFlashAttribute("msg","회원정보가 수정되었습니다.");
 		    }else{
 		        rttr.addFlashAttribute("msg","회원정보 수정에 실패했습니다.");

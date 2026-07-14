@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.moit.member.dto.AuthUserDto;
+import com.moit.member.dto.InterestDto;
 import com.moit.member.dto.MyPageDto;
 import com.moit.member.dto.UserDto;
 import com.moit.member.dto.UserJoinDto;
@@ -38,6 +40,8 @@ public interface UserMapper {
     
     //8. 마이페이지(회원조회)
     UserDto findByLoginId(UserDto dto);
+    // 마이페이지 (관심사)
+    List<String> selectInterestList(int memberId);
     
     //9. 아이디 찾기
     UserDto findId(UserDto dto);
@@ -52,6 +56,17 @@ public interface UserMapper {
     
     //12. 회원탈퇴
     boolean deleteMember(int memberId);
+    
+    //13. 관심사
+    int insertMemberInterest(Map<String,Object> map);
+    
+    List<Integer> selectInterestIds(Integer memberId);
+
+    List<InterestDto> selectAllInterest();
+
+    int deleteMemberInterest(Integer memberId);
+
+    int insertMemberInterest( @Param("memberId") Integer memberId, @Param("interestId") Integer interestId );
     
     /* security */
     // 로그인

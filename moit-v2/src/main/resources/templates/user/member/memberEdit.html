@@ -171,6 +171,41 @@
 						           th:value="${dto.birth}">
 						
 						</div>
+						
+						<!-- 관심사 -->
+						<div class="form-group">						
+						    <div class="mypage-info-title">
+						        관심사
+						    </div>					
+						
+						    <div class="interest-list">						
+						        <label class="interest-item"
+								       th:each="interest : ${interestList}">								
+								    <input type="checkbox"
+								           name="interestIds"
+								           th:value="${interest.interestId}"
+								           th:checked="${dto.interestIds != null 
+								                        and dto.interestIds.contains(interest.interestId)}">
+																
+								    <span th:switch="${interest.interestId}">
+								
+								        <th:block th:case="1">🏃 운동</th:block>
+								        <th:block th:case="2">✈ 여행</th:block>
+								        <th:block th:case="3">🎮 게임</th:block>
+								        <th:block th:case="4">📚 독서</th:block>
+								        <th:block th:case="5">🍽 맛집</th:block>
+								        <th:block th:case="6">🎬 영화</th:block>
+								        <th:block th:case="7">🎵 음악</th:block>
+								        <th:block th:case="8">🍳 요리</th:block>
+								
+								        <th:block th:case="*"
+								                  th:text="${interest.interestName}">
+								        </th:block>
+								
+								    </span>								
+								</label>						
+						    </div>						
+						</div>
 	
 	                <div class="mypage-btn-group">	
 	                    <a th:href="@{/user/member/mypage}"

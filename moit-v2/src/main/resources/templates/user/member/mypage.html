@@ -65,8 +65,20 @@
 					</div>
 
 					<div class="mypage-info-box">
-						<div class="mypage-info-title">관심 카테고리</div>
-						<div>러닝, 독서, 개발</div>
+					    <div class="mypage-info-title">
+					        관심 카테고리
+					    </div>
+				
+				    	<div th:if="${interests != null and !interests.isEmpty()}">
+					        <span th:each="interest, stat : ${interests}">
+					            <span th:text="${interest}"></span>
+					            <span th:if="${!stat.last}">, </span>
+					        </span>
+					    </div>
+					
+					    <div th:if="${interests == null or interests.isEmpty()}">
+					        등록된 관심사가 없습니다.
+					    </div>					
 					</div>
 
 				</div>
@@ -74,7 +86,16 @@
 			</div>
 
 		</div>
+		
+		<script th:inline="javascript">
+		    const message = [[${msg}]];
+		
+		    if (message != null) {
+		        alert(message);
+		    }
+		</script>
 
-	</div>
+	</div>		
+	
 </body>
 </html>
