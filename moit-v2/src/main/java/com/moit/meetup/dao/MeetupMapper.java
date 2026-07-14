@@ -11,10 +11,12 @@ import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupImageDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
+import com.moit.meetup.dto.MeetupWeatherNotificationDto;
 import com.moit.meetup.dto.TrustScoreDto;
 import com.moit.meetup.dto.common.CategoryDto;
 import com.moit.meetup.dto.common.SidoDto;
 import com.moit.meetup.dto.common.SigunguDto;
+import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 
 @Mapper
 public interface MeetupMapper {
@@ -65,6 +67,9 @@ public interface MeetupMapper {
 	//모집글수정
 	public int updateMeetup(MeetupDto meetupDto);
 	
+	//인기 모임 조회
+	public List<MeetupDto>findPopularMeetup();
+	
 	//마이페이지 내 모집글 조회 + paging
 	public List<MeetupDto> selectMyMeetup(MeetupDto meetupDto);
 	public int selectMyMeetupTotalCnt(MeetupDto meetupDto);
@@ -98,6 +103,18 @@ public interface MeetupMapper {
 	//노쇼방지 계산식
 	public TrustScoreDto calculatedScore(int memberId);
 	public int updateAiSummaryAndTrustScore(TrustScoreDto trustScoreDto);
+	
+	//날씨
+	public int insertNotification(MeetupWeatherNotificationDto dto);
+	public List<MeetupDto> selectMeetupsBeforeTwoHours();
+	
+	//많이 참여한 카테고리 참여 횟수
+	public List<MeetupDto> selectRecommendMeetupCount(int memberId);
+	//가장 많이 참여한 부모 카테고리의 모집 중 모임 추천 리스트 조회
+	public MeetupDto selectRecommendMeetups(MeetupDto meetupDto);
+	
+	//카테고리명으로 카테고리 아이디 찾기
+	public Integer selectCategoryId(String category);
 	
 	public MeetupDto findById(int meetupId);
 }

@@ -591,6 +591,7 @@
         SELECT COUNT(*)
         FROM advertisements
         WHERE delete_yn = 'N'
+        AND approval_status = 'APPROVED'
 
     </select>
     
@@ -1104,9 +1105,9 @@
 	    SELECT
 	        position,
 	        COUNT(*) AS impressions	
-	    FROM advertisement_impression_log	
+	    FROM advertisement_impression_log
+	    WHERE position IS NOT NULL	
 	    GROUP BY position	
-	    ORDER BY position	
 	</select>
 	
 	<!-- 광고 위치별 CTR 차트 -->
@@ -1141,7 +1142,6 @@
 	        GROUP BY position
 	    ) c
 	        ON i.position = c.position
-	    ORDER BY ctr DESC
 	
 	</select>
 <!-- ====== 피로도 ===== -->	
@@ -1301,6 +1301,30 @@
 			,2)		
 		FROM advertisement_impression_log		
 		WHERE ad_id=#{adId}		
+	</select>
+	
+<!-- =========== ai 요약 ============= -->
+	<!-- 요약 저장 -->
+	<insert id="insertAiSummary">
+
+	    INSERT INTO advertisement_ai_summary
+	    VALUES(
+	        seq_advertisement_ai_summary.NEXTVAL,
+	        #{summary},
+	        SYSDATE
+	    )
+	
+	</insert>
+	
+	<!-- 요약 조회 -->
+	<select id="selectLatestAiSummary"
+	        resultType="com.moit.advertisement.dto.DashboardAiDto">
+	
+	    SELECT *
+	    FROM advertisement_ai_summary
+	    ORDER BY created_at DESC
+	    FETCH FIRST 1 ROWS ONLY
+	
 	</select>
 
 	
