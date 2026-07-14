@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.moit.meetup.dto.MeetupDto;
-import com.moit.meetup.service.MeetupService;
 import com.moit.meetup.service.MeetupServiceImpl;
 import com.moit.member.dto.UserDto;
 import com.moit.qna.dto.AnswerDto;
 import com.moit.qna.dto.QuestionDto;
 import com.moit.qna.service.AnswerService;
+import com.moit.qna.service.QuestionAiAnalysisService;
 import com.moit.qna.service.QuestionService;
 import com.moit.security.CustomUserDetails;
 
@@ -39,12 +39,20 @@ public class QuestionController {
     private final AnswerService answerService;
     //private final MeetupService meetupService;
     private final MeetupServiceImpl meetupService;
+    private final QuestionAiAnalysisService questionAiAnalysisService;
     
     //관리자용 선택 삭제
     @PostMapping("/deleteSelected")
     @ResponseBody
     public void deleteSelected(@RequestBody List<Integer> ids){
         questionService.deleteSelected(ids);
+    }
+    
+    // AI 필터 정상 처리
+    @PostMapping("/ai/normal")
+    @ResponseBody
+    public void changeAiNormal(@RequestBody List<Integer> ids){
+        questionAiAnalysisService.changeToNormal(ids);
     }
     
     // 내 문의 목록
@@ -157,9 +165,14 @@ public class QuestionController {
     
     // 모임글 문의 등록
     @GetMapping("/write")
-    public String write(QuestionDto dto,
-                        @RequestParam(defaultValue="MEETUP") String category, Model model) {
+    public String write(
+    		@RequestParam(required = false) Integer meetupId,
+            @RequestParam(defaultValue = "MEETUP") String category,
+            Model model) {
         model.addAttribute("category", category);
+        if(meetupId != null){
+            model.addAttribute("meetupId", meetupId);
+        }
         return "user/qna/questionWrite";
     }
    
@@ -177,6 +190,10 @@ public class QuestionController {
 			memberId = users.getUser().getMemberId();
 		} 
 		dto.setMemberId(memberId);
+		// 관리자 문의일 경우 parentId = 0
+		if(dto.getParentId() == null){
+		    dto.setParentId(0);
+		}
         questionService.register(dto);
         rttr.addFlashAttribute("msg", "문의가 등록되었습니다.");
         return "redirect:/questions/" + dto.getQuestionId();

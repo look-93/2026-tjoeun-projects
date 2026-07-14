@@ -3,148 +3,15 @@
       layout:decorate="~{user/layouts/layout}">
 <head>
 <meta charset="UTF-8">
-
-<style>
-
-.answer-wrap{
-    max-width:1200px;
-    margin:40px auto;
-    padding:0 20px;
-}
-
-.page-title{
-    font-size:34px;
-    font-weight:700;
-    margin-bottom:15px;
-}
-
-.breadcrumb{
-    color:#64748b;
-    font-size:15px;
-    margin-bottom:35px;
-}
-
-.breadcrumb span{
-    margin:0 8px;
-}
-
-.card{
-    background:#fff;
-    border:1px solid #e5e7eb;
-    border-radius:16px;
-    padding:35px;
-    margin-bottom:25px;
-}
-
-.card-title{
-    font-size:28px;
-    font-weight:700;
-    margin-bottom:25px;
-}
-
-.inquiry-info{
-    background:#f8fbff;
-    border:1px solid #dbeafe;
-    border-radius:12px;
-    overflow:hidden;
-}
-
-.info-row{
-    display:flex;
-    border-bottom:1px solid #e5e7eb;
-}
-
-.info-row:last-child{
-    border-bottom:none;
-}
-
-.info-label{
-    width:180px;
-    background:#f8fbff;
-    font-weight:600;
-    padding:20px;
-}
-
-.info-value{
-    flex:1;
-    padding:20px;
-    line-height:1.8;
-}
-
-.lock{
-    margin-left:8px;
-}
-
-.form-group{
-    margin-top:25px;
-}
-
-.form-group label{
-    display:block;
-    font-size:18px;
-    font-weight:600;
-    margin-bottom:12px;
-}
-
-.required{
-    color:red;
-}
-
-textarea{
-    width:100%;
-    height:260px;
-    padding:20px;
-    border:1px solid #d1d5db;
-    border-radius:10px;
-    resize:none;
-    font-size:15px;
-    line-height:1.8;
-    box-sizing:border-box;
-}
-
-.text-count{
-    text-align:right;
-    margin-top:10px;
-    color:#64748b;
-    font-size:14px;
-}
-
-.btn-area{
-    margin-top:35px;
-    text-align:right;
-}
-
-.btn{
-    min-width:120px;
-    height:48px;
-    border-radius:10px;
-    font-size:15px;
-    font-weight:600;
-    cursor:pointer;
-}
-
-.btn-submit{
-    border:none;
-    background:#2563eb;
-    color:white;
-}
-
-.btn-cancel{
-    margin-left:10px;
-    background:white;
-    border:1px solid #d1d5db;
-    color:#374151;
-}
-
-</style>
+<link rel="stylesheet" th:href="@{/css/qnaStyle.css}">
 
 </head>
 <body>
 <div layout:fragment="content">
 
-<div class="answer-wrap">
-    <h1 class="page-title" th:text="${data.category == 'MEETUP'} ? '모임글 1:1 문의 답변 등록' : '관리자 1:1 문의 답변 등록'"></h1>
-    <div class="breadcrumb">
+<div class="answer-wrap-answerWrite">
+    <h1 class="page-title-answerWrite" th:text="${data.category == 'MEETUP'} ? '모임글 1:1 문의 답변 등록' : '관리자 1:1 문의 답변 등록'"></h1>
+    <div class="breadcrumb-answerWrite">
 	    <span th:text="${data.category == 'MEETUP'} ? '모임글 1:1 문의' : '관리자 1:1 문의'"></span>
 	    <span>></span>
 	    문의 상세보기
@@ -153,33 +20,33 @@ textarea{
 	</div>
 
     <!-- 문의 정보 -->
-    <div class="card">
-        <div class="card-title">문의 정보</div>
-        <div class="inquiry-info">
+    <div class="card-answerWrite">
+        <div class="card-title-answerWrite">문의 정보</div>
+        <div class="inquiry-info-answerWrite">
 
-            <div class="info-row">
-                <div class="info-label">제목</div>
-                <div class="info-value" th:text="${data.title}"></div>
+            <div class="info-row-answerWrite">
+                <div class="info-label-answerWrite">제목</div>
+                <div class="info-value-answerWrite" th:text="${data.title}"></div>
             </div>
 
-            <div class="info-row">
-                <div class="info-label">작성자</div>
-                <div class="info-value" th:text="${data.memberId}"></div>
+            <div class="info-row-answerWrite">
+                <div class="info-label-answerWrite">작성자</div>
+                <div class="info-value-answerWrite" th:text="${data.memberId}"></div>
             </div>
 
-            <div class="info-row">
-                <div class="info-label">등록일</div>
-                <div class="info-value" th:text="${#dates.format(data.createdAt,'yyyy.MM.dd HH:mm:ss')}"></div>
+            <div class="info-row-answerWrite">
+                <div class="info-label-answerWrite">등록일</div>
+                <div class="info-value-answerWrite" th:text="${#dates.format(data.createdAt,'yyyy.MM.dd HH:mm:ss')}"></div>
             </div>
 
-            <div class="info-row">
-                <div class="info-label">문의 내용</div>
-                <div class="info-value" th:text="${data.content}"></div>
+            <div class="info-row-answerWrite">
+                <div class="info-label-answerWrite">문의 내용</div>
+                <div class="info-value-answerWrite" th:text="${data.content}"></div>
             </div>
 
-            <div class="info-row">
-                <div class="info-label">비공개 여부</div>
-			    <div class="info-value" th:text="${data.isPublic == 'N' ? '비공개 🔒' : '공개 🔓'}"></div>
+            <div class="info-row-answerWrite">
+                <div class="info-label-answerWrite">비공개 여부</div>
+			    <div class="info-value-answerWrite" th:text="${data.isPublic == 'N' ? '비공개 🔒' : '공개 🔓'}"></div>
             </div>
 
         </div>
@@ -187,8 +54,8 @@ textarea{
     </div>
 
     <!-- 답변 입력 -->
-	<div class="card">
-	    <div class="card-title">답변 정보 입력</div>
+	<div class="card-answerWrite">
+	    <div class="card-title-answerWrite">답변 정보 입력</div>
 	    
 	    <form th:action="@{/questions/answer}"
 	          method="post" onsubmit="return checkAnswer();">
@@ -196,15 +63,15 @@ textarea{
 	        <input type="hidden" name="questionId" th:value="${data.questionId}">
 	        <!-- 임시 -->
 	        <input type="hidden" name="memberId" value="1">
-	        <div class="form-group">
-	            <label> 답변 내용 <span class="required">*</span> </label>
-	            <textarea id="content" name="content" maxlength="1000" placeholder="답변 내용을 입력하세요."></textarea>
-	            <div class="text-count"> <span id="count">0</span> / 1000 </div>
+	        <div class="form-group-answerWrite">
+	            <label class="label-answerWrite"> 답변 내용 <span class="required-answerWrite">*</span> </label>
+	            <textarea class="textarea-answerWrite" id="content" name="content" maxlength="1000" placeholder="답변 내용을 입력하세요."></textarea>
+	            <div class="text-count-answerWrite"> <span id="count">0</span> / 1000 </div>
 	        </div>
 	
-	        <div class="btn-area">
-	            <button type="submit" class="btn btn-submit"> 등록하기 </button>
-	            <button type="button" class="btn btn-cancel" onclick="history.back()"> 취소
+	        <div class="btn-area-answerWrite">
+	            <button type="submit" class="btn-answerWrite btn-submit-answerWrite"> 등록하기 </button>
+	            <button type="button" class="btn-answerWrite btn-cancel-answerWrite" onclick="history.back()"> 취소
 	            </button>
 	        </div>
 	    </form>

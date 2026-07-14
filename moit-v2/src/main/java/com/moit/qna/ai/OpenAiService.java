@@ -92,23 +92,24 @@ public class OpenAiService {
               "analysis":"NORMAL",
               "score":0
             }
-            규칙
-            score는 0~100
-            analysis 값은 반드시 둘 중 하나
-
-            NORMAL
-            PENDING_REVIEW
-
-            욕설, 협박, 성희롱, 인신공격, 악성 민원은
-            PENDING_REVIEW
-
-            일반 문의는
-            NORMAL
-
-            문의 내용
-
-            %s
-            """.formatted(text);
+            
+	        규칙
+	
+	        - score는 0~100의 정수이다.
+	        - score가 0~39이면 일반 문의이다.
+	        - score가 40~59이면 다소 공격적인 표현이 있으나 일반 문의이다.
+	        - score가 60~100이면 관리자 검토가 필요한 문의이다.
+	
+	        - analysis는 반드시 NORMAL 또는 PENDING_REVIEW 중 하나이다.
+	        - score가 60 이상이면 반드시 PENDING_REVIEW를 반환한다.
+	        - score가 59 이하이면 반드시 NORMAL을 반환한다.
+	
+	        욕설, 협박, 성희롱, 인신공격, 악성 민원은 높은 점수를 부여한다.
+	
+	        문의 내용
+	
+	        %s
+	        """.formatted(text);
     }
 
 }

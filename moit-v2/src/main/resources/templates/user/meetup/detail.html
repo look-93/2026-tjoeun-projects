@@ -98,12 +98,12 @@
 <!--                   <a 
                      th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${param.meetupId})}"
                      class="meetup-detail-report-btn" type="button">th:if="${user.memberId != detail.memberId}"모임 신고 </a> -->
-                     <a th:if="${user.memberId != detail.memberId}"
+                   <!--   <a th:if="${user.memberId != detail.memberId}"
 					   th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${detail.meetupId})}"
 					   class="meetup-detail-report-btn"
 					  th:onclick="|return checkReportDuplicate(this, ${checkDoubleReport ?: 0});|">
 					   모임 신고
-					</a>
+					</a> -->
                </div>
                <h1 class="meetup-detail-title" th:text="${detail.title}"></h1>
                <input type="hidden" id="longitude" name="longitude" th:value="${detail!= null} ? ${detail.longitude} : ''"/>
@@ -266,16 +266,32 @@
 								    👍 <span th:text="${review.likesCount}">0</span>
 	                                </button>
 							</div>
-						</div> <div class="meetup-detail-tab-panel">
-							<h3>Q&A</h3>
-							<div class="meetup-detail-comment">
-								<div class="meetup-detail-comment-user">
-									<div class="meetup-detail-comment-name">익명</div>
-									<div class="meetup-detail-comment-date">2026.06.18</div>
-								</div>
-								<p class="meetup-detail-comment-text">초보인데 참여 가능할까요?</p>
-							</div>
-						</div> </div> </div> </div> <div class="meetup-detail-right">
+						</div> 
+						
+						<div class="meetup-detail-tab-panel">
+						    <h3>Q&A</h3>
+						    <div th:if="${#lists.isEmpty(qnaList)}"> 등록된 문의가 없습니다. </div>
+						    <div class="meetup-detail-comment" th:each="qna : ${qnaList}">
+						        <div class="meetup-detail-comment-top">
+						            <div class="meetup-detail-comment-user">
+						                <div class="meetup-detail-comment-name" th:text="${qna.nickname}"> </div>
+						                <div class="meetup-detail-comment-date"
+										     th:text="${#strings.substring(qna.createdAt.toString(), 0, 19)}">
+										</div>
+						            </div>
+						        </div>
+						
+						        <h4 class="meetup-detail-comment-text" th:text="${qna.title}"> </h4>
+						        <p class="meetup-detail-comment-text" th:text="${qna.content}"> </p>
+						        <div th:if="${qna.answer != null}">
+						            <hr>
+						            <b>답변</b>
+						            <p class="meetup-detail-comment-text" th:text="${qna.answer.content}"></p>
+						        </div>
+						    </div>
+						</div>
+						
+					</div> </div> </div> <div class="meetup-detail-right">
 				<div class="meetup-detail-side-box">
 					<h3>모집 정보</h3>
 					<div class="meetup-detail-info-row">
