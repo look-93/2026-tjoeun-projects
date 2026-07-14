@@ -7,6 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MOIT</title>
 <link rel="stylesheet" th:href="@{/css/style.css}">
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -179,6 +181,19 @@
 
 
 	<th:block th:replace="~{user/fragments/footer :: footer}" />
+	
+	<script th:if="${errorMessage}"
+        th:inline="javascript">
+
+    Swal.fire({
+        icon: 'warning',
+        title: '등록할 수 없습니다',
+        text: [[${errorMessage}]],
+        confirmButtonText: '확인',
+        confirmButtonColor: '#374151'
+    });
+
+</script>
 
 
 </body>
