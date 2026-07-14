@@ -60,9 +60,10 @@
 			    <a th:href="@{/user/member/mypage}">
 			        <div class="profile">
 			
-			            <div class="profile-img"
-			                 th:text="${#strings.substring(#authentication.principal.nickname,0,1)}">
-			            </div>
+			            <div class="profile-img">
+			            	<img th:src="@{${#authentication.principal.profileUrl}}"
+					             alt="프로필">
+			            </div>			            
 			
 			            <div class="profile-info">
 			                <strong th:text="${#authentication.principal.nickname + '님'}">

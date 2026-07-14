@@ -7,6 +7,8 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
 import com.moit.member.oauth2.Oauth2UserService;
 import com.moit.security.CustomLoginFailureHandler;
@@ -50,6 +52,7 @@ public class SecurityConfig {
 										  .defaultSuccessUrl("/user/main", false) // LoginSuccessHandler 동일 / 성공하면 mypage
 										  .failureHandler(customLoginFailureHandler)
 										  .permitAll()
+										  .authenticationDetailsSource( new CustomAuthenticationDetailsSource() )
 								  )
 								  //3. 로그아웃
 								  .logout(logout -> logout
@@ -81,4 +84,14 @@ public class SecurityConfig {
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
 		return config.getAuthenticationManager();
 	}
+	
+	private static class CustomAuthenticationDetailsSource implements org.springframework.security.authentication.AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> {
+		@Override
+		public WebAuthenticationDetails buildDetails(HttpServletRequest context) {
+		    return new WebAuthenticationDetails(context) {		
+		        public String getMemberTypeId() { return context.getParameter("memberTypeId"); }
+		    };
+		}
+	}
+	
 }
