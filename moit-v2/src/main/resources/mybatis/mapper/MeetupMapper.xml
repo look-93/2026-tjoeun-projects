@@ -121,7 +121,7 @@
 		LEFT JOIN sidos 	 E ON E.sido_id = D.sido_id 
 		LEFT JOIN categories F ON F.category_id = A.category_id
 		LEFT JOIN categories G ON G.category_id = F.parent_id
-		LEFT JOIN meetup_likes H ON H.meetup_id = A.meetup_id AND H.member_id = A.meetup_id				  
+		LEFT JOIN meetup_likes H ON H.meetup_id = A.meetup_id AND H.member_id = #{memberId, jdbcType=INTEGER}			  
 		LEFT OUTER JOIN (SELECT COUNT(meetup_id) as like_cnt, 
 	  						  	meetup_id 
 	  				     FROM meetup_likes 
