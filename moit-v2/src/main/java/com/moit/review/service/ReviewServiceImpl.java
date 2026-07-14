@@ -10,9 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.moit.review.client.ModerationClient;
 import com.moit.review.client.OpenAiReviewService;
 import com.moit.review.dao.ReviewMapper;
 import com.moit.review.dto.ReviewDto;
+import com.moit.util.UtilPaging;
 
 
 @Service
@@ -21,6 +23,9 @@ public class ReviewServiceImpl implements ReviewService {
 	@Autowired ReviewMapper reviewmapper;
 	@Autowired
 	private OpenAiReviewService openAiReviewService;
+	
+	@Autowired
+	private ModerationClient moderationClient;
 	
 	
 	//사용자
@@ -42,6 +47,17 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	@Transactional
 	public int insertUserReview(ReviewDto dto, MultipartFile[] attachedImages) {
+		
+		
+		// 0. 욕설/비방 필터링
+		boolean blocked =
+			    moderationClient.checkContent(dto.getContent());
+
+			if(blocked){
+			    throw new RuntimeException(
+			        "부적절한 표현이 포함되어 있습니다."
+			    );
+			}
 
 	    // 1. 후기 등록
 	    int result = reviewmapper.insertUserReview(dto);
@@ -109,6 +125,8 @@ public class ReviewServiceImpl implements ReviewService {
 
 	    return result;
 	}
+	
+	
 	@Override
 	public List<ReviewDto> selectUserReview(int meetupId, String sort) {
 		return reviewmapper.selectUserReview(meetupId,sort);
@@ -247,7 +265,27 @@ public class ReviewServiceImpl implements ReviewService {
 
 	    return openAiReviewService.reviewAnalysis(reviewList);
 	}
-
+	
+	
+	/*
+	 * @Override public Map<String, Object> adminGetReviewList(String keyword, int
+	 * memberId, int page) {
+	 * 
+	 * // 전체 게시글 수 int total = reviewmapper.adminGetReviewCount(keyword, memberId);
+	 * 
+	 * // 페이징 객체 생성 UtilPaging paging = new UtilPaging(total, page);
+	 * 
+	 * // Oracle 끝 번호 계산 int endRow = paging.getPstartno() + paging.getOnepagelist()
+	 * - 1;
+	 * 
+	 * // 목록 조회 List<ReviewDto> reviewList =
+	 * reviewmapper.adminGetReviewList(keyword, memberId, paging, endRow);
+	 * 
+	 * // 결과 반환 Map<String, Object> result = new HashMap<>();
+	 * result.put("reviewList", reviewList); result.put("paging", paging);
+	 * 
+	 * return result; }
+	 */
 	
 
 }

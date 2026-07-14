@@ -127,7 +127,7 @@
 							<p th:text="${detail.nickname + ' 외 ' + (detail.totalParticipants == null || detail.totalParticipants == 0 ? 0 : detail.totalParticipants - 1 ) + '명'}"></p>
 						</div>
 
-						<div class="meetup-detail-tab-panel">
+						<div id="review-section" class="meetup-detail-tab-panel">
 							<div class="meetup-detail-rating-header">
 								<button style="background-color: #374151; color: #ffffff; border: none; border-radius: 12px; padding: 8px 16px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s ease-in-out;"
 									onmouseover="this.style.backgroundColor='#1F2937'"
@@ -135,6 +135,55 @@
 									th:onclick="|location.href='/meetup/review/insert?meetupId=${detail.meetupId}'|">
 									후기 작성하기
 								</button>
+								<div class="review-toolbar">
+
+									    <!-- 검색 -->
+							             <form
+							    id="reviewSearchForm"
+							    th:action="@{/meetup/detail}"
+							    method="get"
+							    onsubmit="this.action='/meetup/detail#review-section'"
+							    class="review-search-form">
+									
+									        <input type="hidden"
+									               name="meetupId"
+									               th:value="${detail.meetupId}">
+									
+									        <input type="hidden"
+									               name="sort"
+									               th:value="${sort}">
+									
+									        <input type="text"
+									               name="keyword"
+									               th:value="${keyword}"
+									               placeholder="후기 검색"
+									               class="review-search-input">
+									
+									        <button type="submit"
+									         class="review-search-btn">
+									            검색
+									        </button>
+									
+									    </form>
+									
+									    <!-- 정렬 -->
+									    <select id="reviewSort"
+									            onchange="changeSort(this.value)"
+									             class="review-sort-select">
+									
+									        <option value="latest"
+									                th:selected="${sort == 'latest'}">
+									            최신순
+									        </option>
+									
+									        <option value="likes"
+									                th:selected="${sort == 'likes'}">
+									            좋아요순
+									        </option>
+									
+									    </select>
+									
+								</div>
 							</div>
 
 							<div class="meetup-detail-rating-box">
@@ -470,6 +519,57 @@
 		    .catch(err => console.log(err));
 		}
 		
+		///후기
+		function changeSort(sort){
+
+		    const meetupId =
+		        document.getElementById("meetupId").value;
+
+		    const keyword =
+		        document.querySelector("input[name='keyword']").value;
+
+		    let url =
+		        "/meetup/detail?meetupId=" + meetupId +
+		        "&sort=" + sort;
+
+		    if(keyword && keyword.trim() !== ""){
+		        url += "&keyword=" + encodeURIComponent(keyword);
+		    }
+
+		    location.href = url+"#review-section";
+		}
+		
+		window.addEventListener("load", function () {
+
+		    if (location.hash === "#review-section") {
+
+		        showTab(2);
+
+		        document.getElementById("review-section")
+		                .scrollIntoView({
+		                    behavior: "smooth"
+		                });
+
+		    }
+
+		});
+		//후기 
+		document.getElementById("reviewSearchForm").addEventListener("submit", function (e) {
+
+		    e.preventDefault();
+
+		    const meetupId = document.getElementById("meetupId").value;
+		    const keyword = document.querySelector("input[name='keyword']").value;
+		    const sort = document.querySelector("input[name='sort']").value;
+
+		    location.href =
+		        "/meetup/detail?meetupId=" + meetupId +
+		        "&sort=" + sort +
+		        "&keyword=" + encodeURIComponent(keyword) +
+		        "#review-section";
+
+		});
+
 		function checkReportDuplicate(element, checkDoubleReport) {
 
 		    console.log("신고 중복 체크:", checkDoubleReport);

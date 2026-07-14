@@ -4442,6 +4442,71 @@ textarea.mw-form-input {
 
 .review-like-btn:active{
     transform:scale(.96);
+}
+
+.review-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+
+.review-search-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+.review-search-input {
+    width: 220px;
+    height: 38px;
+    padding: 0 15px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 14px;
+    outline: none;
+}
+
+
+.review-search-input:focus {
+    border-color: #4CAF50;
+}
+
+
+.review-search-btn {
+    height: 38px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 20px;
+    background: #4CAF50;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+
+.review-search-btn:hover {
+    background: #43a047;
+}
+
+
+.review-sort-select {
+    height: 38px;
+    padding: 0 35px 0 15px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    background: white;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+}
+
+
+.review-sort-select:focus {
+    border-color: #4CAF50;
+}
 
 /*  광고 모달창 설정   */
 #extensionModal.extension-modal {
@@ -4469,3 +4534,4 @@ textarea.mw-form-input {
 	padding: 24px;
 	box-sizing: border-box;
 }
+
