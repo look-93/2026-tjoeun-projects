@@ -121,7 +121,7 @@
 		LEFT JOIN sidos 	 E ON E.sido_id = D.sido_id 
 		LEFT JOIN categories F ON F.category_id = A.category_id
 		LEFT JOIN categories G ON G.category_id = F.parent_id
-		LEFT JOIN meetup_likes H ON H.meetup_id = A.meetup_id AND H.member_id = A.meetup_id				  
+		LEFT JOIN meetup_likes H ON H.meetup_id = A.meetup_id AND H.member_id = #{memberId, jdbcType=INTEGER}			  
 		LEFT OUTER JOIN (SELECT COUNT(meetup_id) as like_cnt, 
 	  						  	meetup_id 
 	  				     FROM meetup_likes 
@@ -244,10 +244,10 @@
         SELECT MEETUPS_SEQ.NEXTVAL
         FROM DUAL
     </selectKey>
-		INSERT INTO meetups(meetup_id, member_id, title, content, max_participants, min_participants, sigungu_id, category_id, meetup_at, address, address_detail, nx, ny)
-		values(#{meetupId}, #{memberId}, #{title}, #{content}, #{maxParticipants}, #{minParticipants}, #{sigunguId}, #{categoryId}, TO_DATE(#{meetupAt}, 'YYYY-MM-DD"T"HH24:MI'), #{address}, #{addressDetail}, #{nx}, #{ny})
+		INSERT INTO meetups(meetup_id, member_id, title, content, max_participants, min_participants, sigungu_id, category_id, meetup_at, address, address_detail, nx, ny, latitude, longitude)
+		values(#{meetupId}, #{memberId}, #{title}, #{content}, #{maxParticipants}, #{minParticipants}, #{sigunguId}, #{categoryId}, TO_DATE(#{meetupAt}, 'YYYY-MM-DD"T"HH24:MI'), #{address}, #{addressDetail}, #{nx}, #{ny}, #{latitude}, #{longitude})
  	</insert>	
- 	
+
  	<!-- 모집수정 -->
  	<update id="updateMeetup" parameterType="MeetupDto">
  		UPDATE meetups
@@ -262,7 +262,9 @@
  		   	   address			 = #{address},
  		   	   address_detail    = #{addressDetail},
  		   	   nx				 = #{nx},
- 		   	   ny				 = #{ny} 		   	   	   	   
+ 		   	   ny				 = #{ny},
+ 		   	   latitude			 = #{latitude}, 
+ 		   	   longitude         = #{longitude}	   	   	   	   
  		 WHERE meetup_id = #{meetupId}
  	</update> 	 	 	
  	
@@ -710,4 +712,11 @@
 		FETCH FIRST 1 ROWS ONLY
     </select>    
 	<!-- 카테고리별 추천 모임 -->
+	
+	<!-- 카테고리 찾아오기 -->	
+	<select id="selectCategoryId" resultType="Integer" parameterType="String">
+	    SELECT category_id
+	    FROM categories
+	    WHERE category_name = #{categoryName}
+	</select>
 </mapper>

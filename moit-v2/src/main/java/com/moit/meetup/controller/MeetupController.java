@@ -18,12 +18,25 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.service.AdvertisementService;
+
+import com.moit.meetup.client.OpenAiService2;
+
 import com.moit.meetup.dto.MeetupApplicationDto;
 import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
+
+import com.moit.meetup.dto.openapi.AddressSearchResponse;
+import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
+import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
+import com.moit.meetup.dto.openapi.WeatherInfoRequest;
+import com.moit.meetup.dto.openapi.WeatherInfoResponse;
+
 import com.moit.meetup.service.MeetupService;
 import com.moit.member.dto.UserDto;
 import com.moit.qna.service.QuestionService;
@@ -40,7 +53,12 @@ public class MeetupController {
 	@Autowired MeetupService meetupService;
 	@Autowired AdvertisementService advertisementService;
 	@Autowired ReviewService reviewService;
+
 	@Autowired QuestionService questionService;
+
+	@Autowired OpenApiService openApiService;
+	@Autowired ReportsService reportsService;
+	@Autowired OpenAiService2 openAiService;
 
 	
 	/*1. 모임 리스트 화면(HTML) 호출*/
@@ -194,12 +212,55 @@ public class MeetupController {
 	        }
 	    }
 
+	    MeetupDto meetupDto = meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId());
+	    
+	    /*추천모임*/
+	    List<MeetupDto> recommendMeetupList = new ArrayList();
+	    List<MeetupDto> recommendCategories = meetupService.selectRecommendMeetupCount(memberId);
+	    for(MeetupDto dto:recommendCategories) {
+	    	dto.setMemberId(memberId);
+	    	recommendMeetupList.add(meetupService.selectRecommendMeetups(dto));	    	
+	    }
+	    
+	    /*날씨*/
+		WeatherInfoRequest weatherRequest  = new WeatherInfoRequest();
+		String dateTime = meetupDto.getMeetupAt();
+
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		LocalDateTime localDateTime = LocalDateTime.parse(dateTime, formatter);
+		
+		weatherRequest.setMeetupDate(localDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));		
+		weatherRequest.setMeetupTime(localDateTime.getHour());		
+		weatherRequest.setNx(meetupDto.getNx());
+		weatherRequest.setNy(meetupDto.getNy());
+//		System.out.println(localDateTime);
+//		System.out.println(localDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+//		System.out.println(localDateTime.getHour());
+//		System.out.println(weatherRequest);
+		WeatherInfoResponse weatherResponse = openApiService.getWeathreInfo(weatherRequest);
+		/*날씨*/
+		//System.out.println(weatherResponse);
 	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
+	    
+	    reportsDto.setMemberId(memberId); // 로그인한 멤버아이디
+	    reportsDto.setTargetType("MEETUP"); // 모임글 신고 = meetup
+	    reportsDto.setTargetId(meetupApplicationDto.getMeetupId()); //모임글아이디
+	    
+	    int checkDoubleReport =  reportsService.checkDoubleReport(reportsDto);
+	    
+	    //System.out.println(checkDoubleReport + "dddddddddddddddddddddddddddddddddddddddddddddddddd");
+	    model.addAttribute("checkDoubleReport", checkDoubleReport);
+        model.addAttribute("user", user);
 	    model.addAttribute("applyInfo", meetupService.findApplyInfo(meetupApplicationDto));
-	    model.addAttribute("detail", meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId()));
+	    model.addAttribute("detail", meetupDto);
+	    model.addAttribute("recommendMeetupList", recommendMeetupList);	    
+	    model.addAttribute("weatherResponse", weatherResponse); /*날씨*/
+	    //System.out.println(weatherResponse);
 	    model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
+
 	    //로그인한 사용자 html 로 전달(후기)
 	    model.addAttribute("loginMemberId", memberId);
+
 	    //  기존 부분
 	    // List<ReviewDto> reviewList =
 	    //        reviewService.selectUserReview(meetupApplicationDto.getMeetupId(), sort);
@@ -446,6 +507,42 @@ public class MeetupController {
 	public String deleteByAdmin(int meetupId, @RequestParam(value = "pstartno", required = false, defaultValue = "1") Integer pstartno, RedirectAttributes rttr) {
 		meetupService.updateMeetupDeleteYn(meetupId);		
 		return "redirect:/mypage/myMeetupInfo?pstartno=" + pstartno;
+	}
+
+	//ai 제목/카테고리/컨텐츠 추가
+	@PostMapping("/meetup/write/ai/recommended")
+	@ResponseBody
+	public RecommendMeetupResponseDto meetupWriteAiRecommended(@RequestBody RecommendMeetupRequestDto request) throws JsonMappingException, JsonProcessingException{
+		String keyword = request.getKeyword();
+		String aiPrompt = """
+				사용자가 입력한 키워드를 바탕으로 많이 모을수 있는, 재미있는, 사용자들이 클릭하고 싶은 모임 정보를 생성해.
+				category는 웬만해서 입력한 키워드로 해줘. 
+				
+				키워드: %s
+
+				아래 JSON 형식으로만 응답해.
+
+				{
+				  "title": "",
+				  "category": "",
+				  "content": ""
+				}
+
+				JSON 외의 다른 설명은 절대 하지 마.
+				""".formatted(keyword);
+		
+		String result = openAiService.getAIResponse(aiPrompt);
+		
+		
+		ObjectMapper mapper = new ObjectMapper();
+		RecommendMeetupResponseDto dto =
+		        mapper.readValue(result, RecommendMeetupResponseDto.class);
+		
+		Integer categoryId = meetupService.selectCategoryId(dto.getCategory());
+		dto.setCategoryId(categoryId == null ? 0 : categoryId);
+		System.out.println(categoryId);
+		System.out.println(dto);
+		return dto;
 	}
 
 }

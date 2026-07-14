@@ -25,6 +25,7 @@ import com.moit.meetup.dto.TrustScoreDto;
 import com.moit.meetup.dto.common.CategoryDto;
 import com.moit.meetup.dto.common.SidoDto;
 import com.moit.meetup.dto.common.SigunguDto;
+import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.util.UtilUpload;
 
 import lombok.extern.slf4j.Slf4j;
@@ -179,7 +180,7 @@ public class MeetupServiceImpl implements MeetupService{
 	@Override
 	@Transactional(rollbackFor = Exception.class) // 모든 예외에 대해 롤백 보장
 	public int updateMeetup(MeetupDto meetupDto, List<MultipartFile> files) {
-	    System.out.println(meetupDto.getMeetupAt());
+	    //System.out.println(meetupDto.getMeetupAt());
 	    // 1. 새 파일이 실제로 존재하는지 엄격하게 검증
 	    boolean hasNewFiles = files != null && files.stream().anyMatch(file -> !file.isEmpty());
 	    
@@ -429,5 +430,13 @@ public class MeetupServiceImpl implements MeetupService{
 	public MeetupDto selectRecommendMeetups(MeetupDto meetupDto) {
 		return meetupMapper.selectRecommendMeetups(meetupDto);
 	}
+	
+	//카테고리명으로 카테고리찾기
+	@Override
+	public Integer selectCategoryId(String category) {
+		return meetupMapper.selectCategoryId(category);
+	}
+	
+	
 	
 }

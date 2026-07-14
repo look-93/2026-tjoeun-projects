@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.moit.member.dao.UserMapper;
 import com.moit.member.dto.AuthUserDto;
+import com.moit.member.dto.InterestDto;
 import com.moit.member.dto.MyPageDto;
 import com.moit.member.dto.UserDto;
 import com.moit.member.dto.UserJoinDto;
@@ -43,6 +44,12 @@ public class UserServiceImpl  implements UserService{
 		// 닉네임 중복검사
 		map.put("nickname", dto.getNickname());
 		if(dao.findUser(map) != null) { return -1; }
+				
+		map.clear();
+		
+		// 전화번호 중복검사
+		map.put("mobile", dto.getMobile());
+		if(dao.findUser(map) != null) { return -3; }
 		
 		// 비밀번호 유출검사(HIBP)
 		int leakCount = passwordLeakService.getLeakCount(dto.getPassword());
@@ -59,12 +66,26 @@ public class UserServiceImpl  implements UserService{
 		else if(dto.getMemberTypeId()==3) { dto.setStatusId(2); } // 관리자
 		
 		if(dto.getProfileUrl() == null) {
-		    dto.setProfileUrl("/moit.png");
+		    dto.setProfileUrl("/images/moit.png");
 		}
 		
-		dao.insert(dto);
-		if(dto.getMemberTypeId() != 3){ dao.insertInfo(dto); }
-		
+		int result = dao.insert(dto);
+		if(result == 1){
+
+		    if(dto.getMemberTypeId() != 3){ dao.insertInfo(dto); }
+
+		    if(dto.getInterestIds() != null){
+		        for(Integer interestId : dto.getInterestIds()){
+
+		            Map<String,Object> interestMap = new HashMap<>();
+
+		            interestMap.put("memberId", dto.getMemberId());
+		            interestMap.put("interestId", interestId);
+
+		            dao.insertMemberInterest(interestMap);
+		        }
+		    }
+		}
 		return 1;
 	}
 	
@@ -103,7 +124,7 @@ public class UserServiceImpl  implements UserService{
 
                 if (oldUser != null &&
                         oldUser.getProfileUrl() != null &&
-                        !oldUser.getProfileUrl().equals("/moit.png")) {
+                        !oldUser.getProfileUrl().equals("/images/moit.png")) {
 
                     File oldFile =
                             new File(uploadPath,
@@ -237,6 +258,38 @@ public class UserServiceImpl  implements UserService{
 	    
 	    return PasswordChangeResult.SUCCESS;
 	}
+	
+	@Transactional
+	@Override
+	public boolean deleteMember(int memberId,String password) {
+
+		UserDto user = dao.findByMemberId(memberId);
+		
+		if(!pwencoder.matches(password, user.getPassword())) { return false; }
+		
+		dao.deleteMember(memberId);
+		
+		return true;
+	}
+
+	@Override
+	public List<String> getInterestList(int memberId) { return dao.selectInterestList(memberId); }
+
+	@Override
+	public void updateInterest(Integer memberId, List<Integer> interestIds) {
+		
+		// 기존 관심사 삭제
+		dao.deleteMemberInterest(memberId);
+		
+		// 새 관심사 저장
+		if(interestIds != null){
+		        for(Integer interestId : interestIds){ dao.insertMemberInterest( memberId, interestId ); }
+		    }		
+		}
+
+	@Override public List<InterestDto> getAllInterest() { return dao.selectAllInterest(); }
+
+	@Override public List<Integer> getInterestIds(Integer memberId) { return dao.selectInterestIds(memberId); }
 
 	
 

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{user/mypage/layouts/mypageLayout}">
+<head>
+<meta charset="UTF-8">
+<title>회원 탈퇴</title>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="mypage-main-content">
+        <div class="mypage-user-info">
+            <h2 class="member-edit-title">
+                회원 탈퇴
+            </h2>
+
+            <div class="withdraw-notice">
+
+                <h4>회원 탈퇴 안내</h4>
+
+                <ul>
+                    <li>탈퇴 후에는 로그인이 불가능합니다.</li>
+                    <li>작성한 게시글과 댓글은 삭제되지 않습니다.</li>
+                    <li>회원 정보는 탈퇴 회원으로 처리됩니다.</li>
+                    <li>탈퇴 후에는 복구가 어렵습니다.</li>
+                </ul>
+
+            </div>
+
+            <div th:if="${msg != null}"
+                 class="alert alert-danger"
+                 th:text="${msg}">
+            </div>
+
+            <form class="member-edit-form"
+                  th:action="@{/user/member/memberDelete}"
+                  method="post">
+
+                <input type="hidden"
+                       th:name="${_csrf.parameterName}"
+                       th:value="${_csrf.token}">
+
+                <div class="mypage-info-grid">
+                    <div class="form-group">
+                        <div class="mypage-info-title">
+                            비밀번호 확인
+                        </div>
+
+                        <input type="password"
+                               id="password"
+                               name="password"
+                               placeholder="현재 비밀번호를 입력하세요"
+                               required>
+                    </div>
+                </div>
+
+                <div class="mypage-btn-group">
+
+                    <a th:href="@{/user/member/mypage}"
+                       class="btn btn-secondary">
+                        취소
+                    </a>
+
+                    <button type="submit"
+                            id="deleteBtn"
+                            class="btn btn-danger">
+                        회원 탈퇴
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+	<script>	
+	document.getElementById("deleteBtn").addEventListener("click", function(e){	
+	    if(!confirm("정말 회원 탈퇴하시겠습니까?\n탈퇴 후에는 복구가 어렵습니다.")){
+	        e.preventDefault();
+	    }	
+	});	
+	</script>
+
+</body>
+</html>
