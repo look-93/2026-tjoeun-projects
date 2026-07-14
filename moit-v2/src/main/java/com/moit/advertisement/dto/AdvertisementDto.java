@@ -43,6 +43,9 @@ public class AdvertisementDto {
     private String rejectReason; // 반려사유
     private Integer statusUpdatedBy;
     private LocalDateTime statusUpdatedAt;
+    // 기간 연장 메일 전송시 현재종료시일저장 
+    private LocalDateTime extensionRequestEndDatetime;
+    private String extensionStatus;
 
     // 통계
     private int impressions;
@@ -69,9 +72,31 @@ public class AdvertisementDto {
 
     // 관계
     private int advertiserId;
+ // 화면 조회용
+    private String nickname;
 
     // 시스템
     private String deleteYn;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    // 메일용 정보
+    private String email;
+    private String memberName;
+    private long dday;
+    
+ // ===== 통계 =====
+//    private Integer impressions;
+//    private Integer clicks;
+    private Double ctr;
+
+    // 최근 성과
+    private Double recentCtr;
+    private Double previousCtr;
+    private Double ctrDecrease;
+    private Double repeatRate;
+
+    // 피로도
+//    private Double fatigueScore;
+    private String fatigueStatus;
 }

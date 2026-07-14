@@ -11,9 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.advertisement.dao.AdvertisementMapper;
+import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
+import com.moit.advertisement.dto.ExtensionRequestDto;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -24,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class AdvertisementServiceImpl implements AdvertisementService {
 
 	private final AdvertisementMapper advertisementMapper;
+	private final MailService mailService;
 	private static final String UPLOAD_PATH = "C:/upload/ad";
 
 	// 스케쥴러
@@ -72,6 +75,17 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
 		for (AdvertisementDto ad : list) {
 			ad.setImageList(advertisementMapper.selectAdvertisementImageList(ad.getAdId()));
+			
+			AdvertisementDto stat =
+			        advertisementMapper.selectAdvertisementStatistics(ad.getAdId());
+	
+			if(stat != null){
+			    ad.setRecentCtr(stat.getRecentCtr());
+			    ad.setPreviousCtr(stat.getPreviousCtr());
+			    ad.setRepeatRate(stat.getRepeatRate());
+	
+			    calculateFatigue(ad);
+			}
 		}
 
 		return list;
@@ -100,6 +114,12 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	@Override
 	public int selectWaitingTotalCnt(AdvertisementSearchDto dto) {
 		return advertisementMapper.selectWaitingTotalCnt(dto);
+	}
+	
+	// 기간연장 승인 대기 목록
+	@Override
+	public List<AdvertisementDto> selectExtensionList(){
+	    return advertisementMapper.selectExtensionList();
 	}
 
 	// 상세 조회
@@ -239,6 +259,38 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	@Override
 	public int updateAdvertisementStatus(AdvertisementDto dto) {
 		return advertisementMapper.updateAdvertisementStatus(dto);
+	}
+	
+	// 연장승인 신청
+	@Transactional
+	public void requestExtension(ExtensionRequestDto dto){
+
+	    AdvertisementDto ad =
+	        advertisementMapper.selectAdvertisementOne(dto.getAdId());
+
+
+	    if(ad.getAdvertiserId() != dto.getAdvertiserId()){
+	        throw new RuntimeException("권한 없음");
+	    }
+
+
+	    if(dto.getExtensionRequestEndDatetime()
+	          .isBefore(ad.getEndDatetime())){
+
+	        throw new RuntimeException("기존 종료일 이후만 가능합니다.");
+
+	    }
+
+
+	    advertisementMapper.requestExtension(dto);
+
+	}
+
+	// 연장승인 상태 변경
+	@Override
+	@Transactional
+	public void updateExtensionApprove(AdvertisementDto dto){
+	    advertisementMapper.updateExtensionApprove(dto);
 	}
 	
 	// 승인 설정
@@ -474,18 +526,141 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	    return true;
 	}
 	
+	// 일일통계 저장
 	@Override
 	@Transactional
 	public void insertDailyStatistics(){
 
-	    advertisementMapper.insertDailyStatistics();
+		int result = advertisementMapper.insertDailyStatistics();
 
-	}
-
-	@Override
-	public void createDailyStatistics() {
-		
+		System.out.println("=================================");
+	    System.out.println("저장된 건수 : " + result);
+	    System.out.println("=================================");
 	}
 	
+	// 광고 통계 차트
+	// 총 통계
+	@Override
+	public AdvertisementChartDto selectSummary() {
+
+	    return advertisementMapper.selectSummary();
+
+	}
+	// 일일통계 차트
+	@Override
+	public List<AdvertisementChartDto> selectDailyChart(){
+
+	    return advertisementMapper.selectDailyChart();
+
+	}
+	// ctr top5
+	@Override
+	public List<AdvertisementChartDto> selectTopCtrChart() {
+	    return advertisementMapper.selectTopCtrChart();
+	}
+	// 등급 비율
+	@Override
+	public List<AdvertisementChartDto> selectGradeChart() {
+	    return advertisementMapper.selectGradeChart();
+	}
+	// 위치별 노출
+	@Override
+	public List<AdvertisementChartDto> selectPositionChart() {
+	    return advertisementMapper.selectPositionChart();
+	}
+	// 연장률
+	@Override
+	public double selectExtensionRate() {
+	    return advertisementMapper.selectExtensionRate();
+	}
+	// 위치별 ctr 차트
+	@Override
+	public List<AdvertisementChartDto> selectPositionCtrChart() {
+		System.out.println("===== 위치별 CTR 조회 =====");
+		return advertisementMapper.selectPositionCtrChart();
+	}
+///////////////////////////////////////////////
+	// 피로도
+	@Override
+	public AdvertisementDto getAdvertisementStatistics(int adId) {
+
+	    AdvertisementDto dto =
+	            advertisementMapper.selectAdvertisementStatistics(adId);
+
+	    if(dto == null){
+	        return null;
+	    }
+
+	    calculateFatigue(dto);
+
+	    return dto;
+	}
+	private void calculateFatigue(AdvertisementDto dto){
+
+	    double recentCtr =
+	            dto.getRecentCtr() == null ? 0 : dto.getRecentCtr();
+
+	    double previousCtr =
+	            dto.getPreviousCtr() == null ? 0 : dto.getPreviousCtr();
+
+	    double repeatRate =
+	            dto.getRepeatRate() == null ? 0 : dto.getRepeatRate();
+
+	    double decrease = 0;
+
+	    if(previousCtr > 0){
+	        decrease =
+	            ((previousCtr - recentCtr) / previousCtr) * 100;
+	    }
+
+	    dto.setCtrDecrease(Math.round(decrease * 100) / 100.0);
+
+	    double score =
+	            decrease * 0.6
+	            + repeatRate * 0.4;
+
+	    dto.setFatigueScore(Math.round(score * 100) / 100.0);
+
+	    if(score >= 70){
+	        dto.setFatigueStatus("교체 권장");
+	    }else if(score >= 40){
+	        dto.setFatigueStatus("관심");
+	    }else{
+	        dto.setFatigueStatus("정상");
+	    }
+	}
+	
+///////////////////////////////////////////////	
+	// 기한만료 알림 메일
+	@Override
+	public void sendReminderMail() {
+
+	    // 30일
+	    List<AdvertisementDto> reminder30 =
+	            advertisementMapper.selectReminder30List();
+	    System.out.println("30일 대상 = " + reminder30.size());
+
+	    for (AdvertisementDto ad : reminder30) {
+
+	        mailService.sendAdvertisementReminderMail(ad, 30);
+
+	        advertisementMapper.updateReminder30Sent(ad.getAdId());
+
+	    }
+
+	    // 14일
+	    List<AdvertisementDto> reminder14 =
+	            advertisementMapper.selectReminder14List();
+	    System.out.println("14일 대상 = " + reminder14.size());
+
+	    for (AdvertisementDto ad : reminder14) {
+
+	        mailService.sendAdvertisementReminderMail(ad, 14);
+
+	        advertisementMapper.updateReminder14Sent(ad.getAdId());
+
+	    }
+
+	}
 	
 }

@@ -11,33 +11,64 @@
 
 	<div layout:fragment="content">
 	    <div class="mypage-main-content">	
-	        <div class="member-edit-box">	
+	        <div class="mypage-user-info">	
 	            <h2 class="member-edit-title">회원정보 수정</h2>	
 	            <form class="member-edit-form"
 	            	  th:action="@{/user/member/memberEdit}"
 	                  method="post"
 	                  enctype="multipart/form-data">
 	
-	                <!-- 프로필 -->	
-	                <div class="profile-upload">	
-	                    <div class="profile-preview">
-
-	                        <img th:if="${dto.profileUrl != null}"
-	                             th:src="@{${dto.profileUrl}}"
-	                             alt="프로필">	
-	                        <span th:if="${dto.profileUrl == null}"
-	                              th:text="${#strings.substring(dto.nickname,0,1)}">
-	                        </span>	
-	                    </div>
-	
-	                    <label class="btn btn-outline">	
-	                       프로필 사진 변경	
-	                        <input type="file"
-	                               name="profileImage"
-	                               accept="image/*"
-	                               hidden>	
-	                    </label>	
-	                </div>
+	                <!-- 프로필 + 회원등급 -->
+					<div class="profile-grade-wrap">
+					
+					    <!-- 프로필 -->
+					    <div class="profile-upload">					
+					        <div class="profile-preview">
+					
+					            <img th:if="${dto.profileUrl != null}"
+					                 th:src="@{${dto.profileUrl}}"
+					                 alt="프로필">
+					
+					            <span th:if="${dto.profileUrl == null}"
+					                  th:text="${#strings.substring(dto.nickname,0,1)}">
+					            </span>
+					
+					        </div>
+										
+					        <label class="btn btn-outline">
+					            프로필 변경					
+					            <input type="file"
+					                   name="profileImage"
+					                   accept="image/*"
+					                   hidden>
+					        </label>					
+					    </div>
+										
+					    <!-- 회원등급 -->
+					    <div class="member-grade-box">
+					
+					        <div class="mypage-info-title">
+					            회원등급
+					        </div>
+										
+					        <div class="member-grade">					
+					            <span th:switch="${#authentication.principal.typeName}">					
+					                <span th:case="'ROLE_MEMBER'">
+					                    일반회원
+					                </span>					
+					                <span th:case="'ROLE_PARTNER'">
+					                    제휴업체
+					                </span>					
+					                <span th:case="'ROLE_ADMIN'">
+					                    관리자
+					                </span>					
+					                <span th:case="*"
+					                      th:text="${#authentication.principal.typeName}">
+					                </span>					
+					            </span>					
+					        </div>					
+					    </div>					
+					</div>
 		
 	                <div class="mypage-info-grid">	
 	                    <!-- 아이디 -->	
@@ -59,8 +90,7 @@
 	                               name="nickname"
 	                               th:value="${dto.nickname}">	
 	                    </div>
-	
-	
+	                    
 	                    <!-- 이메일 -->	
 	                    <div class="form-group">	
 	                        <div class="mypage-info-title">
@@ -70,18 +100,74 @@
 	                               name="email"
 	                               th:value="${dto.email}">	
 	                    </div>
-		
-	                    <!-- 회원등급 -->	
-	                    <div class="mypage-info-box">	
-	                        <div class="mypage-info-title">
-	                            회원등급
-	                        </div>	
-	                        <input type="text"
-	                               th:value="${#authentication.principal.typeName}"
-	                               readonly>	
-	                    </div>	
-	                </div>
-	
+	                    
+	                    <!-- 전화번호 -->
+						<div class="form-group">
+						    <div class="mypage-info-title">
+						        전화번호
+						    </div>
+						
+						    <input type="tel"
+						           name="mobile"
+						           pattern="[0-9]{11}"
+								   maxlength="11"
+						           th:value="${dto.mobile}"
+						           placeholder="전화번호">
+						</div>
+						
+						<!-- 성별 -->
+						<div class="form-group">
+						    <div class="mypage-info-title">
+						        성별
+						    </div>
+						
+						    <div class="gender-select">
+						        <input type="radio"
+						               id="male"
+						               name="gender"
+						               value="M"
+						               th:checked="${dto.gender == 'M'}">
+						        <label for="male"
+						               class="gender-card">
+						            남성
+						        </label>
+						
+						        <input type="radio"
+						               id="female"
+						               name="gender"
+						               value="F"
+						               th:checked="${dto.gender == 'F'}">
+						        <label for="female"
+						               class="gender-card">
+						            여성
+						        </label>
+						
+						        <input type="radio"
+						               id="none"
+						               name="gender"
+						               value="N"
+						               th:checked="${dto.gender == 'N'}">
+						        <label for="none"
+						               class="gender-card">
+						
+						            비공개
+						        </label>
+						    </div>
+						</div>
+						
+						<!-- 생년월일 -->
+						<div class="form-group">
+						
+						    <div class="mypage-info-title">
+						        생년월일
+						    </div>
+						
+						
+						    <input type="date"
+						           name="birth"
+						           th:value="${dto.birth}">
+						
+						</div>
 	
 	                <div class="mypage-btn-group">	
 	                    <a th:href="@{/user/member/mypage}"
@@ -98,5 +184,14 @@
 	        </div>
 	    </div>
 	</div>
+	
+	<script th:inline="javascript">
+		const msg=[[${msg}]];
+		
+		if(msg!=null){
+		    alert(msg);
+		}		
+	</script>
+	
 </body>
 </html>

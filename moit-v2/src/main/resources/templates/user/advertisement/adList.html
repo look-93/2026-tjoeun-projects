@@ -1,287 +1,376 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{user/mypage/layouts/mypageLayout}">
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{user/mypage/layouts/mypageLayout}">
 
 <head>
-    <title>MOIT | 내 광고 관리</title>
+<title>MOIT | 내 광고 관리</title>
 </head>
 
 <body>
 
-<div layout:fragment="content">
+	<div layout:fragment="content">
+		<div class="page-title-wrap">
+			<h3 class="mb-0">내 광고 관리</h3>
 
-    <div class="page-title-wrap">
-        <h3 class="mb-0">내 광고 관리</h3>
-
-        <a th:href="@{/user/advertisement/write}"
-           class="btn btn-primary">
-            광고 등록
-        </a>
-    </div>
-
-    <!-- 검색 -->
-    <div class="search-area">
-            <form method="get"
-                  th:action="@{/user/advertisement/list}">
-
-                <div class="search-box">
-    				<div class="search-form">
-                        <input
-                                type="text"
-                                name="searchText"
-                                class="form-control"
-                                placeholder="광고명을 입력하세요."
-                                th:value="${search.searchText}">
-
-                        <button type="submit"
-                                class="btn btn-primary">
-                            검색
-                        </button>
-					</div>
-                </div>
-                
-                <div class="col-md-3 my-3">
-		
-					    <select class="form-select"
-					            name="sort"
-					            onchange="this.form.submit()">
-					
-					        <option value=""
-					            th:selected="${search.sort == null or search.sort == ''}">
-					            최신 등록순
-					        </option>
-					
-					
-					        <option value="start"
-					            th:selected="${search.sort == 'start'}">
-					            시작 예정순
-					        </option>
-					
-					
-					        <option value="status"
-					            th:selected="${search.sort == 'status'}">
-					            진행 중 우선
-					        </option>
-					
-					
-					        <option value="end"
-					            th:selected="${search.sort == 'end'}">
-					            종료 임박순
-					        </option>
-					
-					
-					        <option value="budget"
-					            th:selected="${search.sort == 'budget'}">
-					            예산 높은순
-					        </option>
-					
-					    </select>
-					
-					</div>
-
-            </form>
-    </div>
-
-    <!-- 목록 -->
-    <div class="search-area">
-    	<div class="table-wrap">
-            <table class="table">
-
-                <thead>
-
-	                <tr>
-	 
-	                    <th style="width:8%;">번호</th>
-	
-	                    <th style="width:15%;">이미지</th>
-	
-	                    <th style="width:20%;">광고명</th>
-	
-	                    <th style="width:15%;" >승인상태</th>
-	
-	                    <th style="width:10%;">운영상태</th>
-	
-	                    <th style="width:15%;">광고기간</th>
-	
-	                    <th style="width:17%;">관리</th>
-	
-	                </tr>
-
-                </thead>
-
-                <tbody>
-
-                <tr th:if="${#lists.isEmpty(list)}">
-
-                    <td colspan="7">
-                        등록된 광고가 없습니다.
-                    </td>
-
-                </tr>
-
-                <tr th:each="ad, stat : ${list}">
-
-                    <!-- 번호 -->
-                    <td th:text="${(search.page - 1) * search.size + stat.index + 1}"></td>
-
-                    <!-- 이미지 -->
-                    <td>
-
-                        <!-- 리스트의 0번 인덱스를 직접 찌르는 대신, th:each와 th:if 구조로 안전하게 추출 -->
-					    <th:block th:if="${ad.imageList != null and !#lists.isEmpty(ad.imageList)}">
-					        <img class="ad-thumb"
-					        	 th:each="img, imgStat : ${ad.imageList}" 
-					             th:if="${imgStat.index == 0}"
-					             th:src="${img.imageUrl}" />
-					    </th:block>
-					    
-					    <!-- 만약 이미지가 없는 경우 보일 기본 대체 텍스트나 빈 칸 처리 -->
-					    <span th:if="${ad.imageList == null or #lists.isEmpty(ad.imageList)}">-</span>
-
-                    </td>
-
-                    <!-- 광고명 -->
-                    <td class="table-title"
-                        th:text="${ad.title}">
-                    </td>
-
-                    <!-- 승인상태 -->
-                    <td>
-
-                        <span class="ad-badge ad-bg-warning"
-                              th:if="${ad.approvalStatus=='WAITING'}">
-                            승인대기
-                        </span>
-
-                        <span class="ad-badge ad-bg-success"
-                              th:if="${ad.approvalStatus=='APPROVED'}">
-                            승인완료
-                        </span>
-
-                        <span class="ad-badge ad-bg-danger"
-                              th:if="${ad.approvalStatus=='REJECTED'}">
-                            반려
-                        </span>
-
-                    </td>
-
-                    <!-- 운영상태 -->
-                    <td>
-
-                        <span class="ad-badge ad-bg-secondary"
-                              th:if="${ad.status=='PENDING'}">
-                            대기
-                        </span>
-
-                        <span class="ad-badge ad-bg-primary"
-                              th:if="${ad.status=='OPEN'}">
-                            진행중
-                        </span>
-
-                        <span class="ad-badge ad-bg-dark"
-                              th:if="${ad.status=='CLOSED'}">
-                            종료
-                        </span>
-
-                    </td>
-
-                    <!-- 광고기간 -->
-                    <td>
-
-                        <span
-                                th:text="${#temporals.format(ad.startDatetime,'yyyy-MM-dd')}">
-                        </span>
-
-                        ~
-
-                        <span
-                                th:text="${#temporals.format(ad.endDatetime,'yyyy-MM-dd')}">
-                        </span>
-
-                    </td>
-
-                    <!-- 관리 -->
-                    <td>
-
-                        <div class="ad-list-action">
-
-						    <a class="ad-list-btn ad-list-btn-detail"
-						       th:href="@{/user/advertisement/detail(adId=${ad.adId})}">
-						        상세
-						    </a>
-						
-						    <form th:action="@{/user/advertisement/delete}"
-						          method="post"
-						          onsubmit="return confirm('정말 삭제하시겠습니까?');">
-						
-						        <input type="hidden"
-						               name="adId"
-						               th:value="${ad.adId}">
-						
-						        <button type="submit"
-						                class="ad-list-btn ad-list-btn-delete">
-						            삭제
-						        </button>
-						
-						    </form>
-						
-						</div>
-
-                    </td>
-
-                </tr>
-
-                </tbody>
-
-            </table>
-        
-	        <!-- 페이징 -->
-			<nav class="ad-pagination-wrap">
-			
-			    <ul class="ad-pagination">
-			
-			        <!-- 이전 -->
-			        <li class="ad-page-item"
-			            th:classappend="${search.page <= 1} ? 'disabled'">
-			
-			            <a class="ad-page-link"
-			               th:href="@{/user/advertisement/list(page=${search.page-1},searchText=${search.searchText})}">
-			                이전
-			            </a>
-			
-			        </li>
-			
-			        <!-- 페이지 번호 -->
-			        <li class="ad-page-item"
-			            th:each="i : ${#numbers.sequence(1,totalPage)}"
-			            th:classappend="${search.page==i} ? 'active'">
-			
-			            <a class="ad-page-link"
-			               th:text="${i}"
-			               th:href="@{/user/advertisement/list(page=${i},searchText=${search.searchText})}">
-			            </a>
-			
-			        </li>
-			
-			        <!-- 다음 -->
-			        <li class="ad-page-item"
-			            th:classappend="${search.page>=totalPage} ? 'disabled'">
-			
-			            <a class="ad-page-link"
-			               th:href="@{/user/advertisement/list(page=${search.page+1},searchText=${search.searchText})}">
-			                다음
-			            </a>
-			
-			        </li>
-			
-			    </ul>
-			
-			</nav>
+			<a th:href="@{/user/advertisement/write}" class="btn btn-primary">
+				광고 등록 </a>
 		</div>
-    </div>
 
-</div>    
+		<input type="hidden" id="csrfToken" th:value="${_csrf.token}">
+		<!-- 검색 -->
+		<div class="search-area">
+			<form method="get" th:action="@{/user/advertisement/list}">
 
+				<div class="search-box">
+					<div class="search-form">
+						<input type="text" name="searchText" class="form-control"
+							placeholder="광고명을 입력하세요." th:value="${search.searchText}">
+
+						<button type="submit" class="btn btn-primary">검색</button>
+					</div>
+				</div>
+
+				<div class="col-md-3 my-3">
+
+					<select class="form-select" name="sort"
+						onchange="this.form.submit()">
+
+						<option value=""
+							th:selected="${search.sort == null or search.sort == ''}">
+							최신 등록순</option>
+
+
+						<option value="start" th:selected="${search.sort == 'start'}">
+							시작 예정순</option>
+
+
+						<option value="status" th:selected="${search.sort == 'status'}">
+							진행 중 우선</option>
+
+
+						<option value="end" th:selected="${search.sort == 'end'}">
+							종료 임박순</option>
+
+
+						<option value="budget" th:selected="${search.sort == 'budget'}">
+							예산 높은순</option>
+
+					</select>
+
+				</div>
+
+			</form>
+		</div>
+
+		<!-- 목록 -->
+		<div class="search-area">
+			<div class="table-wrap">
+				<table class="table ad-table">
+
+					<thead>
+
+						<tr>
+
+							<th style="width: 8%;">번호</th>
+
+							<th style="width: 15%;">이미지</th>
+
+							<th style="width: 20%;">광고명</th>
+
+							<th style="width: 15%;">승인상태</th>
+
+							<th style="width: 10%;">운영상태</th>
+
+							<th style="width: 15%;">광고기간</th>
+
+							<th style="width: 17%;">관리</th>
+
+						</tr>
+
+					</thead>
+
+					<tbody>
+
+						<tr th:if="${#lists.isEmpty(list)}">
+
+							<td colspan="7">등록된 광고가 없습니다.</td>
+
+						</tr>
+
+						<tr th:each="ad, stat : ${list}">
+
+							<!-- 번호 -->
+							<td th:text="${(search.page - 1) * search.size + stat.index + 1}"></td>
+
+							<!-- 이미지 -->
+							<td>
+								<!-- 리스트의 0번 인덱스를 직접 찌르는 대신, th:each와 th:if 구조로 안전하게 추출 --> <th:block
+									th:if="${ad.imageList != null and !#lists.isEmpty(ad.imageList)}">
+									<img class="ad-thumb" th:each="img, imgStat : ${ad.imageList}"
+										th:if="${imgStat.index == 0}" th:src="${img.imageUrl}" />
+								</th:block> <!-- 만약 이미지가 없는 경우 보일 기본 대체 텍스트나 빈 칸 처리 --> <span
+								th:if="${ad.imageList == null or #lists.isEmpty(ad.imageList)}">-</span>
+
+							</td>
+
+							<!-- 광고명 -->
+							<td class="table-title" th:text="${ad.title}"></td>
+
+							<!-- 승인상태 -->
+							<td><span class="ad-badge ad-bg-warning"
+								th:if="${ad.approvalStatus=='WAITING'}"> 승인대기 </span> <span
+								class="ad-badge ad-bg-success"
+								th:if="${ad.approvalStatus=='APPROVED'}"> 승인완료 </span> <span
+								class="ad-badge ad-bg-danger"
+								th:if="${ad.approvalStatus=='REJECTED'}"> 반려 </span></td>
+
+							<!-- 운영상태 -->
+							<td>
+								<div style="margin-bottom: 8px;">
+									<span class="ad-badge ad-bg-secondary"
+										th:if="${ad.status=='PENDING'}">대기</span> <span
+										class="ad-badge ad-bg-primary" th:if="${ad.status=='OPEN'}">진행중</span>
+									<span class="ad-badge ad-bg-dark"
+										th:if="${ad.status=='CLOSED'}">종료</span>
+								</div> <!-- 이미 신청한 경우 -->
+								<button class="ad-extension-wait"
+									th:if="${ad.extensionStatus == 'WAITING'}">연장 승인 대기</button> 
+								<a
+								th:if="${(ad.reminder30dSent == 'Y' or ad.reminder14dSent == 'Y') and ad.extensionStatus == 'NONE'}"
+								href="#" class="ad-extension-btn"
+								th:attr="data-id=${ad.adId}, data-end=${ad.endDatetime}"> 연장 신청 </a>
+							</td>
+
+							<!-- 광고기간 -->
+							<td><span
+								th:text="${#temporals.format(ad.startDatetime,'yyyy-MM-dd')}">
+							</span> ~ <span
+								th:text="${#temporals.format(ad.endDatetime,'yyyy-MM-dd')}">
+							</span></td>
+
+							<!-- 관리 -->
+							<td>
+
+								<div class="ad-list-action">
+
+									<a class="ad-list-btn ad-list-btn-detail"
+										th:href="@{/user/advertisement/detail(adId=${ad.adId})}">
+										상세 </a>
+
+									<form th:action="@{/user/advertisement/delete}" method="post"
+										onsubmit="return confirm('정말 삭제하시겠습니까?');">
+
+										<input type="hidden" name="adId" th:value="${ad.adId}">
+
+										<button type="submit" class="ad-list-btn ad-list-btn-delete">
+											삭제</button>
+
+									</form>
+
+								</div>
+
+							</td>
+
+						</tr>
+
+					</tbody>
+
+				</table>
+
+				<!-- 페이징 -->
+				<nav class="ad-pagination-wrap">
+
+					<ul class="ad-pagination">
+
+						<!-- 이전 -->
+						<li class="ad-page-item"
+							th:classappend="${search.page <= 1} ? 'disabled'"><a
+							class="ad-page-link"
+							th:href="@{/user/advertisement/list(page=${search.page-1},searchText=${search.searchText})}">
+								이전 </a></li>
+
+						<!-- 페이지 번호 -->
+						<li class="ad-page-item"
+							th:each="i : ${#numbers.sequence(1,totalPage)}"
+							th:classappend="${search.page==i} ? 'active'"><a
+							class="ad-page-link" th:text="${i}"
+							th:href="@{/user/advertisement/list(page=${i},searchText=${search.searchText})}">
+						</a></li>
+
+						<!-- 다음 -->
+						<li class="ad-page-item"
+							th:classappend="${search.page>=totalPage} ? 'disabled'"><a
+							class="ad-page-link"
+							th:href="@{/user/advertisement/list(page=${search.page+1},searchText=${search.searchText})}">
+								다음 </a></li>
+
+					</ul>
+
+				</nav>
+			</div>
+		</div>
+
+
+	<!-- 광고 연장 신청 모달 -->
+	<div id="extensionModal" class="extension-modal">
+		<div class="extension-box">
+			<div class="extension-header">
+
+				<h3>광고 기간 연장 신청</h3>
+
+				<button type="button" class="extension-close">×</button>
+			</div>
+
+			<div class="extension-body">
+				<input type="hidden" id="extensionAdId">
+
+				<div class="extension-current">
+					현재 종료일 <strong id="currentEndDate"> </strong>
+				</div>
+
+				<label for="extensionEndDatetime"> 변경 종료일 </label> <input
+					type="datetime-local" id="extensionEndDatetime"
+					class="extension-input">
+
+				<p class="extension-guide">기존 종료일 이후 날짜만 선택 가능합니다.</p>
+
+			</div>
+
+			<div class="extension-actions">
+				<button type="button" class="extension-submit">신청</button>
+
+				<button type="button" class="extension-cancel">취소</button>
+			</div>
+		</div>
+	</div>
+
+	<script th:inline="javascript">
+		console.log("광고 JS 실행됨");
+		document.addEventListener("DOMContentLoaded", () => {
+		
+		    const modal = document.querySelector("#extensionModal");
+		
+		    // 모달 열기 함수
+		    function openModal() {
+		        if (!modal) return;
+		        modal.classList.add("is-open");
+		        modal.style.display = "flex"; // 기존 CSS 대비 이중 안전장치
+		    }
+		
+		    // 모달 닫기 함수
+		    function closeModal() {
+		        if (!modal) return;
+		        modal.classList.remove("is-open");
+		        modal.style.display = "none";
+		    }
+		
+		    // 1. 연장 신청 버튼 클릭
+		    document.addEventListener("click", (e) => {
+		        const btn = e.target.closest(".ad-extension-btn");
+		        if (!btn) return;
+		
+		        // ⚡ 핵심 수정: href="#" 로 인한 페이지 스크롤 점프(기본 동작)를 막는다.
+		        // 이게 없으면 모달 자체는 열리지만 브라우저가 페이지 상단으로 이동하면서
+		        // 모달이 화면에 제대로 안 보이거나, 버튼이 안 눌리는 것처럼 느껴짐.
+		        e.preventDefault();
+		
+		        console.log("연장 신청 버튼 클릭 감지", btn);
+		
+		        // 데이터 가져오기
+		        const adId = btn.getAttribute("data-id") || "";
+		        let endDate = btn.getAttribute("data-end") || "";
+		
+		        // 모달 먼저 연다
+		        openModal();
+		
+		        // 값 채워넣기
+		        const adIdInput = document.querySelector("#extensionAdId");
+		        const currentEndDateEl = document.querySelector("#currentEndDate");
+		        const endDatetimeInput = document.querySelector("#extensionEndDatetime");
+		
+		        if (adIdInput) adIdInput.value = adId;
+		        if (currentEndDateEl) currentEndDateEl.innerText = endDate.replace("T", " ");
+		
+		        // datetime-local 포맷(yyyy-MM-ddTHH:mm)에 맞게 글자 수 맞춰주기
+		        if (endDate && endDate.length > 16) {
+		            endDate = endDate.substring(0, 16);
+		        }
+		        if (endDatetimeInput) {
+		            endDatetimeInput.min = endDate;
+		            endDatetimeInput.value = ""; // 이전에 입력했던 값 초기화
+		        }
+		    });
+		
+		    // 2. 모달 닫기 (닫기 버튼 / 취소 버튼)
+		    document.querySelectorAll(".extension-close, .extension-cancel").forEach(btn => {
+		        btn.addEventListener("click", closeModal);
+		    });
+		
+		    // 3. 모달 바깥(어두운 배경) 클릭 시 닫기
+		    if (modal) {
+		        modal.addEventListener("click", (e) => {
+		            if (e.target === modal) {
+		                closeModal();
+		            }
+		        });
+		    }
+		
+		    // 4. ESC 키로 닫기
+		    document.addEventListener("keydown", (e) => {
+		        if (e.key === "Escape") {
+		            closeModal();
+		        }
+		    });
+		
+		    // 5. 폼 제출
+		    const submitBtn = document.querySelector(".extension-submit");
+		    if (submitBtn) {
+		        submitBtn.addEventListener("click", () => {
+		            const endInput = document.querySelector("#extensionEndDatetime");
+		            const end = endInput ? endInput.value : "";
+		            const min = endInput ? endInput.min : "";
+		
+		            if (!end) {
+		                alert("연장 종료일을 선택해주세요.");
+		                return;
+		            }
+		
+		            if (end <= min) {
+		                alert("현재 종료일 이후 날짜만 선택 가능합니다.");
+		                return;
+		            }
+		
+		            const data = {
+		                adId: document.querySelector("#extensionAdId").value,
+		                extensionRequestEndDatetime: end
+		            };
+		
+		            const csrfEl = document.querySelector("#csrfToken");
+		            const csrfToken = csrfEl ? csrfEl.value : "";
+		
+		            fetch("/user/advertisement/extensionRequest", {
+		                method: "POST",
+		                headers: {
+		                    "Content-Type": "application/json",
+		                    "X-CSRF-TOKEN": csrfToken
+		                },
+		                body: JSON.stringify(data)
+		            })
+		            .then(res => {
+		                if (!res.ok) {
+		                    throw new Error("연장 신청 실패");
+		                }
+		                alert("연장 신청이 완료되었습니다.");
+		                location.reload();
+		            })
+		            .catch(err => {
+		                alert(err.message);
+		            });
+		        });
+		    }
+		});
+	</script>
+	</div>
 </body>
 </html>

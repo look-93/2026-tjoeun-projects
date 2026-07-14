@@ -24,4 +24,7 @@ public class QuestionDto {
     private String memberName;
     private AnswerDto answer;
     
+    // AI 분석 결과
+    private String analysisStatus;
+    private int aggressionScore;
 }
