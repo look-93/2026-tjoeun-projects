@@ -61,13 +61,14 @@ public class SampleController {
 	@ResponseBody
 	public WeatherInfoResponse weathreInfo() {
 		WeatherInfoRequest request  = new WeatherInfoRequest();
-		request.setMeetupDate("20260710");
-		request.setMeetupTime(23);
+		request.setMeetupDate("20260716");
+		request.setMeetupTime(7);
 		//System.out.println(java.time.LocalTime.now());
 		//화면에서 보낼예정
 		request.setNx(55);
-		request.setNy(127);
+		request.setNy(126);
 		WeatherInfoResponse response = openApiService.getWeathreInfo(request);
+		System.out.println(response);
 		return response;
 	}		
 	

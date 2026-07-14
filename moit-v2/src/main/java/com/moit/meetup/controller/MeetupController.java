@@ -272,13 +272,13 @@ public class MeetupController {
 		weatherRequest.setMeetupTime(localDateTime.getHour());		
 		weatherRequest.setNx(meetupDto.getNx());
 		weatherRequest.setNy(meetupDto.getNy());
-		System.out.println(localDateTime);
-		System.out.println(localDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-		System.out.println(localDateTime.getHour());
-		
+//		System.out.println(localDateTime);
+//		System.out.println(localDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+//		System.out.println(localDateTime.getHour());
+//		System.out.println(weatherRequest);
 		WeatherInfoResponse weatherResponse = openApiService.getWeathreInfo(weatherRequest);
 		/*날씨*/
-		
+		//System.out.println(weatherResponse);
 	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
 	    
 	    reportsDto.setMemberId(memberId); // 로그인한 멤버아이디
@@ -294,7 +294,7 @@ public class MeetupController {
 	    model.addAttribute("detail", meetupDto);
 	    model.addAttribute("recommendMeetupList", recommendMeetupList);	    
 	    model.addAttribute("weatherResponse", weatherResponse); /*날씨*/
-	    System.out.println(weatherResponse);
+	    //System.out.println(weatherResponse);
 	    model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
 
 	    //로그인한 사용자 html 로 전달(후기)

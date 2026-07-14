@@ -398,7 +398,6 @@
 		 	//모임제목, 카테고리 컨텐츠 추가
 		    setTimeout(() => {
 		        const titleInput = document.getElementById("title");
-	
 		        // 사용자가 아직 입력하지 않았을 때만 placeholder 변경
 		        if (titleInput.value.trim() === "") {
 		            titleInput.placeholder = "💡 제목이 고민되시나요? 키워드만 입력하면 AI가 추천해드려요.";
@@ -411,8 +410,16 @@
 		 	
 		 	let timer;
 		 	let aiRecommended = false; // Ai 추천 여부 - 1번만 호출할예정
+		 	const apiPlaceholder = "💡 제목이 고민되시나요? 키워드만 입력하면 AI가 추천해드려요.";
+		 	
 		 	
 		 	titleInput.addEventListener("input", function(){
+		 		
+		 		//placeholder 값이 바뀐 후 입력 시 ai 호출
+		 		if(this.placeholder !== apiPlaceholder){
+		 			return;
+		 		}
+		 		
 		 		//이미 추천을 받았으면 더 이상 호출하지 않음
 		 		if(aiRecommended){
 		 			return;
@@ -515,6 +522,7 @@
 			    marker.setPosition(position);
 			}
 		 	
+		 	//null 체크
 		 	function validateMeetupForm() {
 							
 		 	    if (!title.value.trim()) {
