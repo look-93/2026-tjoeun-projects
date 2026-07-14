@@ -269,8 +269,7 @@
                 광고 내용
             </h5>
 
-            <p th:text="${dto.content}">
-            </p>
+            <p th:utext="${#strings.replace(dto.content,'.','.<br>')}"></p>
 
         </div>
 

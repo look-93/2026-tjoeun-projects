@@ -341,8 +341,16 @@ public class AdvertisementAdminController {
     @ResponseBody
     public DashboardAiDto aiSummary() {
 
-        return advertisementService.getLatestAiSummary();
+    	DashboardAiDto dto =
+                advertisementService.getLatestAiSummary();
 
+        if(dto == null) {
+            dto = new DashboardAiDto();
+            dto.setSummary("아직 생성된 AI 분석이 없습니다.");
+            dto.setCreatedAt("-");
+        }
+
+        return dto;
     }
 
     // 로그인 헬퍼
