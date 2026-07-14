@@ -18,7 +18,7 @@ public class AdvertisementScheduler {
 
 
     // 1분마다 광고 상태 체크
-//    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 * * * * *")
     public void updateAdvertisementStatus() {
     	
     	System.out.println("광고 상태 체크 실행");
@@ -41,8 +41,8 @@ public class AdvertisementScheduler {
 
     }
     // 매일 새벽 1시  일일통계 저장(미완)
-    //@Scheduled(cron = "0 * * * * *")
     @Scheduled(cron = "0 0 1 * * *")
+    //@Scheduled(cron = "0 * * * * *")
     public void createDailyStatistics(){
     	System.out.println("===== 광고 일일 통계 생성 시작 =====");
         advertisementService.insertDailyStatistics();
