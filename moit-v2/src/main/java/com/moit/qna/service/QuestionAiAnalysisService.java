@@ -50,5 +50,5 @@ public class QuestionAiAnalysisService {
         for(Integer id : ids){
             questionAiAnalysisMapper.changeToNormal(id);
         }
-    }
+    } 
 }
