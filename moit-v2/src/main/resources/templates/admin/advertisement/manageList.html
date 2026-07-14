@@ -215,6 +215,15 @@
 								<button class="btn btn-success btn-sm">승인</button>
 
 							</form>
+							
+							<form th:action="@{/admin/advertisement/extensionReject}"
+								method="post">
+
+								<input type="hidden" name="adId" th:value="${ad.adId}">
+
+								<button class="btn btn-danger btn-sm">반려</button>
+
+							</form>
 
 						</td>
 
