@@ -1,5 +1,6 @@
 package com.moit.member.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import com.moit.security.CustomUserDetailsService;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,8 +19,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.moit.meetup.service.MeetupService;
 import com.moit.member.dto.UserDto;
 import com.moit.member.enums.PasswordChangeResult;
 import com.moit.member.service.UserService;
@@ -35,6 +40,8 @@ public class UserController {
 
 	@Autowired UserService service;
 	@Autowired PasswordLeakService passwordLeakService;
+	@Autowired MeetupService meetupService;
+	@Autowired CustomUserDetailsService customUserDetailsService;
 	
 	// 회원가입
 	@PreAuthorize("isAnonymous()")
@@ -53,20 +60,28 @@ public class UserController {
 			rttr.addFlashAttribute("msg", "회원가입이 완료되었습니다.");
 			return "redirect:/user/member/login"; 
 		}
-		else if(result==0) {
+		
+		// 실패 시 입력 값 유지
+		rttr.addFlashAttribute("dto",dto);
+		
+		if(result==0) {
 			rttr.addFlashAttribute("msg", "이미 사용중인 아이디입니다.");
-			return "redirect:/user/member/join"; 
 		}
 		else if(result==-1){
 			rttr.addFlashAttribute("msg", "이미 사용중인 닉네임입니다.");
-			return "redirect:/user/member/join"; 
 		}
 		else if(result==-2) {
 			rttr.addFlashAttribute("msg","유출된 비밀번호입니다. 다른 비밀번호를 입력해주세요.");
+
 			return "redirect:/user/member/join";
 		}
-		
-		rttr.addFlashAttribute("msg", "회원가입에 실패했습니다.");	
+		else if(result==-3) {
+		    rttr.addFlashAttribute( "msg", "이미 등록된 전화번호입니다."
+		    );
+		}
+		else {
+			rttr.addFlashAttribute("msg", "회원가입에 실패했습니다.");	
+		}
 		return "redirect:/user/member/join"; 
 	}
 	
@@ -91,6 +106,19 @@ public class UserController {
 
         return Map.of("exists", dto != null);
     }
+	
+	// 전화번호 중복검사
+	@ResponseBody
+	@GetMapping("/checkMobile")
+	public Map<String, Boolean> checkMobile(
+	        @RequestParam String mobile) {
+
+	    UserDto dto = service.findUser(
+	            Map.of("mobile", mobile)
+	    );
+
+	    return Map.of("exists", dto != null);
+	}
 	
 	// 로그인
 	@PreAuthorize("isAnonymous()")
@@ -147,6 +175,7 @@ public class UserController {
         return "redirect:/user/member/login";
     }
 	
+    // 마이페이지
 	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/mypage") public String  mypage( Authentication   authentication , Model model  ) {  
 		CustomUserDetails principal =
@@ -162,8 +191,14 @@ public class UserController {
 	    // DB에서 최신 회원정보 조회
 	    UserDto user = service.findByLoginId(searchDto);
 
-	    model.addAttribute("dto", user);
+	    model.addAttribute("dto", user);	    
 
+	    model.addAttribute("meetupStats",  meetupService.selectMyPageStats(user.getMemberId()));
+	    
+	    List<String> interests = service.getInterestList(user.getMemberId());
+
+	    model.addAttribute("interests", interests);
+	    
 	    return "user/member/mypage"; 
 	}
 	
@@ -244,21 +279,37 @@ public class UserController {
 		
 		dto = service.findByLoginId(dto);
 		
+		// 전체 관심사
+	    model.addAttribute( "interestList", service.getAllInterest() );
+
+
+	    // 선택된 관심사
+	    dto.setInterestIds( service.getInterestIds(dto.getMemberId()) );
+		
 		model.addAttribute("dto",dto);
 		
 		return "user/member/memberEdit";		
 	}
 	
 	@PostMapping("memberEdit")
-	public String memberEdit(UserDto dto, Authentication authentication, RedirectAttributes rttr) {
+	public String memberEdit(UserDto dto,
+						     @RequestParam(value = "profileImage", required = false)
+							 MultipartFile profileImage,
+							 @RequestParam(value="interestIds", required=false)
+							 List<Integer> interestIds,
+							 Authentication authentication, 
+							 RedirectAttributes rttr) {
 		
 		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 		
 		 dto.setMemberId( user.getAppUserId() );
 		 dto.setLoginId(user.getUsername());
 		 
+		 dto.setProfileImage(profileImage);
+		 
 		 UserDto loginUser = service.findByLoginId(dto);
 		 
+		 // 닉네임 중복검사
 		 if (!loginUser.getNickname().equals(dto.getNickname())) {
 
 		        UserDto check = service.findUser(
@@ -268,11 +319,19 @@ public class UserController {
 		            rttr.addFlashAttribute("msg", "이미 사용중인 닉네임입니다.");
 		            return "redirect:/user/member/memberEdit";
 		        }
-		    }
+		    }		 
 
 		    int result = service.updateUser(dto);
+		    
+		    service.updateInterest( dto.getMemberId(), interestIds );
 
 		    if(result == 1){
+		    	CustomUserDetails newUser = (CustomUserDetails) customUserDetailsService.loadUserByUsername(dto.getLoginId());
+
+		        Authentication newAuthentication = new UsernamePasswordAuthenticationToken( newUser, authentication.getCredentials(), newUser.getAuthorities());
+		        
+		        SecurityContextHolder.getContext() .setAuthentication(newAuthentication);
+		        
 		        rttr.addFlashAttribute("msg","회원정보가 수정되었습니다.");
 		    }else{
 		        rttr.addFlashAttribute("msg","회원정보 수정에 실패했습니다.");
@@ -342,6 +401,44 @@ public class UserController {
 		if(leakCount == -1) { return Map.of("safe",true , "count",0, "error",true); }
 		
 		return Map.of("safe", leakCount == 0, "count" , leakCount , "error" , false);
+	}
+	
+	// 회원탈퇴
+	@GetMapping("/memberDelete")
+	public String memberDeletePage(Authentication authentication, Model model) {
+		
+		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+
+	    UserDto dto = new UserDto();
+	    dto.setLoginId(user.getUsername());
+
+	    dto = service.findByLoginId(dto);
+
+	    model.addAttribute("dto", dto);
+
+	    return "user/member/memberDelete";
+		}
+	
+	@PostMapping("/memberDelete")
+	public String memberDelete(@RequestParam String password,
+							   Authentication authentication,
+							   HttpServletRequest request,
+							   HttpServletResponse response,
+							   RedirectAttributes rttr) {
+		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+		
+		boolean result = service.deleteMember(user.getAppUserId(), password);
+		
+		if(!result) {
+			rttr.addFlashAttribute("msg","비밀번호가 일치하지 않습니다.");
+			
+			return "redirect:/user/member/memberDelete";
+		}
+		
+		new SecurityContextLogoutHandler()
+			.logout(request, response, authentication);
+			
+		return "redirect:/user/member/login";		
 	}
 	
 }

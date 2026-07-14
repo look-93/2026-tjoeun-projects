@@ -14,6 +14,7 @@ import com.moit.meetup.dto.MeetupWeatherNotificationDto;
 import com.moit.meetup.dto.common.CategoryDto;
 import com.moit.meetup.dto.common.SidoDto;
 import com.moit.meetup.dto.common.SigunguDto;
+import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.reports.dto.ReportsDto;
 
 public interface MeetupService {
@@ -96,4 +97,7 @@ public interface MeetupService {
 	public List<MeetupDto> selectRecommendMeetupCount(int memberId);
 	//가장 많이 참여한 부모 카테고리의 모집 중 모임 추천 리스트 조회
 	public MeetupDto selectRecommendMeetups(MeetupDto meetupDto);
+	
+	//카테고리명으로 카테고리 찾기
+	public Integer selectCategoryId(String category);
 }

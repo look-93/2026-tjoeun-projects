@@ -1,383 +1,569 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html xmlns:th="http://www.thymeleaf.org" 
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{user/layouts/layout}">
 <head lang="ko">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=zsvqwbdx6e&callback=initMap"></script>
 <title>MOIT</title>
-<link rel="stylesheet" th:href="@{/css/style.css}">
-<link rel="stylesheet" th:href="@{/css/memberStyle.css}">
 </head>
 <body>
-	<th:block th:replace="~{user/fragments/mainHeader :: mainHeader}" />
-	<div class="container">
-		<div layout:fragment="content">
-			<div class="mw-main-content">
-				<div class="mw-write-container"> 
-					<form th:action="${meetup == null} ? @{/meetup/write} : @{/mypage/update}" method="post" enctype="multipart/form-data">
-						
-						<input type="hidden" name="meetupId" th:value="${meetup != null} ? ${meetup.meetupId} : '0'" />
-						
-						<div class="mw-detail-wrap">
-							<div class="mw-left-panel">
-							
-								<!-- 이미지등록 -->
-								<div class="mw-image-box" style="position: relative;">
-								    <div style="position: relative; width: 100%; height:350px;">
-								
-								        <button type="button" id="prevBtn" class="mw-slide-btn left" onclick="moveSlide(-1)"
-								            th:style="${images != null and images.size() > 1} ? 'display: block;' : 'display: none;'">
-								            〈</button>
-								
-								        <button type="button" id="nextBtn" class="mw-slide-btn right" onclick="moveSlide(1)"
-								            th:style="${images != null and images.size() > 1} ? 'display: block;' : 'display: none;'">
-								            〉</button>
-								
-								        <div class="mw-main-image" id="mwMainImage" 
-								             style="width: 100%; height: 350px; border-radius: var(--radius); overflow-x: hidden; background: #f5f5f5; display: flex; align-items: center; scroll-snap-type: x mandatory; scroll-behavior: smooth;">
-								
-								            <span id="placeholderText"
-								                  th:if="${images == null or #lists.isEmpty(images)}"
-								                  style="color: #999; margin: auto;"> 대표 이미지를 등록해주세요 </span>
-								
-								            <th:block th:if="${images != null and !images.isEmpty()}">
-								                <img th:each="img : ${images}"
-								                     th:src="@{|/upload/meetup/${img.imagePath}|}"
-								                     alt="저장된 모집글 이미지"
-								                     style="width: 100%; max-width: 100%; height: 100%; object-fit: cover; border-radius: 5px; flex-shrink: 0; scroll-snap-align: start;">
-								                     </th:block>
-								            
-								        </div>
-								
-								    </div>
-								    
-								    <div class="mw-thumb-list" style="margin-top: 15px;">
-								        <input type="file" name="files" id="imageInput" multiple style="width:100%;" onchange="previewFiles(event)">
-								    </div>
-								</div>				
-								
-			                    <!-- 이미지등록 -->
-			                    
-								<div class="mw-content-box">
-									<div class="mw-detail-badge" th:text="${meetup != null} ? '모임 수정하기' : '새 모임 등록'">새 모임 등록</div>
-					
-									<div class="mw-form-group">
-										<label>모임 제목</label>
-										<input type="text" name="title" class="mw-form-input" placeholder="모임 제목을 입력하세요" 
-											   th:value="${meetup != null} ? ${meetup.title} : ''">
-									</div>
-					
-									<div class="mw-form-group">
-										<label>카테고리</label>
-										<select id="categoryId" name="categoryId" class="mw-form-input">
-											<option value="">선택</option>
-											<option th:each="category : ${childCategoryList}" 
-													th:value="${category.categoryId}" 
-													th:text="${category.categoryName}"
-													th:selected="${meetup != null and category.categoryId == meetup.categoryId}">카테고리명</option>
-										</select>
-									</div>
-					
-									<div class="mw-form-group" style="margin-bottom: 0;">
-										<label>모임 소개</label>
-										<textarea name="content" class="mw-form-input" placeholder="모임에 대한 설명을 작성해주세요" 
-												  th:text="${meetup != null} ? ${meetup.content} : ''"></textarea>
-									</div>
-								</div>
-							</div>
+<div layout:fragment="content">
+	<div class="mw-main-content">
+		<div class="mw-write-container"> 
+			<form th:action="${meetup == null} ? @{/meetup/write} : @{/mypage/update}" method="post" enctype="multipart/form-data" onsubmit="return validateMeetupForm();">
 				
-							<div>
-								<div class="mw-side-box">
-									<h3>모집 정보</h3>
-									<input type="hidden" id="sigunguId" name="sigunguId" th:value="${meetup != null} ? ${meetup.sigunguId} : ''" />
-									<div class="mw-form-group">
-										<label>최소 인원</label>
-										<input type="number" name="minParticipants" class="mw-form-input" min="1" max="100" 
-											   th:value="${meetup != null} ? ${meetup.minParticipants} : 0">
-									</div>
+				<input type="hidden" name="meetupId" th:value="${meetup != null} ? ${meetup.meetupId} : '0'" />
+				
+				<div class="mw-detail-wrap">
+					<div class="mw-left-panel">
 					
-									<div class="mw-form-group">
-										<label>최대 인원</label>
-										<input type="number" name="maxParticipants" class="mw-form-input" min="1" max="100" 
-											   th:value="${meetup != null} ? ${meetup.maxParticipants} : 0">
-									</div>  
-					
-						<!-- 			<div class="mw-form-group">
-										<label>지역</label>
-										<select id="sigunguId" name="sigunguId" class="mw-form-select">
-											<option value="">지역 선택</option>
-											<option th:each="sigungu : ${sigunguList}" 
-													th:value="${sigungu.sigunguId}" 
-													th:text="${sigungu.name}"
-													th:selected="${meetup != null and sigungu.sigunguId == meetup.sigunguId}">지역명</option>
-										</select>
-									</div> -->
-									
-									<div class="mw-form-group">
-										<label>주소</label>
-										<p class="mw-guide-text" id="addressGuidText">
-										</p>
-										<input type="text" id="addressText" class="mw-form-input" placeholder="주소" name="address" onclick="showAddressSearchModal()" th:value="${meetup != null} ? ${meetup.address} : ''" readonly/>
-										<input type="text" id="detailAddress" class="mw-form-input" name="addressDetail" th:value="${meetup != null} ? ${meetup.addressDetail} : ''" placeholder="상세주소를 입력하세요"/>
-										<input type="hidden" id="nx" name="nx" th:value="${meetup != null} ? ${meetup.nx} : ''"/>
-										<input type="hidden" id="ny" name="ny" th:value="${meetup != null} ? ${meetup.ny} : ''"/>
-									</div>
-																		
-									
-									<div class="mw-form-group">
-										<label>모임 일시</label>
-										<input type="datetime-local" name="meetupAt" class="mw-form-input" 
-											   th:value="${meetup != null} ? ${meetup.meetupAt} : ''">
-									</div>
+						<!-- 이미지등록 -->
+						<div class="mw-image-box" style="position: relative;">
+						    <div style="position: relative; width: 100%; height:350px;">
+						
+						        <button type="button" id="prevBtn" class="mw-slide-btn left" onclick="moveSlide(-1)"
+						            th:style="${images != null and images.size() > 1} ? 'display: block;' : 'display: none;'">
+						            〈</button>
+						
+						        <button type="button" id="nextBtn" class="mw-slide-btn right" onclick="moveSlide(1)"
+						            th:style="${images != null and images.size() > 1} ? 'display: block;' : 'display: none;'">
+						            〉</button>
+						
+						        <div class="mw-main-image" id="mwMainImage" 
+						             style="width: 100%; height: 350px; border-radius: var(--radius); overflow-x: hidden; background: #f5f5f5; display: flex; align-items: center; scroll-snap-type: x mandatory; scroll-behavior: smooth;">
+						
+						            <span id="placeholderText"
+						                  th:if="${images == null or #lists.isEmpty(images)}"
+						                  style="color: #999; margin: auto;"> 대표 이미지를 등록해주세요 </span>
+						
+						            <th:block th:if="${images != null and !images.isEmpty()}">
+						                <img th:each="img : ${images}"
+						                     th:src="@{|/upload/meetup/${img.imagePath}|}"
+						                     alt="저장된 모집글 이미지"
+						                     style="width: 100%; max-width: 100%; height: 100%; object-fit: cover; border-radius: 5px; flex-shrink: 0; scroll-snap-align: start;">
+						            </th:block>
+						            
+						        </div>
+						
+						    </div>
+						    
+						    <div class="mw-thumb-list" style="margin-top: 15px;">
+						        <input type="file" name="files" id="imageInput" multiple style="width:100%;" onchange="previewFiles(event)">
+						    </div>
+						</div>				
+						
+	                    <!-- 이미지등록 -->
+	                    
+						<div class="mw-content-box">
+							<div class="mw-detail-badge" th:text="${meetup != null} ? '모임 수정하기' : '새 모임 등록'">새 모임 등록</div>
 			
-									<div class="mw-form-group">
-										<label>상태</label>
-										<select id="status" name="status" class="mw-form-select">
-											<option value="RECRUITING" th:selected="${meetup != null and meetup.status == 'RECRUITING'}">모집중</option>
-											<option value="CLOSED" th:selected="${meetup != null and meetup.status == 'CLOSED'}">종료됨</option>
-											<option value="WEATHER_CANCELED" th:selected="${meetup != null and meetup.status == 'WEATHER_CANCELED'}">기상 악화로 인한 취소</option>
-										</select>
-									</div>
-					
-									<button type="submit" class="mw-btn-submit" 
-											th:text="${meetup != null} ? '모임 수정하기' : '모임 등록하기'">
-										모임 등록하기
-									</button>
-								</div>
-								
-								
-								<div class="mw-side-box">
-									<h3>작성 가이드</h3>
-									<p class="mw-guide-text">
-										• 모임 목적을 명확히 작성해주세요.<br>
-										• 장소와 시간을 정확히 입력해주세요.<br>
-										• 참가 조건이 있다면 소개글에 작성해주세요.
-									</p>
-								</div>
+							<div class="mw-form-group">
+								<label>모임 제목</label>
+								<input type="text" id="title" name="title" class="mw-form-input" placeholder="모임 제목을 입력하세요" 
+									   th:value="${meetup != null} ? ${meetup.title} : ''">
+							</div>
+			
+							<div class="mw-form-group">
+								<label>카테고리</label>
+								<select id="categoryId" name="categoryId" class="mw-form-input">
+									<option value="">선택</option>
+									<option th:each="category : ${childCategoryList}" 
+											th:value="${category.categoryId}" 
+											th:text="${category.categoryName}"
+											th:selected="${meetup != null and category.categoryId == meetup.categoryId}">카테고리명</option>
+								</select>
+							</div>
+			
+							<div class="mw-form-group" style="margin-bottom: 0;">
+								<label>모임 소개</label>
+								<textarea name="content" id="content" class="mw-form-input" placeholder="모임에 대한 설명을 작성해주세요" 
+										  th:text="${meetup != null} ? ${meetup.content} : ''"></textarea>
 							</div>
 						</div>
-					</form>
-				</div>
-			</div>
-		</div>
-		<div class="modal-overlay" id="addressSearchModal">
-		    <div class="modal-window">
-		        <div class="modal-header">
-		            <h3>주소검색</h3>
-		            <button class="modal-close" onclick="hideAddressSearchModal()">&times;</button>
-		        </div>
-		        
-		        <div class="modal-body">
-			        <div class="mw-form-group">
-						<label>주소</label>
-						<input type="text" id="searchText" class="mw-form-input" placeholder="검색어 입력후 엔터를 입력해주세요" onkeyup="if(event.key === 'Enter') { searchAddress(); }"/>
 					</div>
-		            <table class="modal-table">
-							<thead>
-							    <tr>
-							        <th style="width: 40%; text-align: left;">주소</th>
-							        <th style="width: 30%;">도로명</th>
-							        <th style="width: 20%;">지번</th>
-							        <th style="width: 10%;">우편번호</th>							       
-							        <th style="width: 20%;">선택</th>
-							    </tr>
-							</thead>
-		                <tbody id="addressModalBody"></tbody>
-		            </table>
-		            <ul class="pagination justify-content-center" id="pagingArea"></ul>		
-		        </div>
-		    </div>
+		
+					<div>
+						<div class="mw-side-box">
+							<h3>모집 정보</h3>
+							<input type="hidden" id="sigunguId" name="sigunguId" th:value="${meetup != null} ? ${meetup.sigunguId} : ''" />
+							<div class="mw-form-group">
+								<label>최소 인원</label>
+								<input type="number" name="minParticipants" class="mw-form-input" min="1" max="100" 
+									   th:value="${meetup != null} ? ${meetup.minParticipants} : 1">
+							</div>
+			
+							<div class="mw-form-group">
+								<label>최대 인원</label>
+								<input type="number" name="maxParticipants" class="mw-form-input" min="1" max="100" 
+									   th:value="${meetup != null} ? ${meetup.maxParticipants} : 10">
+							</div>  
+			
+				<!-- 			<div class="mw-form-group">
+								<label>지역</label>
+								<select id="sigunguId" name="sigunguId" class="mw-form-select">
+									<option value="">지역 선택</option>
+									<option th:each="sigungu : ${sigunguList}" 
+											th:value="${sigungu.sigunguId}" 
+											th:text="${sigungu.name}"
+											th:selected="${meetup != null and sigungu.sigunguId == meetup.sigunguId}">지역명</option>
+								</select>
+							</div> -->
+							
+							<div class="mw-form-group">
+								<label>주소</label>
+								<p class="mw-guide-text" id="addressGuidText"></p>
+								<input type="text" id="addressText" class="mw-form-input" placeholder="주소" name="address" onclick="showAddressSearchModal()" th:value="${meetup != null} ? ${meetup.address} : ''" readonly/>
+								<input type="text" id="detailAddress" class="mw-form-input" name="addressDetail" th:value="${meetup != null} ? ${meetup.addressDetail} : ''" placeholder="상세주소를 입력하세요"/>
+								<input type="hidden" id="nx" name="nx" th:value="${meetup != null} ? ${meetup.nx} : ''"/>
+								<input type="hidden" id="ny" name="ny" th:value="${meetup != null} ? ${meetup.ny} : ''"/>
+								<input type="hidden" id="longitude" name="longitude" th:value="${meetup != null} ? ${meetup.longitude} : ''"/>
+								<input type="hidden" id="latitude" name="latitude" th:value="${meetup != null} ? ${meetup.latitude} : ''"/>
+							</div>
+														
+								
+							
+							<div class="mw-form-group">
+								<label>모임 일시</label>
+								<input type="datetime-local" name="meetupAt" id="meetupAt" class="mw-form-input" 
+									   th:value="${meetup != null} ? ${meetup.meetupAt} : ''">
+							</div>
+	
+							<div class="mw-form-group">
+								<label>상태</label>
+								<select id="status" name="status" class="mw-form-select">
+									<option value="RECRUITING" th:selected="${meetup != null and meetup.status == 'RECRUITING'}">모집중</option>
+									<option value="CLOSED" th:selected="${meetup != null and meetup.status == 'CLOSED'}">종료됨</option>
+									<option value="WEATHER_CANCELED" th:selected="${meetup != null and meetup.status == 'WEATHER_CANCELED'}">기상 악화로 인한 취소</option>
+								</select>
+							</div>
+			
+							<button type="submit" class="mw-btn-submit" 
+									th:text="${meetup != null} ? '모임 수정하기' : '모임 등록하기'">
+								모임 등록하기
+							</button>
+						</div>
+						<!-- 지도 -->
+						<div class="mw-side-box">
+						    <h3>모임 위치</h3>						
+						    <div id="map" style="width:100%; height:300px; border-radius:8px;"></div>
+						</div>
+						<!-- 지도 -->
+						<div class="mw-side-box">
+							<h3>작성 가이드</h3>
+							<p class="mw-guide-text">
+								• 모임 목적을 명확히 작성해주세요.<br>
+								• 장소와 시간을 정확히 입력해주세요.<br>
+								• 참가 조건이 있다면 소개글에 작성해주세요.
+							</p>
+						</div>
+					</div>
+				</div>
+			</form>
 		</div>
-	<script th:inline="javascript">
-		const address = [[${meetup?.address}]] || "";
-		const sigunguList = [[${sigunguList}]] || [];
-		const addressSearchModal = document.getElementById('addressSearchModal');	
-		const sigunguId = document.getElementById('sigunguId');
-		const addressText = document.getElementById('addressText');
-		const nx = document.getElementById('nx');
-		const ny = document.getElementById('ny');
-		
-		let pstartno = 1;
-		
-		function loadAddress(page){
-			pstartno = page;
-			searchAddress();
-		}
-		
-		
-		function selectAddress(text,sigungu,nxVal,nyVal){
-			hideAddressSearchModal();		
-			addressText.value = text
-			const foundSigunguId = sigunguList.find(item => item.name === sigungu)?.sigunguId || 1;
-			sigunguId.value = foundSigunguId
-			nx.value = nxVal
-			ny.value = nyVal
-		}
-		
-		
-		function showAddressSearchModal(){
-			addressSearchModal.classList.add('active');           
-			document.body.style.overflow = 'hidden';
-		}
-		
-		function hideAddressSearchModal() {
-			addressSearchModal.classList.remove('active');
-			document.body.style.overflow = ''; 
-			searchAddress.value = "";
-			pstartno = 1;
-		}
-	
-		function searchAddress(){
-			const searchAddress = searchText.value;
-			if(searchAddress.length < 1){
-				alert("두글자 이상 입력해 주세요")
-				return 
-			}
-			const baseUrl = '/meetup/address-search';		
-			const params = {
-								searchAddress,
-								pstartno
-							};
-
-			const queryString = new URLSearchParams(params).toString();
-			fetch(`${baseUrl}?${queryString}`)
-			  .then(response => response.json())
-			  .then(data => {
-				  console.log(data)
-				  makeTable(data.searchList)
-				  makePaging(data.paging)
-			  })
-			  .catch(error => console.error('Error:', error));
-		}
-		
-		function makeTable(list){
-	 		let html="";
-	 		
-	 		list.forEach((info)=>{	 				 			
-	 			html+=`
-	 			<tr>
-	 				
-					<td>${info.address}</td>
-					<td>${info.road}</td>
-					<td>${info.jibun}</td>
-					<td>${info.zipNo}</td>									
-					<td> <button class="btn btn-sm" onclick="selectAddress('${info.address}','${info.sigungu}','${info.nx}','${info.ny}')">선택</button> </td>
-				</tr>
-	 			`;
-	 		});
-	 		document.getElementById("addressModalBody").innerHTML=html;
-	 	}
-		
-		function makePaging(paging){
-	 		let html = "";
-	 		
-	 		if(paging.start > paging.bottomlist){
-	 			html += `
-				<li class="page-item">
-	 				<a class="page-link" href="#" onclick="loadAddress(${paging.start-1}); return false;"> < </a>
-	 			</li> 			
-	 			`;
-	 		}
-	 		
-	 		for(let i=paging.start; i<=paging.end;i++){
-	 			
-	 			let activeClass = (i == paging.current) ? "active" : "";
-	 			
-	 			html +=`
-				<li class="page-item ${activeClass}">
-					<a href="#" class="page-link" onclick="loadAddress(${i}); return false;">${i}</a>
-				</li>			
-	 			`;
-	 		}
-	 		
-	 	    if(paging.pagetotal>paging.end){
-	
-	 	        html+=`
-	 	        <li class="page-item">
-	 	            <a class="page-link"
-	 	                href="#"
-	 	                onclick="loadAddress(${paging.end+1});return false;">
-	 	                >
-	 	            </a>
-	 	        </li>
-	 	        `;
-	 	    }
-	
-	 	    document.getElementById("pagingArea").innerHTML=html; 		
-	 	}
-		
-	
-	    window.onload = function() {
-	        const sigunguId = document.getElementById("sigunguId");
-	        const categoryId = document.getElementById("categoryId");
-	        const status = document.getElementById("status");
-
-	        const meetup = [[${meetup}]];
-	       
-	        // meetup 객체가 존재할 때만 값을 세팅합니다.
-	        if (meetup != null) {
-	            if(status) status.value = meetup.status;
-	            if(sigunguId) sigunguId.value = meetup.sigunguId;
-	            if(categoryId) categoryId.value = meetup.categoryId;
-	        }       
-
-	    }
-	    
-	    
-	 	// 이미지를 한 장씩 넘기기 위한 슬라이드 이동 함수
-	    function moveSlide(direction) {
-	        const container = document.getElementById("mwMainImage");
-	        // 이미지 한 장의 가로 폭(너비)을 구합니다.
-	        const containerWidth = container.clientWidth; 
-	        
-	        // 현재 스크롤 위치에서 이미지 한 장 크기만큼 좌(-) 또는 우(+)로 스크롤 이동
-	        container.scrollLeft += (direction * containerWidth);
-	    }
-	 
-	 	// 이미지 선택 시 화면에 보여지는 기능
-	    function previewFiles(event){
-	    	const mwMainImage = document.getElementById("mwMainImage");
-	    	const placeholderText = document.getElementById("placeholderText");
-	    	const prevBtn = document.getElementById("prevBtn");
-	        const nextBtn = document.getElementById("nextBtn");
-	    	const files = event.target.files;
-	    	
-	    	//새 파일 선택 시 기존에 생성된 이미지 지우기(텍스트 숨김)
-	    	if(placeholderText) placeholderText.style.display="none";
-	    	//기존 이미지 미리보기 삭제
-	    	const oldImages = mwMainImage.querySelectorAll("img");
-	    	oldImages.forEach(img => img.remove());
-	    	
-	    	if(files.length > 1){
-	    		prevBtn.style.display = "block"
-	    		nextBtn.style.display = "block"
-	    	}else {
-	    		prevBtn.style.display = "none"
-		    	nextBtn.style.display = "none"	    		
-	    	}
-	    	
-	    	for(let i=0; i < files.length; i++){
-	    		const file = files[i];
-	    		const reader = new FileReader();
-	    		
-	    		reader.onload = function(event){
-	    			const img = document.createElement('img');
-	    			img.src = event.target.result;
-	    			//미리보기 이미지 스타일(원하는 크기로)
-	    			img.style.width = "100%";
-	    			img.style.height = "100%";
-	    			img.style.objectFit = "cover";
-	    			img.style.borderRadius = "5px";
-	    			img.style.flexShrink = "0";     /* 가로 배열 시 이미지 찌그러짐 방지 (필수) */
-	                img.style.scrollSnapAlign = "start"; /* 자석 스크롤 기준점 설정 */
-	    			
-	    			mwMainImage.appendChild(img);	
-	    		};
-	    		reader.readAsDataURL(file);
-	    	}
-	    	
-	    }
-	</script>
 	</div>
-	<th:block th:replace="~{user/fragments/footer :: footer}" />
+
+<div class="modal-overlay" id="addressSearchModal">
+    <div class="modal-window">
+        <div class="modal-header">
+            <h3>주소검색</h3>
+            <button class="modal-close" onclick="hideAddressSearchModal()">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+	        <div class="mw-form-group">
+				<label>주소</label>
+				<input type="text" id="searchText" class="mw-form-input" placeholder="검색어 입력후 엔터를 입력해주세요" onkeyup="if(event.key === 'Enter') { searchAddress(); }"/>
+			</div>
+            <table class="modal-table">
+					<thead>
+					    <tr>
+					        <th style="width: 40%; text-align: left;">주소</th>
+					        <th style="width: 30%;">도로명</th>
+					        <th style="width: 20%;">지번</th>
+					        <th style="width: 10%;">우편번호</th>							       
+					        <th style="width: 20%;">선택</th>
+					    </tr>
+					</thead>
+                <tbody id="addressModalBody"></tbody>
+            </table>
+            <ul class="pagination justify-content-center" id="pagingArea"></ul>		
+        </div>
+    </div>
+</div>
+	<script th:inline="javascript">
+			const address = [[${meetup?.address}]] || "";
+			const sigunguList = [[${sigunguList}]] || [];
+			const addressSearchModal = document.getElementById('addressSearchModal');	
+			const sigunguId = document.getElementById('sigunguId');
+			const addressText = document.getElementById('addressText');
+			const nx = document.getElementById('nx');
+			const ny = document.getElementById('ny');
+			const longitude = document.getElementById('longitude');
+			const latitude = document.getElementById('latitude');
+			
+	 	    const title = document.getElementById("title");
+	 	    const categoryId = document.getElementById("categoryId");
+	 	    const content = document.getElementById("content");	 	   
+	 	    const meetupAt = document.getElementById("meetupAt");
+	 	    
+	 	    
+	 	    
+	 	   
+	 	    
+			
+			let pstartno = 1;
+			
+			function loadAddress(page){
+				pstartno = page;
+				searchAddress();
+			}
+			
+			
+			function selectAddress(text,sigungu,nxVal,nyVal,longitudeVal,latitudeVal){
+				hideAddressSearchModal();		
+				addressText.value = text;
+				const foundSigunguId = sigunguList.find(item => item.name === sigungu)?.sigunguId || 1;
+				sigunguId.value = foundSigunguId;
+				nx.value = nxVal;
+				ny.value = nyVal;
+				longitude.value = longitudeVal;
+				latitude.value = latitudeVal;
+				
+				moveMap(latitudeVal, longitudeVal);
+			}
+			
+			function showAddressSearchModal(){
+				addressSearchModal.classList.add('active');           
+				document.body.style.overflow = 'hidden';부평동
+			}
+			
+			function hideAddressSearchModal() {
+				addressSearchModal.classList.remove('active');
+				document.body.style.overflow = ''; 
+				searchAddress.value = "";
+				pstartno = 1;
+			}
+		
+			function searchAddress(){
+				const searchAddress = searchText.value;
+				if(searchAddress.length < 1){
+					alert("두글자 이상 입력해 주세요")
+					return 
+				}
+				const baseUrl = '/meetup/address-search';		
+				const params = {
+									searchAddress,
+									pstartno
+								};
+	
+				const queryString = new URLSearchParams(params).toString();
+				fetch(`${baseUrl}?${queryString}`)
+				  .then(response => response.json())
+				  .then(data => {
+					  makeTable(data.searchList)
+					  makePaging(data.paging)
+				  })
+				  .catch(error => console.error('Error:', error));
+			}
+			
+			function makeTable(list){
+		 		let html="";
+		 		
+		 		list.forEach((info)=>{	 				 			
+		 			html+=`
+		 			<tr>
+		 				
+						<td>${info.address}</td>
+						<td>${info.road}</td>
+						<td>${info.jibun}</td>
+						<td>${info.zipNo}</td>
+						<td> <button class="btn btn-sm" onclick="selectAddress('${info.address}','${info.sigungu}','${info.nx}','${info.ny}','${info.longitude}','${info.latitude}')">선택</button> </td>
+					</tr>
+		 			`;
+		 		});
+		 		document.getElementById("addressModalBody").innerHTML=html;
+		 	}
+			
+			function makePaging(paging){
+		 		let html = "";
+		 		
+		 		if(paging.start > paging.bottomlist){
+		 			html += `
+					<li class="page-item">
+		 				<a class="page-link" href="#" onclick="loadAddress(${paging.start-1}); return false;"> < </a>
+		 			</li> 			
+		 			`;
+		 		}
+		 		
+		 		for(let i=paging.start; i<=paging.end;i++){
+		 			
+		 			let activeClass = (i == paging.current) ? "active" : "";
+		 			
+		 			html +=`
+					<li class="page-item ${activeClass}">
+						<a href="#" class="page-link" onclick="loadAddress(${i}); return false;">${i}</a>
+					</li>			
+		 			`;
+		 		}
+		 		
+		 	    if(paging.pagetotal>paging.end){
+		
+		 	        html+=`
+		 	        <li class="page-item">
+		 	            <a class="page-link"
+		 	                href="#"
+		 	                onclick="loadAddress(${paging.end+1});return false;">
+		 	                >
+		 	            </a>
+		 	        </li>
+		 	        `;
+		 	    }
+		
+		 	    document.getElementById("pagingArea").innerHTML=html; 		
+		 	}
+			
+		
+		    window.onload = function() {
+		        const sigunguId = document.getElementById("sigunguId");
+		        const categoryId = document.getElementById("categoryId");
+		        const status = document.getElementById("status");
+	
+		        const meetup = [[${meetup}]];
+		       
+		        // meetup 객체가 존재할 때만 값을 세팅합니다.
+		        if (meetup != null) {
+		            if(status) status.value = meetup.status;
+		            if(sigunguId) sigunguId.value = meetup.sigunguId;
+		            if(categoryId) categoryId.value = meetup.categoryId;
+		        }       
+	
+		    }
+		    
+		    
+		 	// 이미지를 한 장씩 넘기기 위한 슬라이드 이동 함수
+		    function moveSlide(direction) {
+		        const container = document.getElementById("mwMainImage");
+		        // 이미지 한 장의 가로 폭(너비)을 구합니다.
+		        const containerWidth = container.clientWidth; 
+		        
+		        // 현재 스크롤 위치에서 이미지 한 장 크기만큼 좌(-) 또는 우(+)로 스크롤 이동
+		        container.scrollLeft += (direction * containerWidth);
+		    }
+		 
+		 	// 이미지 선택 시 화면에 보여지는 기능
+		    function previewFiles(event){
+		    	const mwMainImage = document.getElementById("mwMainImage");
+		    	const placeholderText = document.getElementById("placeholderText");
+		    	const prevBtn = document.getElementById("prevBtn");
+		        const nextBtn = document.getElementById("nextBtn");
+		    	const files = event.target.files;
+		    	
+		    	//새 파일 선택 시 기존에 생성된 이미지 지우기(텍스트 숨김)
+		    	if(placeholderText) placeholderText.style.display="none";
+		    	//기존 이미지 미리보기 삭제
+		    	const oldImages = mwMainImage.querySelectorAll("img");
+		    	oldImages.forEach(img => img.remove());
+		    	
+		    	if(files.length > 1){
+		    		prevBtn.style.display = "block"
+		    		nextBtn.style.display = "block"
+		    	}else {
+		    		prevBtn.style.display = "none"
+			    	nextBtn.style.display = "none"	    		
+		    	}
+		    	
+		    	for(let i=0; i < files.length; i++){
+		    		const file = files[i];
+		    		const reader = new FileReader();
+		    		
+		    		reader.onload = function(event){
+		    			const img = document.createElement('img');
+		    			img.src = event.target.result;
+		    			//미리보기 이미지 스타일(원하는 크기로)
+		    			img.style.width = "100%";
+		    			img.style.height = "100%";
+		    			img.style.objectFit = "cover";
+		    			img.style.borderRadius = "5px";
+		    			img.style.flexShrink = "0";     /* 가로 배열 시 이미지 찌그러짐 방지 (필수) */
+		                img.style.scrollSnapAlign = "start"; /* 자석 스크롤 기준점 설정 */
+		    			
+		    			mwMainImage.appendChild(img);	
+		    		};
+		    		reader.readAsDataURL(file);
+		    	}
+		    	
+		    }
+
+		 	//모임제목, 카테고리 컨텐츠 추가
+		    setTimeout(() => {
+		        const titleInput = document.getElementById("title");
+		        // 사용자가 아직 입력하지 않았을 때만 placeholder 변경
+		        if (titleInput.value.trim() === "") {
+		            titleInput.placeholder = "💡 제목이 고민되시나요? 키워드만 입력하면 AI가 추천해드려요.";
+		        }
+		    }, 5000);
+		 	
+		 	const titleInput = document.getElementById("title");
+		 	const contentInput = document.getElementById("content");
+		 	const categorySelect = document.getElementById("categoryId");
+		 	
+		 	let timer;
+		 	let aiRecommended = false; // Ai 추천 여부 - 1번만 호출할예정
+		 	const apiPlaceholder = "💡 제목이 고민되시나요? 키워드만 입력하면 AI가 추천해드려요.";
+		 	
+		 	
+		 	titleInput.addEventListener("input", function(){
+		 		
+		 		//placeholder 값이 바뀐 후 입력 시 ai 호출
+		 		if(this.placeholder !== apiPlaceholder){
+		 			return;
+		 		}
+		 		
+		 		//이미 추천을 받았으면 더 이상 호출하지 않음
+		 		if(aiRecommended){
+		 			return;
+		 		}
+		 		
+		 		clearTimeout(timer);
+		 		
+		 		const keyword = this.value.trim();
+		 		
+		 		if(keyword.length < 2){
+		 			return;
+		 		}
+		 		
+		 		timer = setTimeout(()=>{
+		 			
+		 			fetch("/meetup/write/ai/recommended", {
+		 			    method: "POST",
+		 			    headers: getCsrfHeaders(),
+		 			    body: JSON.stringify({ keyword })
+		 			})
+		 			.then(res => {
+					    console.log("status =", res.status);
+					
+					    if (!res.ok) {
+					        throw new Error("HTTP " + res.status);
+					    }
+					
+					    return res.json();
+					})
+		 			.then(data=>{
+		 				console.log(data);
+		 				//제목
+		 				titleInput.value = data.title;
+		 				
+		 				//카테고리
+					    if (data.categoryId) {
+					        categorySelect.value = data.categoryId;
+					    }
+		 				
+		 				//내용
+		 				contentInput.value = data.content;
+		 				
+		 				aiRecommended = true;
+		 			})
+		 			.catch(error => {
+		 				console.log(error);
+		 			})
+		 			
+		 		}, 1000);
+		 		
+		 	});
+		 	
+		 	//네이버 지도
+		 	let map;
+		 	let marker;
+		 	
+		 	//처음 화면 로드
+		 	function initMap() {
+
+		 	    let lat = document.getElementById("latitude").value;
+		 	    let lon = document.getElementById("longitude").value;
+
+		 	    let defaultPos;
+
+		 	    // 수정 화면이고 기존 좌표가 있으면
+		 	    if (lat && lon) {
+		 	        defaultPos = new naver.maps.LatLng(
+		 	            parseFloat(lat),
+		 	            parseFloat(lon)
+		 	        );
+		 	    } else {
+		 	        // 신규 작성
+		 	        defaultPos = new naver.maps.LatLng(37.5665, 126.9780);
+		 	    }
+
+		 	    map = new naver.maps.Map('map', {
+		 	        center: defaultPos,
+		 	        zoom: 15
+		 	    });
+
+		 	    marker = new naver.maps.Marker({
+		 	        position: defaultPos,
+		 	        map: map
+		 	    });
+		 	}	 	
+		 	
+		 	window.onload = function () {
+		 	    initMap();
+		 	};
+		 	
+		 	//주소 입력 후 위도,경도 값 받아와서 지도 보여주기
+			function moveMap(lat, lon) {
+			
+			    const position = new naver.maps.LatLng(
+			        parseFloat(lat),
+			        parseFloat(lon)
+			    );
+			
+			    map.setCenter(position);
+			    marker.setPosition(position);
+			}
+		 	
+		 	//null 체크
+		 	function validateMeetupForm() {
+							
+		 	    if (!title.value.trim()) {
+		 	        alert("모임 제목을 입력해주세요.");
+		 	        document.getElementById("title").focus();
+		 	        return false;
+		 	    }
+
+		 	    if (!categoryId.value) {
+		 	        alert("카테고리를 선택해주세요.");
+		 	        document.getElementById("categoryId").focus();
+		 	        return false;
+		 	    }
+
+		 	    if (!content.value.trim()) {
+		 	        alert("모임 소개를 입력해주세요.");
+		 	        document.getElementById("content").focus();
+		 	        return false;
+		 	    }
+
+		 	    if (!addressText.value.trim()) {
+		 	        alert("모임 장소를 선택해주세요.");
+		 	        document.getElementById("addressText").focus();
+		 	        return false;
+		 	    }
+
+		 	    if (!meetupAt.value) {
+		 	        alert("모임 날짜와 시간을 선택해주세요.");
+		 	        document.getElementById("meetupAt").focus();
+		 	        return false;
+		 	    }
+		 	    
+		 	    if (!sigunguId.value) {
+		 	        alert("주소를 입력하세요.");
+		 	        document.getElementById("sigunguId").focus();
+		 	        return false;
+		 	    }		 	    
+
+		 	    return true;
+		 	}
+		</script>
+</div>	
 </body>
 </html>

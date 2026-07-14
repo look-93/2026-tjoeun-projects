@@ -61,8 +61,9 @@ public class OpenApiServiceImpl implements OpenApiService{
 	    case 21, 22, 23 -> "2000";
 	    default -> throw new IllegalStateException("Unexpected value: " + formattedNow);
 		};
-
-		
+//		System.out.println(baseDate + "aaa"); System.out.println(formattedNow + "ddddd"); System.out.println(baseTime + "aafafs");
+//		System.out.println(request.getNx());
+//		System.out.println(request.getNy());
 		String xml  = weatherRestClient
 				.get()
 				.uri("/getVilageFcst?serviceKey="+kmaApiKey+"&numOfRows=1000&pageNo=1&base_date="+baseDate+"&base_time="+baseTime+"&nx="+request.getNx()+"&ny="+request.getNy())
@@ -78,18 +79,22 @@ public class OpenApiServiceImpl implements OpenApiService{
 			        node,
 			        new TypeReference<Map<String, Object>>() {}
 			);
-			
+			//System.out.println(response);
 			Map<String, Object> body = (Map<String, Object>) response.get("body"); // map -> response 에서 body꺼내오기
-			
+			//System.out.println(body);
 			Map<String, Object> items = (Map<String, Object>) body.get("items"); // map -> items 에서 item 꺼내오기
+			//System.out.println(items);
 			List<Map<String, Object>> itemList = 
 			        (List<Map<String, Object>>) items.get("item");
 			List<Map<String, Object>> filteredItemList = itemList.stream().filter(item->{
 				String fcstDate = (String)item.get("fcstDate");
 				String fcstTime = (String)item.get("fcstTime");
-				return fcstDate.equals(request.getMeetupDate()) && fcstTime.equals(request.getMeetupTime() + "00");
+				//System.out.println(fcstTime);
+				//System.out.println(request.getMeetupTime()+ "00");
+				String meetupTime = String.format("%02d00", request.getMeetupTime());
+				return fcstDate.equals(request.getMeetupDate()) && fcstTime.equals(meetupTime);
 			}).toList();
-
+			
 			/* <item>
 			<baseDate>20260710</baseDate>
 			<baseTime>0500</baseTime>
@@ -100,7 +105,7 @@ public class OpenApiServiceImpl implements OpenApiService{
 			<nx>55</nx>
 			<ny>127</ny>
 			</item> 를 리스트로 받기*/ 
-			
+			//System.out.println(filteredItemList + "dddddddddddddddd");
 			for(Map<String, Object> item : filteredItemList ) { //아이템에서 값 뽑아오기
 				String category = (String)item.get("category");				
 				String fcstValue = (String)item.get("fcstValue");
