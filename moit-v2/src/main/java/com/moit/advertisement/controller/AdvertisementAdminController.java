@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
+import com.moit.advertisement.dto.DashboardAiDto;
 import com.moit.advertisement.service.AdvertisementService;
 
 import jakarta.servlet.http.HttpSession;
@@ -102,6 +103,16 @@ public class AdvertisementAdminController {
         
      // 데이터가 없어서 totalPage가 0이 나오더라도 최소 1페이지로 고정
         if (totalPage == 0) { totalPage = 1; }
+        
+     // 페이지 블럭 (10개 단위)
+        int pageBlock = 10;
+
+        int startPage = ((dto.getPage() - 1) / pageBlock) * pageBlock + 1;
+
+        int endPage = Math.min(startPage + pageBlock - 1, totalPage);
+
+        model.addAttribute("startPage", startPage);
+        model.addAttribute("endPage", endPage);
 
         model.addAttribute("list", list);
         model.addAttribute("dto", dto);
@@ -324,7 +335,15 @@ public class AdvertisementAdminController {
         return advertisementService.selectPositionCtrChart();
 
     }
-    
+    // AI 통계 요약
+ // AI 통계 요약
+    @GetMapping("/chart/ai-summary")
+    @ResponseBody
+    public DashboardAiDto aiSummary() {
+
+        return advertisementService.getLatestAiSummary();
+
+    }
 
     // 로그인 헬퍼
     private Integer getLogin(HttpSession session) {
