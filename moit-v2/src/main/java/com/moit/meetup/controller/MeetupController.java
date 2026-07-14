@@ -59,9 +59,9 @@ public class MeetupController {
 
 	@Autowired OpenApiService openApiService;
 	@Autowired ReportsService reportsService;
+
 	@Autowired OpenAiService2 openAiService;
 
-	
 	/*1. 모임 리스트 화면(HTML) 호출*/
 	@GetMapping("/meetup/list")
 	public String listPage(Model model,
@@ -243,14 +243,15 @@ public class MeetupController {
 		//System.out.println(weatherResponse);
 	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
 	    
+	    // 중복 신고 방지
 	    reportsDto.setMemberId(memberId); // 로그인한 멤버아이디
-	    reportsDto.setTargetType("MEETUP"); // 모임글 신고 = meetup
-	    reportsDto.setTargetId(meetupApplicationDto.getMeetupId()); //모임글아이디
+    	reportsDto.setTargetType("MEETUP");
+    	reportsDto.setTargetId(meetupApplicationDto.getMeetupId()); //모임글아이디
+	
+	    int checkMeetupDoubleReport =  reportsService.checkDoubleReport(reportsDto);
 	    
-	    int checkDoubleReport =  reportsService.checkDoubleReport(reportsDto);
-	    
-	    //System.out.println(checkDoubleReport + "dddddddddddddddddddddddddddddddddddddddddddddddddd");
-	    model.addAttribute("checkDoubleReport", checkDoubleReport);
+	    //System.out.println(checkMeetupDoubleReport + "dddddddddddddddddddddddddddddddddddddddddddddddddd");
+	    model.addAttribute("checkMeetupDoubleReport", checkMeetupDoubleReport);
         model.addAttribute("user", user);
 	    model.addAttribute("applyInfo", meetupService.findApplyInfo(meetupApplicationDto));
 	    model.addAttribute("detail", meetupDto);
@@ -280,7 +281,25 @@ public class MeetupController {
 	                meetupApplicationDto.getMeetupId(),
 	                sort);
 	    }
+	    
+	    ///////////////////////////////////////////////////////////////////////
+	    // 후기글 중복 신고
+//	    List<ReviewDto> reviewLists = reviewService.selectUserReview(meetupApplicationDto.getMeetupId(), sort);
 
+	    for (ReviewDto reviewDto : reviewList) { 
+	    	ReportsDto reviewReportsDto = new ReportsDto();
+
+	    	reviewReportsDto.setMemberId(memberId);
+	    	reviewReportsDto.setTargetType("REVIEW");
+	    	reviewReportsDto.setTargetId(reviewDto.getReviewId());
+	    	
+	    	// 반복문 안 지역변수
+	    	int checkReviewDoubleReport =  reportsService.checkDoubleReport(reviewReportsDto);
+	    	
+	    	reviewDto.setCheckDoubleReport(checkReviewDoubleReport);
+	    }
+	    ///////////////////////////////////////////////////////////////////////
+	    
 	    model.addAttribute("reviews", reviewList);
 	    model.addAttribute("keyword", keyword);
 	    model.addAttribute("sort", sort);
