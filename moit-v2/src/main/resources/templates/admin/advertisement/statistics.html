@@ -401,14 +401,28 @@
 				.then(res => res.json())
 				.then(data => {
 
-				    document.getElementById("aiSummary").innerHTML = data.summary.replace(/\n/g, "<br>");
-				    document.getElementById("aiCreatedAt").textContent = data.createdAt;
+					if(data.summary) {
+
+				        document.getElementById("aiSummary").innerHTML =
+				            data.summary.replace(/\n/g, "<br>");
+
+				        document.getElementById("aiCreatedAt").textContent =
+				            data.createdAt;
+
+				    } else {
+
+				        document.getElementById("aiSummary").innerHTML =
+				            "<span class='text-muted'>아직 생성된 AI 분석이 없습니다.</span>";
+
+				        document.getElementById("aiCreatedAt").textContent =
+				            "-";
+				    }
 
 				})
 				.catch(err => {
 
 				    document.getElementById("aiSummary").innerHTML =
-				        "<span class='text-danger'>AI 분석 생성 실패</span>";
+				        "<span class='text-danger'>AI 분석 데이터를 불러오지 못했습니다.</span>";
 
 				    console.error(err);
 

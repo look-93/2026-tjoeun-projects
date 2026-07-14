@@ -223,6 +223,7 @@ AD
     min-height:120px;
     max-height:900px;
     box-shadow:var(--shadow);
+    position:relative;
 }
 
 .ad-left h3{
@@ -267,6 +268,70 @@ AD
 .ad-empty{
     padding:40px;
     color:#999;
+}
+
+.ad-link {
+    position:relative;
+    display:block;
+}
+
+
+/* 프리미엄 제목 */
+.premium-ad-overlay {
+    position:absolute;
+    top:12px;
+    left:12px;
+    background:rgba(255,255,255,0.75);
+    backdrop-filter:blur(6px);
+    padding:6px 12px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:700;
+    max-width:70%;
+    cursor:pointer;
+    z-index:5;
+}
+
+
+/* 제목 길이 제한 */
+.premium-ad-overlay > span {
+    display:block;
+    max-width:220px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+
+/* 설명 */
+.premium-ad-tooltip {
+    display:none;
+    position:absolute;
+    top:35px;
+    left:0;
+    width:280px;
+    background:rgba(255,255,255,0.75);
+    color:#333;
+    padding:12px;
+    border-radius:10px;
+    box-shadow:0 5px 20px rgba(0,0,0,.2);
+    font-size:13px;
+    line-height:1.5;
+    z-index:20;
+}
+
+
+
+/* PC hover */
+@media(min-width:768px){
+
+    .premium-ad-overlay:hover 
+    .premium-ad-tooltip {
+
+        display:block;
+
+    }
+
 }
 
 /* ==================
@@ -4102,6 +4167,11 @@ textarea.mw-form-input {
 .member-ad-write-textarea {
     min-height:150px;
     resize:vertical;
+}
+
+.ai-ad-helper {
+    display: none;
+    margin-bottom: 10px;
 }
 
 /* target 영역 */

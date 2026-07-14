@@ -34,6 +34,9 @@ public class SecurityConfig {
 											   // 관리자 영역(추후 활성화 예정)
 											   //.requestMatchers("/admin/**")
 											   //.hasRole("ADMIN")
+											   // 제휴업체 광고 키워드로 ai 내용작성 
+											   .requestMatchers("/user/advertisement/aiAdvertise")
+											   .hasRole("PARTNER")
 											   .requestMatchers( "/user/member/socialInfo" )									   
 											   .hasAuthority("ROLE_SOCIAL")
 											   .anyRequest()
