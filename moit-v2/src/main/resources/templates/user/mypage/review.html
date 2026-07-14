@@ -42,6 +42,12 @@
 					<button type="submit"
 						style="background: #3B82F6; color: white; border: none; padding: 0 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
 						검색</button>
+						
+						<button type="button"
+				        onclick="location.href='/mypage/review'"
+				        style="background: #E2E8F0; color: #475569; border: none; padding: 0 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+				            초기화
+				       </button>
 
 				</form>
 
@@ -51,14 +57,14 @@
 
 						<input type="hidden" name="keyword" th:value="${keyword}">
 
-						<!-- <select name="sort" onchange="this.form.submit()"
+						<select name="sort" onchange="this.form.submit()"
 							style="padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 14px; color: #475569; background: white; cursor: pointer; outline: none;">
- -->
-							<!-- <option value="latest" th:selected="${sort == 'latest'}">
+
+						 <option value="latest" th:selected="${sort == 'latest'}">
 								최신순</option>
 
 							<option value="likes" th:selected="${sort == 'likes'}">
-								인기순</option> -->
+								별점순</option>
 
 						</select>
 
@@ -76,9 +82,9 @@
 			<table class="mypage-table">
 				<thead>
 					<tr>
-						<th style="width: 25%; text-align: left; padding-left: 15px;">모임
+						<th style="width: 25%; text-align: center; padding-left: 15px;">모임
 							정보</th>
-						<th style="width: 45%; text-align: left;">후기 내용</th>
+						<th style="width: 45%; text-align: center;">후기 내용</th>
 						<th style="width: 15%; text-align: center;">공개 상태</th>
 						<th style="width: 15%; text-align: center;">관리</th>
 					</tr>
