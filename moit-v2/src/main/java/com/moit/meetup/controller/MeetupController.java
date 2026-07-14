@@ -1,5 +1,8 @@
 package com.moit.meetup.controller;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -23,23 +26,21 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.service.AdvertisementService;
-
 import com.moit.meetup.client.OpenAiService2;
-
+import com.moit.meetup.client.OpenApiService;
 import com.moit.meetup.dto.MeetupApplicationDto;
 import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
-
-import com.moit.meetup.dto.openapi.AddressSearchResponse;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.meetup.dto.openapi.WeatherInfoRequest;
 import com.moit.meetup.dto.openapi.WeatherInfoResponse;
-
 import com.moit.meetup.service.MeetupService;
 import com.moit.member.dto.UserDto;
 import com.moit.qna.service.QuestionService;
+import com.moit.reports.dto.ReportsDto;
+import com.moit.reports.service.ReportsService;
 import com.moit.review.dto.ReviewDto;
 import com.moit.review.service.ReviewService;
 import com.moit.security.CustomUserDetails;
@@ -169,7 +170,7 @@ public class MeetupController {
 						MeetupApplicationDto meetupApplicationDto, 
 						@RequestParam(value = "keyword", required = false) String keyword,   // ★ 추가
 						@RequestParam(value = "sort", required = false, defaultValue = "latest")  String sort,
-			            HttpServletRequest request, HttpSession session	) {
+			            HttpServletRequest request, HttpSession session, ReportsDto reportsDto) {
 		
 		String loginId     = null, provider = null;
 		UserDto user=null;

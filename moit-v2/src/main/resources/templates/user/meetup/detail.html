@@ -271,17 +271,19 @@
 						<div class="meetup-detail-tab-panel">
 						    <h3>Q&A</h3>
 						    <div th:if="${#lists.isEmpty(qnaList)}"> 등록된 문의가 없습니다. </div>
-						    <div class="meetup-detail-comment" th:each="qna : ${qnaList}">
+						    <div class="meetup-detail-comment" th:each="qna : ${qnaList}"
+						         th:onclick="|location.href='@{/questions/{id}(id=${qna.questionId})}'|"
+						         style="cursor:pointer;">
 						        <div class="meetup-detail-comment-top">
 						            <div class="meetup-detail-comment-user">
 						                <div class="meetup-detail-comment-name" th:text="${qna.nickname}"> </div>
 						                <div class="meetup-detail-comment-date"
 										     th:text="${#strings.substring(qna.createdAt.toString(), 0, 19)}">
 										</div>
-						            </div>
+						            </div> 
 						        </div>
 						
-						        <h4 class="meetup-detail-comment-text" th:text="${qna.title}"> </h4>
+						        <h4 class="meetup-detail-comment-text" th:text="${qna.title}"></h4>
 						        <p class="meetup-detail-comment-text" th:text="${qna.content}"> </p>
 						        <div th:if="${qna.answer != null}">
 						            <hr>
