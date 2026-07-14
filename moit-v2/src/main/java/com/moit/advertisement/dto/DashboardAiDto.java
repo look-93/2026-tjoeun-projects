@@ -33,4 +33,6 @@ public class DashboardAiDto {
     private String summary;
     // 생성 시각
     private String createdAt;
+    // 요약 id
+    private Integer summaryId;
 }

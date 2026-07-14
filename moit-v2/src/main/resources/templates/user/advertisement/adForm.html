@@ -284,14 +284,32 @@
                 <label class="member-ad-write-label">
                     광고 채널
                 </label>
+                
+                <select name="adChannel"
+                        class="member-ad-write-select">
+                    <option value="ALL"
+                            th:selected="${dto.adChannel == 'ALL'}">
+                        전체
+                    </option>
 
 
-                <input type="text"
-                       name="adChannel"
-                       class="member-ad-write-input"
-                       th:value="${dto.adChannel}">
+                    <option value="WEB"
+                            th:selected="${dto.adChannel == 'WEB'}">
+                        WEB
+                    </option>
 
 
+                    <option value="APP"
+                            th:selected="${dto.adChannel == 'APP'}">
+                        APP
+                    </option>
+
+					<option value="EMAIL"
+                            th:selected="${dto.adChannel == 'EMAIL'}">
+                        EMAIL
+                    </option>
+                </select>
+                
             </div>
 
 
