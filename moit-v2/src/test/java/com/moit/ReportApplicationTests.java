@@ -8,12 +8,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.moit.reports.api.ApiScheduledTask;
 import com.moit.reports.dao.ReportsMapper;
 import com.moit.reports.dto.ReportsDto;
+import com.moit.reports.service.ReportsService;
 
 @SpringBootTest
 public class ReportApplicationTests {
 
 	@Autowired
 	private ReportsMapper dao;
+	@Autowired
+	private ReportsService service;
 	@Autowired
 	private ApiScheduledTask apiScheduledTask;
 	
@@ -63,10 +66,22 @@ public class ReportApplicationTests {
 	@Test
 	public void schedule() {
 		
+		System.out.println("..... test 시작");
+		ReportsDto dto = new ReportsDto();
+		dto.setStatus("APPROVED");
+		dto.setReportId(351);
+		
+//		dao.updateAdmin(dto);
+		int result = service.updateAdmin(dto);
+		
+		System.out.println("처리 결과: " + result);
+		System.out.println("..... test 종료");
+		
+		/////////////////////////////////////////////////
 		//3일 후 메일
 //		apiScheduledTask.threeSendEmail();
 		
 		//새벽배치 cal 계산(90일 이력)
-		apiScheduledTask.yesterdayMembersCal();
+//		apiScheduledTask.yesterdayMembersCal();
 	}
 }

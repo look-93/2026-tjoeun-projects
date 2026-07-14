@@ -59,7 +59,7 @@
                      <a th:if="${user.memberId != detail.memberId}"
 					   th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${detail.meetupId})}"
 					   class="meetup-detail-report-btn"
-					  th:onclick="|return checkReportDuplicate(this, ${checkDoubleReport ?: 0});|">
+					  th:onclick="|return checkReportDuplicate(this, ${checkMeetupDoubleReport ?: 0});|">
 					   모임 신고
 					</a>
                </div>
@@ -150,12 +150,14 @@
 									</div>
 									<div>
 										                              <!-- <button class="meetup-detail-report-btn">신고</button> -->
-                     <a 
+                     <a th:if="${user.memberId != review.memberId}"
                       th:href="@{/user/meetup/report/write(targetType='REVIEW', targetId=${review.reviewId})}"              
                       class="meetup-detail-report-btn" 
+					  th:onclick="|return checkReportDuplicate(this, ${review.checkDoubleReport ?: 0});|"
                       style="background-color: #ffeded; color: #e53935; border: none; border-radius: 12px; padding: 4px 10px; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; transition: background 0.2s;">
-                      th:if="${user.memberId != detail.memberId}"리뷰 신고
+                      리뷰 신고
                     </a>
+                    
 										<button class="meetup-detail-report-btn" style="background-color: #FEF08A; color: #15803D; border: none; border-radius: 12px; padding: 4px 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s;"
 											th:onclick="|location.href='/meetup/review/update/${review.reviewId}?meetupId=${detail.meetupId}'|">수정</button>
 										<a class="meetup-detail-report-btn" style="background-color: #BFDBFE; color: #1D4ED8; border: none; border-radius: 12px; padding: 4px 10px; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; transition: background 0.2s;"
@@ -411,17 +413,18 @@
 		    .catch(err => console.log(err));
 		}
 		
-		function checkReportDuplicate(element, checkDoubleReport) {
-
-		    console.log("신고 중복 체크:", checkDoubleReport);
+		////////////////////////////////////////////////////////////////////
+ 		function checkReportDuplicate(element, checkDoubleReport) {
+			
+		    console.log("신고 중복 체크: ", checkDoubleReport);
 
 		    if(Number(checkDoubleReport) === -1) {
-		        alert("이미 신고된 모임글입니다.");
+		        alert("이미 신고된 글입니다.");
 		        return false;
 		    }
-
+		    
 		    return true;
-		}
+		} 
 		</script>
 	</div>
 </body>

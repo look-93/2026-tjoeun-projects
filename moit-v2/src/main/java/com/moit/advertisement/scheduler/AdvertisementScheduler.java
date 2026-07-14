@@ -25,7 +25,7 @@ public class AdvertisementScheduler {
     }
 
     // 5분마다 광고 우선도 갱신 실행 
-    @Scheduled(cron = "0 */5 * * * *")
+//    @Scheduled(cron = "0 */5 * * * *")
     public void updateAdvertisementPriority() {
 
 

@@ -3167,10 +3167,10 @@ textarea.mw-form-input {
    color: #1d5bd7;
 }
 
-.detail-btn-blue {
-   background: var(--detail-blue);
-   border-color: var(--detail-blue);
-   color: #fff;
+.detail-btn.detail-btn-blue {
+    background: #2f6df6;
+    border-color: #2f6df6;
+    color: #fff;
 }
 
 .detail-btn-red {
