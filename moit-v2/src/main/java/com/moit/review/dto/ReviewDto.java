@@ -20,7 +20,7 @@ public class ReviewDto {
     private int imageId;
     private String imagePath;
     
-	public int CheckDoubleReport; // meetups/detail.html
+	public int CheckDoubleReport; //
    
   
 	
