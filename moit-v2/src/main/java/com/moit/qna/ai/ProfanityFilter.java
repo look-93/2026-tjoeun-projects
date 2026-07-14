@@ -14,7 +14,8 @@ public class ProfanityFilter {
         "개새끼",
         "좆",
         "죽어",
-        "꺼져"
+        "꺼져",
+        "ㅅㅂ"
     );
 
     public boolean containsBadWord(String text){

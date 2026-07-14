@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.moit.meetup.dto.MeetupDto;
-import com.moit.meetup.service.MeetupService;
 import com.moit.meetup.service.MeetupServiceImpl;
 import com.moit.member.dto.UserDto;
 import com.moit.qna.dto.AnswerDto;
 import com.moit.qna.dto.QuestionDto;
 import com.moit.qna.service.AnswerService;
+import com.moit.qna.service.QuestionAiAnalysisService;
 import com.moit.qna.service.QuestionService;
 import com.moit.security.CustomUserDetails;
 
@@ -39,12 +39,20 @@ public class QuestionController {
     private final AnswerService answerService;
     //private final MeetupService meetupService;
     private final MeetupServiceImpl meetupService;
+    private final QuestionAiAnalysisService questionAiAnalysisService;
     
     //관리자용 선택 삭제
     @PostMapping("/deleteSelected")
     @ResponseBody
     public void deleteSelected(@RequestBody List<Integer> ids){
         questionService.deleteSelected(ids);
+    }
+    
+    // AI 필터 정상 처리
+    @PostMapping("/ai/normal")
+    @ResponseBody
+    public void changeAiNormal(@RequestBody List<Integer> ids){
+        questionAiAnalysisService.changeToNormal(ids);
     }
     
     // 내 문의 목록

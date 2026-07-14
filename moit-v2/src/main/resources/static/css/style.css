@@ -4408,6 +4408,7 @@ textarea.mw-form-input {
     font-size:40px;
     background:#f5f5f5;
     color:#bbb;
+}
 
 .review-like-btn{
     display:inline-flex;
@@ -4438,6 +4439,7 @@ textarea.mw-form-input {
 
 .review-like-btn:active{
     transform:scale(.96);
+}
 
 /*  광고 모달창 설정   */
 #extensionModal.extension-modal {
