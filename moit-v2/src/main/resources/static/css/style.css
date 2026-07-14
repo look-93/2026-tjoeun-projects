@@ -221,8 +221,9 @@ AD
     justify-content:center;
     align-items:center;
     min-height:120px;
-    max-height:300px;
+    max-height:900px;
     box-shadow:var(--shadow);
+    position:relative;
 }
 
 .ad-left h3{
@@ -267,6 +268,70 @@ AD
 .ad-empty{
     padding:40px;
     color:#999;
+}
+
+.ad-link {
+    position:relative;
+    display:block;
+}
+
+
+/* 프리미엄 제목 */
+.premium-ad-overlay {
+    position:absolute;
+    top:12px;
+    left:12px;
+    background:rgba(255,255,255,0.75);
+    backdrop-filter:blur(6px);
+    padding:6px 12px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:700;
+    max-width:70%;
+    cursor:pointer;
+    z-index:5;
+}
+
+
+/* 제목 길이 제한 */
+.premium-ad-overlay > span {
+    display:block;
+    max-width:220px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+
+/* 설명 */
+.premium-ad-tooltip {
+    display:none;
+    position:absolute;
+    top:35px;
+    left:0;
+    width:280px;
+    background:rgba(255,255,255,0.75);
+    color:#333;
+    padding:12px;
+    border-radius:10px;
+    box-shadow:0 5px 20px rgba(0,0,0,.2);
+    font-size:13px;
+    line-height:1.5;
+    z-index:20;
+}
+
+
+
+/* PC hover */
+@media(min-width:768px){
+
+    .premium-ad-overlay:hover 
+    .premium-ad-tooltip {
+
+        display:block;
+
+    }
+
 }
 
 /* ==================
@@ -495,17 +560,30 @@ SECTION
 /* MEEUPLIST SIDEBAR AD */
 .meetupList-sidebar-ad {
     margin-top: 25px;
-    height: 320px;
+    width:220px;
+    height: 100px;
     background: linear-gradient(180deg, var(--c4), var(--c3));
     border-radius: 20px;
-    padding: 25px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    color: white;
+    overflow:hidden;
     box-shadow: var(--shadow);
+    
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.meetupList-sidebar-ad a {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content:center;
+    align-items:center;
+}
+
+.meetupList-sidebar-ad img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position:center 25%;
 }
 
 .meetupList-sidebar-ad .ad-tag {
@@ -525,15 +603,6 @@ SECTION
 .meetupList-sidebar-ad p {
     margin-bottom: 20px;
     line-height: 1.6;
-}
-
-.meetupList-sidebar-ad a {
-    background: white;
-    color: var(--c4);
-    text-decoration: none;
-    padding: 12px 20px;
-    border-radius: 12px;
-    font-weight: bold;
 }
 
 /* ==================
@@ -1495,6 +1564,58 @@ footer {
     background: #ffd6d6;
 }
 
+/******************detail 날씨*********************/
+.meetup-detail-weather-content-box{
+    display:flex;
+    align-items:center;
+    gap:18px;
+
+    padding:12px 18px;
+    background:#eafcff;
+    border:1px solid #e9eef5;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+
+.weather-title{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:15px;
+    font-weight:700;
+    color:#333;
+    white-space:nowrap;
+}
+
+.weather-info{
+    display:flex;
+    align-items:center;
+    gap:20px;
+    flex-wrap:wrap;
+}
+
+.weather-item{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    font-size:14px;
+    color:#555;
+}
+
+.weather-label{
+    color:#888;
+}
+
+.weather-value{
+    font-weight:700;
+    color:#222;
+}
+
+.weather-empty{
+    font-size:14px;
+    color:#888;
+}
+/******************detail 날씨*********************/
 /* ================= TABS ================= */
 .meetup-detail-tabs {
     background: white;
@@ -1695,6 +1816,13 @@ footer {
     gap: 12px;
     margin-bottom: 15px;
     align-items: center;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.meetup-detail-recom-card:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
 }
 
 .meetup-detail-recom-card:last-child {
@@ -4041,6 +4169,11 @@ textarea.mw-form-input {
     resize:vertical;
 }
 
+.ai-ad-helper {
+    display: none;
+    margin-bottom: 10px;
+}
+
 /* target 영역 */
 .member-ad-write-grid {
     display:grid;
@@ -4296,6 +4429,61 @@ textarea.mw-form-input {
 	}
 }
 
+/* 메인 인기 모임 슬라이더 애니메이션 */
+.slider {
+    overflow: hidden;
+    width: 100%;
+}
+
+.slide-track {
+    display: flex;
+    gap: 20px;
+    width: max-content;
+    animation: scroll 25s linear infinite;
+}
+
+@keyframes scroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(calc(-50%));
+    }
+}
+
+.card {
+    flex: 0 0 280px;
+}
+.slide-track:hover {
+    animation-play-state: paused;
+}
+
+/*모임 취소 버튼*/
+.mw-cancel-btn-submit {
+    width: 100%;
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    background: #ef4444;
+    color:#fff;   
+    font-size: 16px;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.meetup-no-image-div{
+    width:60px;
+    height:60px; 
+    display:flex;
+    border-radius: 10px;
+    justify-content:center;
+    align-items:center;
+    font-size:40px;
+    background:#f5f5f5;
+    color:#bbb;
+}
+
 .review-like-btn{
     display:inline-flex;
     align-items:center;
@@ -4325,6 +4513,71 @@ textarea.mw-form-input {
 
 .review-like-btn:active{
     transform:scale(.96);
+}
+
+.review-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+
+.review-search-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+.review-search-input {
+    width: 220px;
+    height: 38px;
+    padding: 0 15px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 14px;
+    outline: none;
+}
+
+
+.review-search-input:focus {
+    border-color: #4CAF50;
+}
+
+
+.review-search-btn {
+    height: 38px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 20px;
+    background: #4CAF50;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+
+.review-search-btn:hover {
+    background: #43a047;
+}
+
+
+.review-sort-select {
+    height: 38px;
+    padding: 0 35px 0 15px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    background: white;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+}
+
+
+.review-sort-select:focus {
+    border-color: #4CAF50;
+}
 
 /*  광고 모달창 설정   */
 #extensionModal.extension-modal {
@@ -4351,5 +4604,42 @@ textarea.mw-form-input {
 	max-width: 90vw;
 	padding: 24px;
 	box-sizing: border-box;
+}
 
+.alarm-popup{
+    position:fixed;
+    width:360px;
+    background:#fff;
+    border-radius:15px;
+    box-shadow:0 8px 30px rgba(0,0,0,.2);
+    overflow:hidden;
+    z-index:9999;
+
+    top:0;
+    left:0;
+    display:none;
+}
+
+.alarm-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.alarm-item{
+    padding:15px;
+    border-bottom:1px solid #f1f1f1;
+    cursor:pointer;
+}
+
+.alarm-item:hover{
+    background:#f8f8ff;
+}
+
+.alarm-area{
+    position: relative;
+    display: inline-flex;
+    align-items: center;
 }

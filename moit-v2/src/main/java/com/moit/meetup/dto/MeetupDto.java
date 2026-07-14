@@ -13,6 +13,7 @@ public class MeetupDto {
     private Integer minParticipants;
     private Integer sigunguId;
     private Integer categoryId;
+    private Integer parentId; // 부모 카테고리 아이디
     private String address;
     private String addressDetail;
     private String meetupAt;
@@ -27,6 +28,7 @@ public class MeetupDto {
     private String applyAt;
     private String applyStatus;
     
+    private String mobile;
     private String nickname;
     private Integer totalParticipants;	// 총 참가 인원
     private Integer likeCnt; //좋아요 수
@@ -52,6 +54,8 @@ public class MeetupDto {
     private Integer likeCount;
     private Integer applicationCount;
     
+	private Integer nx; // 예보지점 X 좌표
+	private Integer ny; // 예보지점 Y 좌표
     
 }
 /*

@@ -336,7 +336,7 @@
 	    select member_id
 	    from meetup_applications
 	    where status in ('APPROVED', 'NOSHOW')
-	        and (updated_at >= trunc(sysdate) -1 and updated_at &lt; trunc(sysdate)) )
+	        and (updated_at >= trunc(sysdate) -1 and updated_at &lt; trunc(sysdate))
 	            
 	    union
 	    
@@ -345,7 +345,7 @@
 	    join meetups mt on r.target_type = 'MEETUP'
 	    					and r.target_id = mt.meetup_id
 	    where r.status = 'APPROVED'
-	        and (r.updated_at >= trunc(sysdate) -1 and r.updated_at &lt; trunc(sysdate)) )
+	        and (r.updated_at >= trunc(sysdate) -1 and r.updated_at &lt; trunc(sysdate))
 	
 	    union
 	    
@@ -354,7 +354,7 @@
 	    join reviews rv on r.target_type = 'REVIEW'
 	    					and r.target_id = rv.review_id
 	    where r.status = 'APPROVED'
-	        and (r.updated_at >= trunc(sysdate) -1 and r.updated_at &lt; trunc(sysdate)) )
+	        and (r.updated_at >= trunc(sysdate) -1 and r.updated_at &lt; trunc(sysdate))
 	</select>
 	
 	

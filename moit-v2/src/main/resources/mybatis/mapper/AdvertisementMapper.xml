@@ -18,6 +18,11 @@
 	    <if test="searchText != null and searchText != ''">
 	        AND title LIKE '%' || #{searchText} || '%'
 	    </if>
+	    
+	    <!-- 시작 순 -->
+	    <if test="sort == 'start'">
+		    AND NVL(status,'') != 'CLOSED'
+		</if>
 	
 	    <!-- 운영 상태 -->
 	    <if test="status != null and status != ''">
@@ -32,42 +37,61 @@
 	    <!-- 정렬 -->
 		<choose>
 
-		    <!-- 진행 상태 우선 -->
-		    <when test="sort == 'status'">
-		        ORDER BY
-		        CASE status
-		            WHEN 'OPEN' THEN 1
-			        WHEN 'PENDING' THEN 2
-			        WHEN 'CLOSED' THEN 3
-		        END,
-		        ad_id DESC
-		    </when>
+		    <!-- 추천순 -->
+		    <when test="sort == 'recommend'">
+				ORDER BY				
+				    CASE ad_grade
+				        WHEN 'PREMIUM' THEN 1
+				        WHEN 'GENERAL' THEN 2
+				        ELSE 3
+				    END,				
+				    priority_score DESC,				
+				    end_datetime ASC,				
+				    approved_at DESC			
+			</when>
 		
 		
 		    <!-- 시작 예정 빠른 순 -->
 		    <when test="sort == 'start'">
-			    ORDER BY
-			    CASE 
-			        WHEN start_datetime >= CURRENT_TIMESTAMP THEN 1
-			        ELSE 2
-			    END,
-			    start_datetime ASC
+			    ORDER BY  start_datetime ASC
 			</when>
 		
 		
 		    <!-- 종료 임박 순 -->
 		    <when test="sort == 'end'">
-		        ORDER BY end_datetime ASC
+		        ORDER BY
+			    CASE
+			        WHEN end_datetime >= CURRENT_TIMESTAMP THEN 0
+			        ELSE 1
+			    END,
+			
+			    end_datetime ASC
 		    </when>
 		
 		
 		    <!-- 예산 높은 순 -->
 		    <when test="sort == 'budget'">
-		        ORDER BY total_budget DESC
+		        ORDER BY
+			    CASE
+			        WHEN total_budget IS NULL THEN 1
+			        ELSE 0
+			    END,			
+			    total_budget DESC
 		    </when>
 		
+		    
+		    <!-- 등급 순 -->
+		    <when test="sort == 'grade'">
+				ORDER BY				
+				CASE ad_grade
+				    WHEN 'PREMIUM' THEN 1
+				    WHEN 'GENERAL' THEN 2
+				    ELSE 3
+				END,				
+				approved_at DESC			
+			</when>
 		
-		    <!-- 최신 등록(승인) -->
+		    <!-- 최신 등록(승인) 순 -->
 		    <otherwise>
 		        ORDER BY approved_at DESC
 		    </otherwise>
@@ -149,7 +173,12 @@
 		
 		    <!-- 예산 높은 순 -->
 		    <when test="sort == 'budget'">
-		        ORDER BY total_budget DESC
+		        ORDER BY
+			    CASE
+			        WHEN total_budget IS NULL THEN 1
+			        ELSE 0
+			    END,			
+			    total_budget DESC
 		    </when>
 		
 		
@@ -199,16 +228,17 @@
 	    	<!-- 시작 예정 빠른 순 -->
 		    <when test="sort == 'start'">
 			    ORDER BY
-			    CASE 
-			        WHEN start_datetime >= CURRENT_TIMESTAMP THEN 1
-			        ELSE 2
-			    END,
 			    start_datetime ASC
 			</when>
 		
 		    <!-- 예산 높은 순 -->
 		    <when test="sort == 'budget'">
-		        ORDER BY total_budget DESC
+		        ORDER BY
+			    CASE
+			        WHEN total_budget IS NULL THEN 1
+			        ELSE 0
+			    END,			
+			    total_budget DESC
 		    </when>
 		
 		
@@ -512,6 +542,7 @@
 	    <result property="title" column="title"/>
 	    <result property="content" column="content"/>
 	    <result property="landingUrl" column="landing_url"/>
+	    <result property="adGrade" column="ad_grade"/>
 	
 	    <collection property="imageList"
 	                ofType="com.moit.advertisement.dto.AdvertisementImageDto">
@@ -591,6 +622,7 @@
         SELECT COUNT(*)
         FROM advertisements
         WHERE delete_yn = 'N'
+        AND approval_status = 'APPROVED'
 
     </select>
     
@@ -1104,9 +1136,9 @@
 	    SELECT
 	        position,
 	        COUNT(*) AS impressions	
-	    FROM advertisement_impression_log	
+	    FROM advertisement_impression_log
+	    WHERE position IS NOT NULL	
 	    GROUP BY position	
-	    ORDER BY position	
 	</select>
 	
 	<!-- 광고 위치별 CTR 차트 -->
@@ -1141,7 +1173,6 @@
 	        GROUP BY position
 	    ) c
 	        ON i.position = c.position
-	    ORDER BY ctr DESC
 	
 	</select>
 <!-- ====== 피로도 ===== -->	
@@ -1301,6 +1332,30 @@
 			,2)		
 		FROM advertisement_impression_log		
 		WHERE ad_id=#{adId}		
+	</select>
+	
+<!-- =========== ai 요약 ============= -->
+	<!-- 요약 저장 -->
+	<insert id="insertAiSummary">
+
+	    INSERT INTO advertisement_ai_summary
+	    VALUES(
+	        seq_advertisement_ai_summary.NEXTVAL,
+	        #{summary},
+	        SYSDATE
+	    )
+	
+	</insert>
+	
+	<!-- 요약 조회 -->
+	<select id="selectLatestAiSummary"
+	        resultType="com.moit.advertisement.dto.DashboardAiDto">
+	
+	    SELECT *
+	    FROM advertisement_ai_summary
+	    ORDER BY created_at DESC
+	    FETCH FIRST 1 ROWS ONLY
+	
 	</select>
 
 	

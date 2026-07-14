@@ -29,7 +29,7 @@ public class NotificationEventListener {
         dto.setMemberId(question.getMemberId());
 
         dto.setType("ANSWER_CREATED");
-        dto.setMessage("문의에 답변이 등록되었습니다.");
+        dto.setMessage("'" + question.getTitle() + "' 문의에 답변이 등록되었습니다.");
         notificationMapper.insert(dto);
     }
 }

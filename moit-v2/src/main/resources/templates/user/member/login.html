@@ -189,12 +189,24 @@
 	    if(error == "wait"){
 	        alert("관리자 승인 대기중입니다.");
 	    }
+	    
+	    if(error == "type"){
+	        alert("회원유형이 맞지 않습니다.");
+	    }
 
 	    if(error == "fail"){
 	        alert("아이디 또는 비밀번호가 틀렸습니다.");
 	    }
 
 	}
+	</script>
+	
+	<script th:inline="javascript">
+    const message = [[${msg}]];
+
+    if (message != null) {
+        alert(message);
+    }
 	</script>
 
 </body>

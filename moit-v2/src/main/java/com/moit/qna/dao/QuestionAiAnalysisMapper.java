@@ -7,5 +7,5 @@ import com.moit.qna.dto.QuestionAiAnalysisDto;
 public interface QuestionAiAnalysisMapper {
 
     void insert(QuestionAiAnalysisDto dto);
-
+    void changeToNormal(int questionId);
 }
