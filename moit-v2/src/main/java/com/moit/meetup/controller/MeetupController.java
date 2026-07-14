@@ -21,14 +21,20 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.service.AdvertisementService;
+import com.moit.meetup.client.OpenAiService2;
 import com.moit.meetup.client.OpenApiService;
 import com.moit.meetup.dto.MeetupApplicationDto;
 import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupSearchDto;
 import com.moit.meetup.dto.openapi.AddressSearchResponse;
+import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
+import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.meetup.dto.openapi.WeatherInfoRequest;
 import com.moit.meetup.dto.openapi.WeatherInfoResponse;
 import com.moit.meetup.service.MeetupService;
@@ -50,6 +56,7 @@ public class MeetupController {
 	@Autowired ReviewService reviewService;
 	@Autowired OpenApiService openApiService;
 	@Autowired ReportsService reportsService;
+	@Autowired OpenAiService2 openAiService;
 	
 	/*1. 모임 리스트 화면(HTML) 호출*/
 	@GetMapping("/meetup/list")
@@ -265,13 +272,13 @@ public class MeetupController {
 		weatherRequest.setMeetupTime(localDateTime.getHour());		
 		weatherRequest.setNx(meetupDto.getNx());
 		weatherRequest.setNy(meetupDto.getNy());
-		System.out.println(localDateTime);
-		System.out.println(localDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-		System.out.println(localDateTime.getHour());
-		
+//		System.out.println(localDateTime);
+//		System.out.println(localDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+//		System.out.println(localDateTime.getHour());
+//		System.out.println(weatherRequest);
 		WeatherInfoResponse weatherResponse = openApiService.getWeathreInfo(weatherRequest);
 		/*날씨*/
-		
+		//System.out.println(weatherResponse);
 	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
 	    
 	    reportsDto.setMemberId(memberId); // 로그인한 멤버아이디
@@ -287,7 +294,7 @@ public class MeetupController {
 	    model.addAttribute("detail", meetupDto);
 	    model.addAttribute("recommendMeetupList", recommendMeetupList);	    
 	    model.addAttribute("weatherResponse", weatherResponse); /*날씨*/
-	    System.out.println(weatherResponse);
+	    //System.out.println(weatherResponse);
 	    model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
 
 	    //로그인한 사용자 html 로 전달(후기)
@@ -542,5 +549,42 @@ public class MeetupController {
 		meetupService.updateMeetupDeleteYn(meetupId);		
 		return "redirect:/mypage/myMeetupInfo?pstartno=" + pstartno;
 	}
+	
+	//ai 제목/카테고리/컨텐츠 추가
+	@PostMapping("/meetup/write/ai/recommended")
+	@ResponseBody
+	public RecommendMeetupResponseDto meetupWriteAiRecommended(@RequestBody RecommendMeetupRequestDto request) throws JsonMappingException, JsonProcessingException{
+		String keyword = request.getKeyword();
+		String aiPrompt = """
+				사용자가 입력한 키워드를 바탕으로 많이 모을수 있는, 재미있는, 사용자들이 클릭하고 싶은 모임 정보를 생성해.
+				category는 웬만해서 입력한 키워드로 해줘. 
+				
+				키워드: %s
+
+				아래 JSON 형식으로만 응답해.
+
+				{
+				  "title": "",
+				  "category": "",
+				  "content": ""
+				}
+
+				JSON 외의 다른 설명은 절대 하지 마.
+				""".formatted(keyword);
+		
+		String result = openAiService.getAIResponse(aiPrompt);
+		
+		
+		ObjectMapper mapper = new ObjectMapper();
+		RecommendMeetupResponseDto dto =
+		        mapper.readValue(result, RecommendMeetupResponseDto.class);
+		
+		Integer categoryId = meetupService.selectCategoryId(dto.getCategory());
+		dto.setCategoryId(categoryId == null ? 0 : categoryId);
+		System.out.println(categoryId);
+		System.out.println(dto);
+		return dto;
+	}
+
 	
 }

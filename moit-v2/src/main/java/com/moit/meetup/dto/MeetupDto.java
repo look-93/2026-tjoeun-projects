@@ -18,8 +18,8 @@ public class MeetupDto {
     private String addressDetail;
     private String meetupAt;
     private String status;
-//    private BigDecimal latitude;  		// 위도
-//    private BigDecimal longitude; 		// 경도    
+    private BigDecimal latitude;  		// 위도
+    private BigDecimal longitude; 		// 경도    
     private String weatherStatus;		// 감지된 날씨
     private Integer rainProbability;	// 감지된 강수확률 (0~100)
     private String deleteYn;
