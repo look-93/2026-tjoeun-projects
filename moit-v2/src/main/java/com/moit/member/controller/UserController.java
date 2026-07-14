@@ -72,6 +72,8 @@ public class UserController {
 		}
 		else if(result==-2) {
 			rttr.addFlashAttribute("msg","유출된 비밀번호입니다. 다른 비밀번호를 입력해주세요.");
+
+			return "redirect:/user/member/join";
 		}
 		else if(result==-3) {
 		    rttr.addFlashAttribute( "msg", "이미 등록된 전화번호입니다."

@@ -4,6 +4,7 @@
    layout:decorate="~{user/meetup/layouts/meetupDetailLayout}">
 <head lang="ko">
 <meta charset="UTF-8">
+<script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=zsvqwbdx6e&callback=initMap"></script>
 <title>모임 상세 보기</title>
 </head>
 <body>
@@ -15,6 +16,47 @@
             <a href="/meetup/list" class="meetup-detail-back-link">
                <span class="back-arrow">←</span> 목록으로
             </a>
+            <!-- 날씨알림 -->
+			<div class="meetup-detail-weather-content-box">
+			
+			    <div class="weather-title">
+			        <span>🌤️</span>
+			        <span>모임 날씨</span>
+			    </div>
+			
+			    <div class="weather-info"
+			         th:if="${weatherResponse != null
+			                 and weatherResponse.tmp != null
+			                 and weatherResponse.pop != null
+			                 and weatherResponse.sky != null}">
+			
+			        <div class="weather-item">
+			            <div class="weather-label">기온</div>
+			            <div class="weather-value" th:text="${weatherResponse.tmp + '℃'}"></div>
+			        </div>
+			
+			        <div class="weather-item">
+			            <div class="weather-label">강수확률</div>
+			            <div class="weather-value" th:text="${weatherResponse.pop + '%'}"></div>
+			        </div>
+			
+			        <div class="weather-item">
+			            <div class="weather-label">하늘</div>
+			            <div class="weather-value" th:text="${weatherResponse.sky}"></div>
+			        </div>
+			
+			    </div>
+			
+			    <div class="weather-empty"
+			         th:unless="${weatherResponse != null
+			                 and weatherResponse.tmp != null
+			                 and weatherResponse.pop != null
+			                 and weatherResponse.sky != null}">
+			        🌥️ 날씨는 모임 이틀 전에 제공됩니다.
+			    </div>
+			
+			</div>
+            <!-- 날씨알림 -->
             
 			<!-- 이미지 -->
 			<div class="meetup-detail-img-box">
@@ -53,11 +95,19 @@
                <div class="meetup-detail-content-top">
                   <div class="meetup-detail-badge"
                      th:text="${detail.status == 'RECRUITING' ? '모집중' : '모집마감'}"></div>
-                  <a
+<!--                   <a 
                      th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${param.meetupId})}"
-                     class="meetup-detail-report-btn" type="button"> 모임 신고 </a>
+                     class="meetup-detail-report-btn" type="button">th:if="${user.memberId != detail.memberId}"모임 신고 </a> -->
+                     <a th:if="${user.memberId != detail.memberId}"
+					   th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${detail.meetupId})}"
+					   class="meetup-detail-report-btn"
+					  th:onclick="|return checkReportDuplicate(this, ${checkDoubleReport ?: 0});|">
+					   모임 신고
+					</a>
                </div>
                <h1 class="meetup-detail-title" th:text="${detail.title}"></h1>
+               <input type="hidden" id="longitude" name="longitude" th:value="${detail!= null} ? ${detail.longitude} : ''"/>
+			   <input type="hidden" id="latitude" name="latitude" th:value="${detail!= null} ? ${detail.latitude} : ''"/>
             </div>
 
             <div class="meetup-detail-tabs">
@@ -73,12 +123,11 @@
                      <h3>모임 안내</h3>
                      <p th:text="${detail.content}"></p>
                   </div>
-
 						<div class="meetup-detail-tab-panel">
 							<p th:text="${detail.nickname + ' 외 ' + (detail.totalParticipants == null || detail.totalParticipants == 0 ? 0 : detail.totalParticipants - 1 ) + '명'}"></p>
 						</div>
 
-						<div class="meetup-detail-tab-panel">
+						<div id="review-section" class="meetup-detail-tab-panel">
 							<div class="meetup-detail-rating-header">
 								<button style="background-color: #374151; color: #ffffff; border: none; border-radius: 12px; padding: 8px 16px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s ease-in-out;"
 									onmouseover="this.style.backgroundColor='#1F2937'"
@@ -86,6 +135,55 @@
 									th:onclick="|location.href='/meetup/review/insert?meetupId=${detail.meetupId}'|">
 									후기 작성하기
 								</button>
+								<div class="review-toolbar">
+
+									    <!-- 검색 -->
+							             <form
+							    id="reviewSearchForm"
+							    th:action="@{/meetup/detail}"
+							    method="get"
+							    onsubmit="this.action='/meetup/detail#review-section'"
+							    class="review-search-form">
+									
+									        <input type="hidden"
+									               name="meetupId"
+									               th:value="${detail.meetupId}">
+									
+									        <input type="hidden"
+									               name="sort"
+									               th:value="${sort}">
+									
+									        <input type="text"
+									               name="keyword"
+									               th:value="${keyword}"
+									               placeholder="후기 검색"
+									               class="review-search-input">
+									
+									        <button type="submit"
+									         class="review-search-btn">
+									            검색
+									        </button>
+									
+									    </form>
+									
+									    <!-- 정렬 -->
+									    <select id="reviewSort"
+									            onchange="changeSort(this.value)"
+									             class="review-sort-select">
+									
+									        <option value="latest"
+									                th:selected="${sort == 'latest'}">
+									            최신순
+									        </option>
+									
+									        <option value="likes"
+									                th:selected="${sort == 'likes'}">
+									            좋아요순
+									        </option>
+									
+									    </select>
+									
+								</div>
 							</div>
 
 							<div class="meetup-detail-rating-box">
@@ -144,7 +242,13 @@
 										<div class="meetup-detail-comment-date" th:text="${review.createdAt}">2026.06.15</div>
 									</div>
 									<div>
-										<a th:href="@{/user/meetup/report/write(targetType='REVIEW', targetId=${review.reviewId})}" class="btn btn-outline-danger"> 리뷰 신고 </a>
+										                              <!-- <button class="meetup-detail-report-btn">신고</button> -->
+                     <a 
+                      th:href="@{/user/meetup/report/write(targetType='REVIEW', targetId=${review.reviewId})}"              
+                      class="meetup-detail-report-btn" 
+                      style="background-color: #ffeded; color: #e53935; border: none; border-radius: 12px; padding: 4px 10px; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; transition: background 0.2s;">
+                      th:if="${user.memberId != detail.memberId}"리뷰 신고
+                    </a>
 										<button class="meetup-detail-report-btn" style="background-color: #FEF08A; color: #15803D; border: none; border-radius: 12px; padding: 4px 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s;"
 											th:onclick="|location.href='/meetup/review/update/${review.reviewId}?meetupId=${detail.meetupId}'|">수정</button>
 										<a class="meetup-detail-report-btn" style="background-color: #BFDBFE; color: #1D4ED8; border: none; border-radius: 12px; padding: 4px 10px; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; transition: background 0.2s;"
@@ -155,6 +259,12 @@
 									<span th:each="star : ${#numbers.sequence(1,5)}" th:text="${star <= review.rating ? '★' : '☆'}"> </span>
 								</div>
 								<p class="meetup-detail-comment-text" th:text="${review.content}">후기 내용</p>
+								<!-- -좋아요 추가 -->
+									<button class="review-like-btn"
+								        th:data-review-id="${review.reviewId}"
+								        onclick="toggleReviewLike(this)">
+								    👍 <span th:text="${review.likesCount}">0</span>
+	                                </button>
 							</div>
 						</div> <div class="meetup-detail-tab-panel">
 							<h3>Q&A</h3>
@@ -175,7 +285,7 @@
 						<span>지역</span> <span th:text="${detail.sidoName}"></span>
 					</div>
 
-					<div id="applyArea">
+					<div id="applyArea" th:if="${loginMemberId == detail.memberId ? hidden :''}">
 						<button th:if="${applyInfo == null}" class="meetup-detail-btn meetup-detail-btn-primary" th:onclick="|applyMeetup(${detail.meetupId})|">신청하기</button>
 						<button th:if="${applyInfo != null}" class="meetup-detail-btn meetup-detail-btn-danger" th:onclick="|applyCancelMeetup(${applyInfo.applicationId})|">신청취소</button>
 					</div>
@@ -189,22 +299,34 @@
 
 				<div class="meetup-detail-side-box">
 					<h3>추천 모임</h3>
-					<div class="meetup-detail-recom-card">
-						<img src="https://images.unsplash.com/photo-1501555088652-021faa106b9b">
-						<div class="meetup-detail-recom-info">
-							<div class="meetup-detail-recom-title">북한산 등산</div>
-							<div class="meetup-detail-recom-tag">서울</div>
+					<div class="meetup-detail-recom-card"
+					     th:each="meetup : ${recommendMeetupList}"
+					     th:onclick="|location.href='@{/meetup/detail(meetupId=${meetup.meetupId})}'|">						
+				     	<th:block th:if="${meetup.imagePath != null}">
+					        <img th:src="@{|/upload/meetup/${meetup.imagePath}|}" alt="모임 이미지">
+					    </th:block>
+					    <div class="meetup-no-image-div"
+						     th:if="${meetup.imagePath == null}">						    
+						    <span class="icon">🖼️</span>						    
 						</div>
-					</div>
-					<div class="meetup-detail-recom-card">
-						<img src="https://images.unsplash.com/photo-1533240332313-0db49b459ad6">
-						<div class="meetup-detail-recom-info">
-							<div class="meetup-detail-recom-title">트레킹</div>
-							<div class="meetup-detail-recom-tag">경기</div>
-						</div>
+											
+					    <div class="meetup-detail-recom-info">
+					        <div class="meetup-detail-recom-title"
+					             th:text="${meetup.title}">					            
+					        </div>
+					
+					        <div class="meetup-detail-recom-tag"
+					             th:text="${meetup.sidoName}">					           
+					        </div>
+					    </div>
 					</div>
 				</div>
-
+				<!-- 지도 -->
+				<div class="meetup-detail-side-box">
+				    <h3>모임 위치</h3>						
+				    <div id="map" style="width:100%; height:300px; border-radius:8px;"></div>
+				</div>
+				<!-- 지도 -->
 				<section class="ad-banner" th:if="${desidebarAd != null}"
 						  th:classappend="${desidebarAd.imageList != null and !desidebarAd.imageList.isEmpty()} ? ' has-image' : ''">
 					<a th:href="@{/user/advertisement/click(adId=${desidebarAd.adId},  position='MEETUP_DETAIL_SIDEBAR')}">
@@ -253,6 +375,9 @@
 		</div>
 
 		<script th:inline="javascript">
+		function gotoDetail(meetupId) {
+		    location.href = '/meetup/detail?meetupId=' + meetupId;
+		}
 		function showTab(i){
 			const tabs = document.querySelectorAll(".meetup-detail-tab-btn");
 			const panels = document.querySelectorAll(".meetup-detail-tab-panel");
@@ -314,7 +439,7 @@
 			})
 			.catch(err => console.log(err));
 		}
-		
+		/**********모임신청*********/
 		function applyCancelMeetup(applicationId){
 			fetch("/meetup/cancelApplyMeetup", {
 				headers: getCsrfHeaders(),
@@ -332,6 +457,7 @@
 		}
 		
 		function changeMainImg(src) {
+			// 메인 이미지 태그를 찾아서 소스(src)를 클릭한 썸네일 주소로 변경
 			const mainImg = document.querySelector('.meetup-detail-main-img img');
 			if (mainImg) mainImg.src = src;
 		}
@@ -373,6 +499,138 @@
 				});
 			}
 		});
+		
+		function toggleReviewLike(btn) {
+
+		    const reviewId = btn.dataset.reviewId;
+
+		    fetch(`/meetup/review/like/${reviewId}`, {
+		        method: "POST",
+		        headers: getCsrfHeaders()
+		    })
+		    .then(res => res.json())
+		    .then(data => {
+		        if (data.success) {
+		            btn.querySelector("span").innerText = data.likesCount;
+		        } else {
+		            alert(data.message);
+		        }
+		    })
+		    .catch(err => console.log(err));
+		}
+		
+		///후기
+		function changeSort(sort){
+
+		    const meetupId =
+		        document.getElementById("meetupId").value;
+
+		    const keyword =
+		        document.querySelector("input[name='keyword']").value;
+
+		    let url =
+		        "/meetup/detail?meetupId=" + meetupId +
+		        "&sort=" + sort;
+
+		    if(keyword && keyword.trim() !== ""){
+		        url += "&keyword=" + encodeURIComponent(keyword);
+		    }
+
+		    location.href = url+"#review-section";
+		}
+		
+		window.addEventListener("load", function () {
+
+		    if (location.hash === "#review-section") {
+
+		        showTab(2);
+
+		        document.getElementById("review-section")
+		                .scrollIntoView({
+		                    behavior: "smooth"
+		                });
+
+		    }
+
+		});
+		//후기 
+		document.getElementById("reviewSearchForm").addEventListener("submit", function (e) {
+
+		    e.preventDefault();
+
+		    const meetupId = document.getElementById("meetupId").value;
+		    const keyword = document.querySelector("input[name='keyword']").value;
+		    const sort = document.querySelector("input[name='sort']").value;
+
+		    location.href =
+		        "/meetup/detail?meetupId=" + meetupId +
+		        "&sort=" + sort +
+		        "&keyword=" + encodeURIComponent(keyword) +
+		        "#review-section";
+
+		});
+
+		function checkReportDuplicate(element, checkDoubleReport) {
+
+		    console.log("신고 중복 체크:", checkDoubleReport);
+
+		    if(Number(checkDoubleReport) === -1) {
+		        alert("이미 신고된 모임글입니다.");
+		        return false;
+		    }
+
+		    return true;
+		}
+		
+	 	//네이버 지도
+	 	let map;
+	 	let marker;
+	 	
+	 	//처음 화면 로드
+	 	function initMap() {
+
+	 	    let lat = document.getElementById("latitude").value;
+	 	    let lon = document.getElementById("longitude").value;
+
+	 	    let defaultPos;
+
+	 	    // 수정 화면이고 기존 좌표가 있으면
+	 	    if (lat && lon) {
+	 	        defaultPos = new naver.maps.LatLng(
+	 	            parseFloat(lat),
+	 	            parseFloat(lon)
+	 	        );
+	 	    } else {
+	 	        // 신규 작성
+	 	        defaultPos = new naver.maps.LatLng(37.5665, 126.9780);
+	 	    }
+
+	 	    map = new naver.maps.Map('map', {
+	 	        center: defaultPos,
+	 	        zoom: 15
+	 	    });
+
+	 	    marker = new naver.maps.Marker({
+	 	        position: defaultPos,
+	 	        map: map
+	 	    });
+	 	}	 	
+	 	
+	 	window.onload = function () {
+	 	    initMap();
+	 	};
+	 	
+	 	//주소 입력 후 위도,경도 값 받아와서 지도 보여주기
+		function moveMap(lat, lon) {
+		
+		    const position = new naver.maps.LatLng(
+		        parseFloat(lat),
+		        parseFloat(lon)
+		    );
+		
+		    map.setCenter(position);
+		    marker.setPosition(position);
+		}
 		</script>
 	</div>
 </body>

@@ -39,65 +39,81 @@ public class ReviewController {
     }
 
 
-    // 후기 등록
+ // 후기 등록
     @PostMapping("/meetup/review/insert")
     public String insertUserReview_post(
             ReviewDto dto,
             @RequestParam(value = "attachedImages", required = false)
-            MultipartFile[] attachedImages,Authentication authentication) {
+            MultipartFile[] attachedImages,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
 
 
-        // 시큐리티 적용 후 변경
-		String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		}
+        String loginId = null;
+        String provider = null;
+        UserDto user = null;
+
+        Object principal = authentication.getPrincipal();
+
+        Integer memberId = null;
+
+
+        if(principal instanceof CustomUserDetails) {
+
+            CustomUserDetails users = (CustomUserDetails) principal;
+
+            user = users.getUser();
+
+            loginId = users.getUser().getLoginId();
+
+            memberId = users.getUser().getMemberId();
+        }
+
+
         dto.setMemberId(memberId);
 
 
-        System.out.println("===== 후기 등록 Controller =====");
-        System.out.println("meetupId : " + dto.getMeetupId());
-        System.out.println("memberId : " + dto.getMemberId());
-        System.out.println("isPublic : " + dto.getIsPublic());
-        System.out.println("content : " + dto.getContent());
-        System.out.println("rating : " + dto.getRating());
-        System.out.println("첨부파일 개수 : "
-                + (attachedImages == null ? 0 : attachedImages.length));
-        System.out.println("==============================");
+        try {
+
+            reviewService.insertUserReview(dto, attachedImages);
 
 
-        reviewService.insertUserReview(dto, attachedImages);
+        } catch(RuntimeException e) {
 
 
-        return "redirect:/meetup/detail?meetupId=" + dto.getMeetupId();
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    e.getMessage()
+            );
+
+
+            return "redirect:/meetup/review/insert?meetupId="
+                    + dto.getMeetupId();
+
+        }
+
+
+        return "redirect:/meetup/detail?meetupId="
+                + dto.getMeetupId()
+                + "#review-section";
     }
-
-
-
+    
     // 특정 모임 후기 목록 조회
     @GetMapping("/meetup/review/meetup/{meetupId}")
     public String selectUserReview(
             @PathVariable int meetupId,
-            @RequestParam(value = "sort", required = false, defaultValue = "latest")
-            String sort,
+            @RequestParam(value = "sort", defaultValue = "latest") String sort,
+            @RequestParam(value = "keyword", required = false) String keyword,
             Model model) {
 
-
         List<ReviewDto> reviewList =
-                reviewService.selectUserReview(meetupId, sort);
-
+                reviewService.selectReviewByContent(meetupId, keyword, sort);
 
         model.addAttribute("reviews", reviewList);
         model.addAttribute("meetupId", meetupId);
-
-
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("sort", sort);
+       
         return "user/meetup/detail";
     }
 
@@ -263,11 +279,23 @@ public class ReviewController {
     //좋아요 기능 (비동기 처리)
     @PostMapping("/meetup/review/like/{reviewId}")
     @ResponseBody
-    public Map<String, Object> toggleReviewLike(@PathVariable("reviewId") int reviewId) {
+    public Map<String, Object> toggleReviewLike(@PathVariable("reviewId") int reviewId, Authentication authentication) {
         
         Map<String, Object> resultBody = new HashMap<>();
         
-        int memberId = 2; 
+        String loginId     = null, provider = null;
+		UserDto user=null;
+		Object principal = authentication.getPrincipal();
+		Integer memberId = null;
+		//1. local
+		if(   principal   instanceof CustomUserDetails ) {
+			CustomUserDetails  users = (CustomUserDetails)principal;
+			user=users.getUser();
+			loginId    =  users.getUser().getLoginId();
+			memberId = users.getUser().getMemberId();
+		} 
+		
+        //int memberId = 2; 
         
         try {
             int updatedLikesCount = reviewService.toggleReviewLike(reviewId, memberId);

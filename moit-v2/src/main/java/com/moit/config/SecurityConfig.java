@@ -31,16 +31,18 @@ public class SecurityConfig {
 
 		//1. 허용경로
 		http.authorizeHttpRequests(auth -> auth.requestMatchers("/user/member/join", "/user/member/login", "/user/checkLoginId" , "/user/checkNickname" , "/user/member/checkPassword" ,"/api/**", "/admin/member/join","/meetup/list","/user/advertisement/click").permitAll()
-
 											   .requestMatchers("/user/member/mypage", "/user/member/update", "/user/member/delete","/user/advertisement/**"
 	                                                   ,"/meetup/write/**" ,"/meetup/detail/**", "/mypage/**").authenticated()
 											   // 관리자 영역(추후 활성화 예정)
 											   //.requestMatchers("/admin/**")
 											   //.hasRole("ADMIN")
+											   // 제휴업체 광고 키워드로 ai 내용작성 
+											   .requestMatchers("/user/advertisement/aiAdvertise")
+											   .hasRole("PARTNER")
 											   .requestMatchers( "/user/member/socialInfo" )									   
 											   .hasAuthority("ROLE_SOCIAL")
 											   .anyRequest()
-											   .permitAll()				
+											   .permitAll()			
 								  )
 								  //2. 로그인처리
 								  .formLogin(form -> form 

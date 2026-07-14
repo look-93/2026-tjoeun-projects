@@ -9,6 +9,7 @@ import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
+import com.moit.advertisement.dto.DashboardAiDto;
 import com.moit.advertisement.dto.ExtensionRequestDto;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -123,6 +124,11 @@ public interface AdvertisementService {
 	double selectExtensionRate();	
 	// 위치별 ctr 차트
 	List<AdvertisementChartDto> selectPositionCtrChart();
+	// AI 통계 요약
+	DashboardAiDto getDashboardAiData();
+	DashboardAiDto getLatestAiSummary(); 
+    void saveAiSummary(String summary); 
+	
 	
 	// 피로도
 	AdvertisementDto getAdvertisementStatistics(int adId);
@@ -131,7 +137,5 @@ public interface AdvertisementService {
 	void sendReminderMail();
 
 	void requestExtension(ExtensionRequestDto dto);
-
-
 
 }

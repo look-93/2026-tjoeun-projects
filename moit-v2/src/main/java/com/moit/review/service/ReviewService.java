@@ -1,11 +1,14 @@
 package com.moit.review.service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.moit.review.dao.ReviewMapper;
 import com.moit.review.dto.ReviewDto;
+import com.moit.util.UtilPaging;
 
 public interface ReviewService {
 
@@ -45,6 +48,23 @@ List<ReviewDto> selectReviewByContent(int meetupId,
 	
 	
 	
+	
+	/*
+	 * //페이징 public Map<String,Object>adminGetReviewList(String keyword,int
+	 * memberId,int page){
+	 * 
+	 * int total=reviewMapper.adminGetReviewCount(keyword, memberId); UtilPaging
+	 * paging = new UtilPaging(total, page); int endRow = paging.getPstartno() +
+	 * paging.getOnepagelist() - 1;
+	 * 
+	 * List<ReviewDto> reviewList = reviewMapper.adminGetReviewList(keyword,
+	 * memberId, paging, endRow);
+	 * 
+	 * Map<String, Object> result = new HashMap<>(); result.put("reviewList",
+	 * reviewList); result.put("paging", paging);
+	 * 
+	 * return result; }
+	 */
 	
 	
 	

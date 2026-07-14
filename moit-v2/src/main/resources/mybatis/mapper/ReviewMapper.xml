@@ -376,17 +376,23 @@
 	
 	<!-- 관리자 페이징 처리 -->
 	<select id="adminGetReviewList" resultType="ReviewDto">
-		SELECT * FROM reviews
-		WHERE delete_yn = 'N' <if test="keyword != null and keyword != ''">
-			AND content LIKE CONCAT('%', #{keyword}, '%')
-		</if>
-		
-		<if test="memberId > 0">
-			AND member_id = #{memberId}
-		</if>
-		
-		ORDER BY review_id DESC
-		LIMIT #{offset}, #{size}
+		 SELECT *
+    FROM (
+        SELECT
+            ROW_NUMBER() OVER (ORDER BY review_id DESC) AS rn,
+            r.*
+        FROM reviews r
+        WHERE delete_yn = 'N'
+
+        <if test="keyword != null and keyword != ''">
+            AND content LIKE '%' || #{keyword} || '%'
+        </if>
+
+        <if test="memberId > 0">
+            AND member_id = #{memberId}
+        </if>
+    )
+    WHERE rn BETWEEN #{paging.pstartno} AND #{endRow}
 	</select>
 	
 	<select id="adminGetReviewCount" resultType="int">

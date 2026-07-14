@@ -13,6 +13,12 @@
         </a>
     </div>
 
+	<input type="hidden" id="isLogin"
+       sec:authorize="isAuthenticated()"
+       value="true">
+    <input type="hidden" id="isLogin"
+    sec:authorize="isAnonymous()"
+    value="false">
     <!-- 우측 그룹 -->
     
 

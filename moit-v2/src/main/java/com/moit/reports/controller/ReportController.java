@@ -157,22 +157,18 @@ public class ReportController {
 			rttr.addFlashAttribute("result", result);
 			
 			return "redirect:/user/meetup/report/mylist";
-		}
+			
+		} else if (result_TargetType == -1) { // 중복 신고 케이스 (서비스에서 -1을 보냈을 때)
+			if (result_TargetType == -1) {
+				result = "이미 신고 내역이 존재합니다.";
+			} else { result = "신고 등록 중 오류가 발생했습니다. 다시 시도해주세요."; }
 		
-		// 중복 신고 케이스 (서비스에서 -1을 보냈을 때)
-	    if (result_TargetType == -1) {
-	        result = "이미 신고 내역이 존재합니다.";
-	    } else {
-	        result = "신고 등록 중 오류가 발생했습니다. 다시 시도해주세요.";
-	    }
-	    
-	    // 신고 작성 횟수 제한 (서비스에서 -2를 보냈을 때)
-	    if (result_TargetType == -2) {
-	    	result = "5회 이상의 신고 내역이 존재합니다. 다음 날 다시 시도해주세요.";
-	    } else {
-	    	result = "신고 등록 중 오류가 발생했습니다. 다시 시도해주세요.";
-	    }
-	    
+		} else if (result_TargetType == -2) { // 신고 작성 횟수 제한 (서비스에서 -2를 보냈을 때)
+			if (result_TargetType == -2) {
+				result = "5회 이상의 신고 내역이 존재합니다. 다음 날 다시 시도해주세요.";
+			} else { result = "신고 등록 중 오류가 발생했습니다. 다시 시도해주세요."; }
+		}
+
 		
     	rttr.addFlashAttribute("result", result);
     	return "redirect:/user/meetup/report/write?targetType=" + dto.getTargetType() + "&targetId=" + dto.getTargetId();
