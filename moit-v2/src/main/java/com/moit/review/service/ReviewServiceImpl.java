@@ -135,7 +135,15 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	@Transactional
 	public int updateUserReview(ReviewDto dto) {
-		return reviewmapper.updateUserReview(dto);
+
+	    // 욕설/비방 필터링
+	    boolean blocked = moderationClient.checkContent(dto.getContent());
+
+	    if (blocked) {
+	        throw new RuntimeException("부적절한 표현이 포함되어 있습니다.");
+	    }
+
+	    return reviewmapper.updateUserReview(dto);
 	}
 
 	@Override
