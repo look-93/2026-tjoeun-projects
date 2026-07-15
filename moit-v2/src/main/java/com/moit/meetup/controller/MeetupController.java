@@ -136,6 +136,28 @@ public class MeetupController {
 		
 		return map;
 	}
+
+	/*주소 검색 API 호출*/
+	@GetMapping("/meetup/address-search") 
+	@ResponseBody
+	public Map<String, Object> addressSearch(MeetupSearchDto meetupSearchDto, Model model){
+		Integer pstartno = meetupSearchDto.getPstartno();
+		String searchAddress = meetupSearchDto.getSearchAddress();
+		
+		if(pstartno == null || pstartno <= 0) {
+			pstartno = 1;
+			meetupSearchDto.setPstartno(1);
+		}
+	
+		
+		AddressSearchResponse apiResponse = openApiService.addressSearch(searchAddress,pstartno);
+		
+		Map<String, Object> map = new HashMap<>();
+		map.put("paging", new UtilPaging(apiResponse.getTotalCount(), pstartno));
+		map.put("searchList", apiResponse.getList());
+		
+		return map;
+	}
 	
 	/* 좋아요 기능*/
 	@PostMapping("/meetup/list/like")
