@@ -3517,6 +3517,38 @@ textarea.mw-form-input {
    color: #fff;
 }
 
+/* 내 신고 목록 위치 수정 */
+.mylist-page {
+    width: 100%;
+    margin: 0;
+    padding: 0 0 40px;
+}
+
+.mylist-card {
+    width: 100%;
+    margin-top: 0;
+}
+
+.mylist-card-head {
+    padding: 20px 24px;
+}
+
+.mylist-card-title {
+    font-size: 20px;
+}
+
+.mylist-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.mylist-table {
+    width: 100%;
+    min-width: 720px;
+}
+
+
+
 /* ========== Advertisement List ========== */
 /* ========== 광고 관리 ========== */
 .mypage-content {
