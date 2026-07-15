@@ -19,6 +19,8 @@ public class ReviewDto {
 	//이미지 테이블
     private int imageId;
     private String imagePath;
+    
+	public int CheckDoubleReport; //
    
   
 	

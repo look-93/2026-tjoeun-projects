@@ -98,12 +98,12 @@
 <!--                   <a 
                      th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${param.meetupId})}"
                      class="meetup-detail-report-btn" type="button">th:if="${user.memberId != detail.memberId}"모임 신고 </a> -->
-                     <a th:if="${user.memberId != detail.memberId}"
+                   <!--   <a th:if="${user.memberId != detail.memberId}"
 					   th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${detail.meetupId})}"
 					   class="meetup-detail-report-btn"
-					  th:onclick="|return checkReportDuplicate(this, ${checkDoubleReport ?: 0});|">
+					  th:onclick="|return checkReportDuplicate(this, ${checkMeetupDoubleReport ?: 0});|">
 					   모임 신고
-					</a>
+					</a> -->
                </div>
                <h1 class="meetup-detail-title" th:text="${detail.title}"></h1>
                <input type="hidden" id="longitude" name="longitude" th:value="${detail!= null} ? ${detail.longitude} : ''"/>
@@ -127,7 +127,7 @@
 							<p th:text="${detail.nickname + ' 외 ' + (detail.totalParticipants == null || detail.totalParticipants == 0 ? 0 : detail.totalParticipants - 1 ) + '명'}"></p>
 						</div>
 
-						<div class="meetup-detail-tab-panel">
+						<div id="review-section" class="meetup-detail-tab-panel">
 							<div class="meetup-detail-rating-header">
 								<button style="background-color: #374151; color: #ffffff; border: none; border-radius: 12px; padding: 8px 16px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s ease-in-out;"
 									onmouseover="this.style.backgroundColor='#1F2937'"
@@ -135,6 +135,55 @@
 									th:onclick="|location.href='/meetup/review/insert?meetupId=${detail.meetupId}'|">
 									후기 작성하기
 								</button>
+								<div class="review-toolbar">
+
+									    <!-- 검색 -->
+							             <form
+							    id="reviewSearchForm"
+							    th:action="@{/meetup/detail}"
+							    method="get"
+							    onsubmit="this.action='/meetup/detail#review-section'"
+							    class="review-search-form">
+									
+									        <input type="hidden"
+									               name="meetupId"
+									               th:value="${detail.meetupId}">
+									
+									        <input type="hidden"
+									               name="sort"
+									               th:value="${sort}">
+									
+									        <input type="text"
+									               name="keyword"
+									               th:value="${keyword}"
+									               placeholder="후기 검색"
+									               class="review-search-input">
+									
+									        <button type="submit"
+									         class="review-search-btn">
+									            검색
+									        </button>
+									
+									    </form>
+									
+									    <!-- 정렬 -->
+									    <select id="reviewSort"
+									            onchange="changeSort(this.value)"
+									             class="review-sort-select">
+									
+									        <option value="latest"
+									                th:selected="${sort == 'latest'}">
+									            최신순
+									        </option>
+									
+									        <option value="likes"
+									                th:selected="${sort == 'likes'}">
+									            좋아요순
+									        </option>
+									
+									    </select>
+									
+								</div>
 							</div>
 
 							<div class="meetup-detail-rating-box">
@@ -194,12 +243,14 @@
 									</div>
 									<div>
 										                              <!-- <button class="meetup-detail-report-btn">신고</button> -->
-                     <a 
+                     <a th:if="${user.memberId != review.memberId}"
                       th:href="@{/user/meetup/report/write(targetType='REVIEW', targetId=${review.reviewId})}"              
                       class="meetup-detail-report-btn" 
+					  th:onclick="|return checkReportDuplicate(this, ${review.checkDoubleReport ?: 0});|"
                       style="background-color: #ffeded; color: #e53935; border: none; border-radius: 12px; padding: 4px 10px; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; transition: background 0.2s;">
-                      th:if="${user.memberId != detail.memberId}"리뷰 신고
+                      리뷰 신고
                     </a>
+                    
 										<button class="meetup-detail-report-btn" style="background-color: #FEF08A; color: #15803D; border: none; border-radius: 12px; padding: 4px 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s;"
 											th:onclick="|location.href='/meetup/review/update/${review.reviewId}?meetupId=${detail.meetupId}'|">수정</button>
 										<a class="meetup-detail-report-btn" style="background-color: #BFDBFE; color: #1D4ED8; border: none; border-radius: 12px; padding: 4px 10px; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; transition: background 0.2s;"
@@ -217,16 +268,34 @@
 								    👍 <span th:text="${review.likesCount}">0</span>
 	                                </button>
 							</div>
-						</div> <div class="meetup-detail-tab-panel">
-							<h3>Q&A</h3>
-							<div class="meetup-detail-comment">
-								<div class="meetup-detail-comment-user">
-									<div class="meetup-detail-comment-name">익명</div>
-									<div class="meetup-detail-comment-date">2026.06.18</div>
-								</div>
-								<p class="meetup-detail-comment-text">초보인데 참여 가능할까요?</p>
-							</div>
-						</div> </div> </div> </div> <div class="meetup-detail-right">
+						</div> 
+						
+						<div class="meetup-detail-tab-panel">
+						    <h3>Q&A</h3>
+						    <div th:if="${#lists.isEmpty(qnaList)}"> 등록된 문의가 없습니다. </div>
+						    <div class="meetup-detail-comment" th:each="qna : ${qnaList}"
+						         th:onclick="|location.href='@{/questions/{id}(id=${qna.questionId})}'|"
+						         style="cursor:pointer;">
+						        <div class="meetup-detail-comment-top">
+						            <div class="meetup-detail-comment-user">
+						                <div class="meetup-detail-comment-name" th:text="${qna.nickname}"> </div>
+						                <div class="meetup-detail-comment-date"
+										     th:text="${#strings.substring(qna.createdAt.toString(), 0, 19)}">
+										</div>
+						            </div> 
+						        </div>
+						
+						        <h4 class="meetup-detail-comment-text" th:text="${qna.title}"></h4>
+						        <p class="meetup-detail-comment-text" th:text="${qna.content}"> </p>
+						        <div th:if="${qna.answer != null}">
+						            <hr>
+						            <b>답변</b>
+						            <p class="meetup-detail-comment-text" th:text="${qna.answer.content}"></p>
+						        </div>
+						    </div>
+						</div>
+						
+					</div> </div> </div> <div class="meetup-detail-right">
 				<div class="meetup-detail-side-box">
 					<h3>모집 정보</h3>
 					<div class="meetup-detail-info-row">
@@ -470,15 +539,65 @@
 		    .catch(err => console.log(err));
 		}
 		
+		///후기
+		function changeSort(sort){
+
+		    const meetupId =
+		        document.getElementById("meetupId").value;
+
+		    const keyword =
+		        document.querySelector("input[name='keyword']").value;
+
+		    let url =
+		        "/meetup/detail?meetupId=" + meetupId +
+		        "&sort=" + sort;
+
+		    if(keyword && keyword.trim() !== ""){
+		        url += "&keyword=" + encodeURIComponent(keyword);
+		    }
+
+		    location.href = url+"#review-section";
+		}
+		
+		window.addEventListener("load", function () {
+
+		    if (location.hash === "#review-section") {
+
+		        showTab(2);
+
+		        document.getElementById("review-section")
+		                .scrollIntoView({
+		                    behavior: "smooth"
+		                });
+
+		    }
+
+		});
+		//후기 
+		document.getElementById("reviewSearchForm").addEventListener("submit", function (e) {
+
+		    e.preventDefault();
+
+		    const meetupId = document.getElementById("meetupId").value;
+		    const keyword = document.querySelector("input[name='keyword']").value;
+		    const sort = document.querySelector("input[name='sort']").value;
+
+		    location.href =
+		        "/meetup/detail?meetupId=" + meetupId +
+		        "&sort=" + sort +
+		        "&keyword=" + encodeURIComponent(keyword) +
+		        "#review-section";
+
+		});
+
 		function checkReportDuplicate(element, checkDoubleReport) {
 
 		    console.log("신고 중복 체크:", checkDoubleReport);
 
 		    if(Number(checkDoubleReport) === -1) {
-		        alert("이미 신고된 모임글입니다.");
+		        alert("이미 신고된 글입니다.");
 		        return false;
-		    }
-
+		    }		    
 		    return true;
 		}
 		
@@ -531,6 +650,7 @@
 		    map.setCenter(position);
 		    marker.setPosition(position);
 		}
+
 		</script>
 	</div>
 </body>

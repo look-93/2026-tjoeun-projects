@@ -25,7 +25,7 @@ public interface ReportsService {
 	// 신고 내역 삭제 (update delete_yn = 'Y')
 	public int deleteUserReport(ReportsDto dto);
 	
-	//모임 신고 더블 체크
+	//모임,리뷰 신고 더블 체크
 	public int checkDoubleReport(ReportsDto dto);
 	
 	// ===== admin =====

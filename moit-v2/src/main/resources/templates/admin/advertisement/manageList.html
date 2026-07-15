@@ -215,6 +215,15 @@
 								<button class="btn btn-success btn-sm">승인</button>
 
 							</form>
+							
+							<!-- <form th:action="@{/admin/advertisement/extensionReject}"
+								method="post">
+
+								<input type="hidden" name="adId" th:value="${ad.adId}">
+
+								<button class="btn btn-danger btn-sm">반려</button>
+
+							</form> -->
 
 						</td>
 
@@ -305,32 +314,32 @@
 					        <option value=""
 					            th:selected="${search.sort == null or search.sort == ''}">
 					            최신 등록순
-					        </option>
+					        </option>					
 					
+					        <option value="recommend"
+					            th:selected="${search.sort == 'recommend'}">
+					            추천순
+					        </option>					
 					
 					        <option value="start"
 					            th:selected="${search.sort == 'start'}">
 					            시작 예정순
-					        </option>
-					
-					
-					        <option value="status"
-					            th:selected="${search.sort == 'status'}">
-					            진행 중 우선
-					        </option>
-					
+					        </option>					
 					
 					        <option value="end"
 					            th:selected="${search.sort == 'end'}">
 					            종료 임박순
-					        </option>
-					
+					        </option>					
 					
 					        <option value="budget"
 					            th:selected="${search.sort == 'budget'}">
 					            예산 높은순
 					        </option>
-					
+					        
+					        <option value="grade"
+					            th:selected="${search.sort == 'grade'}">
+					            등급순
+					        </option>					
 					    </select>
 					
 					</div>
@@ -471,13 +480,13 @@
 	
 	            <li class="page-item" th:classappend="${dto.page <= 1} ? 'disabled'">
 	                <a class="page-link"
-	                   th:href="@{/admin/advertisement/manageList(page=${dto.page - 1}, tab=${tab})}">
+	                   th:href="@{/admin/advertisement/manageList(page=${startPage - 1}, tab=${tab})}">
 	                    이전
 	                </a>
 	            </li>
 	
 	            <li class="page-item"
-	                th:each="i : ${#numbers.sequence(1, totalPage)}"
+	                th:each="i : ${#numbers.sequence(startPage,endPage)}"
 	                th:classappend="${dto.page == i} ? 'active'">
 	
 	                <a class="page-link"
@@ -489,7 +498,7 @@
 	
 	            <li class="page-item" th:classappend="${dto.page >= totalPage} ? 'disabled'">
 	                <a class="page-link"
-	                   th:href="@{/admin/advertisement/manageList(page=${dto.page + 1}, tab=${tab})}">
+	                   th:href="@{/admin/advertisement/manageList(page=${endPage + 1}, tab=${tab})}">
 	                    다음
 	                </a>
 	            </li>

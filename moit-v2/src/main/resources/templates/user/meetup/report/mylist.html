@@ -64,7 +64,7 @@
 								<!-- 이전 -->
 								<th:block th:if="${paging.start > paging.bottomlist}">
 									<li>
-										<a th:href="@{/user/meetup/report/mylist(pstartno=${paging.start - 1})}" class="mylist-page-btn">이전</a>
+										<a th:href="@{/user/meetup/report/mylist(pstartno=${paging.start - 1})}" class="mylist-page-btn"><</a>
 									</li>
 								</th:block>
 
@@ -81,7 +81,7 @@
 								<!-- 다음 -->
 								<th:block th:if="${paging.end < paging.pagetotal}">
 									<li>
-										<a th:href="@{/user/meetup/report/mylist(pstartno=${paging.end + 1})}" class="mylist-page-btn">다음</a>
+										<a th:href="@{/user/meetup/report/mylist(pstartno=${paging.end + 1})}" class="mylist-page-btn">></a>
 									</li>
 								</th:block>
 							</ul>

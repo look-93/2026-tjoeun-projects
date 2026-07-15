@@ -1,5 +1,7 @@
 package com.moit.member.dto;
 
+import java.util.List;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import lombok.Data;
@@ -28,4 +30,6 @@ public class UserDto {
 	private String providerId;
 	
 	private MultipartFile profileImage;
+	
+	private List<Integer> interestIds;
 }

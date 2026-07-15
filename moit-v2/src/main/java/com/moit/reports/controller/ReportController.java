@@ -4,17 +4,22 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.authentication.configurers.userdetails.DaoAuthenticationConfigurer;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.moit.member.dto.UserDto;
 import com.moit.reports.api.ApiEmail;
+import com.moit.reports.api.ApiOpenAi;
 import com.moit.reports.dto.ReportsDto;
 import com.moit.reports.service.ReportsService;
 import com.moit.security.CustomUserDetails;
@@ -26,6 +31,7 @@ import jakarta.servlet.http.HttpSession;
 public class ReportController {
 	@Autowired ReportsService service;
 	@Autowired ApiEmail apiEmail;
+	@Autowired ApiOpenAi apiOpenAi;
 	
 	// test button
 	@RequestMapping("/user/meetup/report/button")
@@ -183,6 +189,7 @@ public class ReportController {
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
 		Integer memberId = null;
+		
 		//1. local
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
@@ -195,9 +202,12 @@ public class ReportController {
 		dto.setReportId(reportId);
 		dto.setMemberId(memberId);
 		
+		
 //		Integer memberId = getLoginMemberId(session); // 사용자 login
 		
-		model.addAttribute("dto", service.selectUserReportDetail(dto));
+//		model.addAttribute("dto", service.selectUserReportDetail(dto));
+		ReportsDto detail = service.selectUserReportDetail(dto);
+		model.addAttribute("dto", detail);
 		
 		return "user/meetup/report/detail";
 	}
@@ -392,7 +402,29 @@ public class ReportController {
 	}
 	
 	
+	//////////////////////////////////////////////////////////
+	// open ai
 	
+	@GetMapping("/report/api/openai")
+	public String openai_get() {
+		return "";
+	}
+	
+	@PostMapping(value = "/report/api/openai",
+				produces = "text/plain; charset=UTF-8")
+//				produces = MediaType.APPLICATION_JSON_VALUE)
+	@ResponseBody
+	public String openai_post( @RequestBody String keywords ) {
+		
+		System.out.println("AI Controller 도착");
+	    System.out.println("전달받은 값: " + keywords);
+
+	    String result = apiOpenAi.getAIResponse(keywords);
+
+	    System.out.println("AI 결과: " + result);
+	    
+		return apiOpenAi.getAIResponse(keywords);
+	}
 	
 	
 }

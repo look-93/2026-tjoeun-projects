@@ -3,253 +3,25 @@
       layout:decorate="~{user/mypage/layouts/mypageLayout}">
 <head>
 <meta charset="UTF-8">
-
-<style>
-
-.inquiry-wrap{
-    padding:40px 0;
-}
-
-.page-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    margin-bottom:30px;
-}
-
-.page-header h1{
-    font-size:34px;
-    margin-bottom:10px;
-}
-
-.page-header p{
-    color:#64748b;
-}
-
-.write-btn{
-    background:#2563ff;
-    color:white;
-    text-decoration:none;
-    padding:14px 24px;
-    border-radius:12px;
-    font-weight:600;
-}
-
-.status-tab{
-    display:flex;
-    gap:40px;
-    margin-bottom:25px;
-}
-
-.status-tab a{
-    text-decoration:none;
-    color:#64748b;
-    padding-bottom:10px;
-}
-
-.status-tab .active{
-    color:#2563ff;
-    border-bottom:3px solid #2563ff;
-}
-
-.content-layout{
-    display:flex;
-    gap:30px;
-}
-
-.list-section{
-    flex:1;
-    background:white;
-    border-radius:20px;
-    padding:25px;
-    box-shadow:0 4px 15px rgba(0,0,0,0.04);
-}
-
-.search-box{
-    display:flex;
-    gap:15px;
-    margin-bottom:25px;
-}
-
-.search-box select,
-.search-box input{
-    height:46px;
-    border:1px solid #e5e7eb;
-    border-radius:10px;
-    padding:0 15px;
-}
-
-.search-box input{
-    flex:1;
-}
-
-.search-box button{
-    width:90px;
-    border:none;
-    border-radius:10px;
-    background:#2563ff;
-    color:white;
-    cursor:pointer;
-}
-
-.inquiry-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-.inquiry-table th{
-    background:#f8fafc;
-    padding:18px;
-    text-align:center;
-}
-
-.inquiry-table td{
-    padding:18px;
-    text-align:center;
-    border-bottom:1px solid #f1f5f9;
-    white-space: nowrap;
-}
-
-.inquiry-table tbody tr{
-    cursor:pointer;
-}
-
-.inquiry-table tbody tr:hover{
-    background:#f8fafc;
-}
-
-.badge{
-    padding:5px 12px;
-    border-radius:20px;
-    font-size:13px;
-    font-weight:600;
-}
-
-.waiting{
-    color:#f97316;
-    border:1px solid #f97316;
-}
-
-.complete{
-    color:#22c55e;
-    border:1px solid #22c55e;
-}
-
-.paging{
-    display:flex;
-    justify-content:center;
-    gap:0;
-    margin-top:25px;
-}
-
-.paging a{
-    width:38px;
-    height:38px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border:1px solid #e2e8f0;
-    border-radius:0px;
-    text-decoration:none;
-    color:#475569;
-    margin-left:-1px;   /* 테두리 겹침 */
-}
-
-.paging .active{
-    background:#2563ff;
-    color:white;
-}
-
-.guide-box{
-    width:260px;
-    background:white;
-    border-radius:20px;
-    padding:25px;
-    box-shadow:0 4px 15px rgba(0,0,0,0.04);
-}
-
-.guide-box h3{
-    margin-bottom:20px;
-}
-
-.guide-item{
-    display:flex;
-    gap:15px;
-    margin-bottom:25px;
-}
-
-.icon{
-    font-size:24px;
-}
-
-.guide-item strong{
-    display:block;
-    margin-bottom:5px;
-}
-
-.guide-item p{
-    font-size:13px;
-    color:#64748b;
-}
-
-.public-badge,
-.private-badge{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:6px;
-
-    min-width:80px;
-    height:34px;
-    padding:0 14px;
-
-    border-radius:12px;
-    font-size:13px;
-    font-weight:700;
-}
-
-/* 공개 */
-.public-badge{
-    color:#2563eb;
-    background:#eef4ff;
-    border:1px solid #c7dbff;
-}
-
-/* 비공개 */
-.private-badge{
-    color:#dc2626;
-    background:#fef2f2;
-    border:1px solid #fecaca;
-}
-
-</style>
+<link rel="stylesheet" th:href="@{/css/qnaStyle.css}">
 
 </head>
 <body>
 <div layout:fragment="content">
 
-<main class="container inquiry-wrap">
+<main class="container inquiry-wrap-list">
 
-    <div class="page-header">
+    <div class="page-header-list">
         <div>
             <h1>내 문의 내역</h1>
             <p>내가 작성한 문의 내역을 확인할 수 있습니다.</p>
         </div>
-
-        <a th:href="@{/questions/write(category=${category})}"
-           class="write-btn">
-            ✎ 문의 등록
-        </a>
     </div>
 
-    <div class="status-tab">
-        <a href="#" class="active">전체</a>
-    </div>
+    <div class="content-layout-list">
+        <div class="list-section-list">
 
-    <div class="content-layout">
-        <div class="list-section">
-
-            <form class="search-box" th:action="@{/questions/myQuestion}" method="get">
+            <form class="search-box-list" th:action="@{/questions/myQuestion}" method="get">
                 <select name="type">
                     <option value="title" th:selected="${type == 'title'}">제목</option>
                     <option value="content" th:selected="${type == 'content'}">내용</option>
@@ -261,7 +33,7 @@
                 <button type="submit">검색</button>
             </form>
 
-            <table class="inquiry-table">
+            <table class="inquiry-table-list">
 
                 <thead>
                     <tr>
@@ -286,12 +58,12 @@
                         <td th:text="${q.category == 'MEETUP'} ? '모임 문의' : '관리자 문의'"></td>
                         <td th:text="${q.title}"></td>
                         <td>
-						    <span class="public-badge" th:if="${q.isPublic == 'Y'}">🔓 공개</span>
-						    <span class="private-badge" th:if="${q.isPublic == 'N'}">🔒 비공개</span>
+						    <span class="public-badge-list" th:if="${q.isPublic == 'Y'}">🔓 공개</span>
+						    <span class="private-badge-list" th:if="${q.isPublic == 'N'}">🔒 비공개</span>
 						</td>
                         <td>
-                            <span class="badge waiting" th:if="${q.status == 'PENDING'}"> 답변 대기 </span>
-                            <span class="badge complete" th:if="${q.status == 'ANSWERED'}"> 답변 완료 </span>
+                            <span class="badge-list waiting-list" th:if="${q.status == 'PENDING'}"> 답변 대기 </span>
+                            <span class="badge-list complete-list" th:if="${q.status == 'ANSWERED'}"> 답변 완료 </span>
                         </td>
                         <td th:text="${#dates.format(q.createdAt, 'yyyy.MM.dd HH:mm:ss')}"></td>
                         <td th:text="${q.answer != null ? #dates.format(q.answer.createdAt,'yyyy.MM.dd HH:mm:ss') : '-'}"></td>	
@@ -301,7 +73,7 @@
 
             </table>
 
-            <div class="paging"  th:if="${totalPage > 0}">
+            <div class="paging-list" th:if="${totalPage > 0}">
 
                 <a th:if="${startPage > 1}"
                    th:href="@{/questions/myQuestion(
@@ -317,7 +89,7 @@
 				            type=${type},
 				            keyword=${keyword})}"
                    th:text="${i}"
-                   th:classappend="${page == i} ? ' active'">
+                   th:classappend="${page == i} ? ' active-list'">
                 </a>
 
                 <a th:if="${endPage < totalPage}"
@@ -331,28 +103,28 @@
 
         </div>
 
-        <aside class="guide-box">
+        <aside class="guide-box-list">
 
             <h3>이용 가이드</h3>
 
-            <div class="guide-item">
-                <div class="icon">📎</div>
+            <div class="guide-item-list">
+                <div class="icon-list">📎</div>
                 <div>
                     <strong>문의 등록</strong>
                     <p>궁금한 내용을 등록해 주세요.</p>
                 </div>
             </div>
 
-            <div class="guide-item">
-                <div class="icon">💬</div>
+            <div class="guide-item-list">
+                <div class="icon-list">💬</div>
                 <div>
                     <strong>답변 확인</strong>
                     <p>작성자의 답변을 확인할 수 있습니다.</p>
                 </div>
             </div>
 
-            <div class="guide-item">
-                <div class="icon">🗓</div>
+            <div class="guide-item-list">
+                <div class="icon-list">🗓</div>
                 <div>
                     <strong>문의 수정/삭제</strong>
                     <p>답변 전까지 수정 및 삭제가 가능합니다.</p>

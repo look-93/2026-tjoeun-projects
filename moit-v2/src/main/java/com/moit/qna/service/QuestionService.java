@@ -42,7 +42,14 @@ public class QuestionService {
         map.put("startDate", startDate);
         map.put("endDate", endDate);
         
-        return questionMapper.findAll(map);
+        List<QuestionDto> list = questionMapper.findAll(map);
+
+        // 답변 정보 추가
+        for (QuestionDto q : list) {
+            AnswerDto answer = answerMapper.findByQuestionId(q.getQuestionId());
+            q.setAnswer(answer);
+        }
+        return list;
     }
 
  // 문의 상세 조회 + 답변 정보 조회
@@ -150,7 +157,7 @@ public class QuestionService {
         questionMapper.deleteSelected(ids);
     }
     
-    //
+    //해당 모임의 문의 목록
     public List<QuestionDto> selectByParentId(int parentId){
         return questionMapper.selectByParentId(parentId);
     }

@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.moit.review.dto.ReviewDto;
+import com.moit.util.UtilPaging;
 
 @Mapper
 public interface ReviewMapper {
@@ -53,10 +54,13 @@ public interface ReviewMapper {
 	
 
 	//관리자 페이징 처리
-	public List<ReviewDto>adminGetReviewList(@Param("keyword") String keyword,
-											@Param("memberId") int memberId,
-											@Param("offset") int offset,
-											@Param("size")int size);
+	public List<ReviewDto> adminGetReviewList(
+	        @Param("keyword") String keyword,
+	        @Param("memberId") int memberId,
+	        @Param("paging") UtilPaging paging,
+	        @Param("endRow") int endRow);
+	
+	
 	//검색 조건 맞춰서
 	public int adminGetReviewCount(@Param("keyword") String keyword, 
             @Param("memberId") int memberId);
