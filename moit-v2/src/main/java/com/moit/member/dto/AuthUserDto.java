@@ -13,6 +13,7 @@ public class AuthUserDto {
 	private String typeName;
 	private String profileUrl;
 	private Integer statusId;
+	private Integer memberTypeId;
 
 	private  List<AuthDto> authList;  
 	

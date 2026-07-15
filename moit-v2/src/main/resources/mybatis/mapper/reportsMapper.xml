@@ -259,8 +259,8 @@
 				mrs.status_code			as statusCode,		<!-- 뱃지 (eng) -->
 				mrs.status_name			as statusName		<!-- 뱃지 (kor) -->
 		from members m
-			join member_info mi				on m.member_id = mi.member_id
-			join member_report_status mrs	on mi.report_status_id = mrs.report_status_id
+			left join member_info mi			on m.member_id = mi.member_id
+			left join member_report_status mrs	on mi.report_status_id = mrs.report_status_id
 		where m.member_id = #{targetMemberId}
 	</select>
 	
@@ -329,7 +329,7 @@
 	</update>
 	
 	<!-- 새벽 배치용: 전날 활동 이력(참여APPROVED/노쇼NOSHOW/신고(reports.status = 'APPROVED' 처리 이력)이 있는 회원 ID 타겟 추출 -->
-	<!-- 모임 신청 상태가 'APPROVED' OR 'NOSHOW' 회원 member_id -->
+	<!-- 모임 신청 상태가 'APPROVED' OR 'NOSHOW'double 회원 member_id -->
 	<!-- MEETUP 에서 신고 처리가 'APPROVED' 된 모임글 작성자 mt.member_id -->
 	<!-- REVIEW 에서 신고 처리가 'APPROVED' 된 후기글 작성자 rv.member_id -->
 	<select id="selectTargetMembersYesterday" resultType="ReportsDto">

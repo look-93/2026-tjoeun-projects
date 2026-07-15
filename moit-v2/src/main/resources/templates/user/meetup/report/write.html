@@ -5,10 +5,11 @@
 <!--    #1. layout 렌더링    -->
 <head lang="ko">
 <meta charset="UTF-8">
+<meta name="_csrf" th:content="${_csrf.token}">
+<meta name="_csrf_header" th:content="${_csrf.headerName}">
 </head>
+
 <body>
-	<th:block th:replace="~{user/fragments/header :: header}" />
-	<div class="container">
 			<div layout:fragment="content">
 				<!-- 페이지 내용 -->
 
@@ -71,10 +72,31 @@
 					</label>
 				</div>
 			</div>
+			
+			<div class="write-field">
+				<label class="write-label" for="Keywords">AI신고 내용 작성
+					<span class="write-optional">(선택)</span>
+				</label>
+				<textarea
+					class="write-textarea"
+					placeholder="키워드 예시) 욕설, 반복적인 비방, 불쾌한 표현"
+					id="keywords"
+					name="keywords"
+					title="키워드작성"
+					maxlength="150"></textarea>
+				<div class="write-actions">
+					<input
+						type="button"
+						id="sendBtn"
+						class="write-btn write-btn-primary"
+						value="키워드작성">
+				</div>
+				<div id="response" class="alert write-alert-warning"></div>
+			</div>
+
 
 			<div class="write-field">
-				<label class="write-label" for="reasonDetail">
-					상세 내용
+				<label class="write-label" for="reasonDetail">상세 내용
 					<span class="write-optional">(선택)</span>
 				</label>
 
@@ -102,13 +124,72 @@
 	</section>
 </main>
 
-</div>
 <script>
 	const reasonDetail = document.getElementById('reasonDetail');
 	const detailCount = document.getElementById('detailCount');
 
 	reasonDetail.addEventListener('input', function() {
 		detailCount.textContent = reasonDetail.value.length;
+	});
+	
+	
+	
+	window.addEventListener("load", function() {
+		const token = document.querySelector("meta[name='_csrf']").getAttribute("content");
+		const header = document.querySelector("meta[name='_csrf_header']").getAttribute("content");
+		console.log(token);
+		console.log(header);
+		
+		//
+		const sendBtn = document.getElementById("sendBtn");
+		const keywordsInput = document.getElementById("keywords");
+		const response = document.getElementById("response");
+		
+		
+		
+		//
+		sendBtn.addEventListener("click", function() {
+			const keywords = keywordsInput.value.trim();
+			
+			const selectReason = document.querySelector("input[name='reasonCode']:checked");
+
+			if (!selectReason) {
+				alert("신고 사유를 먼저 선택해주세요.");
+				return;
+			}
+			if (keywords.length === 0) {
+				alert("키워드를 입력해주세요.");
+				keywordsInput.focus();
+				return;
+			}
+			const requestText = "신고 사유: " + selectReason.value
+						 + "\n사용자 키워드: " + keywords;
+			
+			//
+			fetch(`/report/api/openai`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json; charset=UTF-8",
+						[header]: token
+					},
+					body: JSON.stringify(requestText)
+			})
+			.then(response => {
+				if (!response.ok) {
+					return response.text().then(errText => {
+						throw new Error(errText)
+					})
+				}
+				return response.text();
+			})
+			.then(result => {
+				reasonDetail.value=result;
+			})
+			.catch(error => {
+				console.error("AI 호출 오류:", error);
+				response.textContent = error.message;
+			});
+		});
 	});
 	
 //	중복 신고 방지 (AJAX)
@@ -125,7 +206,7 @@
 //})
 
 </script>
-    </div>
+</div>
 </body>
 </html>
 

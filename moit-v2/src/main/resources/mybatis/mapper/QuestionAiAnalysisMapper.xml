@@ -9,4 +9,10 @@
         ( #{questionId}, #{analysisStatus}, #{aggressionScore} )
     </insert>
 
+	<update id="changeToNormal">
+	    UPDATE QUESTION_AI_ANALYSIS
+	    SET ANALYSIS_STATUS='NORMAL'
+	    WHERE QUESTION_ID=#{questionId}
+	</update>
+
 </mapper>

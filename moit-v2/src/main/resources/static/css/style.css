@@ -223,6 +223,7 @@ AD
     min-height:120px;
     max-height:900px;
     box-shadow:var(--shadow);
+    position:relative;
 }
 
 .ad-left h3{
@@ -267,6 +268,70 @@ AD
 .ad-empty{
     padding:40px;
     color:#999;
+}
+
+.ad-link {
+    position:relative;
+    display:block;
+}
+
+
+/* 프리미엄 제목 */
+.premium-ad-overlay {
+    position:absolute;
+    top:12px;
+    left:12px;
+    background:rgba(255,255,255,0.75);
+    backdrop-filter:blur(6px);
+    padding:6px 12px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:700;
+    max-width:70%;
+    cursor:pointer;
+    z-index:5;
+}
+
+
+/* 제목 길이 제한 */
+.premium-ad-overlay > span {
+    display:block;
+    max-width:220px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+
+/* 설명 */
+.premium-ad-tooltip {
+    display:none;
+    position:absolute;
+    top:35px;
+    left:0;
+    width:280px;
+    background:rgba(255,255,255,0.75);
+    color:#333;
+    padding:12px;
+    border-radius:10px;
+    box-shadow:0 5px 20px rgba(0,0,0,.2);
+    font-size:13px;
+    line-height:1.5;
+    z-index:20;
+}
+
+
+
+/* PC hover */
+@media(min-width:768px){
+
+    .premium-ad-overlay:hover 
+    .premium-ad-tooltip {
+
+        display:block;
+
+    }
+
 }
 
 /* ==================
@@ -3230,10 +3295,10 @@ textarea.mw-form-input {
    color: #1d5bd7;
 }
 
-.detail-btn-blue {
-   background: var(--detail-blue);
-   border-color: var(--detail-blue);
-   color: #fff;
+.detail-btn.detail-btn-blue {
+    background: #2f6df6;
+    border-color: #2f6df6;
+    color: #fff;
 }
 
 .detail-btn-red {
@@ -3451,6 +3516,38 @@ textarea.mw-form-input {
    border-color: var(--update-blue);
    color: #fff;
 }
+
+/* 내 신고 목록 위치 수정 */
+.mylist-page {
+    width: 100%;
+    margin: 0;
+    padding: 0 0 40px;
+}
+
+.mylist-card {
+    width: 100%;
+    margin-top: 0;
+}
+
+.mylist-card-head {
+    padding: 20px 24px;
+}
+
+.mylist-card-title {
+    font-size: 20px;
+}
+
+.mylist-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.mylist-table {
+    width: 100%;
+    min-width: 720px;
+}
+
+
 
 /* ========== Advertisement List ========== */
 /* ========== 광고 관리 ========== */
@@ -4104,6 +4201,11 @@ textarea.mw-form-input {
     resize:vertical;
 }
 
+.ai-ad-helper {
+    display: none;
+    margin-bottom: 10px;
+}
+
 /* target 영역 */
 .member-ad-write-grid {
     display:grid;
@@ -4412,6 +4514,7 @@ textarea.mw-form-input {
     font-size:40px;
     background:#f5f5f5;
     color:#bbb;
+}
 
 .review-like-btn{
     display:inline-flex;
@@ -4535,3 +4638,40 @@ textarea.mw-form-input {
 	box-sizing: border-box;
 }
 
+.alarm-popup{
+    position:fixed;
+    width:360px;
+    background:#fff;
+    border-radius:15px;
+    box-shadow:0 8px 30px rgba(0,0,0,.2);
+    overflow:hidden;
+    z-index:9999;
+
+    top:0;
+    left:0;
+    display:none;
+}
+
+.alarm-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.alarm-item{
+    padding:15px;
+    border-bottom:1px solid #f1f1f1;
+    cursor:pointer;
+}
+
+.alarm-item:hover{
+    background:#f8f8ff;
+}
+
+.alarm-area{
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}

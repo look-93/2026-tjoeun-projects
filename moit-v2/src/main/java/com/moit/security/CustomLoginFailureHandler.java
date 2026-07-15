@@ -23,6 +23,9 @@ public class CustomLoginFailureHandler implements AuthenticationFailureHandler {
 
 		if("WAIT".equals(message)) {
 		    response.sendRedirect("/user/member/login?error=wait");
+		}
+		else if("TYPE".equals(message)) {
+		    response.sendRedirect("/user/member/login?error=type");
 		}else{
 		    response.sendRedirect("/user/member/login?error=fail");
 		}

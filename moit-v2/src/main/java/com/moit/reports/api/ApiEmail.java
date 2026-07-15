@@ -2,13 +2,21 @@ package com.moit.reports.api;
 
 import java.util.Properties;
 
-import javax.mail.Authenticator;
+/*import javax.mail.Authenticator;
 import javax.mail.Message;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMessage;*/
+
+import jakarta.mail.Authenticator;
+import jakarta.mail.Message;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -51,9 +59,8 @@ public class ApiEmail {
 			message.setFrom(new InternetAddress(user)); // 보내는 사람
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(to)); // 받는 사람
 			message.setSubject( subject ); // 제목
-			message.setContent( content
-								+ "<br>(이 메일은 자동 발송된 안내 메일입니다.)"
-								, "text/html; charset=UTF-8");
+			message.setText( content
+						+ "\n(이 메일은 자동 발송된 안내 메일입니다.)", "UTF-8");
 			
 			Transport.send(message);
 			System.out.println("....... sendEmail successfully .......");
