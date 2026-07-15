@@ -149,7 +149,7 @@ public class MeetupController {
 	}
 	
 	/*주소 검색 API 호출*/
-	@GetMapping("/meetup/address-search")
+	@GetMapping("/meetup/address-search") 
 	@ResponseBody
 	public Map<String, Object> addressSearch(MeetupSearchDto meetupSearchDto, Model model){
 		Integer pstartno = meetupSearchDto.getPstartno();
