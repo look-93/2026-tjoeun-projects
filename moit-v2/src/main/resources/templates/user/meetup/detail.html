@@ -98,12 +98,12 @@
 <!--                   <a 
                      th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${param.meetupId})}"
                      class="meetup-detail-report-btn" type="button">th:if="${user.memberId != detail.memberId}"모임 신고 </a> -->
-                   <!--   <a th:if="${user.memberId != detail.memberId}"
+                      <a th:if="${user.memberId != detail.memberId}"
 					   th:href="@{/user/meetup/report/write(targetType='MEETUP', targetId=${detail.meetupId})}"
 					   class="meetup-detail-report-btn"
 					  th:onclick="|return checkReportDuplicate(this, ${checkMeetupDoubleReport ?: 0});|">
 					   모임 신고
-					</a> -->
+					</a> 
                </div>
                <h1 class="meetup-detail-title" th:text="${detail.title}"></h1>
                <input type="hidden" id="longitude" name="longitude" th:value="${detail!= null} ? ${detail.longitude} : ''"/>

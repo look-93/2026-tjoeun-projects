@@ -97,14 +97,14 @@
 			<a th:if="${dto.status == 'PENDING'}"
 				th:href="@{/user/meetup/report/update(reportId=${dto.reportId})}" class="detail-btn detail-btn-blue">수정</a>
 			
-			<!-- modal delete -->
+			<!-- modal delete 
 			<button type="button"
 					class="detail-btn detail-btn-red"
 					data-bs-toggle="modal"
 					data-bs-target="#deleteModal">삭제
-			</button>
+			</button> -->
 			
-			<!-- confirm delete 
+			<!-- confirm delete -->
 			<form th:if="${dto.status == 'PENDING'}"
 				th:action="@{/user/meetup/report/delete}" method="post"
 				onsubmit="return confirm('삭제하시겠습니까?');">
@@ -112,11 +112,11 @@
 				<input type="hidden" name="reportId" th:value="${dto.reportId}" />
 				
 				<button type="submit" class="detail-btn detail-btn-red">삭제</button> 
-			</form> -->
+			</form> 
 		</div>
 	</section>
 
-   <!-- 삭제 확인 모달 -->
+   <!-- 삭제 확인 모달 
    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
          <div class="modal-content detail-delete-modal-box">
@@ -137,7 +137,7 @@
             </div>
          </div>
       </div>
-   </div> 
+   </div> -->
    
    
 

@@ -194,7 +194,7 @@
 			
 	<select id="calTrustScore" resultType="int">
 	    select 
-	        (mi.trust_score
+	        (100
 	         + coalesce(ma.approved_cnt, 0) * 2 
 	         - coalesce(ma.noshow_cnt, 0) * 10 
 	         - (coalesce(r_met.report_cnt, 0) + coalesce(r_rev.report_cnt, 0)) * 5
@@ -247,7 +247,6 @@
 	    where m.member_id = #{memberId}
 	</select> 
 
-	
 	
 	<!-- 단순 조회용 쿼리 (로그인/마이페이지 호출용 member_info.trust_score - DB 부하 0%) -->
 	<!-- 신고자, 닉네임, 신뢰도 점수, 신고 상태(report_status_id), 신고 상태(code), 신고 상태(name) -->
@@ -434,7 +433,7 @@
 		            and reason_code = #{keyword}
 		        </when>
 		        <when test="searchType == 'createdAt' and createdAt != '' and keyword != null and keyword != ''">
-		            and date(created_at) = #{keyword}
+		            and trunc(created_at) = to_date(#{keyword}, 'YYYY-MM-DD')
 		        </when>
 	        </choose>
 	    </where>

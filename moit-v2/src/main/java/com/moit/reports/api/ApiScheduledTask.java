@@ -22,7 +22,7 @@ public class ApiScheduledTask {
 //	신고처리하고 3일뒤에 신고처리결과가 맘에 드시나요?   메일보내기 자동으로 
 //				cron = 초 분 시 일 월 요일
 
-//	@Scheduled(fixedDelay = 10000) test
+//	@Scheduled(fixedDelay = 10000)
 	@Scheduled(cron = "0 0 3 * * *")
 	public void threeSendEmail() { 
 

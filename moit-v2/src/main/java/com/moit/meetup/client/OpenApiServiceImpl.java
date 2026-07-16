@@ -42,25 +42,64 @@ public class OpenApiServiceImpl implements OpenApiService{
 	@Override
 	public WeatherInfoResponse getWeathreInfo(WeatherInfoRequest request) {
 //		0200(3시~5시), 0500(6시~8시), 0800(9시~11시), 1100(12시~14시), 1400(15시~17시), 1700(18시~20시), 2000(21시~23시), 2300(24시~02시)
+		/*
+		 * LocalTime now = LocalTime.now(); LocalDate date = LocalDate.now();
+		 * DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH"); Integer
+		 * formattedNow = Integer.parseInt(now.format(formatter));
+		 * 
+		 * DateTimeFormatter formatterYYYYMMDD =
+		 * DateTimeFormatter.ofPattern("yyyyMMdd"); String baseDate =
+		 * date.format(formatterYYYYMMDD);
+		 * 
+		 * String baseTime = switch (formattedNow) { case 0, 1, 2 -> "2300"; case 3, 4,
+		 * 5 -> "0200"; case 6, 7, 8 -> "0500"; case 9, 10, 11 -> "0800"; case 12, 13,
+		 * 14 -> "1100"; case 15, 16, 17 -> "1400"; case 18, 19, 20 -> "1700"; case 21,
+		 * 22, 23 -> "2000"; default -> throw new
+		 * IllegalStateException("Unexpected value: " + formattedNow); };
+		 */
 		LocalTime now = LocalTime.now();
 		LocalDate date = LocalDate.now();
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH");
-		Integer formattedNow = Integer.parseInt(now.format(formatter));
-		
-		DateTimeFormatter formatterYYYYMMDD = DateTimeFormatter.ofPattern("yyyyMMdd");
-		String baseDate = date.format(formatterYYYYMMDD);
-		
-		String baseTime = switch (formattedNow) {
-	    case 0, 1, 2 -> "2300";
-	    case 3, 4, 5 -> "0200";
-	    case 6, 7, 8 -> "0500";
-	    case 9, 10, 11 -> "0800";
-	    case 12, 13, 14 -> "1100";
-	    case 15, 16, 17 -> "1400";
-	    case 18, 19, 20 -> "1700";
-	    case 21, 22, 23 -> "2000";
-	    default -> throw new IllegalStateException("Unexpected value: " + formattedNow);
-		};
+
+		DateTimeFormatter formatter =
+		        DateTimeFormatter.ofPattern("HH");
+
+		int formattedNow =
+		        Integer.parseInt(now.format(formatter));
+
+		DateTimeFormatter formatterYYYYMMDD =
+		        DateTimeFormatter.ofPattern("yyyyMMdd");
+
+		String baseTime;
+
+		if (formattedNow >= 0 && formattedNow <= 2) {
+
+		    // 자정~새벽 2시는 오늘 23시 데이터가 아직 없으므로
+		    // 전날 23시 발표 데이터를 사용한다.
+		    date = date.minusDays(1);
+		    baseTime = "2300";
+
+		} else {
+
+		    baseTime = switch (formattedNow) {
+		        case 3, 4, 5 -> "0200";
+		        case 6, 7, 8 -> "0500";
+		        case 9, 10, 11 -> "0800";
+		        case 12, 13, 14 -> "1100";
+		        case 15, 16, 17 -> "1400";
+		        case 18, 19, 20 -> "1700";
+		        case 21, 22, 23 -> "2000";
+		        default -> throw new IllegalStateException(
+		            "Unexpected value: " + formattedNow
+		        );
+		    };
+		}
+
+		String baseDate =
+		        date.format(formatterYYYYMMDD);
+
+		System.out.println("현재 시간 = " + now);
+		System.out.println("날씨 기준 날짜 = " + baseDate);
+		System.out.println("날씨 기준 시간 = " + baseTime);
 //		System.out.println(baseDate + "aaa"); System.out.println(formattedNow + "ddddd"); System.out.println(baseTime + "aafafs");
 //		System.out.println(request.getNx());
 //		System.out.println(request.getNy());
