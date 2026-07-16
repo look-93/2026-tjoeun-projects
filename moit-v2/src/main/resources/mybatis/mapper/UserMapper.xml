@@ -182,6 +182,7 @@
             <if test="nickname != null and nickname != ''">nickname = #{nickname},</if>
             <if test="password != null and password != ''">password = #{password},</if>
             <if test="mobile != null and mobile != ''">mobile = #{mobile},</if>
+            <if test="email != null and email != ''">email = #{email},</if>
             <!-- <if test="memberTypeId > 0">member_type_id = #{memberTypeId},</if> -->
             <!-- <if test="statusId > 0">status_id = #{statusId},</if> -->
             <!-- <if test="deleteYn != null and deleteYn != ''">delete_yn = #{deleteYn},</if> -->
