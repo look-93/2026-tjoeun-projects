@@ -119,19 +119,19 @@ public class ReportsServiceImpl implements ReportsService {
 			dto.setTargetMemberId(targetMemberId);	
 			
 			// 신뢰도 점수 sql 쿼리 3개
-			int approvedCnt = dao.selectApprovedCnt(targetMemberId);
-			int noshowCnt = dao.selectNoshowCnt(targetMemberId);
-			int reportCnt = dao.selectReportCnt(targetMemberId);
+			//			int approvedCnt = dao.selectApprovedCnt(targetMemberId);
+			//			int noshowCnt = dao.selectNoshowCnt(targetMemberId);
+			//			int reportCnt = dao.selectReportCnt(targetMemberId);
 			// 계산
-			int trustScore = 100 + (approvedCnt * 2) - (noshowCnt * 10) - (reportCnt * 5);
+			//		int trustScore = 100 + (approvedCnt * 2) - (noshowCnt * 10) - (reportCnt * 5);
 
 			// 신뢰도 점수 sql 쿼리 1개
-//			int calTrustScore = dao.calTrustScore(targetMemberId);
+			int calTrustScore = dao.calTrustScore(targetMemberId);
 
 			int reportStatusId = 1;
-			if( trustScore >= 80 ) {
+			if( calTrustScore >= 80 ) {
 				reportStatusId = 1;				// 1=정상,클린한 유저
-			} else if ( trustScore >= 40 ) {
+			} else if ( calTrustScore >= 40 ) {
 				reportStatusId = 2;				// 2=주의,선 넘은 어그로 유저
 			} else {
 				reportStatusId = 3;				// 3=정지,진실의 방으로...
@@ -139,7 +139,7 @@ public class ReportsServiceImpl implements ReportsService {
 			
 			ReportsDto updateDto = new ReportsDto();
 			updateDto.setMemberId(targetMemberId);			// 신고대상id
-			updateDto.setTrustScore(trustScore);			// 신뢰도점수
+			updateDto.setTrustScore(calTrustScore);			// 신뢰도점수
 			updateDto.setReportStatusId(reportStatusId);	// 상태 번호 (status_name 출력)
 			
 			dao.updateMemberTrustScore(updateDto);			// 신뢰도 점수 update
