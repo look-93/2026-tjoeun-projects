@@ -4640,7 +4640,7 @@ textarea.mw-form-input {
 
 .alarm-popup{
     position:fixed;
-    width:360px;
+    width:600px;
     background:#fff;
     border-radius:15px;
     box-shadow:0 8px 30px rgba(0,0,0,.2);

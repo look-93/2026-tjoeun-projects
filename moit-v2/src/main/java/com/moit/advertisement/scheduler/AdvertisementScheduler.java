@@ -57,17 +57,17 @@ public class AdvertisementScheduler {
         advertisementService.sendReminderMail();
 
     }
-    // 3시간마다 통계 ai 요약 저장
-    @Scheduled(cron = "0 0 */3 * * *")
-    //@Scheduled(cron = "0 */1 * * * *")
-    public void generateAiSummary() {
-    	System.out.println("ai 요약 시작");
-    	// 1. 통계 데이터 조회
-        DashboardAiDto dto = advertisementService.getDashboardAiData();
-        // 2. GPT 분석 생성
-        String summary = aiSummaryService.createSummary(dto);
-        // 3. DB 저장	
-        advertisementService.saveAiSummary(summary);
-        System.out.println("ai 요약 종료");
-    }
+//    // 3시간마다 통계 ai 요약 저장
+//    @Scheduled(cron = "0 0 */3 * * *")
+//    //@Scheduled(cron = "0 */1 * * * *")
+//    public void generateAiSummary() {
+//    	System.out.println("ai 요약 시작");
+//    	// 1. 통계 데이터 조회
+//        DashboardAiDto dto = advertisementService.getDashboardAiData();
+//        // 2. GPT 분석 생성
+//        String summary = aiSummaryService.createSummary(dto);
+//        // 3. DB 저장	
+//        advertisementService.saveAiSummary(summary);
+//        System.out.println("ai 요약 종료");
+//    }
 }
