@@ -539,7 +539,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
 		int result = advertisementMapper.insertDailyStatistics();
 
-		System.out.println("=================================");
+		System.out.println("========== =======================");
 	    System.out.println("저장된 건수 : " + result);
 	    System.out.println("=================================");
 	}
