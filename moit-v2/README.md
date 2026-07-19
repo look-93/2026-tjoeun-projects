@@ -219,7 +219,7 @@
 
 * 회원가입 및 로그인
 
-  * https://www.youtube.com/watch?v=jrTrxnriqys
+  * https://www.youtube.com/watch?v=jCiTv0grZYE
 
 * 모임 등록 및 신청
 
