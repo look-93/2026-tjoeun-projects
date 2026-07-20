@@ -1014,36 +1014,52 @@
 	<!-- 광고 통계 차트  -->
 	<!-- 총 통계 차트  -->
 	<select id="selectSummary"
-	        resultType="com.moit.advertisement.dto.AdvertisementChartDto">	
-	    WITH today AS (
+	        resultType="com.moit.advertisement.dto.AdvertisementChartDto">
+	
+		WITH total AS (
 		    SELECT
-		        SUM(impressions) imp,
-		        SUM(clicks) click
+		        NVL(SUM(impressions),0) imp,
+		        NVL(SUM(clicks),0) click
 		    FROM advertisement_daily_statistics
-		    WHERE stat_date = TRUNC(SYSDATE)-1		
-		),		
-		yesterday AS (		
+		),
+		today AS (
 		    SELECT
-		        SUM(impressions) imp,
-		        SUM(clicks) click
+		        NVL(SUM(impressions),0) imp,
+		        NVL(SUM(clicks),0) click
 		    FROM advertisement_daily_statistics
-		    WHERE stat_date = TRUNC(SYSDATE)-2		
-		)		
-		SELECT		
-		    (SELECT COUNT(*) FROM advertisements) totalAd,		
-		    today.imp totalImp,		
-		    today.click totalClick,		
-		    ROUND(today.click / NULLIF(today.imp,0) *100,2) avgCtr,		
-		    ROUND((today.imp-yesterday.imp)
-		          /NULLIF(yesterday.imp,0)*100,2) impChange,		
-		    ROUND((today.click-yesterday.click)
-		          /NULLIF(yesterday.click,0)*100,2) clickChange,		
-		    ROUND(
-		        (today.click/NULLIF(today.imp,0)*100)
+		    WHERE stat_date = TRUNC(SYSDATE)-1
+		),
+		yesterday AS (
+		    SELECT
+		        NVL(SUM(impressions),0) imp,
+		        NVL(SUM(clicks),0) click
+		    FROM advertisement_daily_statistics
+		    WHERE stat_date = TRUNC(SYSDATE)-2
+		)
+		
+		SELECT
+		    (SELECT COUNT(*) FROM advertisements) totalAd,
+		
+		    -- 누적 통계
+		    total.imp totalImp,
+		    total.click totalClick,
+		    NVL(ROUND(total.click / NULLIF(total.imp,0) * 100,2),0) avgCtr,
+		
+		    -- 전일 대비 증감률
+		    NVL(ROUND((today.imp-yesterday.imp)
+		        / NULLIF(yesterday.imp,0) *100,2),0) impChange,
+		
+		    NVL(ROUND((today.click-yesterday.click)
+		        / NULLIF(yesterday.click,0) *100,2),0) clickChange,
+		
+		    NVL(ROUND(
+		        (today.click / NULLIF(today.imp,0) *100)
 		        -
-		        (yesterday.click/NULLIF(yesterday.imp,0)*100)
-		    ,2) ctrChange		
-		FROM today,yesterday
+		        (yesterday.click / NULLIF(yesterday.imp,0) *100)
+		    ,2),0) ctrChange
+		
+		FROM total, today, yesterday
+	
 	</select>
 	
 	<!-- 일일통계 차트  -->
