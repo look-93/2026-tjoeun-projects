@@ -368,7 +368,8 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	// 메인 광고 조회
 	@Override
 	public AdvertisementDto selectTopAdvertisement( String position, Integer memberId, String sessionId) {
-	    return advertisementMapper.selectTopAdvertisement( position, memberId, sessionId);
+		System.out.println("광고 조회");
+		return advertisementMapper.selectTopAdvertisement( position, memberId, sessionId);
 	}
 
 	// 통계
@@ -539,7 +540,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
 		int result = advertisementMapper.insertDailyStatistics();
 
-		System.out.println("=================================");
+		System.out.println("========== =======================");
 	    System.out.println("저장된 건수 : " + result);
 	    System.out.println("=================================");
 	}

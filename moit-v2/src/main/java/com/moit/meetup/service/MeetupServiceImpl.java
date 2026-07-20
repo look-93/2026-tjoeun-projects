@@ -91,6 +91,8 @@ public class MeetupServiceImpl implements MeetupService{
 		        + "- 최근 3개월 내 무단 노쇼(NOSHOW): " + trustScoreDto.getNoshowCount() + "회\n"
 		        + "- 모임 시작 24시간 이내 직전 취소: " + trustScoreDto.getCancelCount() + "회\n"
 		        + "- 3월 내 신고 당한 횟수: " + trustScoreDto.getReportCount() + "회\n"
+		        + "- 총 신뢰도 점수: " + trustScoreDto.getFinalTrustScore() + "점\n"
+		        + "신뢰도 점수가 60점 이하면 안좋은거야 \n"
 		        + "위 이력을 바탕으로 모임 개설자가 주의할 수 있게 20자 내외의 경고성 한 줄 요약문을 만들어줘.";
 		
 		if(trustScoreDto.getFinalTrustScore() < 60) {

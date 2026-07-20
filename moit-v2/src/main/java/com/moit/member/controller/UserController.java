@@ -438,10 +438,10 @@ public class UserController {
 		new SecurityContextLogoutHandler()
 			.logout(request, response, authentication);
 			
-		return "redirect:/user/member/login";		
+		return "redirect:/user/member/login";	
 	}
-	
+
 	@GetMapping("/kakaologout") 
 	public String kakaoLogout() {  return "redirect:/user/member/login";  }
-	
+
 }
