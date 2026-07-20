@@ -186,6 +186,32 @@ public class MeetupController {
 		return result;	
 	}	
 	
+	@GetMapping("/meetup/detail/weather")
+	@ResponseBody
+	public WeatherInfoResponse getWeather(Authentication authentication, 
+						MeetupApplicationDto meetupApplicationDto, 
+			            HttpServletRequest request, HttpSession session) {
+		
+		
+
+	    MeetupDto meetupDto = meetupService.selectMeetupDetail(meetupApplicationDto.getMeetupId());
+	    /*날씨*/
+		WeatherInfoRequest weatherRequest  = new WeatherInfoRequest();
+		String dateTime = meetupDto.getMeetupAt();
+
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		LocalDateTime localDateTime = LocalDateTime.parse(dateTime, formatter);
+		
+		weatherRequest.setMeetupDate(localDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));		
+		weatherRequest.setMeetupTime(localDateTime.getHour());		
+		weatherRequest.setNx(meetupDto.getNx());
+		weatherRequest.setNy(meetupDto.getNy());
+		WeatherInfoResponse weatherResponse = openApiService.getWeathreInfo(weatherRequest);
+		/*날씨*/
+		return weatherResponse;
+	}
+	
+	
 
 	/* 사용자 - 모임상세조회 */
 	@GetMapping("/meetup/detail")
@@ -246,23 +272,7 @@ public class MeetupController {
 	    	recommendMeetupList.add(meetupService.selectRecommendMeetups(dto));	    	
 	    }
 	    
-	    /*날씨*/
-		WeatherInfoRequest weatherRequest  = new WeatherInfoRequest();
-		String dateTime = meetupDto.getMeetupAt();
 
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-		LocalDateTime localDateTime = LocalDateTime.parse(dateTime, formatter);
-		
-		weatherRequest.setMeetupDate(localDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));		
-		weatherRequest.setMeetupTime(localDateTime.getHour());		
-		weatherRequest.setNx(meetupDto.getNx());
-		weatherRequest.setNy(meetupDto.getNy());
-//		System.out.println(localDateTime);
-//		System.out.println(localDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-//		System.out.println(localDateTime.getHour());
-//		System.out.println(weatherRequest);
-		WeatherInfoResponse weatherResponse = openApiService.getWeathreInfo(weatherRequest);
-		/*날씨*/
 		//System.out.println(weatherResponse);
 	    meetupApplicationDto.setStatusList(Arrays.asList("PENDING", "APPROVED"));
 	    
@@ -279,7 +289,6 @@ public class MeetupController {
 	    model.addAttribute("applyInfo", meetupService.findApplyInfo(meetupApplicationDto));
 	    model.addAttribute("detail", meetupDto);
 	    model.addAttribute("recommendMeetupList", recommendMeetupList);	    
-	    model.addAttribute("weatherResponse", weatherResponse); /*날씨*/
 	    //System.out.println(weatherResponse);
 	    model.addAttribute("images", meetupService.findMeetupImage(meetupApplicationDto.getMeetupId()));
 

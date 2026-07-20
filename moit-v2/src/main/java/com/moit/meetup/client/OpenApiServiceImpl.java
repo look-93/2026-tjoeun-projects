@@ -103,6 +103,7 @@ public class OpenApiServiceImpl implements OpenApiService{
 //		System.out.println(baseDate + "aaa"); System.out.println(formattedNow + "ddddd"); System.out.println(baseTime + "aafafs");
 //		System.out.println(request.getNx());
 //		System.out.println(request.getNy());
+		System.out.println("/getVilageFcst?serviceKey="+kmaApiKey+"&numOfRows=1000&pageNo=1&base_date="+baseDate+"&base_time="+baseTime+"&nx="+request.getNx()+"&ny="+request.getNy());
 		String xml  = weatherRestClient
 				.get()
 				.uri("/getVilageFcst?serviceKey="+kmaApiKey+"&numOfRows=1000&pageNo=1&base_date="+baseDate+"&base_time="+baseTime+"&nx="+request.getNx()+"&ny="+request.getNy())

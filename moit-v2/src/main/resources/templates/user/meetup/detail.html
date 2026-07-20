@@ -17,42 +17,11 @@
                <span class="back-arrow">←</span> 목록으로
             </a>
             <!-- 날씨알림 -->
-			<div class="meetup-detail-weather-content-box">
+			<div class="meetup-detail-weather-content-box" id="weatherDiv">
 			
 			    <div class="weather-title">
 			        <span>🌤️</span>
 			        <span>모임 날씨</span>
-			    </div>
-			
-			    <div class="weather-info"
-			         th:if="${weatherResponse != null
-			                 and weatherResponse.tmp != null
-			                 and weatherResponse.pop != null
-			                 and weatherResponse.sky != null}">
-			
-			        <div class="weather-item">
-			            <div class="weather-label">기온</div>
-			            <div class="weather-value" th:text="${weatherResponse.tmp + '℃'}"></div>
-			        </div>
-			
-			        <div class="weather-item">
-			            <div class="weather-label">강수확률</div>
-			            <div class="weather-value" th:text="${weatherResponse.pop + '%'}"></div>
-			        </div>
-			
-			        <div class="weather-item">
-			            <div class="weather-label">하늘</div>
-			            <div class="weather-value" th:text="${weatherResponse.sky}"></div>
-			        </div>
-			
-			    </div>
-			
-			    <div class="weather-empty"
-			         th:unless="${weatherResponse != null
-			                 and weatherResponse.tmp != null
-			                 and weatherResponse.pop != null
-			                 and weatherResponse.sky != null}">
-			        🌥️ 날씨는 모임 이틀 전에 제공됩니다.
 			    </div>
 			
 			</div>
@@ -395,6 +364,52 @@
 		</div>
 
 		<script th:inline="javascript">
+		
+		function getWeather(){
+			const weatherDiv = document.getElementById("weatherDiv");
+			const meetupId =
+			        document.getElementById("meetupId").value;
+			
+			fetch("/meetup/detail/weather?meetupId=" +  meetupId, {
+				headers: getCsrfHeaders(),
+				method: "get"
+			})
+			.then(res => {
+				if(!res.ok) throw new Error(`서버 응답에러 :${res.status}`);
+				return res.json();
+			})
+			.then(weatherResponse => {
+				if(weatherResponse.pop != null){
+					//console.log(weatherResponse)
+					weatherDiv.insertAdjacentHTML("beforeend", `
+						    <div class="weather-info">				
+						        <div class="weather-item">
+						            <div class="weather-label">기온</div>
+						            <div class="weather-value">${weatherResponse.tmp}℃</div>
+						        </div>
+
+						        <div class="weather-item">
+						            <div class="weather-label">강수확률</div>
+						            <div class="weather-value">${weatherResponse.pop}%</div>
+						        </div>
+
+						        <div class="weather-item">
+						            <div class="weather-label">하늘</div>
+						            <div class="weather-value">${weatherResponse.sky}</div>
+						        </div>
+						    </div>
+						`);
+				}else {
+					weatherDiv.insertAdjacentHTML("beforeend", `
+						    <div class="weather-empty">
+						        🌥️ 날씨는 모임 이틀 전에 제공됩니다.
+						    </div>
+						`);
+				}
+			})
+			.catch(err => console.log(err));
+		}
+		
 		function gotoDetail(meetupId) {
 		    location.href = '/meetup/detail?meetupId=' + meetupId;
 		}
@@ -484,6 +499,8 @@
 		
 		document.addEventListener("DOMContentLoaded", function () {
 			const analysisBtn = document.getElementById("analysisBtn");
+			
+			getWeather();
 			
 			if(analysisBtn) {
 				analysisBtn.addEventListener("click", function () {
