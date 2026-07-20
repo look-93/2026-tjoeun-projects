@@ -438,7 +438,7 @@ public class UserController {
 		new SecurityContextLogoutHandler()
 			.logout(request, response, authentication);
 			
-		return "redirect:/user/member/login";		
+		return "redirect:/user/member/login";	
 	}
-	
+ 
 }
