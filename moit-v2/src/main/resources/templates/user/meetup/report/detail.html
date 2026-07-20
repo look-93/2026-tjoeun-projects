@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html xmlns:th="http://www.thymeleaf.org"
+		xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+		layout:decorate="~{user/layouts/layout}">
+		
 <head lang="ko">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,8 +11,6 @@
 <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-   <th:block th:replace="~{user/fragments/header :: header}" />
-   <div class="container">
          <div layout:fragment="content">
             <!-- 페이지 내용 -->
 
@@ -26,17 +27,21 @@
          <div class="detail-grid">
             <div class="detail-row">
                <div class="detail-label">신고번호</div>
-               <div class="detail-value" th:text="${dto.reportId}"></div>
+               <div class="detail-value" th:text="|${dto.reportId}번 REPORT|"></div>
+            </div>
+
+            <div class="detail-row">
+               <div class="detail-label">신고 대상 ID (닉네임)</div>
+               <div class="detail-value" th:text="|${dto.targetMemberId} ( ${dto.targetNickname} )|"></div>
+            </div>
+            <div class="detail-row">
+               <div class="detail-label">신뢰도 점수 (뱃지)</div>
+               <div class="detail-value" th:text="|${dto.trustScore} ( ${dto.statusName} )|"></div>
             </div>
 
             <div class="detail-row">
                <div class="detail-label">신고 대상</div>
-               <div class="detail-value" th:text="${dto.targetType}"></div>
-            </div>
-
-            <div class="detail-row">
-               <div class="detail-label">대상 글 번호 ID</div>
-               <div class="detail-value" th:text="${dto.targetId}"></div>
+               <div class="detail-value" th:text="|${dto.targetType} ${dto.targetId}번 글|"></div>
             </div>
 
             <div class="detail-row">
@@ -91,16 +96,23 @@
 			
 			<a th:if="${dto.status == 'PENDING'}"
 				th:href="@{/user/meetup/report/update(reportId=${dto.reportId})}" class="detail-btn detail-btn-blue">수정</a>
-<!--		<button type="button" class="detail-btn detail-btn-red" data-bs-toggle="modal" data-bs-target="#deleteModal">삭제</button>  -->
 			
+			<!-- modal delete 
+			<button type="button"
+					class="detail-btn detail-btn-red"
+					data-bs-toggle="modal"
+					data-bs-target="#deleteModal">삭제
+			</button> -->
+			
+			<!-- confirm delete -->
 			<form th:if="${dto.status == 'PENDING'}"
 				th:action="@{/user/meetup/report/delete}" method="post"
 				onsubmit="return confirm('삭제하시겠습니까?');">
 				<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 				<input type="hidden" name="reportId" th:value="${dto.reportId}" />
 				
-				<button type="submit" class="detail-btn detail-btn-red">삭제</button>
-			</form>
+				<button type="submit" class="detail-btn detail-btn-red">삭제</button> 
+			</form> 
 		</div>
 	</section>
 
@@ -121,8 +133,8 @@
                      <button type="submit" class="detail-btn detail-btn-red-fill">삭제</button>
                   </div>
                </form>
+               
             </div>
-            
          </div>
       </div>
    </div> -->
@@ -132,7 +144,5 @@
 </div>
 
          </div>
-   </div>
-   <th:block th:replace="~{user/fragments/footer :: footer}" />
 </body>
 </html>

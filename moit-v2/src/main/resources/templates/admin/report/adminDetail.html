@@ -12,7 +12,7 @@
 		<!-- 각자파트 -->
 
 
-<div class="admin-detail-page">
+<div class="admin-detail-page"> 
 
 	<section class="admin-detail-card">
 		<div class="admin-detail-card-head">
@@ -36,7 +36,7 @@
 				</div>
 
 				<div class="admin-detail-summary-card">
-					<div class="admin-detail-summary-label">신고자</div>
+					<div class="admin-detail-summary-label">신고자 ID</div>
 					<div class="admin-detail-summary-value"
 						th:text="${dto.memberId}"></div>
 				</div>
@@ -64,7 +64,7 @@
 
 			<div class="admin-detail-grid">
 				<div class="admin-detail-row">
-					<div class="admin-detail-label">신고 대상 (닉네임)</div>
+					<div class="admin-detail-label">신고 대상 ID (닉네임)</div>
 					<div class="admin-detail-value"
 						th:text="|${dto.targetMemberId} ( ${dto.targetNickname} )|"></div>
 				</div>
@@ -185,25 +185,28 @@
 		               name="reportId"
 		               th:value="${dto.reportId}" />
 		
+				<!-- confirm delete 
 		        <button type="submit"
 		                class="admin-detail-btn admin-detail-btn-red">
 		            삭제
-		        </button>
+		        </button> -->
+
+				<!-- modal delete -->
+		 		<button type="button"
+						class="admin-detail-btn admin-detail-btn-red"
+						data-bs-toggle="modal"
+						data-bs-target="#deleteModal">삭제
+				</button> 
 		    </form>
 		
 		</div>
-<!-- 		<button type="button"
-					class="admin-detail-btn admin-detail-btn-red"
-					data-bs-toggle="modal"
-					data-bs-target="#deleteModal">삭제
-			</button> -->
-	</form>
-
-		</div>
+		
 	</section>
 
+		</div>
 
-	<!-- 삭제 확인 모달 
+
+	<!-- 삭제 확인 모달 -->
 	<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered">
 			<div class="modal-content admin-detail-delete-modal-box">
@@ -227,7 +230,7 @@
 				</div>
 			</div>
 		</div>
-	</div> -->
+	</div> 
 	
 	
 

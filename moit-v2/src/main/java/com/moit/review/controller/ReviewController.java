@@ -185,39 +185,36 @@ public class ReviewController {
     }
     
     
-    //후기 수정(post)
     @PostMapping("/meetup/review/update")
     public String updateUserReview_post(
             ReviewDto dto,
-            @RequestParam(required=false) String from) {
-
+            @RequestParam(required = false) String from,
+            RedirectAttributes rttr) {
 
         System.out.println("수정 from = " + from);
 
+        try {
 
-        reviewService.updateUserReview(dto);
+            reviewService.updateUserReview(dto);
 
+        } catch (RuntimeException e) {
 
-        if("mypage".equals(from)) {
-            return "redirect:/mypage/review";
+            rttr.addFlashAttribute("errorMessage", e.getMessage());
+
+            return "redirect:/meetup/review/update/"
+                    + dto.getReviewId()
+                    + "?meetupId=" + dto.getMeetupId()
+                    + "&from=" + from;
         }
 
+        if ("mypage".equals(from)) {
+            return "redirect:/mypage/review";
+        }
 
         return "redirect:/meetup/detail?meetupId=" + dto.getMeetupId();
     }
 
-	/*
-	 * // 후기 수정
-	 * 
-	 * @PostMapping("/meetup/review/update") public String updateUserReview_post(
-	 * ReviewDto dto) {
-	 * 
-	 * 
-	 * reviewService.updateUserReview(dto);
-	 * 
-	 * 
-	 * return "redirect:/meetup/detail?meetupId=" + dto.getMeetupId(); }
-	 */
+	
 
 
 

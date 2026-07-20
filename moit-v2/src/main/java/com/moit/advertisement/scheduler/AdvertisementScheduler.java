@@ -40,7 +40,7 @@ public class AdvertisementScheduler {
        );
 
     }
-    // 매일 새벽 1시  일일통계 저장(미완)
+    // 매일 새벽 1시  일일통계 저장
     @Scheduled(cron = "0 0 1 * * *")
     //@Scheduled(cron = "0 * * * * *")
     public void createDailyStatistics(){
@@ -49,9 +49,9 @@ public class AdvertisementScheduler {
     	System.out.println("===== 광고 일일 통계 생성 완료 =====");
     }
     
-    // 매일 오전 9시 광고기간 만료 14/7일자 발송
+    // 매일 오전 9시 광고기간 만료 30/14일자 발송
     @Scheduled(cron = "0 0 9 * * *")
-    //@Scheduled(cron = "0 */1 * * * *")
+//    @Scheduled(cron = "0 */1 * * * *")
     public void advertisementReminder() {
     	System.out.println("스케줄러 실행");
         advertisementService.sendReminderMail();

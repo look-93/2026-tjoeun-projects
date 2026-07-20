@@ -17,6 +17,7 @@ public class ReportsServiceImpl implements ReportsService {
 
 	@Override // 사용자 본인이 작성한 신고 내역 조회 & 유저 - 페이징
 	public List<ReportsDto> selectUserReport(int pstartno, int memberId) {
+
 		HashMap<String,Object> map = new HashMap<>();
 		map.put("start", (pstartno-1)*10);  
 		map.put("end"  ,  10);
@@ -32,8 +33,35 @@ public class ReportsServiceImpl implements ReportsService {
 
 	@Override // 사용자 본인이 작성한 신고 내역 상세 조회
 	public ReportsDto selectUserReportDetail(ReportsDto dto) {
-		return dao.selectUserReportDetail(dto);
+		
+		// targetMemberId 회원 정보 조회 test
+		Integer targetMemberId = dao.selectTargetMemberId(dto);
+		System.out.println( "타겟멤버아이디 찍힘? " + targetMemberId );
+
+		// detail 신고 목록 상세 조회
+		ReportsDto detail = dao.selectUserReportDetail(dto);
+		detail.setTargetMemberId(targetMemberId);
+		
+		// 닉네임 신뢰도 뱃지
+//		ReportsDto trustInfo = dao.findMemberTrustInfo(dto);
+		ReportsDto trustInfo = dao.findMemberTrustInfo(detail);
+		
+		if( trustInfo != null ) {
+			detail.setTargetMemberId( trustInfo.getTargetMemberId() );
+			detail.setTargetNickname( trustInfo.getTargetNickname() );
+			detail.setTrustScore( trustInfo.getTrustScore() );
+			
+			detail.setReportStatusId( trustInfo.getReportStatusId() );
+			detail.setStatusCode( trustInfo.getStatusCode() );
+			detail.setStatusName( trustInfo.getStatusName() );
+		}
+		System.out.println( "닉네임 신뢰도 뱃지 출력 test : " + trustInfo );
+		System.out.println( "HTML로 반환할 detail = " + detail );
+
+		return detail;
+//		return dao.selectUserReportDetail(dto);
 	}
+		
 
 	@Override // 신고 작성 기능
 	public int insertUserReport(ReportsDto dto) {
@@ -43,15 +71,15 @@ public class ReportsServiceImpl implements ReportsService {
 		// 이미 신고가 존재하면 insert를 하지 않고 -1(또는 특정 에러코드) 반환
 		if (count > 0) { return -1; }
 
-		// 신고 난사 select count(*) 쿼리 호출
+		// 신고 작성 횟수 5회 (난사 방지) select count(*) 쿼리 호출
 		int todayCnt = dao.TodayReport(dto);
 		// 5회 이상 신고하면 insert를 하지 않고 -2 반환
-		if (todayCnt >= 5) { return -2; }
+//		if (todayCnt >= 5) { return -2; }
 		
 		return dao.insertUserReport(dto);
 	}
 	
-	//모임 신고 더블 체크
+	//모임,리뷰 신고 더블 체크
 	@Override
 	public int checkDoubleReport(ReportsDto dto) {
 
@@ -62,6 +90,7 @@ public class ReportsServiceImpl implements ReportsService {
 	    }
 	    return 0;
 	}
+	
 	
 	@Override // 신고 수정 화면 update
 	public int updateUserReport(ReportsDto dto) {
@@ -90,31 +119,31 @@ public class ReportsServiceImpl implements ReportsService {
 			dto.setTargetMemberId(targetMemberId);	
 			
 			// 신뢰도 점수 sql 쿼리 3개
-			int approvedCnt = dao.selectApprovedCnt(targetMemberId);
-			int noshowCnt = dao.selectNoshowCnt(targetMemberId);
-			int reportCnt = dao.selectReportCnt(targetMemberId);
+			//			int approvedCnt = dao.selectApprovedCnt(targetMemberId);
+			//			int noshowCnt = dao.selectNoshowCnt(targetMemberId);
+			//			int reportCnt = dao.selectReportCnt(targetMemberId);
 			// 계산
-			int trustScore = 100 + (approvedCnt * 2) - (noshowCnt * 10) - (reportCnt * 5);
+			//		int trustScore = 100 + (approvedCnt * 2) - (noshowCnt * 10) - (reportCnt * 5);
 
 			// 신뢰도 점수 sql 쿼리 1개
-//			int calTrustScore = dao.calTrustScore(targetMemberId);
+			int calTrustScore = dao.calTrustScore(targetMemberId);
 
 			int reportStatusId = 1;
-			if( trustScore >= 80 ) {
+			if( calTrustScore >= 80 ) {
 				reportStatusId = 1;				// 1=정상,클린한 유저
-			} else if ( trustScore >= 40 ) {
+			} else if ( calTrustScore >= 40 ) {
 				reportStatusId = 2;				// 2=주의,선 넘은 어그로 유저
 			} else {
-				trustScore = 3;				// 3=정지,진실의 방으로...
+				reportStatusId = 3;				// 3=정지,진실의 방으로...
 			}
 			
 			ReportsDto updateDto = new ReportsDto();
 			updateDto.setMemberId(targetMemberId);			// 신고대상id
-			updateDto.setTrustScore(trustScore);			// 신뢰도점수
+			updateDto.setTrustScore(calTrustScore);			// 신뢰도점수
 			updateDto.setReportStatusId(reportStatusId);	// 상태 번호 (status_name 출력)
 			
-			dao.updateMemberTrustScore(updateDto);		// 신뢰도 점수 update
-			dao.updateMemberBadge(updateDto);	// 뱃지 상태 update
+			dao.updateMemberTrustScore(updateDto);			// 신뢰도 점수 update
+			dao.updateMemberBadge(updateDto);				// 뱃지 상태 update
 		}
 		
 		
@@ -173,30 +202,33 @@ public class ReportsServiceImpl implements ReportsService {
 			
 			//adminDetail.html
 			if (targetMemberId == null) {
-	            dto.setTargetNickname("대상 없음");
-	            dto.setTrustScore(0);
-	            dto.setStatusName("조회불가");
-	            continue;
-	        }
-			
+				dto.setTargetNickname("대상 없음");
+				dto.setTrustScore(0);
+				dto.setStatusName("조회불가");
+				continue;
+			}
 			// 신고당한 유저
 			dto.setTargetMemberId(targetMemberId);
+			System.out.println("신고당한 글 작성자 조회 출력: " + targetMemberId);
+
 			
+			// 닉네임, 신뢰도 점수, 뱃지
 			ReportsDto searchParam = new ReportsDto();
 			searchParam.setTargetMemberId(targetMemberId);
 
 			ReportsDto trustInfo = dao.findMemberTrustInfo(searchParam);
+			
 			
 			if (trustInfo != null) {
 				dto.setTargetMemberId( trustInfo.getTargetMemberId() );
 				dto.setTargetNickname( trustInfo.getTargetNickname() );
 				dto.setTrustScore( trustInfo.getTrustScore() );
 				
-				// 뱃지
 				dto.setReportStatusId( trustInfo.getReportStatusId() );
 				dto.setStatusCode( trustInfo.getStatusCode() );
 				dto.setStatusName( trustInfo.getStatusName() );
 			}
+			System.out.println( "신뢰도 점수, 뱃지 test : " + trustInfo);
 		}
 		
 		return list;
@@ -257,6 +289,8 @@ public class ReportsServiceImpl implements ReportsService {
 
 		return yesterdayMembers;
 	}
+
+	
 	
 
 	

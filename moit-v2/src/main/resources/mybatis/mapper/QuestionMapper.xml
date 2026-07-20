@@ -161,7 +161,7 @@
     (question_id, parent_id, member_id, category, title, content,
      is_public, delete_yn)
     VALUES
-    (#{questionId}, #{parentId}, #{memberId}, #{category},
+    (#{questionId}, #{parentId,jdbcType=INTEGER}, #{memberId}, #{category},
      #{title}, #{content},
      #{isPublic}, #{deleteYn})
 	</insert>
@@ -209,9 +209,9 @@
 	
 	<!-- 모임 문의 목록(다른 사람들이 보는 페이지) -->
 	<select id="selectByParentId" parameterType="int" resultType="QuestionDto">
-	    SELECT q.*, qa.analysis_status, qa.aggression_score
-	    FROM questions q LEFT JOIN question_ai_analysis qa
-	    ON q.question_id = qa.question_id
+	    SELECT q.*, m.nickname, qa.analysis_status, qa.aggression_score
+	    FROM questions q LEFT JOIN members m ON q.member_id = m.member_id
+			LEFT JOIN question_ai_analysis qa ON q.question_id = qa.question_id
 	    WHERE q.parent_id = #{parentId}
 	      AND q.category = 'MEETUP'
 	      AND q.delete_yn = 'N'

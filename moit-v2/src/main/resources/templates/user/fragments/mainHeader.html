@@ -21,7 +21,6 @@
     value="false">
     <!-- 우측 그룹 -->
     
-
         <div class="header-slogan">
             <span>우리들의 취향 맞춤 소모임 플랫폼</span>
         </div>
@@ -56,6 +55,19 @@
 
             <!-- 로그인한 상태 -->
             <nav sec:authorize="hasAnyAuthority('ROLE_MEMBER','ROLE_PARTNER','ROLE_ADMIN')">
+			
+			<div class="alarm-area">
+				<a href="#" id="alarmBtn">
+			        🔔 <span id="alarmCount"></span>
+			    </a>
+			    <div id="alarmPopup" class="alarm-popup" style="display:none;">
+			        <div class="alarm-header">
+			            <span>알림</span>
+			            <button type="button" id="closeAlarm">✕</button>
+			        </div>
+			        <div id="alarmList"></div>
+			    </div>
+			</div>
 			
 			    <a th:href="@{/user/member/mypage}">
 			        <div class="profile">
@@ -112,7 +124,96 @@
     </div>
 </div>
 </header>
-		
+<script>
+window.onload = function(){
+    const btn = document.getElementById("alarmBtn");
+    const csrf = document.querySelector('meta[name="_csrf"]');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+
+    const token = csrf ? csrf.content : "";
+    const header = csrfHeader ? csrfHeader.content : "";
+
+    if(!btn){
+        console.log("alarmBtn 없음");
+        return;
+    }
+
+    loadAlarmCount();
+    setInterval(loadAlarmCount,5000);
+
+    btn.addEventListener("click", function(e){
+        e.preventDefault();
+        fetch("/notifications")
+        .then(res => res.json())
+        .then(list => {
+        	if(list.length==0){
+        	    document.getElementById("alarmList").innerHTML =
+        	        "<div class='alarm-item'>새 알림이 없습니다.</div>";
+        	    document.getElementById("alarmPopup").style.display = "block";
+        	    return;
+        	}
+
+            let msg="";
+            let ids=[];
+            list.forEach(n=>{
+                msg+="🔔 "+n.message+"\n";
+                ids.push(n.notificationId);
+            });
+            const popup = document.getElementById("alarmPopup");
+            const listBox = document.getElementById("alarmList");
+
+            listBox.innerHTML = "";
+            list.forEach(n=>{
+                listBox.innerHTML += `
+                    <div class="alarm-item">
+                        🔔 ${n.message}
+                    </div>
+                `;
+            });
+            popup.style.display = "block";
+
+         // 그 다음 위치를 계산한다.
+         const rect = btn.getBoundingClientRect();
+
+         popup.style.left =
+             (rect.left + window.scrollX + rect.width / 2 - popup.offsetWidth / 2) + "px";
+
+         popup.style.top =
+             (rect.bottom + window.scrollY + 8) + "px";
+
+         // fixed를 사용할 거라 right 제거
+         popup.style.right = "auto";
+
+         Promise.all(
+                ids.map(id=>
+                    fetch("/notifications/read?notificationId="+id,{
+                        method:"POST",
+                        headers:{
+                            [header]:token
+                        }
+                    })
+                )
+            ).then(()=>{
+                loadAlarmCount();
+            });
+        });
+    });
+    document.getElementById("closeAlarm").onclick = function(){
+        document.getElementById("alarmPopup").style.display = "none";
+    };
+};
+
+function loadAlarmCount(){
+    fetch("/notifications/count")
+    .then(res=>res.json())
+    .then(count=>{
+        const badge=document.getElementById("alarmCount");
+        if(!badge) return;
+        badge.innerText = count>0 ? `(${count})` : "";
+    });
+
+}
+</script>	
 	</th:block>
 </body>
 </html>

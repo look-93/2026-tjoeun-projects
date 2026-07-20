@@ -13,5 +13,33 @@
 		    ( #{notificationId}, #{questionId}, #{memberId}, #{type}, #{message} )
 	</insert>
 	
+	<select id="selectUnread" parameterType="int" resultType="com.moit.qna.dto.NotificationDto">
+	    SELECT *
+	    FROM notifications
+	    WHERE member_id=#{memberId}
+	      AND is_read='N'
+	    ORDER BY created_at DESC
+	</select>
+
+	<select id="selectAll">
+		SELECT *
+		FROM notifications
+		WHERE member_id=#{memberId}
+		ORDER BY created_at DESC
+	</select>
+
+	<update id="readNotification">
+	    UPDATE notifications
+	    SET is_read='Y'
+	    WHERE notification_id=#{notificationId}
+	</update>
+	
+	<select id="unreadCount" resultType="int">
+		SELECT COUNT(*)
+		FROM notifications
+		WHERE member_id=#{memberId}
+		AND is_read='N'
+	</select>
+	
 </mapper>
 

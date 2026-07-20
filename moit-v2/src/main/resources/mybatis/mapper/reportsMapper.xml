@@ -194,7 +194,7 @@
 			
 	<select id="calTrustScore" resultType="int">
 	    select 
-	        (mi.trust_score
+	        (100
 	         + coalesce(ma.approved_cnt, 0) * 2 
 	         - coalesce(ma.noshow_cnt, 0) * 10 
 	         - (coalesce(r_met.report_cnt, 0) + coalesce(r_rev.report_cnt, 0)) * 5
@@ -248,7 +248,6 @@
 	</select> 
 
 	
-	
 	<!-- 단순 조회용 쿼리 (로그인/마이페이지 호출용 member_info.trust_score - DB 부하 0%) -->
 	<!-- 신고자, 닉네임, 신뢰도 점수, 신고 상태(report_status_id), 신고 상태(code), 신고 상태(name) -->
 	<select id="findMemberTrustInfo" resultType="ReportsDto" parameterType="ReportsDto">
@@ -259,8 +258,8 @@
 				mrs.status_code			as statusCode,		<!-- 뱃지 (eng) -->
 				mrs.status_name			as statusName		<!-- 뱃지 (kor) -->
 		from members m
-			join member_info mi				on m.member_id = mi.member_id
-			join member_report_status mrs	on mi.report_status_id = mrs.report_status_id
+			left join member_info mi			on m.member_id = mi.member_id
+			left join member_report_status mrs	on mi.report_status_id = mrs.report_status_id
 		where m.member_id = #{targetMemberId}
 	</select>
 	
@@ -329,7 +328,7 @@
 	</update>
 	
 	<!-- 새벽 배치용: 전날 활동 이력(참여APPROVED/노쇼NOSHOW/신고(reports.status = 'APPROVED' 처리 이력)이 있는 회원 ID 타겟 추출 -->
-	<!-- 모임 신청 상태가 'APPROVED' OR 'NOSHOW' 회원 member_id -->
+	<!-- 모임 신청 상태가 'APPROVED' OR 'NOSHOW'double 회원 member_id -->
 	<!-- MEETUP 에서 신고 처리가 'APPROVED' 된 모임글 작성자 mt.member_id -->
 	<!-- REVIEW 에서 신고 처리가 'APPROVED' 된 후기글 작성자 rv.member_id -->
 	<select id="selectTargetMembersYesterday" resultType="ReportsDto">
@@ -434,7 +433,7 @@
 		            and reason_code = #{keyword}
 		        </when>
 		        <when test="searchType == 'createdAt' and createdAt != '' and keyword != null and keyword != ''">
-		            and date(created_at) = #{keyword}
+		            and trunc(created_at) = to_date(#{keyword}, 'YYYY-MM-DD')
 		        </when>
 	        </choose>
 	    </where>
