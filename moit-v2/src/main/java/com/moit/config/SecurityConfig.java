@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
 import com.moit.member.oauth2.Oauth2UserService;
 import com.moit.security.CustomLoginFailureHandler;
+import com.moit.security.CustomLogoutSuccessHandler;
 import com.moit.security.SocialLoginSuccessHandler;
 
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class SecurityConfig {
 	private final Oauth2UserService oauthUserService;
 	private final SocialLoginSuccessHandler socialLoginSuccessHandler;
 	private final CustomLoginFailureHandler customLoginFailureHandler;
+	private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
 	
 	// http 경로설정
 	@Bean
@@ -57,7 +59,8 @@ public class SecurityConfig {
 								  //3. 로그아웃
 								  .logout(logout -> logout
 										  .logoutUrl("/user/member/logout")
-										  .logoutSuccessUrl("/user/member/login")
+										  .logoutSuccessHandler(customLogoutSuccessHandler)
+										  //.logoutSuccessUrl("/user/member/login")
 										  .invalidateHttpSession(true) //session 지우기
 										  .clearAuthentication(true)
 										  .permitAll()								  	  
