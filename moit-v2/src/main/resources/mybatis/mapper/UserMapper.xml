@@ -50,7 +50,7 @@
 	    TO_CHAR(m.created_at,'YYYY-MM-DD') AS created_at, mi.gender,  TO_CHAR(mi.birth,'YYYY-MM-DD') AS birth, mi.point, mi.trust_score, mi.login_ip, mi.join_ip, mi.ai_summary
 	
 		FROM members m
-		JOIN member_info mi
+		LEFT JOIN member_info mi
 		ON m.member_id = mi.member_id
 		
 		WHERE m.login_id = #{loginId}

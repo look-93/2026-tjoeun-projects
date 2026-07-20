@@ -441,4 +441,7 @@ public class UserController {
 		return "redirect:/user/member/login";		
 	}
 	
+	@GetMapping("/kakaologout") 
+	public String kakaoLogout() {  return "redirect:/user/member/login";  }
+	
 }
