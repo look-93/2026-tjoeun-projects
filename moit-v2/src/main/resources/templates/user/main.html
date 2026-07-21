@@ -77,21 +77,16 @@
 			
 	        <!-- PREMIUM 광고 제목 -->
 	        <div th:if="${mainAd.adGrade == 'PREMIUM'}"
-	             class="premium-ad-overlay">
-	
+	             class="premium-ad-overlay">	
 	
 	            <span th:text="${mainAd.title}">
 	                광고 제목
-	            </span>
-	
+	            </span>	
 	
 	            <!-- hover 내용 -->
-	            <div class="premium-ad-tooltip">
-	
-	                <p th:utext="${#strings.replace(mainAd.content,'.','.<br>')}"></p>
-	
-	            </div>
-	
+	            <div class="premium-ad-tooltip">	
+	                <p th:utext="${#strings.replace(mainAd.content,'.','.<br>')}"></p>	
+	            </div>	
 	        </div>
 	
 		</section>
