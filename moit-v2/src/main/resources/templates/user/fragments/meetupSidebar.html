@@ -26,16 +26,16 @@
 		        </a>
 		        
 		        <!-- PREMIUM 광고 제목 -->
-		        <div th:if="${mainAd.adGrade == 'PREMIUM'}"
+		        <div th:if="${sidebarAd.adGrade == 'PREMIUM'}"
 		             class="premium-ad-overlay">		
 		
-		            <span th:text="${mainAd.title}">
+		            <span th:text="${sidebarAd.title}">
 		                광고 제목
 		            </span>		
 		
 		            <!-- hover 내용 -->
 		            <div class="premium-ad-tooltip">		
-		                <p th:utext="${#strings.replace(mainAd.content,'.','.<br>')}"></p>		
+		                <p th:utext="${#strings.replace(sidebarAd.content,'.','.<br>')}"></p>		
 		            </div>		
 		        </div>
 		

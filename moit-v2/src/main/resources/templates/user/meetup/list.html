@@ -32,11 +32,11 @@
 				    </a>
 				    
 				    <!-- PREMIUM 광고 제목 -->
-			        <div th:if="${mainAd.adGrade == 'PREMIUM'}"
+			        <div th:if="${bannerAd.adGrade == 'PREMIUM'}"
 			             class="premium-ad-overlay">
 			
 			
-			            <span th:text="${mainAd.title}">
+			            <span th:text="${bannerAd.title}">
 			                광고 제목
 			            </span>
 			
@@ -44,7 +44,7 @@
 			            <!-- hover 내용 -->
 			            <div class="premium-ad-tooltip">
 			
-			                <p th:utext="${#strings.replace(mainAd.content,'.','.<br>')}"></p>
+			                <p th:utext="${#strings.replace(bannerAd.content,'.','.<br>')}"></p>
 			
 			            </div>
 			

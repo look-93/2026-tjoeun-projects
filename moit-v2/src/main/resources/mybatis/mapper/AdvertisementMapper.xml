@@ -1071,7 +1071,7 @@
 	        SUM(impressions) AS impressions,	
 	        SUM(clicks) AS clicks	
 		FROM advertisement_daily_statistics		
-		WHERE stat_date >= TRUNC(SYSDATE)-7
+		WHERE stat_date >= TRUNC(SYSDATE)-14
 	
 	    GROUP BY stat_date	
 	    ORDER BY stat_date
