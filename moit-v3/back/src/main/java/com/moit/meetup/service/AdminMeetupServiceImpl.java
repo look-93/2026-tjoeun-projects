@@ -5,10 +5,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.moit.meetup.dao.MeetupMapper;
 import com.moit.meetup.dto.AdminMeetupStatusSummaryDto;
 import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupSearchDto;
+import com.moit.meetup.repository.MeetupMapper;
 
 @Service
 public class AdminMeetupServiceImpl implements AdminMeetupService{

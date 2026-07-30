@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.meetup.client.OpenAiService2;
-import com.moit.meetup.dao.MeetupMapper;
 import com.moit.meetup.dto.MeetupApplicationDto;
 import com.moit.meetup.dto.MeetupDto;
 import com.moit.meetup.dto.MeetupImageDto;
@@ -26,6 +25,7 @@ import com.moit.meetup.dto.common.CategoryDto;
 import com.moit.meetup.dto.common.SidoDto;
 import com.moit.meetup.dto.common.SigunguDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
+import com.moit.meetup.repository.MeetupMapper;
 import com.moit.util.UtilUpload;
 
 import lombok.extern.slf4j.Slf4j;

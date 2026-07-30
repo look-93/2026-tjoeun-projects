@@ -1,4 +1,4 @@
-package com.moit.meetup.dao;
+package com.moit.meetup.repository;
 
 import java.util.List;
 import java.util.Map;
