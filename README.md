@@ -27,16 +27,16 @@ MOIT는 목적형 모임 커뮤니티 플랫폼으로, 기술 스택을 발전�
 
 ## MOIT v3
 
-* **Tech Stack: Spring Boot, Gradle, JPA, MyBatis, Oracle, JWT, Redis, React, Next.js, Ant Design
-* **Features:
-- Spring Boot + Gradle 기반 백엔드 환경 구축
-- JPA 도입 및 Entity 중심 데이터 관리
-- MyBatis와 JPA를 함께 사용하는 Hybrid Persistence 구조 적용
-- JWT 기반 인증/인가 구현
-- Redis 기반 인증 및 데이터 관리
-- React + Next.js 기반 프론트엔드 전환
-- Ant Design UI 컴포넌트 적용
-- 기존 MOIT 서비스 기능 고도화 및 신규 기능 추가
+* **Tech Stack:** Spring Boot, Gradle, JPA, MyBatis, Oracle, JWT, Redis, React, Next.js, Ant Design
+* **Features:**
+  * Spring Boot + Gradle 기반 백엔드 환경 구축
+  * JPA 도입 및 Entity 중심 데이터 관리
+  * MyBatis와 JPA를 함께 사용하는 Hybrid Persistence 구조 적용
+  * JWT 기반 인증/인가 구현
+  * Redis 기반 인증 및 데이터 관리
+  * React + Next.js 기반 프론트엔드 전환
+  * Ant Design UI 컴포넌트 적용
+  * 기존 MOIT 서비스 기능 고도화 및 신규 기능 추가
 
 * 📁 README: moit-v3/README.md
-* 📖 Notion: https://app.notion.com/p/MoA-37195798f73380cebe19e12b11b69dad?source=copy_link
+* 📖 Notion:
