@@ -39,4 +39,4 @@ MOIT는 목적형 모임 커뮤니티 플랫폼으로, 기술 스택을 발전�
   * 기존 MOIT 서비스 기능 고도화 및 신규 기능 추가
 
 * 📁 README: moit-v3/README.md
-* 📖 Notion:
+* 📖 Notion: https://app.notion.com/p/MoA-37195798f73380cebe19e12b11b69dad?source=copy_link
