@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moit.qna.dao.QuestionMapper">
+
+	<!-- 관리자측 페이징 -->
+	<select id="findAll" resultType="QuestionDto" parameterType="map">
+		SELECT q.*, qa.analysis_status, qa.aggression_score
+	    FROM questions q LEFT JOIN question_ai_analysis qa
+	    ON	 q.question_id = qa.question_id
+	    <where>
+	        q.delete_yn='N'
+	        <if test="type=='title' and keyword!=null and keyword!=''">
+	            AND q.title LIKE '%' || #{keyword} || '%'
+	        </if>
+	        <if test="type=='content' and keyword!=null and keyword!=''">
+	            AND q.content LIKE '%' || #{keyword} || '%'
+	        </if>
+	        <if test="status != null and status != ''">
+	            AND q.status=#{status}
+	        </if>
+	        <if test="startDate != null and startDate != ''">
+	            AND q.created_at >= TO_DATE(#{startDate},'YYYY-MM-DD')
+	        </if>
+	        <if test="endDate != null and endDate != ''">
+			    AND q.created_at <![CDATA[ < ]]> TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
+			</if>
+	    </where>
+	    ORDER BY q.question_id DESC
+	    OFFSET #{start} ROWS
+	    FETCH NEXT #{end} ROWS ONLY
+	</select>
+
+	<!-- 전체 문의 수-->
+	<select id="findAllCnt" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    WHERE delete_yn = 'N'
+	</select>
+	
+	<!-- 검색 문의 수-->
+	<select id="findSearchCnt" parameterType="map" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    <where>
+	        delete_yn='N'
+	        <if test="type=='title' and keyword!=null and keyword!=''">
+	            AND title LIKE '%' || #{keyword} || '%'
+	        </if>
+	        <if test="type=='content' and keyword!=null and keyword!=''">
+	            AND content LIKE '%' || #{keyword} || '%'
+	        </if>
+	        <if test="status!=null and status!=''">
+	            AND status=#{status}
+	        </if>
+	        <if test="startDate!=null and startDate!=''">
+	            AND created_at >= TO_DATE(#{startDate},'YYYY-MM-DD')
+	        </if>
+	        <if test="endDate != null and endDate !=''">
+	            AND created_at <![CDATA[ < ]]> TO_DATE(#{endDate},'YYYY-MM-DD') + 1
+	        </if>
+	    </where>
+	</select>
+	
+	<!-- 내 문의 총 개수 -->
+	<select id="findMyQuestionCnt" parameterType="map" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    <where>
+	        member_id = #{memberId}
+	        AND delete_yn = 'N'
+	        <if test="type == 'title' and keyword != null and keyword != ''">
+	            AND title LIKE '%' || #{keyword} || '%'
+	        </if>
+	        <if test="type == 'content' and keyword != null and keyword != ''">
+	            AND content LIKE '%' || #{keyword} || '%'
+	        </if>
+	    </where>
+	</select>
+
+	<!-- 답변 대기 문의 수 -->
+	<select id="findPendingCnt" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    WHERE status = 'PENDING'
+	      AND delete_yn = 'N'
+	</select>
+	
+	<!-- 답변 완료 문의 수 -->
+	<select id="findAnsweredCnt" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    WHERE status = 'ANSWERED'
+	      AND delete_yn = 'N'
+	</select>
+	
+	<!-- 오늘 등록된 문의 수 -->
+	<select id="findTodayCnt" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    WHERE TRUNC(created_at) = TRUNC(SYSDATE)
+	      AND delete_yn = 'N'
+	</select>
+
+	<!-- 상세보기 -->
+	<select id="findById" resultType="QuestionDto">
+		SELECT q.*, qa.analysis_status, qa.aggression_score
+	    FROM questions q LEFT JOIN question_ai_analysis qa
+	    ON q.question_id = qa.question_id
+	    WHERE q.question_id = #{questionId} AND q.delete_yn = 'N'
+	</select>
+
+	<!-- 제목, 내용, 등록일 검색 (관리자용)-->
+	<select id="findBySearch" resultType="QuestionDto">
+		SELECT
+		question_id, parent_id, member_id, category, title, content, status,
+		is_public, delete_yn, created_at, updated_at
+		FROM questions
+		<where>
+			delete_yn = 'N'
+			<if test="title != null and title != ''">
+				AND title LIKE '%' || #{title} || '%'
+			</if>
+			<if test="content != null and content != ''">
+				AND content LIKE '%' || #{content} || '%'
+			</if>
+			<if test="createdAt != null">
+				AND TRUNC(created_at) = TRUNC(#{createdAt})
+			</if>
+		</where>
+		ORDER BY created_at DESC
+	</select>
+
+	<!--  제목, 내용 검색 (사용자용) -->
+	<select id="findMyQuestions" resultType="QuestionDto" parameterType="map">
+	    SELECT q.*, qa.analysis_status, qa.aggression_score
+	    FROM questions q LEFT JOIN question_ai_analysis qa
+	    ON q.question_id = qa.question_id
+	    <where>
+	        q.member_id = #{memberId}
+	        AND q.delete_yn = 'N'
+	        <if test="type == 'title' and keyword != null and keyword != ''">
+	            AND q.title LIKE '%' || #{keyword} || '%'
+	        </if>
+	        <if test="type == 'content' and keyword != null and keyword != ''">
+	            AND q.content LIKE '%' || #{keyword} || '%'
+	        </if>
+	    </where>
+	    ORDER BY q.question_id DESC
+	    OFFSET #{start} ROWS
+	    FETCH NEXT #{end} ROWS ONLY
+	</select>
+
+	<!-- 문의글 작성 -->
+	<insert id="insertQuestion" parameterType="QuestionDto">
+	<selectKey keyProperty="questionId"
+               resultType="int"
+               order="BEFORE">
+        SELECT question_seq.NEXTVAL FROM dual
+    </selectKey>
+    INSERT INTO questions
+    (question_id, parent_id, member_id, category, title, content,
+     is_public, delete_yn)
+    VALUES
+    (#{questionId}, #{parentId,jdbcType=INTEGER}, #{memberId}, #{category},
+     #{title}, #{content},
+     #{isPublic}, #{deleteYn})
+	</insert>
+
+	<!-- 답변 달리면 상태 변경 -->
+	<update id="updateStatusAnswered">
+		UPDATE questions
+		SET status = 'ANSWERED'
+		WHERE question_id = #{questionId}
+	</update>
+
+	<!-- 문의 수정 -->
+	<update id="updateQuestion">
+		UPDATE questions
+		SET
+		title = #{title},
+		content = #{content},
+		is_public = #{isPublic}
+		WHERE question_id = #{questionId}
+	</update>
+
+	<!-- 문의 삭제 (논리삭제) -->
+	<update id="deleteQuestion">
+		UPDATE questions
+		SET delete_yn = 'Y'
+		WHERE question_id = #{questionId}
+	</update>
+	
+	<!-- 답변 삭제 시 문의 상태를 답변 대기로 변경 -->
+	<update id="updateStatusPending">
+	    UPDATE questions
+	    SET status = 'PENDING'
+	    WHERE question_id = #{questionId}
+	</update>
+	
+	<!-- 관리자용 선택 삭제 -->
+	<update id="deleteSelected">
+	    UPDATE questions
+	    SET delete_yn='Y'
+	    WHERE question_id IN
+	    <foreach collection="list" item="id" open="(" separator="," close=")">
+	        #{id}
+	    </foreach>
+	</update>
+	
+	<!-- 모임 문의 목록(다른 사람들이 보는 페이지) -->
+	<select id="selectByParentId" parameterType="int" resultType="QuestionDto">
+	    SELECT q.*, m.nickname, qa.analysis_status, qa.aggression_score
+	    FROM questions q LEFT JOIN members m ON q.member_id = m.member_id
+			LEFT JOIN question_ai_analysis qa ON q.question_id = qa.question_id
+	    WHERE q.parent_id = #{parentId}
+	      AND q.category = 'MEETUP'
+	      AND q.delete_yn = 'N'
+	      AND q.is_public = 'Y'
+	      AND (
+            qa.analysis_status IS NULL
+            OR qa.analysis_status = 'NORMAL'
+          )
+	    ORDER BY q.question_id DESC
+	</select>
+</mapper>
+

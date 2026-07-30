@@ -1,0 +1,30 @@
+package com.moit.advertisement.dto;
+
+import lombok.Data;
+
+@Data
+public class AdvertisementChartDto {
+	// 총 통계
+	private int totalAd;
+	private int totalImp;
+	private int totalClick;
+	private double avgCtr;
+	// 증감률 
+	private double impChange;
+	private double clickChange;
+	private double ctrChange;
+	 // 일별 차트
+	private String statDate;
+	private int impressions;
+	private int clicks;
+	 // CTR TOP5
+	private String title;
+    private double ctr;
+    //등급 비율
+    private String adGrade;
+    private int count;
+    // 위치별 노출
+    private String position;
+    // 위치별 ctr 차트
+
+}

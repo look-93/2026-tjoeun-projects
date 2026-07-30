@@ -1,0 +1,73 @@
+spring:
+  profiles:
+    active: local        # → application-local.properties 자동 로드됨
+  config:
+    import:
+      - optional:application-oauth.properties
+
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: jdbc:oracle:thin:@localhost:1521/XE
+    username: moit
+    password: "1234"
+  jpa:
+    hibernate:
+      ddl-auto: update  # test 환경 create-drop 매번초기화 / update 부분수정
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 50MB
+
+  #  data:
+  #    redis:
+  #      host: localhost
+  #      port: 6379
+  #      timeout: 2000
+  #
+  #  config:
+  #    import:
+  #      - optional:application-oauth.yml
+  #      - optional:file:.env[.properties]
+
+mybatis:
+  # config-location: classpath:mybatis-config.xml
+  mapper-locations: classpath:mybatis/mapper/**/*.xml
+  type-aliases-package: com.moit                        # 또는 com.thejoa703.domain
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+logging:
+  level:
+    org.hibernate: info
+    org.springframework: info
+    com.the703: debug
+
+# 업로드 경로 설정 - 두 파일 방식이 다름
+file:
+  upload-dir: uploads   
+
+upload:
+  path: /upload/**    
+
+resource:
+  path: C:/upload              # 두번째 파일 방식
+
+#jwt:
+#  issuer: thejoa703
+#  secret: ${JWT_SECRET}
+#  access-token-exp-seconds: 900
+#  refresh-token-exp-seconds: 1209600
+#  header: Authorization
+#  prefix: Bearer
+
+#server:
+#  port: 8484
+
+
