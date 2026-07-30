@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.service.AdvertisementService;
-import com.moit.meetup.dto.MeetupDto;
-import com.moit.meetup.service.MeetupService;
+import com.moit.meetup.dto.MeetupDto1;
+import com.moit.meetup.service.MeetupService1;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -20,7 +20,7 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/user")
 public class BasicController {
 	@Autowired AdvertisementService advertisementService;
-	@Autowired MeetupService meetupService;
+	@Autowired MeetupService1 meetupService;
 	
 	/* 메인페이지 광고 */
 	@GetMapping("/main")
@@ -55,7 +55,7 @@ public class BasicController {
         model.addAttribute("mainAd", mainAd);
         
         //인기모임조회
-        List<MeetupDto> popularMeetupList = meetupService.findPopularMeetup();
+        List<MeetupDto1> popularMeetupList = meetupService.findPopularMeetup();
         model.addAttribute("popularMeetupList", popularMeetupList);
         
         return "user/main";

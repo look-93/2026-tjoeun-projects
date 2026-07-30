@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.moit.meetup.service.MeetupService;
+import com.moit.meetup.service.MeetupService1;
 import com.moit.member.dto.UserDto;
 import com.moit.member.enums.PasswordChangeResult;
 import com.moit.member.service.UserService;
@@ -40,7 +40,7 @@ public class UserController {
 
 	@Autowired UserService service;
 	@Autowired PasswordLeakService passwordLeakService;
-	@Autowired MeetupService meetupService;
+	@Autowired MeetupService1 meetupService;
 	@Autowired CustomUserDetailsService customUserDetailsService;
 	
 	// 회원가입

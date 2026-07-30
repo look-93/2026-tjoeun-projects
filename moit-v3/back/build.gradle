@@ -68,8 +68,8 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
 
     // Mail
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-    implementation 'com.sun.mail:javax.mail:1.6.2'
+    //implementation 'org.springframework.boot:spring-boot-starter-mail'
+    //implementation 'com.sun.mail:javax.mail:1.6.2'
 
     // OpenAI
     implementation 'com.openai:openai-java:2.12.0'
