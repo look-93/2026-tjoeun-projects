@@ -25,7 +25,7 @@ MOIT는 목적형 모임 커뮤니티 플랫폼으로, 기술 스택을 발전�
 * 📁 README: moit-v2/README.md
 * 📖 Notion: https://app.notion.com/p/MoA-37195798f73380cebe19e12b11b69dad?source=copy_link
 
-## MOIT v3
+### MOIT v3
 
 * **Tech Stack:** Spring Boot, Gradle, JPA, MyBatis, Oracle, JWT, Redis, React, Next.js, Ant Design
 * **Features:**
