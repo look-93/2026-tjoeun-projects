@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class MeetupServiceImpl implements MeetupService{
 	
 	private final MeetupRepository meetupRepository; 
+	//private final MemberRepository memberRepository; 
 	
 	@Override
 	public MeetupListResponseDto search(Pageable pageable) {
@@ -46,28 +47,78 @@ public class MeetupServiceImpl implements MeetupService{
 
 	}
 
+	
 	@Override
 	public MeetupResponseDto detail(Long id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void create(MeetupRequestDto meetupRequest) {
-		// TODO Auto-generated method stub
+		Meetup meetup = meetupRepository.findById(id)
+										.orElseThrow(()->new IllegalArgumentException("존재하지 않는 게시글입니다. ID: "+ id));
 		
-	}
-
-	@Override
-	public void update(MeetupRequestDto meetupRequest, Long id) {
-		// TODO Auto-generated method stub
+		if(meetup.getDeleteYn() == 'Y') {
+			throw new IllegalArgumentException("삭제된 게시글 입니다.");
+		}
 		
+		return MeetupResponseDto.detailFrom(meetup);
 	}
-
+	
+	@Transactional
+	@Override
+	public void create(MeetupRequestDto meetupRequestDto, Long memberId) {
+//		Member member = memberRepository.findById(memberId)
+//										.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 게시글입니다. MEMBERID" + memberId));
+		
+	    Meetup meetup = Meetup.builder()
+							  .title(meetupRequestDto.getTitle())
+							  .content(meetupRequestDto.getContent())
+							  .maxParticipants(meetupRequestDto.getMaxParticipants())
+							  .minParticipants(meetupRequestDto.getMinParticipants())
+							  .sigunguId(meetupRequestDto.getSigunguId())
+							  .categoryId(meetupRequestDto.getCategoryId())
+							  .address(meetupRequestDto.getAddress())
+							  .addressDetail(meetupRequestDto.getAddressDetail())
+							  .meetupAt(meetupRequestDto.getMeetupAt())
+							  .status(meetupRequestDto.getStatus())
+							  .latitude(meetupRequestDto.getLatitude())
+							  .longitude(meetupRequestDto.getLongitude())
+							  .nx(meetupRequestDto.getNx())
+							  .ny(meetupRequestDto.getNy())
+							  .build();
+		meetupRepository.save(meetup);
+	}
+	
+	@Transactional
+	@Override
+	public void update(MeetupRequestDto meetupRequestDto, Long id) {
+		Meetup meetup = meetupRepository.findById(id)
+										.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다. MEETUPID" + id));
+		
+		if(meetup.getDeleteYn() == 'Y') {
+			throw new IllegalArgumentException("삭제된 게시글 입니다. MEETUPID" + id);
+		}
+		
+		// 저장메서드를 따로 호출하지 않아도 update 쿼리 반영 더티체킹(Dirty Checking)
+		meetup.setTitle(meetupRequestDto.getTitle());
+		meetup.setContent(meetupRequestDto.getContent());
+		meetup.setMaxParticipants(meetupRequestDto.getMaxParticipants());
+		meetup.setMinParticipants(meetupRequestDto.getMinParticipants());
+		meetup.setSigunguId(meetupRequestDto.getSigunguId());
+		meetup.setCategoryId(meetupRequestDto.getCategoryId());
+		meetup.setAddress(meetupRequestDto.getAddress());
+		meetup.setAddressDetail(meetupRequestDto.getAddressDetail());
+		meetup.setMeetupAt(meetupRequestDto.getMeetupAt());
+		meetup.setStatus(meetupRequestDto.getStatus());
+		meetup.setLatitude(meetupRequestDto.getLatitude());
+		meetup.setLongitude(meetupRequestDto.getLongitude());
+		meetup.setNx(meetupRequestDto.getNx());
+		meetup.setNy(meetupRequestDto.getNy());		
+	}
+	
+	@Transactional
 	@Override
 	public void delete(Long id) {
-		// TODO Auto-generated method stub
+		Meetup meetup = meetupRepository.findById(id)
+				.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다. MEETUPID" + id));
 		
+		meetup.setDeleteYn('Y'); //저장메서드를 따로 호출하지 않아도 delete 쿼리 반영 더티체킹(Dirty Checking)		
 	}
 	
 }

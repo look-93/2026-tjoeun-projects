@@ -8,10 +8,20 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
+@AllArgsConstructor 
+@NoArgsConstructor
+@Builder
+@Table(name="meetups")
 public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하면 공통 컬럼 추가됩니다. 경로 따라가서 확인해보세요.
 	
 	@Id
@@ -33,13 +43,16 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	private Integer minParticipants;
 	
 	@Column
-	private String sigunguId;
+	private Integer sigunguId;
 	
 	@Column
-	private String categoryId;
+	private Integer categoryId;
 	
 	@Column
 	private String address;
+	
+	@Column
+	private String addressDetail;
 	
 	@Column
 	private String meetupAt;
@@ -54,15 +67,14 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	private Double longitude;
 	
 	@Column
-	private String addressDetail;
-	
-	@Column
 	private Integer nx;
 	
 	@Column
 	private Integer ny;	
 	
-	//@Column	 -> 욱진님~엔터티 만들어주세요~
-	//private String memberId;	
+//	@ManyToOne
+//	@JoinColumn(name="member_id", nullable = false)
+//	private  Member member;	
+	
 	
 }

@@ -8,19 +8,22 @@ import org.springframework.data.domain.Page;
 import com.moit.meetup.entity.Meetup;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 public class MeetupDto {
 	
 	@Setter
 	@Getter
+	@NoArgsConstructor
 	public static class MeetupRequestDto{
+		private Long memberId;
 		private String title;
 		private String content;
 		private Integer maxParticipants;
 		private Integer minParticipants;
-		private String sigunguId;
-		private String categoryId;
+		private Integer sigunguId;
+		private Integer categoryId;
 		private String address;
 		private String meetupAt;
 		private String status;
@@ -39,8 +42,8 @@ public class MeetupDto {
 		private String content;
 		private Integer maxParticipants;
 		private Integer minParticipants;
-		private String sigunguId;
-		private String categoryId;
+		private Integer sigunguId;
+		private Integer categoryId;
 		private String address;
 		private String meetupAt;
 		private String status;
@@ -49,6 +52,7 @@ public class MeetupDto {
 		private String addressDetail;
 		private Integer nx;
 		private Integer ny;
+		
 		
 		public static MeetupResponseDto listFrom(Meetup meetup) { // list에만 보여줄 MeetupResponse
 			MeetupResponseDto response = new MeetupResponseDto();
@@ -79,8 +83,7 @@ public class MeetupDto {
 		    response.setNy(meetup.getNy());
 
 		    return response;
-		}		
-		
+		}
 	}
 	
 	//목록조회 응답용 dto

@@ -14,7 +14,7 @@ public interface MeetupService {
 	public MeetupResponseDto detail(Long id);
 	
 	//저장
-	public void create(MeetupRequestDto meetupRequest);
+	public void create(MeetupRequestDto meetupRequest, Long memberId);
 	
 	//수정
 	public void update(MeetupRequestDto meetupRequest, Long id);
