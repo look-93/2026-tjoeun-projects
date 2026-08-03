@@ -32,7 +32,7 @@ public class SecurityConfig {
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception  { 
 
 		//1. 허용경로
-		http.authorizeHttpRequests(auth -> auth.requestMatchers("/user/member/join", "/user/member/login", "/user/checkLoginId" , "/user/checkNickname" , "/user/member/checkPassword" ,"/api/**", "/admin/member/join","/meetup/list","/user/advertisement/click").permitAll()
+		http.authorizeHttpRequests(auth -> auth.requestMatchers("/user/member/join", "/user/member/login", "/user/checkLoginId" , "/user/checkNickname" , "/user/member/checkPassword" ,"/api/**", "/admin/member/join","/meetup/list","/user/advertisement/click", "/api/meetups/**").permitAll()
 											   .requestMatchers("/user/member/mypage", "/user/member/update", "/user/member/delete","/user/advertisement/**"
 	                                                   ,"/meetup/write/**" ,"/meetup/detail/**", "/mypage/**").authenticated()
 											   // 관리자 영역(추후 활성화 예정)
@@ -74,7 +74,7 @@ public class SecurityConfig {
 								  )
 								  //4. csrf 예외처리								  
 								  .csrf(csrf -> csrf
-										  .ignoringRequestMatchers("/user/member/join", "/user/member/update", "/user/member/delete", "/questions/deleteSelected")
+										  .ignoringRequestMatchers("/user/member/join", "/user/member/update", "/user/member/delete", "/questions/deleteSelected", "/api/meetups/**")
 										  // Spring Security는 POST, PUT, DELETE 등의 요청에 CSRF 토큰이 있는지 검사
 										  // Thymeleaf + Spring Security + <form> → CSRF 토큰이 자동으로 추가
 										  // 왜추가했지..???
