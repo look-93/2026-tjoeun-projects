@@ -1,5 +1,7 @@
 package com.moit.advertisement.dto;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 @Data
@@ -15,7 +17,11 @@ public class AdvertisementSearchDto {
     private Integer advertiserId;
 
     // 페이징
+    @Min(value = 1, message = "페이지는 1 이상이어야 합니다.")
     private int page = 1;   // 기본 1페이지
+    
+    @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.")
+    @Max(value = 100, message = "페이지 크기는 100 이하로 설정해주세요.")
     private int size = 10;  // 기본 10개
 
     // 정렬 (선택)
