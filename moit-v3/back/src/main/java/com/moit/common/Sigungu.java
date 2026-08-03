@@ -1,6 +1,6 @@
-package com.moit.meetup.entity;
+package com.moit.common;
 
-import com.moit.util.BaseEntity;
+import org.hibernate.annotations.Comment;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,25 +18,19 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-@Table(name="meetup_applications")
-public class MeetupApplication extends BaseEntity{
-
+@Table(name="SIGUNGUS")
+public class Sigungu {
+	
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(unique = true, nullable = false)
 	private Long id;
 	
-	@Column
-	private String status;
-	
-	@Column
-	private String rejectReason;
+	@Comment("시/군/구 이름")
+	@Column(length = 100, nullable = false)
+	private String name;
 	
 	@ManyToOne
-	@JoinColumn(name="member_id", nullable = false)
-	private Meetup meetup;
-	
-//	@ManyToOne
-//	@JoinColumn(name="member_id", nullable = false)
-//	private  Member member;	
+	@JoinColumn(name = "SIDO_ID", nullable = false)
+	private Sido sido;
 }
