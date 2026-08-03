@@ -9,17 +9,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor 
-@NoArgsConstructor
 @Builder
 @Table(name="meetups")
 public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하면 공통 컬럼 추가됩니다. 경로 따라가서 확인해보세요.
