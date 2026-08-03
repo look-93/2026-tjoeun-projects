@@ -1,38 +1,37 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '4.0.7'
-	id 'io.spring.dependency-management' version '1.1.7'
+   id 'java'
+   id 'org.springframework.boot' version '3.3.5'
+   id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'com.moit'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
-	}
+   toolchain {
+      languageVersion = JavaLanguageVersion.of(17)
+   }
 }
 
 repositories {
-	mavenCentral()
+   mavenCentral()
 }
 
 dependencies {
 // 기존
-	implementation 'org.springframework.boot:spring-boot-starter'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.1'
-	implementation 'org.springframework.boot:spring-boot-starter-restclient'
-	
-	// 보안 + redis + oauth2.0
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
+   implementation 'org.springframework.boot:spring-boot-starter'
+   implementation 'org.springframework.boot:spring-boot-starter-web'
+   implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+   implementation 'org.springframework.boot:spring-boot-starter-validation'
+   implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3' 
+   
+   // 보안 + redis + oauth2.0
+   implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 /*  implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis' 
-	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'*/
-	
+   implementation 'org.springframework.boot:spring-boot-starter-data-redis' 
+   implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'*/
+   
     // Thymeleaf
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.3.0'
@@ -41,17 +40,17 @@ dependencies {
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 
     // oracle 
-	runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
+   runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
 
     // Lombok
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
+   compileOnly 'org.projectlombok:lombok'
+   annotationProcessor 'org.projectlombok:lombok'
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
 
     // JWT
-	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+   implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+   implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
     // Swagger/OpenAPI
@@ -81,5 +80,5 @@ dependencies {
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+   useJUnitPlatform()
 }

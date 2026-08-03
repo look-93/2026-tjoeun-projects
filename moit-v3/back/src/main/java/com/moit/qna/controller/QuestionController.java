@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.moit.meetup.dto.MeetupDto1;
-import com.moit.meetup.service.MeetupServiceImpl1;
+import com.moit.meetup.dto.MeetupDto;
+import com.moit.meetup.service.MeetupService;
 import com.moit.member.dto.UserDto;
 import com.moit.qna.dto.AnswerDto;
 import com.moit.qna.dto.QuestionDto;
@@ -37,7 +37,7 @@ public class QuestionController {
 
     private final QuestionService questionService;
     private final AnswerService answerService;
-    //private final MeetupService meetupService;
+    private final MeetupService meetupService;
     //private final MeetupServiceImpl1 meetupService;
     private final QuestionAiAnalysisService questionAiAnalysisService;
     
@@ -340,8 +340,9 @@ public class QuestionController {
 		if(user.getMemberTypeId() == 3 || user.getMemberTypeId() == 4){
 		    return true;
 			}
-			MeetupDto meetup = meetupService.getDetail(question.getParentId());
-			return meetup != null && meetup.getMemberId() == memberId;
+//			MeetupDto meetup = meetupService.getDetail(question.getParentId());
+//			return meetup != null && meetup.getMemberId() == memberId;
+		return true; // <- 임시
     }
     
     // 문의 수정/삭제 권한 확인
