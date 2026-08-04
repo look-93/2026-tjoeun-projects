@@ -1,6 +1,6 @@
 package com.moit.meetup.repository;
 
-import java.util.Optional;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,4 +13,5 @@ import com.moit.meetup.entity.Meetup;
 public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 	Page<Meetup> findAll(Pageable pageable);
 	
+	List<Meetup> findByMember_MemberId(Long memberId);
 }
