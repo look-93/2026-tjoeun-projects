@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,25 +19,19 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-@Table(name="meetup_applications")
-public class MeetupApplication extends BaseEntity{
+@Table(name="MEETUP_LIKES", uniqueConstraints = {@UniqueConstraint(columnNames = {"MEMEBER_ID","MEETUP_ID"})})
+public class MeetupLikes extends BaseEntity{
 
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(unique = true, nullable = false)
 	private Long id;
 	
-	@Column
-	private String status;
-	
-	@Column
-	private String rejectReason;
+//	@ManyToOne
+//	@JoinColumn(name="MEMBER_ID", nullable = false)
+//	private  Member member;	
 	
 	@ManyToOne
-	@JoinColumn(name="member_id", nullable = false)
+	@JoinColumn(name="MEETUP_ID",  nullable = false)
 	private Meetup meetup;
-	
-//	@ManyToOne
-//	@JoinColumn(name="member_id", nullable = false)
-//	private  Member member;	
 }
