@@ -19,9 +19,8 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Builder
 @Table(name="MEETUP_LIKES", uniqueConstraints = {@UniqueConstraint(columnNames = {"MEMEBER_ID","MEETUP_ID"})})
-public class MeetupLikes extends BaseEntity{
+public class MeetupLike extends BaseEntity{
 
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
