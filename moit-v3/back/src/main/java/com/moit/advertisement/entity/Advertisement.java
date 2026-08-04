@@ -9,6 +9,7 @@ import com.moit.advertisement.enums.ApprovalStatus;
 import com.moit.advertisement.enums.PaymentStatus;
 import com.moit.advertisement.enums.TargetGender;
 // import com.moit.member.entity.Member;
+import com.moit.member.entity.Members;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,7 +18,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
 // import jakarta.persistence.ManyToOne;
 // import jakarta.persistence.JoinColumn;
 import jakarta.persistence.PrePersist;
@@ -108,11 +111,10 @@ public class Advertisement {
 
     // 승인한 관리자 회원 PK
     // Member Entity 완성 후 @ManyToOne으로 변경
-    /*
     @ManyToOne
     @JoinColumn(name = "APPROVED_BY")
-    private Member approvedBy;
-    */
+    private Members approvedBy;
+    
 
 
     // 광고 승인 일시
@@ -122,11 +124,10 @@ public class Advertisement {
 
     // 상태를 변경한 관리자 회원 PK
     // Member Entity 완성 후 @ManyToOne으로 변경
-    /*
     @ManyToOne
     @JoinColumn(name = "STATUS_UPDATED_BY")
-    private Member statusUpdatedBy;
-    */
+    private Members statusUpdatedBy;
+    
 
 
     // 광고 반려 사유
@@ -201,11 +202,10 @@ public class Advertisement {
 
     // 광고 신청자(제휴업체) 회원 PK
     // Member Entity 완성 후 @ManyToOne으로 변경
-    /*
     @ManyToOne
     @JoinColumn(name = "ADVERTISER_ID", nullable = false)
-    private Member advertiser;
-    */
+    private Members advertiser;
+    
 
 
     // 광고 Soft Delete 여부
