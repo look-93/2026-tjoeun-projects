@@ -6,5 +6,5 @@ import com.moit.advertisement.entity.AdvertisementDailyStatistics;
 
 public interface AdvertisementDailyStatisticsRepository
         extends JpaRepository<AdvertisementDailyStatistics, Long> {
-
+ 
 }
