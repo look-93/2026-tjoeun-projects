@@ -66,7 +66,7 @@ public class MeetupDto {
 		public static MeetupResponseDto detailFrom(Meetup meetup) { // 상세페이지 MeetupResponse
 		    MeetupResponseDto response = new MeetupResponseDto();
 
-		    response.setId(meetup.getMeetupId());
+		    response.setId(meetup.getId());
 		    response.setTitle(meetup.getTitle());
 		    response.setContent(meetup.getContent());
 		    response.setMaxParticipants(meetup.getMaxParticipants());

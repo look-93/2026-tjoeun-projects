@@ -1,5 +1,6 @@
 package com.moit.meetup.entity;
 
+import com.moit.member.entity.Members;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -33,10 +34,10 @@ public class MeetupApplication extends BaseEntity{
 	private String rejectReason;
 	
 	@ManyToOne
-	@JoinColumn(name="member_id", nullable = false)
+	@JoinColumn(name="meetup_id", nullable = false)
 	private Meetup meetup;
 	
-//	@ManyToOne
-//	@JoinColumn(name="member_id", nullable = false)
-//	private  Member member;	
+	@ManyToOne
+	@JoinColumn(name="member_id", nullable = false)
+	private  Members member;	
 }
