@@ -25,10 +25,10 @@ public class MemberInterest {
 	private long id;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "member_id")
-	private Members member;
+	@JoinColumn(name = "member_id", nullable = false)
+	private Member member;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "interest_id")
+	@JoinColumn(name = "interest_id", nullable = false)
 	private Interest interest;
 }
