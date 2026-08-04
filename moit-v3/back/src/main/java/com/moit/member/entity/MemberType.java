@@ -1,8 +1,13 @@
 package com.moit.member.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,8 +21,11 @@ public class MemberType {
 	
 	@Id
 	@Column(name = "member_type_id")
-	private long memberTypeId;
+	private Long memberTypeId;
 	
 	@Column(name = "type_name", nullable = false, unique = true, length = 30)
 	private String typeName;
+	
+	@OneToMany(mappedBy = "memberType")
+	private List<Member> members = new ArrayList<>();
 }
