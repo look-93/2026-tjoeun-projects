@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.moit.advertisement.enums.AdPosition;
 // import com.moit.member.entity.Member;
-import com.moit.member.entity.Members;
+import com.moit.member.entity.Member;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -53,7 +53,7 @@ public class AdvertisementClickLog {
     // 비회원도 광고를 클릭할 수 있으므로 NULL 허용
     @ManyToOne
     @JoinColumn(name = "MEMBER_ID")
-    private Members member;
+    private Member member;
     
 
 

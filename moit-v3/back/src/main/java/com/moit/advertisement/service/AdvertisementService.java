@@ -10,7 +10,7 @@ import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.DashboardAiDto;
-import com.moit.advertisement.dto.ExtensionRequestDto;
+import com.moit.advertisement.dto.AdvertisementExtensionRequestDto;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -44,7 +44,7 @@ public interface AdvertisementService {
 	List<AdvertisementDto> selectExtensionList();
 	
     // 상세 조회
-    AdvertisementDto selectAdvertisementOne(int adId);
+    AdvertisementDto selectAdvertisementOne(Long adId);
 
     // 광고 등록
     int insertAdvertisement(AdvertisementDto dto);
@@ -56,7 +56,7 @@ public interface AdvertisementService {
             List<String> imageTypes);
 
     // 광고 삭제
-    int deleteAdvertisement(int adId);
+    int deleteAdvertisement(Long adId);
 
     // 승인
     int updateApprovalStatus(AdvertisementDto dto);
@@ -68,7 +68,7 @@ public interface AdvertisementService {
     void updateExtensionApprove( AdvertisementDto dto );
 
     // 우선도 설정
-	int updateAdGrade(int adId, String adGrade);
+	int updateAdGrade(Long adId, String adGrade);
 	
 	// 기간 변경
     void updatePeriod(Long adId, LocalDateTime start, LocalDateTime end);
@@ -77,16 +77,16 @@ public interface AdvertisementService {
     int insertAdvertisementImage(AdvertisementImageDto dto);
 
     // 이미지 전체 조회
-    List<AdvertisementImageDto> selectAdvertisementImageList(int adId);
+    List<AdvertisementImageDto> selectAdvertisementImageList(Long adId);
 
     // 이미지 삭제
-    int deleteAdvertisementImage(int adId);
+    int deleteAdvertisementImage(Long adId);
 
     // 노출 수 증가
-    int updateImpressions(int adId);
+    int updateImpressions(Long adId);
 
     // 클릭 수 증가
-    int updateAdvertisementClick(int adId);
+    int updateAdvertisementClick(Long adId);
 
     // 광고 조회
     AdvertisementDto selectTopAdvertisement(String position, Integer memberId, String sessionId);
@@ -101,10 +101,10 @@ public interface AdvertisementService {
     int selectClosedAdvertisementCnt();
 
     // 클릭 로그
-	boolean insertClickLog(int adId, String position, HttpServletRequest request, HttpSession session);
+	boolean insertClickLog(Long adId, String position, HttpServletRequest request, HttpSession session);
 	
 	// 노출 로그
-	boolean insertImpressionLog(int adId, String position, HttpServletRequest request, HttpSession session);
+	boolean insertImpressionLog(Long adId, String position, HttpServletRequest request, HttpSession session);
 
 	// 일일통계
 	void insertDailyStatistics();
@@ -131,11 +131,11 @@ public interface AdvertisementService {
 	
 	
 	// 피로도
-	AdvertisementDto getAdvertisementStatistics(int adId);
+	AdvertisementDto getAdvertisementStatistics(Long adId);
 
 	// 메일 발송
 	void sendReminderMail();
 
-	void requestExtension(ExtensionRequestDto dto);
+	void requestExtension(AdvertisementExtensionRequestDto dto);
 
 }

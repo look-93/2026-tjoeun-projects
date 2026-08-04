@@ -1,6 +1,6 @@
 package com.moit.meetup.entity;
 
-import com.moit.member.entity.Members;
+import com.moit.member.entity.Member;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -30,7 +30,7 @@ public class MeetupLikes extends BaseEntity{
 	
 	@ManyToOne
 	@JoinColumn(name="MEMBER_ID", nullable = false)
-	private  Members member;	
+	private  Member member;	
 	
 	@ManyToOne
 	@JoinColumn(name="MEETUP_ID",  nullable = false)
