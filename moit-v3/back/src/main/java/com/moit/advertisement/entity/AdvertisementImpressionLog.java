@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.moit.advertisement.enums.AdPosition;
 // import com.moit.member.entity.Member;
+import com.moit.member.entity.Members;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -50,11 +51,10 @@ public class AdvertisementImpressionLog {
 
     // 광고를 노출받은 회원
     // 비회원도 광고를 볼 수 있으므로 NULL 허용
-    /*
     @ManyToOne
     @JoinColumn(name = "MEMBER_ID")
-    private Member member;
-    */
+    private Members member;
+    
 
 
     // 광고가 노출된 디바이스
