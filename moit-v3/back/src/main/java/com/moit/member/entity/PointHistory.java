@@ -25,20 +25,20 @@ public class PointHistory extends BaseEntity{
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "point_history_seq")
 	@SequenceGenerator(name = "point_history_seq", sequenceName = "point_history_seq", allocationSize = 1)
-	@Column(name = "hitory_id")
-	private long hisotyId;
+	@Column(name = "history_id")
+	private Long historyId;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "member_id")
-	private Members member;
+	@JoinColumn(name = "member_id", nullable = false)
+	private Member member;
 	
 	@Column(name = "point_pm", nullable = false)
 	private Integer pointPm;
 	
-	@Column(name = "point_type", nullable = false)
+	@Column(name = "point_type", nullable = false, length = 30)
 	private String pointType;
 	
-	@Column(name = "point_reason", nullable = false)
+	@Column(name = "point_reason", nullable = false, length = 100)
 	private String pointReason;
 	
 }

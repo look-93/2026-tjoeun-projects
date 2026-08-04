@@ -3,7 +3,7 @@ package com.moit.meetup.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.moit.member.entity.Members;
+import com.moit.member.entity.Member;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -78,7 +78,7 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	
 	@ManyToOne
 	@JoinColumn(name="member_id", nullable = false)
-	private  Members member;
+	private  Member member;
 	
 	@OneToMany(mappedBy = "meetup", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<MeetupApplication> meetupApplications;

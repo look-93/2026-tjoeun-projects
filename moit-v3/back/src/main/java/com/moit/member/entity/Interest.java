@@ -1,8 +1,13 @@
 package com.moit.member.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,4 +25,7 @@ public class Interest {
 	
 	@Column(name = "interest_name",nullable = false)
 	private String interestName;
+	
+	@OneToMany(mappedBy = "interest")
+	private List<MemberInterest> memberInterests = new ArrayList<>();
 }

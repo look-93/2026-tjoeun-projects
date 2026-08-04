@@ -23,11 +23,13 @@ public class MemberInfo {
 	
 	@Id
 	@Column(name = "member_id")
-	private long memberId;
+	private Long memberId;
 	
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "member_id")
-	private Members member;
+	@JoinColumn(name = "member_id",
+		    insertable = false,
+		    updatable = false)
+	private Member member;
 	
 	@Column(nullable = false, length = 1)
 	private String gender;
@@ -45,7 +47,7 @@ public class MemberInfo {
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "report_status_id")
-	private ReportsStatus reportsStatus;
+	private ReportStatus reportStatus;
 	
 	@Column(name = "join_ip")
 	private String joinIp;
@@ -55,7 +57,10 @@ public class MemberInfo {
 	
 	@PrePersist
 	void prePersist() {
-		this.point = 0;
-		this.trustScore = 100;
+		if(point == null)
+	        point = 0;
+
+	    if(trustScore == null)
+	        trustScore = 100;
 	}
 }

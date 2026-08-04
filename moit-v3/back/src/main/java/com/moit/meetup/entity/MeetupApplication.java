@@ -1,7 +1,7 @@
 package com.moit.meetup.entity;
 
 import com.moit.meetup.enums.ApplyStatus;
-import com.moit.member.entity.Members;
+import com.moit.member.entity.Member;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -43,5 +43,5 @@ public class MeetupApplication extends BaseEntity{
 	
 	@ManyToOne
 	@JoinColumn(name="member_id", nullable = false)
-	private  Members member;	
+	private  Member member;	
 }
