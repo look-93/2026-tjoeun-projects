@@ -1,10 +1,13 @@
 package com.moit.meetup.entity;
 
-import com.moit.member.entity.Members;
+import com.moit.meetup.enums.ApplyStatus;
+import com.moit.member.entity.Member;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -27,8 +30,9 @@ public class MeetupApplication extends BaseEntity{
 	@Column(unique = true, nullable = false)
 	private Long id;
 	
-	@Column
-	private String status;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private ApplyStatus status;
 	
 	@Column
 	private String rejectReason;
@@ -39,5 +43,5 @@ public class MeetupApplication extends BaseEntity{
 	
 	@ManyToOne
 	@JoinColumn(name="member_id", nullable = false)
-	private  Members member;	
+	private  Member member;	
 }

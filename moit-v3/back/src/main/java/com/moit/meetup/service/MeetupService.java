@@ -11,7 +11,7 @@ public interface MeetupService {
 	public MeetupListResponseDto search(Pageable pageable);
 	
 	//상세조회
-	public MeetupResponseDto detail(Long id);
+	public MeetupResponseDto detail(Long meetupId, Long memberId);
 	
 	//저장
 	public void create(MeetupRequestDto meetupRequest, Long memberId);
