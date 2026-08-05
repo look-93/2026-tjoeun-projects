@@ -5,11 +5,11 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.moit.member.entity.ReportStatus;
+import com.moit.member.entity.MemberReportStatus;
 
 @Repository
-public interface ReportStatusRepository extends JpaRepository<ReportStatus, Long>{
+public interface ReportStatusRepository extends JpaRepository<MemberReportStatus, Long>{
 	
 	// 신고 상태 조회 (ACTIVE, WARNING ....)
-	Optional<ReportStatus> findByStatusName(String statusName);
+	Optional<MemberReportStatus> findByStatusName(String statusName);
 }
