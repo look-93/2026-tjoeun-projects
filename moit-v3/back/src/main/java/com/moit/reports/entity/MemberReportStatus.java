@@ -1,7 +1,5 @@
 package com.moit.reports.entity;
 
-import com.moit.util.BaseEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

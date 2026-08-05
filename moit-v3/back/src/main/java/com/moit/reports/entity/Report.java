@@ -1,18 +1,16 @@
 package com.moit.reports.entity;
 
-import java.time.LocalDateTime;
-
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -38,6 +36,7 @@ public class Report extends BaseEntity {
 	@Column(name = "TARGET_ID", nullable = false)
 	private Long targetId;
 	
+	@ManyToOne(fetch = FetchType.LAZY)
 	@Column(name = "MEMBER_ID", nullable = false)
 	private Long memberId;
 	
@@ -52,8 +51,8 @@ public class Report extends BaseEntity {
 	@Column(name = "STATUS", length = 20, nullable = false)
 	private Status status;
 	
-	@Column(name = "DELETE_YN", length = 1, nullable = false)
-	private String deleteYn;
+//	@Column(name = "DELETE_YN", length = 1, nullable = false)
+//	private String deleteYn;
 	
 //	@Column(name = "CREATED_AT", nullable = false)
 //	private LocalDateTime createdAt;
@@ -78,7 +77,7 @@ public class Report extends BaseEntity {
 		this.reasonCode = reasonCode;
 		this.reasonDetail = reasonDetail;
 		this.status = Status.PENDING;
-        this.deleteYn = "N";
+//        this.deleteYn = "N";
 	}
 	
 	public void updateReason(ReasonCode reasonCode, String reasonDetail) {
@@ -88,7 +87,7 @@ public class Report extends BaseEntity {
 	
     public void changeStatus(Status status) {this.status = status; }
     
-    public void delete() { this.deleteYn = "Y"; }
+//    public void delete() { this.deleteYn = "Y"; }
 	
 	//@Column
 	//private String memberId;

@@ -7,5 +7,5 @@ import com.moit.member.entity.MemberInfo;
 
 @Repository
 public interface MemberInfoRepository extends JpaRepository<MemberInfo, Long>{
-
+	
 }
