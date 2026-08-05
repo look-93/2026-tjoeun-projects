@@ -57,7 +57,7 @@ public class MeetupServiceImpl implements MeetupService{
 		Meetup meetup = meetupRepository.findById(meetupId)
 										.orElseThrow(()->new IllegalArgumentException("존재하지 않는 게시글입니다. ID: "+ meetupId));
 		
-		MeetupApplication meetupApplication = meetupApplicationRepository.findByMeetup_IdAndMember_MemberId(meetupId, memberId).orElse(null);
+		MeetupApplication meetupApplication = meetupApplicationRepository.findByMeetup_IdAndMember_Id(meetupId, memberId).orElse(null);
 		
 
 		if(meetup.getDeleteYn() == 'Y') {

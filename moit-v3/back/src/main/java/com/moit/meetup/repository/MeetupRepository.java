@@ -15,15 +15,14 @@ import com.moit.meetup.entity.Meetup;
 public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 	Page<Meetup> findAll(Pageable pageable);
 	
-	List<Meetup> findByMember_MemberId(Long memberId);
+	List<Meetup> findByMember_Id(Long memberId);
 	
 	//관리자 통계
 	@Query("""
 			SELECT new com.moit.meetup.dto.MeetupCountDto(
-			    COUNT(m),
 			    COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.RECRUITING THEN 1 END),
 			    COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.COMPLETED THEN 1 END),
-			     COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.CANCELED THEN 1 END),
+			    COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.CANCELED THEN 1 END),
 			    COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.WEATHER_CANCELED THEN 1 END)
 			)
 			FROM Meetup m
