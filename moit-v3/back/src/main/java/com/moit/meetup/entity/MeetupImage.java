@@ -1,7 +1,6 @@
 package com.moit.meetup.entity;
 
-import java.awt.Image;
-
+import com.moit.common.Image;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -25,17 +24,17 @@ import lombok.Setter;
 @Builder
 @Table(name="MEETUP_IMAGES")
 public class MeetupImage extends BaseEntity{
-	
-	@Id
+   
+   @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(unique = true, nullable = false)
-	private Long id;
-	
+   @Column(unique = true, nullable = false)
+   private Long id;
+   
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEETUP_ID", nullable = false)
-	private Meetup meetup;
-	
-	
+   private Meetup meetup;
+   
+   
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "IMAGE_ID", nullable = false)
     private Image image;
