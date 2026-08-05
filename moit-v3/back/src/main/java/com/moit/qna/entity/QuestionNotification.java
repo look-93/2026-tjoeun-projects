@@ -15,7 +15,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "NOTIFICATIONS")
 @Getter @Setter
-public class Notification extends BaseEntity{
+public class QuestionNotification extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "notification_seq_generator")

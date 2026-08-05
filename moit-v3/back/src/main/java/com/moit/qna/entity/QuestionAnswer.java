@@ -16,7 +16,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "ANSWERS")
 @Getter @Setter
-public class Answer extends BaseEntity{
+public class QuestionAnswer extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "answer_seq_generator")
