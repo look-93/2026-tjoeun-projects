@@ -2,7 +2,6 @@ package com.moit.security;
 
 import java.net.URI;
 
-import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -15,7 +14,7 @@ public class PasswordLeakService {
 
     private final RestTemplate restTemplate;
 
-    public PasswordLeakService(RestTemplateBuilder builder) {
+    public PasswordLeakService(org.springframework.boot.web.client.RestTemplateBuilder builder) {
         this.restTemplate = builder.build();
     }
 

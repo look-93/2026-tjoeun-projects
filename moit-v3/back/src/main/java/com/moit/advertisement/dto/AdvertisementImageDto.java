@@ -6,10 +6,10 @@ import lombok.Data;
 public class AdvertisementImageDto {
 
     // 이미지 PK
-    private Integer imageId;
+    private Long imageId;
 
     // 광고 PK
-    private Integer adId;
+    private Long adId;
 
     // 이미지 종류
     private String imageType;

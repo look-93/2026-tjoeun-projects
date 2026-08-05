@@ -10,7 +10,7 @@ import lombok.Data;
 public class AdvertisementDto {
 
     // PK
-    private int adId;
+    private Long adId;
 
     // 기본 정보
     private String title;
@@ -19,7 +19,6 @@ public class AdvertisementDto {
     private String landingUrl;
 
     // 유형/노출
-    private String adType;       // BANNER / POPUP / VIDEO
     private String position;     // MAIN / SIDE 등
 
     // 타겟팅
@@ -27,7 +26,6 @@ public class AdvertisementDto {
     private Integer targetAgeMax;
     private String targetGender;
     private String deviceType;
-    private String adChannel;
 
     // 기간
     private LocalDateTime startDatetime;
