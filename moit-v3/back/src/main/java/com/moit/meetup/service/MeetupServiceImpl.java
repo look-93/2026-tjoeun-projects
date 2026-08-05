@@ -28,6 +28,7 @@ public class MeetupServiceImpl implements MeetupService{
 	private final MeetupApplicationRepository meetupApplicationRepository;
 	//private final MemberRepository memberRepository; 
 	
+	//목록조회
 	@Override
 	public MeetupListResponseDto search(Pageable pageable) {
 		Page<Meetup> page = meetupRepository.findAll(pageable);
@@ -49,7 +50,8 @@ public class MeetupServiceImpl implements MeetupService{
 		return listResponse;
 
 	}
-
+	
+	//상세조회
 	@Override
 	public MeetupResponseDto detail(Long meetupId, Long memberId) {
 		Meetup meetup = meetupRepository.findById(meetupId)
@@ -71,6 +73,7 @@ public class MeetupServiceImpl implements MeetupService{
 		return response;
 	}
 	
+	//생성
 	@Transactional
 	@Override
 	public void create(MeetupRequestDto meetupRequestDto, Long memberId) {
@@ -87,7 +90,7 @@ public class MeetupServiceImpl implements MeetupService{
 							  .address(meetupRequestDto.getAddress())
 							  .addressDetail(meetupRequestDto.getAddressDetail())
 							  .meetupAt(meetupRequestDto.getMeetupAt())
-							  .status(meetupRequestDto.getStatus())
+							  .meetupStatus(meetupRequestDto.getMeetupStatus())
 							  .latitude(meetupRequestDto.getLatitude())
 							  .longitude(meetupRequestDto.getLongitude())
 							  .nx(meetupRequestDto.getNx())
@@ -96,14 +99,15 @@ public class MeetupServiceImpl implements MeetupService{
 		meetupRepository.save(meetup);
 	}
 	
+	//수정
 	@Transactional
 	@Override
-	public void update(MeetupRequestDto meetupRequestDto, Long id) {
-		Meetup meetup = meetupRepository.findById(id)
-										.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다. MEETUPID" + id));
+	public void update(MeetupRequestDto meetupRequestDto, Long meetupId) {
+		Meetup meetup = meetupRepository.findById(meetupId)
+										.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다. MEETUPID" + meetupId));
 		
 		if(meetup.getDeleteYn() == 'Y') {
-			throw new IllegalArgumentException("삭제된 게시글 입니다. MEETUPID" + id);
+			throw new IllegalArgumentException("삭제된 게시글 입니다. MEETUPID" + meetupId);
 		}
 		
 		// 저장메서드를 따로 호출하지 않아도 update 쿼리 반영 더티체킹(Dirty Checking)
@@ -116,20 +120,27 @@ public class MeetupServiceImpl implements MeetupService{
 		meetup.setAddress(meetupRequestDto.getAddress());
 		meetup.setAddressDetail(meetupRequestDto.getAddressDetail());
 		meetup.setMeetupAt(meetupRequestDto.getMeetupAt());
-		meetup.setStatus(meetupRequestDto.getStatus());
+		meetup.setMeetupStatus(meetupRequestDto.getMeetupStatus());
 		meetup.setLatitude(meetupRequestDto.getLatitude());
 		meetup.setLongitude(meetupRequestDto.getLongitude());
 		meetup.setNx(meetupRequestDto.getNx());
 		meetup.setNy(meetupRequestDto.getNy());		
 	}
 	
+	//삭제
 	@Transactional
 	@Override
-	public void delete(Long id) {
-		Meetup meetup = meetupRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다. MEETUPID" + id));
+	public void delete(Long meetupId) {
+		Meetup meetup = meetupRepository.findById(meetupId)
+				.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다. MEETUPID" + meetupId));
 		
 		meetup.setDeleteYn('Y'); //저장메서드를 따로 호출하지 않아도 delete 쿼리 반영 더티체킹(Dirty Checking)		
 	}
+	
+	//모임신청
+	
+	//내 모집글 조회
+	
+	//내 신청글 조회
 	
 }
