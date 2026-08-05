@@ -7,8 +7,11 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import com.moit.advertisement.entity.Advertisement;
 import com.moit.advertisement.entity.AdvertisementDailyStatistics;
@@ -20,6 +23,21 @@ import com.moit.advertisement.entity.AdvertisementTargetRegion;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@EnableJpaRepositories(
+    basePackageClasses = {
+        AdvertisementRepository.class,
+        AdvertisementImageRepository.class,
+        AdvertisementTargetRegionRepository.class,
+        AdvertisementPaymentRepository.class,
+        AdvertisementPriceRepository.class,
+        AdvertisementPositionPriceRepository.class,
+        AdvertisementDailyStatisticsRepository.class
+    }
+)
+
+@ImportAutoConfiguration(exclude = {
+    JpaRepositoriesAutoConfiguration.class
+})
 class AdvertisementRepositoryTest {
 
     @Autowired
