@@ -11,8 +11,8 @@ import com.moit.member.entity.MemberInterest;
 public interface MemberInterestRepository extends JpaRepository<MemberInterest, Long>{
 	
 	// 회원 관심사 목록 조회
-	List<MemberInterest> findByMemberMemberId(Long memberId);
+	List<MemberInterest> findByMemberId(Long memberId);
 	
 	// 회원 관심사 전체 삭제
-	void deleteByMemberMemberId(Long memberId);
+	void deleteByMemberId(Long memberId);
 }
