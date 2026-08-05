@@ -39,7 +39,7 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     List<Question> findBySearch(@Param("keyword") String keyword);
 
     // 사용자 문의 목록
-    List<Question> findByMemberId(Integer memberId);
+    List<Question> findByMember_MemberId(Integer memberId);
 
     // 부모 문의 조회
     List<Question> findByParentId(Long parentId);

@@ -33,8 +33,15 @@ public class QuestionRepositoryTest {
     
     @Test
     @DisplayName("Question Repository 조회 테스트")
-    void findTest(){
+    void QuestionTest(){
         List<Question> list = questionRepository.findAll();
         assertThat(list).isNotNull();
+    }
+    
+    @Test
+    @DisplayName("QuestionNotification Repository Bean 생성 테스트")
+    void QuestionNotificationTest() {
+        assertThat(questionNotificationRepository)
+                .isNotNull();
     }
 }
