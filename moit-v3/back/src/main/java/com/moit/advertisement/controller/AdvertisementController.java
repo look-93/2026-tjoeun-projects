@@ -20,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
-import com.moit.advertisement.dto.ExtensionRequestDto;
+import com.moit.advertisement.dto.AdvertisementExtensionRequestDto;
 import com.moit.advertisement.service.AdvertisementService;
 import com.moit.member.dto.UserDto;
 import com.moit.security.CustomUserDetails;
@@ -186,7 +186,7 @@ public class AdvertisementController {
     // 상세
     @GetMapping("/detail")
     public String detail(
-            @RequestParam int adId,
+            @RequestParam Long adId,
             Authentication authentication,
             Model model) {
 
@@ -221,7 +221,7 @@ public class AdvertisementController {
     // 수정 화면
     @GetMapping("/edit")
     public String edit(
-            @RequestParam int adId,
+            @RequestParam Long adId,
             Authentication authentication,
             Model model) {
 
@@ -346,7 +346,7 @@ public class AdvertisementController {
  // 삭제
     @PostMapping("/delete")
     public String delete(
-            @RequestParam int adId,
+            @RequestParam Long adId,
             Authentication authentication) {
 
         AdvertisementDto dto =
@@ -383,7 +383,7 @@ public class AdvertisementController {
     // 광고 클릭
     @GetMapping("/click")
     public String click(
-            @RequestParam int adId,
+            @RequestParam Long adId,
             @RequestParam String position,
             HttpServletRequest request,
             HttpSession session) {
@@ -417,21 +417,14 @@ public class AdvertisementController {
     @PostMapping("/extensionRequest")
     @ResponseBody
     public ResponseEntity<?> extensionRequest(
-            @RequestBody ExtensionRequestDto dto,
-            Authentication authentication){
-
+            @RequestBody AdvertisementExtensionRequestDto dto,
+            Authentication authentication) {
 
         CustomUserDetails user =
                 (CustomUserDetails) authentication.getPrincipal();
 
-
-        dto.setAdvertiserId(user.getAppUserId());
-
-
-        advertisementService.requestExtension(dto);
-
+        advertisementService.requestExtension( dto );
 
         return ResponseEntity.ok().build();
-
     }
 }

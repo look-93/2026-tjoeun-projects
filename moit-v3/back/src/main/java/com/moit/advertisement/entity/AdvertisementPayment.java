@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.PaymentHistoryStatus;
 import com.moit.advertisement.enums.PaymentType;
-import com.moit.member.entity.Members;
+import com.moit.member.entity.Member;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -58,7 +58,7 @@ public class AdvertisementPayment {
     // Member Entity 완성 후 연관관계 연결
     @ManyToOne
     @JoinColumn(name = "ADVERTISER_ID", nullable = false)
-    private Members advertiser;
+    private Member advertiser;
     
 
 
