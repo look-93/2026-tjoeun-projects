@@ -19,12 +19,16 @@ public class ReviewRepositoryTest {
 	@Autowired
 	private ReviewImageRepository revieimagerepository;
 	
+	@Autowired
+	private ReviewLikeRepository reviewlikerepository;
+	
 	
 	 @Test
 	    @DisplayName("후기 Repository 전체 Bean 생성 테스트")
 	    void repositoryBeanTest() {
 		 assertThat(reviewrepository).isNotNull();
 		 assertThat(revieimagerepository).isNotNull();
+		 assertThat(reviewlikerepository).isNotNull();
 	 }
 	
 	
