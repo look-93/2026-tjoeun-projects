@@ -32,7 +32,7 @@ public class Member extends BaseEntity{
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "members_seq")
 	@SequenceGenerator(name = "members_seq", sequenceName = "members_seq",allocationSize = 1)
 	@Column(name = "member_id")
-	private Long memberId;
+	private Long id;
 	
 	@Column(name = "login_id", nullable = false, unique = true)
 	private String loginId;
