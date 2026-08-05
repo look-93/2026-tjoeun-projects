@@ -11,5 +11,5 @@ import com.moit.member.entity.PointHistory;
 public interface PointHistoryRepository extends JpaRepository<PointHistory, Long>{
 	
 	// 회원 포인트 사용내역 조회
-	List<PointHistory> findByMemberMemberIdOrderByCreatedAtDesc(Long memberId);
+	List<PointHistory> findByMemberIdOrderByCreatedAtDesc(Long memberId);
 }

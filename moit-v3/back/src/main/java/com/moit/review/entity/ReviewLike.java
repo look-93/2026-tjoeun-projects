@@ -1,6 +1,6 @@
 package com.moit.review.entity;
 
-import com.moit.member.entity.Members;
+import com.moit.member.entity.Member;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -33,5 +33,5 @@ public class ReviewLike extends BaseEntity{
 	
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name="MEMBER_ID",nullable=false)
-	private  Members memberId;
+	private  Member memberId;
 }

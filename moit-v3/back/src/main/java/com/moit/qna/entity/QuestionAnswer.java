@@ -1,5 +1,6 @@
 package com.moit.qna.entity;
 
+import com.moit.member.entity.Member;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -7,7 +8,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -16,7 +19,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "ANSWERS")
 @Getter @Setter
-public class Answer extends BaseEntity{
+public class QuestionAnswer extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "answer_seq_generator")
@@ -25,11 +28,13 @@ public class Answer extends BaseEntity{
     @Column(name = "ANSWER_ID")
     private Integer answerId;
 
-    @Column(name = "QUESTION_ID", nullable = false, unique = true)
-    private Integer questionId;
-
-    @Column(name = "MEMBER_ID", nullable = false)
-    private Integer memberId;
+    @ManyToOne
+    @JoinColumn(name = "QUESTION_ID", nullable = false)
+    private Question question;
+    
+    @ManyToOne
+    @JoinColumn(name = "MEMBER_ID", nullable = false)
+    private Member member;
 
     @Lob
     @Column(name = "CONTENT", nullable = false)

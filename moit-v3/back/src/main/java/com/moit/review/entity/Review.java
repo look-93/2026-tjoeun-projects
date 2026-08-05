@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.moit.meetup.entity.Meetup;
-import com.moit.member.entity.Members;
+import com.moit.member.entity.Member;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -42,7 +42,7 @@ public class Review  extends BaseEntity{
 	//작성자 번호
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="MEMBER_ID" ,nullable=false)
-	private  Members memberId;
+	private  Member memberId;
 	
 	@OneToMany(mappedBy="review",cascade=CascadeType.ALL,orphanRemoval=true)
 	private List<ReviewImage> reviewImages=new ArrayList<>();
