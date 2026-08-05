@@ -78,7 +78,11 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	private Integer nx;
 	
 	@Column
-	private Integer ny;	
+	private Integer ny;
+	
+	@Builder.Default
+	@Column(nullable = false, columnDefinition = "NUMBER(1) DEFAULT 0")
+	private Boolean visible = false;
 	
 	@ManyToOne
 	@JoinColumn(name="member_id", nullable = false)
