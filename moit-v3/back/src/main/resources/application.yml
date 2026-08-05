@@ -10,6 +10,7 @@ spring:
     url: jdbc:oracle:thin:@localhost:1521/XE
     username: moit3
     password: "1234"
+    
   jpa:
     hibernate:
       ddl-auto: create-drop  # test 환경 create-drop 매번초기화 / update 부분수정

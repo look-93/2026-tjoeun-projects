@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +12,9 @@ import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
 import com.moit.meetup.entity.Meetup;
+import com.moit.meetup.entity.MeetupApplication;
+import com.moit.meetup.enums.ApplyStatus;
+import com.moit.meetup.repository.MeetupApplicationRepository;
 import com.moit.meetup.repository.MeetupRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -22,7 +24,8 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class MeetupServiceImpl implements MeetupService{
 	
-	private final MeetupRepository meetupRepository; 
+	private final MeetupRepository meetupRepository;
+	private final MeetupApplicationRepository meetupApplicationRepository;
 	//private final MemberRepository memberRepository; 
 	
 	@Override
@@ -31,7 +34,7 @@ public class MeetupServiceImpl implements MeetupService{
 //		page.getTotalPages(); // 전체페이지수 100개라면 10개
 //		page.getNumberOfElements(); // 전체갯수 100개
 //		page.getContent(); // 0번째 페이지의 10개가 들어있음
-		
+
 		MeetupListResponseDto listResponse = new MeetupListResponseDto();
 		listResponse.setTotalCount(page.getTotalElements()); // Page클레스에서 제공하는 getTotalElement
 		listResponse.setTotalPage((long)page.getTotalPages()); //Page클레스에서 제공하는  getTotalPages
@@ -47,17 +50,25 @@ public class MeetupServiceImpl implements MeetupService{
 
 	}
 
-	
 	@Override
-	public MeetupResponseDto detail(Long id) {
-		Meetup meetup = meetupRepository.findById(id)
-										.orElseThrow(()->new IllegalArgumentException("존재하지 않는 게시글입니다. ID: "+ id));
+	public MeetupResponseDto detail(Long meetupId, Long memberId) {
+		Meetup meetup = meetupRepository.findById(meetupId)
+										.orElseThrow(()->new IllegalArgumentException("존재하지 않는 게시글입니다. ID: "+ meetupId));
 		
+		MeetupApplication meetupApplication = meetupApplicationRepository.findByMeetup_IdAndMember_MemberId(meetupId, memberId).orElse(null);
+		
+
 		if(meetup.getDeleteYn() == 'Y') {
 			throw new IllegalArgumentException("삭제된 게시글 입니다.");
 		}
 		
-		return MeetupResponseDto.detailFrom(meetup);
+		
+		MeetupResponseDto response = MeetupResponseDto.detailFrom(meetup);
+		if(meetupApplication != null) {
+			response.setApplyStatus(meetupApplication.getStatus());
+		}
+		
+		return response;
 	}
 	
 	@Transactional
