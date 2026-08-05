@@ -8,6 +8,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
+import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplyMemberListResponseDto;
+import com.moit.meetup.dto.MeetupApplicationDto.MyApplicationListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
@@ -16,6 +19,8 @@ import com.moit.meetup.entity.MeetupApplication;
 import com.moit.meetup.enums.ApplyStatus;
 import com.moit.meetup.repository.MeetupApplicationRepository;
 import com.moit.meetup.repository.MeetupRepository;
+import com.moit.member.entity.Member;
+import com.moit.member.repository.MemberRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +31,7 @@ public class MeetupServiceImpl implements MeetupService{
 	
 	private final MeetupRepository meetupRepository;
 	private final MeetupApplicationRepository meetupApplicationRepository;
-	//private final MemberRepository memberRepository; 
+	private final MemberRepository memberRepository; 
 	
 	//목록조회
 	@Override
@@ -46,7 +51,7 @@ public class MeetupServiceImpl implements MeetupService{
 			Meetup meetup = contents.get(i);			
 			list.add(MeetupResponseDto.listFrom(meetup));
 		}
-		listResponse.setList(list);
+		listResponse.setMeetups(list);
 		return listResponse;
 
 	}
@@ -67,7 +72,7 @@ public class MeetupServiceImpl implements MeetupService{
 		
 		MeetupResponseDto response = MeetupResponseDto.detailFrom(meetup);
 		if(meetupApplication != null) {
-			response.setApplyStatus(meetupApplication.getStatus());
+			response.setApplyStatus(meetupApplication.getApplyStatus());
 		}
 		
 		return response;
@@ -138,9 +143,68 @@ public class MeetupServiceImpl implements MeetupService{
 	}
 	
 	//모임신청
+	@Override
+	public void meetupApply(Long memberId, Long meetupId) {
+		Meetup meetup = meetupRepository.findById(meetupId)
+										.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다. MEETUPID" + meetupId));
+		
+		Member member = memberRepository.findById(memberId)
+										.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원입니다.. MEMBERID" + memberId));
+		
+		MeetupApplication meetupApplication = MeetupApplication.builder()
+															   .applyStatus(ApplyStatus.PENDING)
+															   .meetup(meetup)
+															   .member(member)
+															   .build();
+		
+		meetupApplicationRepository.save(meetupApplication);
+	}
 	
-	//내 모집글 조회
+	//좋아요
+	@Override
+	public void meetupLike(Long meetupId, Long memberId) {
+		Meetup meetup = meetupRepository.findById(meetupId)
+				.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다. MEETUPID" + meetupId));
+
+		Member member = memberRepository.findById(memberId)
+				.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원입니다.. MEMBERID" + memberId));
+	}
 	
-	//내 신청글 조회
+	//모집글 비공개(관리자)
+	@Override
+	public void disableMeetup(Long meetupId) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	//마이페이지 내가 신청한 모집글 목록 조회(페이징)
+	@Override
+	public MyApplicationListResponseDto getMyApplications(Long memberId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	//마이페이지 내 모집글 신청자 리스트(페이징)
+	@Override
+	public MeetupApplyMemberListResponseDto getMyMeetupApplicants(Long meetupId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	//마이페이지 승인, 거절(거절사유), 노쇼 처리
+	@Override
+	public void updateApplicationStatus(MeetupApplicationRequestDto requestDto) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	//마이페이지 내가 모집한 모집글 조회(페이징)
+	@Override
+	public MyApplicationListResponseDto getMyMeetups(Long memberId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+
 	
 }

@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.moit.meetup.dto.MeetupCountDto;
+import com.moit.meetup.dto.MeetupCountResponseDto;
 import com.moit.meetup.entity.Meetup;
 
 @Repository
@@ -28,5 +28,5 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 			FROM Meetup m
 			WHERE m.deleteYn = 'N'
 			""")
-	MeetupCountDto getMeetupCount();	
+	MeetupCountResponseDto getMeetupCount();	
 }

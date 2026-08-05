@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class MeetupCountDto {
+public class MeetupCountResponseDto {
 	// 통계데이터
     private Long totalMeetupCount;	// 전체모집글
     private Long recruitingCount;	// 모집중

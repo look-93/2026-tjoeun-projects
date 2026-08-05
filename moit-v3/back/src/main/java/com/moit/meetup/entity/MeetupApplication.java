@@ -32,7 +32,7 @@ public class MeetupApplication extends BaseEntity{
 	
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private ApplyStatus status;
+	private ApplyStatus applyStatus;
 	
 	@Column
 	private String rejectReason;

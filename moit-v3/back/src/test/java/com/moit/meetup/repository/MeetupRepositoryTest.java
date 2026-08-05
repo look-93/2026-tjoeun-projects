@@ -20,7 +20,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         MeetupImageRepository.class,
         MeetupLikesRepository.class
 })
-@EntityScan(basePackages = "com.moit")
 class MeetupRepositoryTest {
 
     @Autowired
