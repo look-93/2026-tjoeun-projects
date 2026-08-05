@@ -67,7 +67,7 @@ public class Review  extends BaseEntity{
 	
 	//공개여부
 	@Column(length=1)
-	private String ispublic="Y";
+	private String isPublic="Y";
 	
 	
 }
