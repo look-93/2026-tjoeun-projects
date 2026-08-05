@@ -134,7 +134,7 @@ public class AdvertisementAdminController {
     
     // 🔥 통합 상세 페이지 
     @GetMapping("/detail")
-    public String detail(@RequestParam int adId,
+    public String detail(@RequestParam Long adId,
                          @RequestParam String mode,
                          Model model) {
 
@@ -153,7 +153,7 @@ public class AdvertisementAdminController {
 
     // 게시 승인 처리
     @PostMapping("/approve")
-    public String approve(@RequestParam int adId,
+    public String approve(@RequestParam Long adId,
                           HttpSession session) {
 
         Integer loginMemberId = getLogin(session);
@@ -172,7 +172,7 @@ public class AdvertisementAdminController {
     // 연장 승인
     @PostMapping("/extensionApprove")
     public String extensionApprove(
-            @RequestParam int adId) {
+            @RequestParam Long adId) {
 
 
         AdvertisementDto dto = new AdvertisementDto();
@@ -188,7 +188,7 @@ public class AdvertisementAdminController {
 
     // 반려 처리
     @PostMapping("/reject")
-    public String reject(@RequestParam int adId,
+    public String reject(@RequestParam Long adId,
                          @RequestParam String rejectReason,
                          HttpSession session) {
 
@@ -208,7 +208,7 @@ public class AdvertisementAdminController {
 
     // 목록 상태 변경 
     @PostMapping("/status")
-    public String status(@RequestParam int adId,
+    public String status(@RequestParam Long adId,
                          @RequestParam String status,
                          HttpSession session) {
 
@@ -228,7 +228,7 @@ public class AdvertisementAdminController {
     // 우선도 선택(일반 / 프리미엄)
     @PostMapping("/updateGrade")
     public String updateGrade(
-            @RequestParam int adId,
+            @RequestParam Long adId,
             @RequestParam String adGrade) {
 
 
@@ -254,7 +254,7 @@ public class AdvertisementAdminController {
     
     // 상세에서 상태 변경
     @PostMapping("/status/detail")
-    public String statusFromDetail(@RequestParam int adId,
+    public String statusFromDetail(@RequestParam Long adId,
 		            @RequestParam String status,
 		            HttpSession session) {
 		

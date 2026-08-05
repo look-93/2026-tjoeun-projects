@@ -6,6 +6,8 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 
 import com.moit.meetup.entity.Meetup;
+import com.moit.meetup.enums.ApplyStatus;
+import com.moit.meetup.enums.MeetupStatus;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,7 +28,7 @@ public class MeetupDto {
 		private Integer categoryId;
 		private String address;
 		private String meetupAt;
-		private String status;
+		private MeetupStatus meetupStatus;
 		private Double latitude;
 		private Double longitude;
 		private String addressDetail;
@@ -46,13 +48,13 @@ public class MeetupDto {
 		private Integer categoryId;
 		private String address;
 		private String meetupAt;
-		private String status;
+		private MeetupStatus meetupStatus;
 		private Double latitude;
 		private Double longitude;
 		private String addressDetail;
 		private Integer nx;
 		private Integer ny;
-		
+		private ApplyStatus applyStatus;
 		
 		public static MeetupResponseDto listFrom(Meetup meetup) { // list에만 보여줄 MeetupResponse
 			MeetupResponseDto response = new MeetupResponseDto();
@@ -75,7 +77,7 @@ public class MeetupDto {
 		    response.setCategoryId(meetup.getCategoryId());
 		    response.setAddress(meetup.getAddress());
 		    response.setMeetupAt(meetup.getMeetupAt());
-		    response.setStatus(meetup.getStatus());
+		    response.setMeetupStatus(meetup.getMeetupStatus());
 		    response.setLatitude(meetup.getLatitude());
 		    response.setLongitude(meetup.getLongitude());
 		    response.setAddressDetail(meetup.getAddressDetail());

@@ -3,12 +3,15 @@ package com.moit.meetup.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.moit.member.entity.Members;
+import com.moit.meetup.enums.MeetupStatus;
+import com.moit.member.entity.Member;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -61,8 +64,9 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	@Column
 	private String meetupAt;
 	
-	@Column
-	private String status;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private MeetupStatus meetupStatus;
 	
 	@Column
 	private Double latitude;
@@ -78,10 +82,12 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	
 	@ManyToOne
 	@JoinColumn(name="member_id", nullable = false)
-	private  Members member;
+	private  Member member;
+	
+	@OneToMany(mappedBy = "meetup", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<MeetupApplication> meetupApplications;
 	
 	@OneToMany(mappedBy = "meetup", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<MeetupImage> meetupImages = new ArrayList<>();
-	
 	
 }
