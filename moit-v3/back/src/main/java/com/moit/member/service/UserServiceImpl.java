@@ -271,7 +271,8 @@ public class UserServiceImpl  implements UserService{
 		
 		return true;
 	}
-
+	
+	
 	@Override
 	public List<String> getInterestList(int memberId) { return dao.selectInterestList(memberId); }
 
