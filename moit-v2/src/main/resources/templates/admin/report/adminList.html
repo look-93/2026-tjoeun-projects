@@ -24,25 +24,29 @@
 							전체
 						</a>
 
-						<a th:href="@{/admin/report/adminList(targetType='MEETUP', deleteYn='N')}"
+						<a th:href="@{/admin/report/adminList(targetType='MEETUP', deleteYn='N',
+										searchType=${searchType}, keyword=${keyword})}"
 							class="admin-list-filter-btn"
 							th:classappend="${targetType == 'MEETUP' ? 'active' : ''}">
 							MEETUP
 						</a>
 
-						<a th:href="@{/admin/report/adminList(targetType='REVIEW', deleteYn='N')}"
+						<a th:href="@{/admin/report/adminList(targetType='REVIEW', deleteYn='N',
+									searchType=${searchType}, keyword=${keyword})}"
 							class="admin-list-filter-btn"
 							th:classappend="${targetType == 'REVIEW' ? 'active' : ''}">
 							REVIEW
 						</a>
 
-						<a th:href="@{/admin/report/adminList(status='PENDING', deleteYn='N')}"
+						<a th:href="@{/admin/report/adminList(status='PENDING', deleteYn='N',
+										searchType=${searchType}, keyword=${keyword})}"
 							class="admin-list-filter-btn"
 							th:classappend="${status == 'PENDING' ? 'active' : ''}">
 							PENDING
 						</a>
 
-						<a th:href="@{/admin/report/adminList(deleteYn='Y')}"
+						<a th:href="@{/admin/report/adminList(deleteYn='Y',
+										searchType=${searchType}, keyword=${keyword})}"
 							class="admin-list-filter-btn"
 							th:classappend="${deleteYn == 'Y' ? 'active' : ''}">
 							DELETE
@@ -53,6 +57,17 @@
 				
 				<!-- 신고 검색(작성자, 사유, 날짜) - 관리자 -->
 				<form th:action="@{/admin/report/adminList}" method="get" class="admin-list-search-form">
+					<!-- 현재 상단 버튼 조건 유지 -->
+				    <input th:if="${targetType != null}" 
+				    		type="hidden" name="targetType" th:value="${targetType}">
+				
+				    <input th:if="${status != null}"
+							type="hidden" name="status" th:value="${status}">
+				
+				    <input th:if="${deleteYn != null}"
+							type="hidden" name="deleteYn" th:value="${deleteYn}">
+									
+				
 					<div class="admin-list-option">
 						<select id="searchType" name="searchType" title="검색 유형">
 							<option value="memberId" th:selected="${searchType == 'memberId'}">작성자</option>
@@ -61,7 +76,9 @@
 						</select>
 					</div>
 					
-					<input type="text" id="keyword" name="keyword" class="admin-list-keyword" th:value="${keyword}" placeholder="검색어를 입력해주세요.">
+					<input type="text" id="keyword" name="keyword"
+							class="admin-list-keyword" th:value="${keyword}"
+							placeholder="검색어를 입력해주세요.">
 					<button type="submit" class="admin-list-btn">검색</button>
 				</form>
 
@@ -74,7 +91,7 @@
 								<th>신고번호</th>
 								<th>대상</th>
 								<th>글 번호</th>
-								<th>신고자</th>
+								<th>작성자</th>
 								<th>사유</th>
 								<th>상태</th>
 								<th>신고일</th>
@@ -115,14 +132,18 @@
 							<tr>
 								<td colspan="8">
 									<ul class="admin-list-pagination">
+									
+										<!-- 이전 페이지 묶음 -->
 										<li th:if="${paging.start > paging.bottomlist}">
 											<a class="admin-list-page-btn"
 												th:href="@{/admin/report/adminList(
 													pstartno=${paging.start-1},
 													targetType=${targetType},
 													status=${status},
-													deleteYn=${deleteYn})}">
-												<
+													deleteYn=${deleteYn},
+													searchType=${searchType},
+													keyword=${keyword})}">
+												&lt;
 											</a>
 										</li>
 										
@@ -131,20 +152,25 @@
 													pstartno=${i},
 													targetType=${targetType},
 													status=${status},
-													deleteYn=${deleteYn})}"
+													deleteYn=${deleteYn},
+													searchType=${searchType},
+          											 keyword=${keyword})}"
 												class="admin-list-page-btn"
 												th:classappend="${i == paging.current ? 'active' : ''}"
 												th:text="${i}">
 											</a>
 										</li>
-
+										
+										<!-- 다음 페이지 묶음 -->
 										<li th:if="${paging.end < paging.pagetotal}">
 											<a class="admin-list-page-btn"
 												th:href="@{/admin/report/adminList(
 													pstartno=${paging.end+1},
 													targetType=${targetType},
 													status=${status},
-													deleteYn=${deleteYn})}">
+													deleteYn=${deleteYn},
+													searchType=${searchType},
+          											keyword=${keyword})}">
 												>
 											</a>
 										</li>
