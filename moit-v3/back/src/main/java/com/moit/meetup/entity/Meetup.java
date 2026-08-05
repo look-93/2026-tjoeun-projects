@@ -1,23 +1,37 @@
 package com.moit.meetup.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.moit.member.entity.Member;
 import com.moit.util.BaseEntity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
+@Builder
+@Table(name="MEETUPS")
 public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하면 공통 컬럼 추가됩니다. 경로 따라가서 확인해보세요.
 	
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(unique = true, nullable = false)
-	private Long meetupId;
+	private Long id;
 	
 	@Column(length = 50)
 	private String title;
@@ -33,13 +47,16 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	private Integer minParticipants;
 	
 	@Column
-	private String sigunguId;
+	private Integer sigunguId;
 	
 	@Column
-	private String categoryId;
+	private Integer categoryId;
 	
 	@Column
 	private String address;
+	
+	@Column
+	private String addressDetail;
 	
 	@Column
 	private String meetupAt;
@@ -54,15 +71,19 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	private Double longitude;
 	
 	@Column
-	private String addressDetail;
-	
-	@Column
 	private Integer nx;
 	
 	@Column
 	private Integer ny;	
 	
-	//@Column	 -> 욱진님~엔터티 만들어주세요~
-	//private String memberId;	
+	@ManyToOne
+	@JoinColumn(name="member_id", nullable = false)
+	private  Member member;
+	
+	@OneToMany(mappedBy = "meetup", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<MeetupApplication> meetupApplications;
+	
+	@OneToMany(mappedBy = "meetup", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<MeetupImage> meetupImages = new ArrayList<>();
 	
 }

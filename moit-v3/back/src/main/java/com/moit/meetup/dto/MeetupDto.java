@@ -6,21 +6,25 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 
 import com.moit.meetup.entity.Meetup;
+import com.moit.meetup.enums.ApplyStatus;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 public class MeetupDto {
 	
 	@Setter
 	@Getter
+	@NoArgsConstructor
 	public static class MeetupRequestDto{
+		private Long memberId;
 		private String title;
 		private String content;
 		private Integer maxParticipants;
 		private Integer minParticipants;
-		private String sigunguId;
-		private String categoryId;
+		private Integer sigunguId;
+		private Integer categoryId;
 		private String address;
 		private String meetupAt;
 		private String status;
@@ -39,8 +43,8 @@ public class MeetupDto {
 		private String content;
 		private Integer maxParticipants;
 		private Integer minParticipants;
-		private String sigunguId;
-		private String categoryId;
+		private Integer sigunguId;
+		private Integer categoryId;
 		private String address;
 		private String meetupAt;
 		private String status;
@@ -49,6 +53,7 @@ public class MeetupDto {
 		private String addressDetail;
 		private Integer nx;
 		private Integer ny;
+		private ApplyStatus applyStatus;
 		
 		public static MeetupResponseDto listFrom(Meetup meetup) { // list에만 보여줄 MeetupResponse
 			MeetupResponseDto response = new MeetupResponseDto();
@@ -62,7 +67,7 @@ public class MeetupDto {
 		public static MeetupResponseDto detailFrom(Meetup meetup) { // 상세페이지 MeetupResponse
 		    MeetupResponseDto response = new MeetupResponseDto();
 
-		    response.setId(meetup.getMeetupId());
+		    response.setId(meetup.getId());
 		    response.setTitle(meetup.getTitle());
 		    response.setContent(meetup.getContent());
 		    response.setMaxParticipants(meetup.getMaxParticipants());
@@ -79,8 +84,7 @@ public class MeetupDto {
 		    response.setNy(meetup.getNy());
 
 		    return response;
-		}		
-		
+		}
 	}
 	
 	//목록조회 응답용 dto
