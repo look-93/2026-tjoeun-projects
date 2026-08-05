@@ -10,7 +10,7 @@ import lombok.Data;
 public class AdvertisementDto {
 
     // PK
-    private int adId;
+    private Long adId;
 
     // 기본 정보
     private String title;

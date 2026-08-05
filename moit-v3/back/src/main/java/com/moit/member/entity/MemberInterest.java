@@ -22,7 +22,7 @@ public class MemberInterest {
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "member_interest_seq")
 	@SequenceGenerator(name = "member_interest_seq", sequenceName = "member_interest_seq", allocationSize = 1)
-	private long id;
+	private Long id;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id", nullable = false)

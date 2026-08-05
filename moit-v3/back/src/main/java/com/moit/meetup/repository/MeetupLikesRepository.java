@@ -26,8 +26,8 @@ public interface MeetupLikesRepository extends JpaRepository<MeetupLike, Long>{
 	// 방법1: long deleteByUser_idPost_Id(Long userId, Long postId); -> select (데이터베이스 조회) delete(개별삭제)
 	// 방법2: @Query(select 조회용도) -> db 가서 바로 delete
 	// Insert/Update/Delete @Modifying @Transactional
-	// DELETE FROM PostLike pl WHERE pl.user.id = :userId AND pl.post.id = :postId;	
-	@Modifying // 조회가 아니라 update, delete 용도에요
+	// DELETE FROM PostLike pl WHERE pl.member.memberId = :memberId AND pl.meetup.id = :meetupId;	
+	@Modifying // 조회가 아니라 update, delete 용도
 	@Transactional
 	@Query("DELETE FROM MeetupLike ml WHERE ml.member.memberId = :memberId AND ml.meetup.id = :meetupId")
 	void deleteByMember_Member_IdAndMeetup_Id(@Param("memberId") Long memberId, @Param("meetupId") Long meetupId);	
