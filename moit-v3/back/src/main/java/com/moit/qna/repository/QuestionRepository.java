@@ -16,9 +16,9 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     @Query("""
             UPDATE Question q
             SET q.status = 'ANSWERED'
-            WHERE q.id = :questionId
+            WHERE q.questionId = :questionId
             """)
-    void updateStatusAnswered(@Param("questionId") Long questionId);
+    void updateStatusAnswered(@Param("questionId") Integer questionId);
 
     // 답변 삭제 시 문의 상태 변경
     @Modifying
@@ -27,7 +27,7 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
             SET q.status = 'PENDING'
             WHERE q.questionId = :questionId
             """)
-    void updateStatusPending(@Param("questionId") Long questionId);
+    void updateStatusPending(@Param("questionId") Integer questionId);
 
     // 제목, 내용 검색
     @Query("""
@@ -42,7 +42,7 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     List<Question> findByMember_MemberId(Integer memberId);
 
     // 부모 문의 조회
-    List<Question> findByParentId(Long parentId);
+    List<Question> findByParentId(Integer parentId);
 
     // 상태별 개수
     long countByStatus(String status);

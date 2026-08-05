@@ -11,6 +11,9 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import com.moit.qna.entity.Question;
+import com.moit.qna.entity.QuestionAiAnalysis;
+import com.moit.qna.entity.QuestionAnswer;
+import com.moit.qna.entity.QuestionNotification;
 
 @DataJpaTest
 @AutoConfigureTestDatabase( replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -39,9 +42,25 @@ public class QuestionRepositoryTest {
     }
     
     @Test
-    @DisplayName("QuestionNotification Repository Bean 생성 테스트")
-    void QuestionNotificationTest() {
-        assertThat(questionNotificationRepository)
-                .isNotNull();
+    @DisplayName("QuestionAnswer Repository 조회 테스트")
+    void questionAnswerTest() {
+        List<QuestionAnswer> list = questionAnswerRepository.findAll();
+        assertThat(list).isNotNull();
     }
+    
+    @Test
+    @DisplayName("QuestionNotification Repository 조회 테스트")
+    void questionNotificationTest() {
+        List<QuestionNotification> list = questionNotificationRepository.findAll();
+        assertThat(list).isNotNull();
+    }
+    
+    @Test
+    @DisplayName("QuestionAiAnalysis Repository 조회 테스트")
+    void questionAiAnalysisTest() {
+        List<QuestionAiAnalysis> list = questionAiAnalysisRepository.findAll();
+        assertThat(list).isNotNull();
+    }
+    
+    
 }
