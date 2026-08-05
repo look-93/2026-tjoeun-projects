@@ -23,7 +23,7 @@ public class MemberInfo {
 	
 	@Id
 	@Column(name = "member_id")
-	private Long memberId;
+	private Long id;
 	
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id",
