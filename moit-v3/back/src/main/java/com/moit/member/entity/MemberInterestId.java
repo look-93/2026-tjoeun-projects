@@ -13,7 +13,7 @@ import lombok.Setter;
 @EqualsAndHashCode
 public class MemberInterestId {
 	
-	private long memberId;
+	private Long id;
 	
-	private long interestId;
+	private Long interestId;
 }

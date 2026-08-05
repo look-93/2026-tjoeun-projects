@@ -11,7 +11,7 @@ import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.DashboardAiDto;
-import com.moit.advertisement.dto.ExtensionRequestDto;
+import com.moit.advertisement.dto.AdvertisementExtensionRequestDto;
 
 @Mapper
 public interface AdvertisementMapper {
@@ -42,7 +42,7 @@ public interface AdvertisementMapper {
 	List<AdvertisementDto> selectExtensionList();
 
     // 상세 조회
-    AdvertisementDto selectAdvertisementOne(int adId);
+    AdvertisementDto selectAdvertisementOne(Long adId);
 
     // 등록
     int insertAdvertisement(AdvertisementDto dto);
@@ -51,7 +51,7 @@ public interface AdvertisementMapper {
     int updateAdvertisement(AdvertisementDto dto);
 
     // 논리 삭제 (adId만 사용)
-    int deleteAdvertisement(int adId);
+    int deleteAdvertisement(Long adId);
 
     // 승인 상태 변경
     int updateApprovalStatus(AdvertisementDto dto);
@@ -60,7 +60,7 @@ public interface AdvertisementMapper {
     void updateExtensionApprove(AdvertisementDto dto);
     
     //  광고 연장 신청
-    int requestExtension(ExtensionRequestDto dto);
+    int requestExtension(AdvertisementExtensionRequestDto dto);
     
     // 상태 변경
     int updateAdvertisementStatus(AdvertisementDto dto);
@@ -71,7 +71,7 @@ public interface AdvertisementMapper {
     
     // 우선도 설정
     int updateAdGrade(
-            @Param("adId") int adId,
+            @Param("adId") Long adId,
             @Param("adGrade") String adGrade
     );
     
@@ -84,15 +84,15 @@ public interface AdvertisementMapper {
     int insertAdvertisementImage(AdvertisementImageDto dto);
 
     // 이미지 조회
-    List<AdvertisementImageDto> selectAdvertisementImageList(int adId);
+    List<AdvertisementImageDto> selectAdvertisementImageList(Long adId);
 
     // 이미지 삭제
-    int deleteAdvertisementImages(int adId);
+    int deleteAdvertisementImages(Long adId);
 
     // 노출 증가
-    int updateImpressions(int adId);
+    int updateImpressions(Long adId);
     // 클릭 증가
-    int updateAdvertisementClick(int adId);
+    int updateAdvertisementClick(Long adId);
 
     // 사용자 광고 1건
     AdvertisementDto selectTopAdvertisement(
@@ -112,7 +112,7 @@ public interface AdvertisementMapper {
     
     // 클릭 로그 저장
     void insertClickLog(
-            @Param("adId") int adId,
+            @Param("adId") Long adId,
             @Param("memberId") Integer memberId,
             @Param("deviceType") String deviceType,
             @Param("ipAddress") String ipAddress,
@@ -123,7 +123,7 @@ public interface AdvertisementMapper {
     
     // 광고 클릭 확인
     int checkDuplicateClick(
-            @Param("adId") int adId,
+            @Param("adId") Long adId,
             @Param("memberId") Integer memberId,
             @Param("clickIp") String clickIp
     );
@@ -141,7 +141,7 @@ public interface AdvertisementMapper {
     
  // 노출 로그 중복 체크
     int checkDuplicateImpression(
-            @Param("adId") int adId,
+            @Param("adId") Long adId,
             @Param("memberId") Integer memberId,
             @Param("sessionId") String sessionId
     );
@@ -149,7 +149,7 @@ public interface AdvertisementMapper {
 
     // 노출 로그 저장
     void insertImpressionLog(
-            @Param("adId") int adId,
+            @Param("adId") Long adId,
             @Param("memberId") Integer memberId,
             @Param("deviceType") String deviceType,
             @Param("ipAddress") String ipAddress,
@@ -172,7 +172,7 @@ public interface AdvertisementMapper {
     // 피로도 갯수
     Integer selectFatigueWarningCount();
     /// 피로도 
-    AdvertisementDto selectAdvertisementStatistics(int adId);
+    AdvertisementDto selectAdvertisementStatistics(Long adId);
 //    Double selectRecentCtr(int adId);		// 최근 ctr
 //    Double selectPreviousCtr(int adId);		// 이전 ctr
 //    Double selectRepeatRate(int adId);		// 반복 노출률
@@ -188,7 +188,7 @@ public interface AdvertisementMapper {
 
     List<AdvertisementDto> selectReminder14List();
 
-    int updateReminder30Sent(int adId);
+    int updateReminder30Sent(Long adId);
 
-    int updateReminder14Sent(int adId);
+    int updateReminder14Sent(Long adId);
 }

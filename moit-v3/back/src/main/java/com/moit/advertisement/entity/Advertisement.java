@@ -8,8 +8,7 @@ import com.moit.advertisement.enums.AdStatus;
 import com.moit.advertisement.enums.ApprovalStatus;
 import com.moit.advertisement.enums.PaymentStatus;
 import com.moit.advertisement.enums.TargetGender;
-// import com.moit.member.entity.Member;
-import com.moit.member.entity.Members;
+ import com.moit.member.entity.Member;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,8 +20,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
-// import jakarta.persistence.ManyToOne;
-// import jakarta.persistence.JoinColumn;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.SequenceGenerator;
@@ -113,7 +110,7 @@ public class Advertisement {
     // Member Entity 완성 후 @ManyToOne으로 변경
     @ManyToOne
     @JoinColumn(name = "APPROVED_BY")
-    private Members approvedBy;
+    private Member approvedBy;
     
 
 
@@ -126,7 +123,7 @@ public class Advertisement {
     // Member Entity 완성 후 @ManyToOne으로 변경
     @ManyToOne
     @JoinColumn(name = "STATUS_UPDATED_BY")
-    private Members statusUpdatedBy;
+    private Member statusUpdatedBy;
     
 
 
@@ -204,7 +201,7 @@ public class Advertisement {
     // Member Entity 완성 후 @ManyToOne으로 변경
     @ManyToOne
     @JoinColumn(name = "ADVERTISER_ID", nullable = false)
-    private Members advertiser;
+    private Member advertiser;
     
 
 

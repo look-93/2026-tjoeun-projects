@@ -21,7 +21,7 @@ public class Interest {
 	
 	@Id
 	@Column(name = "interest_id")
-	private long interestId;
+	private Long interestId;
 	
 	@Column(name = "interest_name",nullable = false)
 	private String interestName;
