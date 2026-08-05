@@ -135,7 +135,8 @@ public interface AdvertisementService {
 
 	// 메일 발송
 	void sendReminderMail();
-
+	
+	// 광고 연장
 	void requestExtension(AdvertisementExtensionRequestDto dto);
 
 }

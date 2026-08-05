@@ -12,16 +12,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
-@Builder
 @Table(name="MEETUP_LIKES", uniqueConstraints = {@UniqueConstraint(columnNames = {"MEMEBER_ID","MEETUP_ID"})})
-public class MeetupLikes extends BaseEntity{
+public class MeetupLike extends BaseEntity{
 
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -43,14 +43,15 @@ public class MeetupController {
 	}
 	
 	@Operation(summary = "모임상세조회", description = "모임 상세를 조회합니다.")
-	@GetMapping("/detail/{id}")
-	public ResponseEntity<MeetupResponseDto> detail(@PathVariable("id") Long id){
-		MeetupResponseDto meetupResponseDto = meetupService.detail(id);
+	@GetMapping("/detail/{meetupId}")
+	public ResponseEntity<MeetupResponseDto> detail(@PathVariable("meetupId") Long meetupId){
+		Long memberId = 1L;
+		MeetupResponseDto meetupResponseDto = meetupService.detail(meetupId, memberId);
 		return ResponseEntity.ok(meetupResponseDto);
 	}
 	
 	@Operation(summary = "모임등록", description = "모임을 등록합니다.")
-	@PostMapping("/create/{memberId}")
+	@PostMapping("/create/{memberId}") //  세션으로 수정
 	public ResponseEntity<Void> create(@RequestBody MeetupRequestDto meetupRequestDto, @PathVariable("memberId") Long memberId){
 		meetupService.create(meetupRequestDto, memberId);
 		return ResponseEntity.status(HttpStatus.CREATED).build(); // 성공 응답 201

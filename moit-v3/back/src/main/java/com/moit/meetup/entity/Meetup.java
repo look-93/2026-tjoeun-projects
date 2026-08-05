@@ -81,7 +81,9 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	private  Member member;
 	
 	@OneToMany(mappedBy = "meetup", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<MeetupImage> meetupImages = new ArrayList<>();
+	private List<MeetupApplication> meetupApplications;
 	
+	@OneToMany(mappedBy = "meetup", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<MeetupImage> meetupImages = new ArrayList<>();
 	
 }
