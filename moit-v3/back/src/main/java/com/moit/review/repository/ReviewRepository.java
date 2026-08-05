@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -29,7 +30,15 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 	//후기 내용으로 전체 검색
 	List<Review>findByContentContainingAndIsPublicOrderByIdDesc(String keyword,String isPublic);
 	
+	//좋아요 수 증가 특정후기글 좋아요 수
+	@Modifying
+	@Query("UPDATE Review r SET r.likesCount = r.likesCount + 1 WHERE r.id = :reviewId")
+	int incrementLikesCount(@Param("reviewId") Long reviewId);
 	
+	//좋아요 수 감소 특정후기글 좋아요 수
+	@Modifying
+	@Query("UPDATE Review r SET r.likesCount = r.likesCount - 1 WHERE r.id = :reviewId")
+	int decrementLikeCount(@Param("reviewId") Long reviewId);
 	
 	
 	
