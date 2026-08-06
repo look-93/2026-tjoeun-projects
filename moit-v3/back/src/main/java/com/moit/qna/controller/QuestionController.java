@@ -44,7 +44,7 @@ public class QuestionController {
     //관리자용 선택 삭제
     @PostMapping("/deleteSelected")
     @ResponseBody
-    public void deleteSelected(@RequestBody List<Integer> ids){
+    public void deleteSelected(@RequestBody List<Long> ids){
         questionService.deleteSelected(ids);
     }
     

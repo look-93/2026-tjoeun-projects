@@ -8,7 +8,7 @@ import com.moit.qna.dto.AnswerDto;
 public interface AnswerMapper {
 
 	// 질문에 대한 답변 조회
-    AnswerDto findByQuestionId(int questionId);
+    AnswerDto findByQuestionId(Long questionId);
 
     // 답변 등록
     void insertAnswer(AnswerDto dto);
@@ -17,10 +17,10 @@ public interface AnswerMapper {
     void updateAnswer(AnswerDto dto);
 
     // 답변 삭제
-    void deleteAnswer(int answerId);
+    void deleteAnswer(Long answerId);
     
     // 삭제된 답변 조회
-    AnswerDto findByQuestionIdAll(int questionId);
+    AnswerDto findByQuestionIdAll(Long questionId);
     
     // 삭제된 답변 복구용
     void restoreAnswer(AnswerDto dto);

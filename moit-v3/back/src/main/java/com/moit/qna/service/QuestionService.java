@@ -53,7 +53,7 @@ public class QuestionService {
     }
 
  // 문의 상세 조회 + 답변 정보 조회
-    public QuestionDto getDetail(int id) {
+    public QuestionDto getDetail(Long id) {
     	// 문의 정보 조회
         QuestionDto question = questionMapper.findById(id);
         // 해당 문의의 답변 조회
@@ -81,7 +81,7 @@ public class QuestionService {
     }
 
     // 문의 삭제
-    public void deleteQuestion(int questionId) {
+    public void deleteQuestion(Long questionId) {
         questionMapper.deleteQuestion(questionId);
     }
     
@@ -124,7 +124,7 @@ public class QuestionService {
     }
     
     // 사용자 문의 목록 페이징 조회
-    public List<QuestionDto> getMyQuestions( int memberId, int start, int end, String type, String keyword) {
+    public List<QuestionDto> getMyQuestions( Long memberId, int start, int end, String type, String keyword) {
         Map<String, Object> map = new HashMap<>();
 
         map.put("memberId", memberId);
@@ -144,7 +144,7 @@ public class QuestionService {
     }
     
     // 내 문의 총 개수 조회
-    public int getMyQuestionCnt(int memberId, String type, String keyword) {
+    public int getMyQuestionCnt(Long memberId, String type, String keyword) {
     	Map<String, Object> map = new HashMap<>();
     	map.put("memberId", memberId);
     	map.put("type", type);
@@ -153,12 +153,12 @@ public class QuestionService {
     }
 
     //관리자용 선택 삭제
-    public void deleteSelected(List<Integer> ids){
+    public void deleteSelected(List<Long> ids){
         questionMapper.deleteSelected(ids);
     }
     
     //해당 모임의 문의 목록
-    public List<QuestionDto> selectByParentId(int parentId){
+    public List<QuestionDto> selectByParentId(Long parentId){
         return questionMapper.selectByParentId(parentId);
     }
     
