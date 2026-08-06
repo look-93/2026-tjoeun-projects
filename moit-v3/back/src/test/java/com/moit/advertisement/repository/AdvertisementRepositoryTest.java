@@ -39,7 +39,7 @@ import com.moit.advertisement.entity.AdvertisementTargetRegion;
     JpaRepositoriesAutoConfiguration.class
 })
 class AdvertisementRepositoryTest {
-
+ 
     @Autowired
     private AdvertisementRepository advertisementRepository;
 
