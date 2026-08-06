@@ -3,7 +3,6 @@ package com.moit.reports.entity;
 import java.time.LocalDateTime;
 
 import com.moit.member.entity.Member;
-import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -53,16 +53,21 @@ public class ReportAuditLog {
     @Column(name = "PROCESS_REASON", nullable = false, length = 1000)
     private String processReason;
     // 관리자 처리 시각
-    @Column(name = "PROCESS_AT", nullable = false, updatable = false)
-    private LocalDateTime processAt;
+    @Column(name = "PROCESSED_AT", nullable = false, updatable = false)
+    private LocalDateTime processedAt;
+    
+    @PrePersist
+    void onProcess() {
+    	this.processedAt = LocalDateTime.now();
+    }
 
 	// 변경 전 신뢰도 점수
-    @Column(name = "PREVIOUS_TRUST_SCORE", nullable = false)
-    private Integer previousTrustScore;
+//    @Column(name = "PREVIOUS_TRUST_SCORE", nullable = false)
+//    private Integer previousTrustScore;
     // 변화한 신뢰도 점수
     @Column(name = "TRUST_SCORE_CHANGE", nullable = false)
     private Integer trustScoreChange;
     // 변경 후 신뢰도 점수
-    @Column(name = "RESULT_TRUST_SCORE", nullable = false)
-    private Integer resultTrustScore;
+//    @Column(name = "RESULT_TRUST_SCORE", nullable = false)
+//    private Integer resultTrustScore;
 }
