@@ -82,7 +82,6 @@ class AdvertisementRepositoryTest {
     // =========================================================
     // 실제 Oracle DB 조회 테스트
     // =========================================================
-
     @Test
     @DisplayName("광고 Repository - 실제 DB 조회")
     void advertisementSelectTest() {
