@@ -11,58 +11,90 @@ import com.moit.util.UtilPaging;
 
 @Mapper
 public interface ReviewMapper {
-	
-	//사용자
-	public int insertUserReview(ReviewDto dto);
-	public List<ReviewDto> selectUserReview(@Param("meetupId") int meetupId, @Param("sort") String sort);
-	//public List<ReviewDto>selectReviewPopular();
-	public int updateUserReview(ReviewDto dto);
-	public int deleteUserReview(ReviewDto dto);
-	public int updateUserReviewHide(ReviewDto dto);
-	// 마이페이지 목록 + 검색
-	public List<ReviewDto> selectReviewByMemberId(
-	        @Param("memberId") int memberId,
-	        @Param("keyword") String keyword,
-	        @Param("sort") String sort);
 
-	// 모임 상세 검색
-	public List<ReviewDto> selectReviewByContent(
-	        @Param("meetupId") int meetupId,
-	        @Param("keyword") String keyword,
-	        @Param("sort") String sort);
-	//이미지
-	public int insertReviewImage(@Param("reviewId") int reviewId,
-            @Param("imageId") int imageId);
-	public int insertImage(ReviewDto dto);
-	
-	
-	//좋아요 기능
-	public int  checkLikeExists(Map<String,Object>params);
-	public void insertLike(Map<String, Object> params);
-	public void deleteLike(Map<String, Object> params);
-	public void incrementLikeCount(int reviewId);
-	public void decrementLikeCount(int reviewId);
-	public int  getLikeCount(int reviewId);
-	public ReviewDto selectReviewById(int reviewId);
-	
-	//관리자
-    public List<ReviewDto>adminSelectReviewList(int memberId);
-	public List<ReviewDto>adminSearchReviewByContent(String keyword);
-	public List<ReviewDto>adminSearchReviewByWriter (int memberId);
-	public int adminHideReview(@Param("reviewId")int reviewId);
-	public int adminDeleteReview(@Param("reviewId")int reviewId);
-	
+    // ==========================================
+    // 사용자 영역
+    // ==========================================
+    int insertUserReview(ReviewDto.Request dto);
 
-	//관리자 페이징 처리
-	public List<ReviewDto> adminGetReviewList(
-	        @Param("keyword") String keyword,
-	        @Param("memberId") int memberId,
-	        @Param("paging") UtilPaging paging,
-	        @Param("endRow") int endRow);
-	
-	
-	//검색 조건 맞춰서
-	public int adminGetReviewCount(@Param("keyword") String keyword, 
-            @Param("memberId") int memberId);
-	
+    ReviewDto.Response selectReviewById(Long reviewId);
+
+    List<ReviewDto.Response> selectUserReview(
+            @Param("meetupId") Long meetupId, 
+            @Param("sort") String sort
+    );
+
+    int updateUserReview(ReviewDto.Request dto);
+
+    int deleteUserReview(Long reviewId);
+
+    int updateUserReviewHide(
+            @Param("reviewId") Long reviewId, 
+            @Param("isPublic") String isPublic
+    );
+
+    // 마이페이지 목록 + 검색
+    List<ReviewDto.Response> selectReviewByMemberId(
+            @Param("memberId") Long memberId,
+            @Param("keyword") String keyword,
+            @Param("sort") String sort
+    );
+
+    // 모임 상세 검색
+    List<ReviewDto.Response> selectReviewByContent(
+            @Param("meetupId") Long meetupId,
+            @Param("keyword") String keyword,
+            @Param("sort") String sort
+    );
+
+    // ==========================================
+    // 이미지 영역
+    // ==========================================
+    int insertImage(ReviewDto.Request dto);
+
+    int insertReviewImage(
+            @Param("reviewId") Long reviewId,
+            @Param("imageId") Long imageId
+    );
+
+    // ==========================================
+    // 좋아요 영역
+    // ==========================================
+    int checkLikeExists(Map<String, Object> params);
+
+    int insertLike(Map<String, Object> params);
+
+    int deleteLike(Map<String, Object> params);
+
+    int incrementLikeCount(Long reviewId);
+
+    int decrementLikeCount(Long reviewId);
+
+    int getLikeCount(Long reviewId);
+
+    // ==========================================
+    // 관리자 영역
+    // ==========================================
+    List<ReviewDto.Response> adminSelectReviewList(Long memberId);
+
+    List<ReviewDto.Response> adminSearchReviewByContent(String keyword);
+
+    List<ReviewDto.Response> adminSearchReviewByWriter(Long memberId);
+
+    int adminHideReview(@Param("reviewId") Long reviewId);
+
+    int adminDeleteReview(@Param("reviewId") Long reviewId);
+
+    // 관리자 페이징 처리
+    List<ReviewDto.Response> adminGetReviewList(
+            @Param("keyword") String keyword,
+            @Param("memberId") Long memberId,
+            @Param("paging") UtilPaging paging,
+            @Param("endRow") int endRow
+    );
+
+    int adminGetReviewCount(
+            @Param("keyword") String keyword, 
+            @Param("memberId") Long memberId
+    );
 }
