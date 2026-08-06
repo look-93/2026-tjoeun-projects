@@ -34,7 +34,6 @@ import com.moit.advertisement.entity.AdvertisementTargetRegion;
         AdvertisementDailyStatisticsRepository.class
     }
 )
-
 @ImportAutoConfiguration(exclude = {
     JpaRepositoriesAutoConfiguration.class
 })
