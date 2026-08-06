@@ -29,7 +29,7 @@ public class Report extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "reportId_seq")
 	@SequenceGenerator(name = "reportId_seq", sequenceName = "REPORT_SEQ", allocationSize = 1)
 	@Column(name = "REPORT_ID")
-	private Long reportId;
+	private Long Id;
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "TARGET_TYPE", length = 20, nullable = false)
@@ -40,7 +40,7 @@ public class Report extends BaseEntity {
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "MEMBER_ID", nullable = false)
-	private Member memberId;
+	private Member member;
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "REASON_CODE", length = 20, nullable = false)
@@ -71,15 +71,15 @@ public class Report extends BaseEntity {
 //		this.updatedAt = LocalDateTime.now();
 //	}
 
-	public Report(TargetType targetType, Long targetId, Long memberId,
+	public Report(TargetType targetType, Long targetId, Member member,
 			ReasonCode reasonCode, String reasonDetail) {
 		this.targetType = targetType;
 		this.targetId = targetId;
-		this.memberId = memberId;
+		this.member = member;
 		this.reasonCode = reasonCode;
 		this.reasonDetail = reasonDetail;
 		this.status = Status.PENDING;
-//        this.deleteYn = "N";
+//      this.deleteYn = "N";
 	}
 	
 	public void updateReason(ReasonCode reasonCode, String reasonDetail) {
@@ -89,7 +89,7 @@ public class Report extends BaseEntity {
 	
     public void changeStatus(Status status) {this.status = status; }
     
-//    public void delete() { this.deleteYn = "Y"; }
+//  public void delete() { this.deleteYn = "Y"; }
 	
 	//@Column
 	//private String memberId;
