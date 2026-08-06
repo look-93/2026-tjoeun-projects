@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 import com.moit.qna.entity.QuestionAiAnalysis;
 import jakarta.transaction.Transactional;
 
-public interface QuestionAiAnalysisRepository extends JpaRepository<QuestionAiAnalysis, Integer> {
+public interface QuestionAiAnalysisRepository extends JpaRepository<QuestionAiAnalysis, Long> {
 
     @Modifying
     @Transactional
@@ -16,6 +16,6 @@ public interface QuestionAiAnalysisRepository extends JpaRepository<QuestionAiAn
         SET q.analysisStatus = 'NORMAL'
         WHERE q.questionId = :questionId
     """)
-    void changeToNormal(@Param("questionId") Integer questionId);
+    void changeToNormal(@Param("questionId") Long questionId);
 
 }

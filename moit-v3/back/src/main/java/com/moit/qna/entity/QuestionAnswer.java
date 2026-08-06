@@ -26,7 +26,7 @@ public class QuestionAnswer extends BaseEntity{
     @SequenceGenerator(name = "answer_seq_generator",sequenceName = "ANSWER_SEQ",allocationSize = 1)
     
     @Column(name = "ANSWER_ID")
-    private Integer answerId;
+    private Long answerId;
 
     @ManyToOne
     @JoinColumn(name = "QUESTION_ID", nullable = false)

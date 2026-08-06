@@ -25,10 +25,10 @@ public class Question extends BaseEntity{
     @GeneratedValue( strategy = GenerationType.SEQUENCE, generator = "question_seq_generator")
     @SequenceGenerator(name = "question_seq_generator", sequenceName = "QUESTION_SEQ", allocationSize = 1)
     @Column(name = "QUESTION_ID")
-    private Integer questionId;
+    private Long id;
 
     @Column(name = "PARENT_ID", nullable = false)
-    private Integer parentId;
+    private Long parentId;
     
     @ManyToOne
     @JoinColumn(name = "MEMBER_ID", nullable = false)

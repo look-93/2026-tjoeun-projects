@@ -14,19 +14,19 @@ import lombok.RequiredArgsConstructor;
 public class NotificationService {
     private final NotificationMapper notificationMapper;
 
-    public List<NotificationDto> selectUnread(int memberId) {
+    public List<NotificationDto> selectUnread(Long memberId) {
         return notificationMapper.selectUnread(memberId);
     }
 
-    public List<NotificationDto> selectAll(int memberId){
+    public List<NotificationDto> selectAll(Long memberId){
         return notificationMapper.selectAll(memberId);
     }
     
-    public void readNotification(int notificationId) {
+    public void readNotification(Long notificationId) {
         notificationMapper.readNotification(notificationId);
     }
     
-    public int unreadCount(int memberId){
+    public int unreadCount(Long memberId){
         return notificationMapper.unreadCount(memberId);
     }
 
