@@ -17,10 +17,10 @@ public interface MeetupLikesRepository extends JpaRepository<MeetupLike, Long>{
 	long countByMeetup_Id(Long meetup);
 	
 	//특정 유저가 특정게시글에 좋아요 했는지 Member member 필드와 Meetup meetup 각각의 id가 있는지 확인
-	long countByMember_MemberIdAndMeetup_Id(Long memberId, Long meetupId);
+	long countByMember_IdAndMeetup_Id(Long memberId, Long meetupId);
 	
 	//특정유저가 특정게시글에 좋아요 했는지 조회
-	Optional<MeetupLike> findByMember_MemberIdAndMeetup_Id(Long memberId, Long meetupId);
+	Optional<MeetupLike> findByMember_IdAndMeetup_Id(Long memberId, Long meetupId);
 	
 	// 좋아요취소
 	// 방법1: long deleteByUser_idPost_Id(Long userId, Long postId); -> select (데이터베이스 조회) delete(개별삭제)
@@ -29,7 +29,7 @@ public interface MeetupLikesRepository extends JpaRepository<MeetupLike, Long>{
 	// DELETE FROM PostLike pl WHERE pl.member.memberId = :memberId AND pl.meetup.id = :meetupId;	
 	@Modifying // 조회가 아니라 update, delete 용도
 	@Transactional
-	@Query("DELETE FROM MeetupLike ml WHERE ml.member.memberId = :memberId AND ml.meetup.id = :meetupId")
-	void deleteByMember_Member_IdAndMeetup_Id(@Param("memberId") Long memberId, @Param("meetupId") Long meetupId);	
+	@Query("DELETE FROM MeetupLike ml WHERE ml.member.id = :memberId AND ml.meetup.id = :meetupId")
+	void deleteByMember_IdAndMeetup_Id(@Param("memberId") Long memberId, @Param("meetupId") Long meetupId);	
 }
  

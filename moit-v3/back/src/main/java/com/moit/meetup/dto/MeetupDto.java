@@ -1,9 +1,6 @@
 package com.moit.meetup.dto;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import org.springframework.data.domain.Page;
 
 import com.moit.meetup.entity.Meetup;
 import com.moit.meetup.enums.ApplyStatus;
@@ -92,7 +89,7 @@ public class MeetupDto {
 	@Getter
 	@Setter
 	public static class MeetupListResponseDto{
-		private List<MeetupResponseDto> list;
+		private List<MeetupResponseDto> meetups;
 		private Long totalCount; //전체갯수 100 , 101
 		private Long totalPage;  //총 몇개 페이지를 만들것인가 10개씩 보여준다고하면  10개 페이지가 나옴 , 11페이지
 	}
