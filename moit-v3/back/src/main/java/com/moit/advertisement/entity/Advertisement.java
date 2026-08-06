@@ -8,12 +8,14 @@ import com.moit.advertisement.enums.AdStatus;
 import com.moit.advertisement.enums.ApprovalStatus;
 import com.moit.advertisement.enums.PaymentStatus;
 import com.moit.advertisement.enums.TargetGender;
- import com.moit.member.entity.Member;
+import com.moit.member.entity.Member;
+import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,10 +23,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -32,7 +35,9 @@ import lombok.NoArgsConstructor;
 @Table(name = "ADVERTISEMENTS")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Advertisement {
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class Advertisement extends BaseEntity{
 
     // 광고 PK
     @Id
@@ -41,10 +46,10 @@ public class Advertisement {
         generator = "advertisement_seq"
     )
     @SequenceGenerator(
-        name = "advertisement_seq",
-        sequenceName = "ADVERTISEMENT_SEQ",
-        allocationSize = 1
-    )
+	    name = "advertisement_seq",
+	    sequenceName = "SEQ_ADVERTISEMENTS",
+	    allocationSize = 1
+	)
     @Column(name = "AD_ID")
     private Long adId;
 
@@ -108,7 +113,7 @@ public class Advertisement {
 
     // 승인한 관리자 회원 PK
     // Member Entity 완성 후 @ManyToOne으로 변경
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "APPROVED_BY")
     private Member approvedBy;
     
@@ -121,7 +126,7 @@ public class Advertisement {
 
     // 상태를 변경한 관리자 회원 PK
     // Member Entity 완성 후 @ManyToOne으로 변경
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "STATUS_UPDATED_BY")
     private Member statusUpdatedBy;
     
@@ -199,27 +204,10 @@ public class Advertisement {
 
     // 광고 신청자(제휴업체) 회원 PK
     // Member Entity 완성 후 @ManyToOne으로 변경
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ADVERTISER_ID", nullable = false)
     private Member advertiser;
     
-
-
-    // 광고 Soft Delete 여부
-    // Y = 삭제 / N = 정상
-    @Column(name = "DELETE_YN", length = 1, nullable = false)
-    private String deleteYn;
-
-
-    // 광고 신청/등록 일시
-    @Column(name = "CREATED_AT", nullable = false)
-    private LocalDateTime createdAt;
-
-
-    // 광고 정보 수정 일시
-    @Column(name = "UPDATED_AT", nullable = false)
-    private LocalDateTime updatedAt;
-
 
     // 광고 결제 상태
     // NONE / WAITING / PAID
@@ -240,10 +228,6 @@ public class Advertisement {
     void onCreate() {
 
         LocalDateTime now = LocalDateTime.now();
-
-        // 생성일시 / 수정일시
-        this.createdAt = now;
-        this.updatedAt = now;
 
         // 광고 상태 기본값
         if (this.status == null) {
@@ -295,16 +279,5 @@ public class Advertisement {
             this.reminder14dSent = "N";
         }
 
-        // Soft Delete 기본값
-        if (this.deleteYn == null) {
-            this.deleteYn = "N";
-        }
-    }
-
-
-    // Entity 수정 시 수정일시 자동 갱신
-    @PreUpdate
-    void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
     }
 }
