@@ -15,11 +15,13 @@ import com.moit.meetup.entity.Meetup;
 public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 	Page<Meetup> findAll(Pageable pageable);
 	
-	List<Meetup> findByMember_Id(Long memberId);
+	
+	
+	Page<Meetup> findByMember_Id(Long memberId, Pageable  pageable);
 	
 	//관리자 통계
 	@Query("""
-			SELECT new com.moit.meetup.dto.MeetupCountDto(
+			SELECT new com.moit.meetup.dto.MeetupCountResponseDto(
 			    COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.RECRUITING THEN 1 END),
 			    COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.COMPLETED THEN 1 END),
 			    COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.CANCELED THEN 1 END),
@@ -28,5 +30,5 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 			FROM Meetup m
 			WHERE m.deleteYn = 'N'
 			""")
-	MeetupCountResponseDto getMeetupCount();	
+	MeetupCountResponseDto getMeetupCount();
 }
