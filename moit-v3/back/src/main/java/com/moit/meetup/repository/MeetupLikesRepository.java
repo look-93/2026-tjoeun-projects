@@ -19,6 +19,9 @@ public interface MeetupLikesRepository extends JpaRepository<MeetupLike, Long>{
 	//특정 유저가 특정게시글에 좋아요 했는지 Member member 필드와 Meetup meetup 각각의 id가 있는지 확인
 	long countByMember_IdAndMeetup_Id(Long memberId, Long meetupId);
 	
+	//특정 유저가 특정게시글에 좋아요 했는지 존재여부
+	boolean existsByMember_IdAndMeetup_Id(Long memberId, Long meetupId);
+	
 	//특정유저가 특정게시글에 좋아요 했는지 조회
 	Optional<MeetupLike> findByMember_IdAndMeetup_Id(Long memberId, Long meetupId);
 	

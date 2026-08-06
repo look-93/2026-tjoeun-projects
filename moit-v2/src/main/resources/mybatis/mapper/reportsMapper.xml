@@ -52,7 +52,7 @@
 	<select id="doubleReport" resultType="int" parameterType="ReportsDto">
 		select count(*)
 		from reports
-		where member_id = #{memberId}
+		where member_id = #{memsberId}
 			and target_type = #{targetType}
 			and target_id = #{targetId}
 			and delete_yn = 'N'
@@ -194,11 +194,14 @@
 			
 	<select id="calTrustScore" resultType="int">
 	    select 
-	        (100
-	         + coalesce(ma.approved_cnt, 0) * 2 
-	         - coalesce(ma.noshow_cnt, 0) * 10 
-	         - (coalesce(r_met.report_cnt, 0) + coalesce(r_rev.report_cnt, 0)) * 5
-	        ) as calculated_trust_score
+	        greatest( 0,
+			    least( 100,
+			        100
+			        + coalesce(ma.approved_cnt, 0) * 2
+			        - coalesce(ma.noshow_cnt, 0) * 10
+			        - ( coalesce(r_met.report_cnt, 0) + coalesce(r_rev.report_cnt, 0) ) * 5
+			    )
+			) as calculated_trust_score
 	    from members m
 	    join member_info mi on m.member_id = mi.member_id
 	
@@ -425,17 +428,23 @@
 	        <if test="targetType != null and targetType != ''">
 	            and target_type = #{targetType}
 	        </if>
-	        <choose>
-		        <when test="searchType == 'memberId' and memberId != '' and keyword != null and keyword != ''">
-		            and member_id = #{keyword}
-		        </when>
-		        <when test="searchType == 'reasonCode' and reasonCode != '' and keyword != null and keyword != ''">
-		            and reason_code = #{keyword}
-		        </when>
-		        <when test="searchType == 'createdAt' and createdAt != '' and keyword != null and keyword != ''">
-		            and trunc(created_at) = to_date(#{keyword}, 'YYYY-MM-DD')
-		        </when>
-	        </choose>
+	        
+	        <if test="keyword != null and keyword != ''">
+		        <choose>
+		        	<!-- 작성자 ID 검색 -->
+			        <when test="searchType == 'memberId'">
+			            and to_char(member_id) = #{keyword}
+			        </when>
+			        <!-- 신고 사유 검색: 대소문자 구분하지 않음 -->
+			        <when test="searchType == 'reasonCode'">
+	                    and upper(reason_code) like '%' || upper(#{keyword}) || '%'
+	                </when>
+			        <!-- 날짜 검색: 2026-07-26 형식 -->
+	                <when test="searchType == 'createdAt'">
+	                    and trunc(created_at) = to_date(#{keyword}, 'YYYY-MM-DD')
+	                </when>
+		        </choose>
+	        </if>
 	    </where>
 	    order by report_id desc
 	    <if test="start != null and end != null">
@@ -458,6 +467,23 @@
 	        <if test="targetType != null and targetType != ''">
 	            and target_type = #{targetType}
 	        </if>
+	        <if test="keyword != null and keyword != ''">
+	            <choose>
+	                <when test="searchType == 'memberId'">
+	                    and to_char(member_id) = #{keyword}
+	                </when>
+	
+	                <when test="searchType == 'reasonCode'">
+	                    and upper(reason_code) like '%' || upper(#{keyword}) || '%'
+	                </when>
+	
+	                <when test="searchType == 'createdAt'">
+	                    and trunc(created_at) = to_date(#{keyword}, 'YYYY-MM-DD')
+	                </when>
+	            </choose>
+	        </if>
+	        
+	        <!-- 
 	        <if test="memberId != null">
 	            and member_id = #{memberId}
 	        </if>
@@ -466,7 +492,8 @@
 	        </if>
 	        <if test="createdAt != null and createdAt != ''">
 	            and date(created_at) = #{createdAt}
-	        </if>
+	        </if>  -->
+	        
 	    </where>
 	</select>
 
