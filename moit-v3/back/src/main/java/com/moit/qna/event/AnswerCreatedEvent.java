@@ -7,6 +7,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AnswerCreatedEvent {
 
-    private final int questionId;
+    private final Long questionId;
 
 }

@@ -25,7 +25,7 @@ public class QuestionNotification extends BaseEntity{
     @SequenceGenerator(name = "notification_seq_generator",sequenceName = "NOTIFICATION_SEQ",allocationSize = 1)
     
     @Column(name = "NOTIFICATION_ID")
-    private Integer notificationId;
+    private Long notificationId;
     
     @ManyToOne
     @JoinColumn(name = "QUESTION_ID", nullable = false)

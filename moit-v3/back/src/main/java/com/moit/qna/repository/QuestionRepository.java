@@ -9,25 +9,25 @@ import org.springframework.data.repository.query.Param;
 
 import com.moit.qna.entity.Question;
 
-public interface QuestionRepository extends JpaRepository<Question, Integer> {
+public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     // 답변 등록 시 문의 상태 변경
     @Modifying
     @Query("""
             UPDATE Question q
             SET q.status = 'ANSWERED'
-            WHERE q.questionId = :questionId
+            WHERE q.id = :questionId
             """)
-    void updateStatusAnswered(@Param("questionId") Integer questionId);
+    void updateStatusAnswered(@Param("questionId") Long questionId);
 
     // 답변 삭제 시 문의 상태 변경
     @Modifying
     @Query("""
             UPDATE Question q
             SET q.status = 'PENDING'
-            WHERE q.questionId = :questionId
+            WHERE q.id = :questionId
             """)
-    void updateStatusPending(@Param("questionId") Integer questionId);
+    void updateStatusPending(@Param("questionId") Long questionId);
 
     // 제목, 내용 검색
     @Query("""
@@ -39,7 +39,7 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     List<Question> findBySearch(@Param("keyword") String keyword);
 
     // 사용자 문의 목록
-    List<Question> findByMember_MemberId(Integer memberId);
+    List<Question> findByMember_Id(Long memberId);
 
     // 부모 문의 조회
     List<Question> findByParentId(Integer parentId);

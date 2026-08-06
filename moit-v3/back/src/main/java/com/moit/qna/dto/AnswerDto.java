@@ -5,9 +5,9 @@ import lombok.Data;
 @Data
 public class AnswerDto {
 
-	private int answerId;
-	private int questionId;
-	private int memberId;
+	private Long answerId;
+	private Long questionId;
+	private Long memberId;
 
 	private String content;
 	private String isPublic;
