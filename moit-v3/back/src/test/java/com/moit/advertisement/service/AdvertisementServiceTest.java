@@ -24,4 +24,21 @@ class AdvertisementServiceTest {
 
     }
 
+    @Test
+    @DisplayName("광고 개수 조회 - Mapper XML 연결 테스트")
+    void selectTotalAdvertisementCntTest(){
+
+        int count =
+                advertisementService.selectTotalAdvertisementCnt();
+
+
+        System.out.println(
+            "승인 광고 개수 : " + count
+        );
+
+
+        assertThat(count)
+                .isGreaterThanOrEqualTo(0);
+
+    }
 }
