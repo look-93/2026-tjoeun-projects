@@ -20,11 +20,8 @@ class AdvertisementMapperTest {
     @DisplayName("광고 Mapper - 실제 DB 조회")
     void selectAdvertisementTest() {
 
-        AdvertisementDto result =
-                advertisementMapper.selectAdvertisementOne(1L);
-
+        AdvertisementDto result = advertisementMapper.selectAdvertisementOne(1L);
         System.out.println("result = " + result);
-
         assertThat(result).isNotNull();
     }
 }
