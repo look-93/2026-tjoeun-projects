@@ -33,5 +33,5 @@ public class ReviewLike extends BaseEntity{
 	
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name="MEMBER_ID",nullable=false)
-	private  Member memberId;
+	private  Member member;
 }
