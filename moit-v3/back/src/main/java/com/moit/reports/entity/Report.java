@@ -29,7 +29,7 @@ public class Report extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "reportId_seq")
 	@SequenceGenerator(name = "reportId_seq", sequenceName = "REPORT_SEQ", allocationSize = 1)
 	@Column(name = "REPORT_ID")
-	private Long reportId;
+	private Long Id;
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "TARGET_TYPE", length = 20, nullable = false)

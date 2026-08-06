@@ -1,5 +1,7 @@
 package com.moit.reports.entity;
 
+import java.time.LocalDateTime;
+
 import com.moit.member.entity.Member;
 import com.moit.util.BaseEntity;
 
@@ -19,9 +21,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "report_audit_logs")
+@Table(name = "report_audit_logs")	// 신고 처리 이력
 @Getter @Setter
-public class ReportAuditLog extends BaseEntity {
+public class ReportAuditLog {
     @Id
     @GeneratedValue( strategy = GenerationType.SEQUENCE, generator = "report_audit_log_seq_generator")
     @SequenceGenerator( name = "report_audit_log_seq_generator", sequenceName = "REPORT_AUDIT_LOG_SEQ", allocationSize = 1)
@@ -40,9 +42,8 @@ public class ReportAuditLog extends BaseEntity {
 
     // 변경 전 상태
     @Enumerated(EnumType.STRING)
-    @Column(name = "PREVIOUS_STATUS", length = 20)
+    @Column(name = "PREVIOUS_STATUS", nullable = false, length = 20)
     private Status previousStatus;
-
     // 변경 후 상태
     @Enumerated(EnumType.STRING)
     @Column(name = "CHANGED_STATUS", nullable = false, length = 20)
@@ -51,8 +52,17 @@ public class ReportAuditLog extends BaseEntity {
     // 관리자가 입력한 처리 사유
     @Column(name = "PROCESS_REASON", nullable = false, length = 1000)
     private String processReason;
+    // 관리자 처리 시각
+    @Column(name = "PROCESS_AT", nullable = false, updatable = false)
+    private LocalDateTime processAt;
 
-    // 신고 처리로 변화한 신뢰도 점수
-    @Column(name = "TRUST_SCORE_CHANGE")
+	// 변경 전 신뢰도 점수
+    @Column(name = "PREVIOUS_TRUST_SCORE", nullable = false)
+    private Integer previousTrustScore;
+    // 변화한 신뢰도 점수
+    @Column(name = "TRUST_SCORE_CHANGE", nullable = false)
     private Integer trustScoreChange;
+    // 변경 후 신뢰도 점수
+    @Column(name = "RESULT_TRUST_SCORE", nullable = false)
+    private Integer resultTrustScore;
 }
