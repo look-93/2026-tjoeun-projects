@@ -69,7 +69,7 @@ public class AdvertisementDto {
     private String reminder14dSent;
 
     // 관계
-    private int advertiserId;
+    private Long advertiserId;
  // 화면 조회용
     private String nickname;
 

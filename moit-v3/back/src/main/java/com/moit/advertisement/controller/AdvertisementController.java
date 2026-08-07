@@ -50,7 +50,7 @@ public class AdvertisementController {
 		String loginId     = null, provider = null;
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
+		Long memberId = null;
 		//1. local
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
@@ -129,7 +129,7 @@ public class AdvertisementController {
         	String loginId     = null, provider = null;
     		UserDto user=null;
     		Object principal = authentication.getPrincipal();
-    		Integer memberId = null;
+    		Long memberId = null;
     		//1. local
     		if(   principal   instanceof CustomUserDetails ) {
     			CustomUserDetails  users = (CustomUserDetails)principal;
@@ -196,7 +196,7 @@ public class AdvertisementController {
         String loginId     = null, provider = null;
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
+		Long memberId = null;
 		//1. local
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
@@ -231,7 +231,7 @@ public class AdvertisementController {
         String loginId     = null, provider = null;
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
+		Long memberId = null;
 		//1. local
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
@@ -273,7 +273,7 @@ public class AdvertisementController {
     	String loginId     = null, provider = null;
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
+		Long memberId = null;
 		//1. local
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
@@ -355,7 +355,7 @@ public class AdvertisementController {
         	String loginId     = null, provider = null;
     		UserDto user=null;
     		Object principal = authentication.getPrincipal();
-    		Integer memberId = null;
+    		Long memberId = null;
     		//1. local
     		if(   principal   instanceof CustomUserDetails ) {
     			CustomUserDetails  users = (CustomUserDetails)principal;
