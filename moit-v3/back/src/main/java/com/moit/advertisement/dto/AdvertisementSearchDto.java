@@ -14,7 +14,7 @@ public class AdvertisementSearchDto {
     private String approvalStatus; // WAITING / APPROVED / REJECTED
     
     // 광고주
-    private Integer advertiserId;
+    private Long advertiserId;
 
     // 페이징
     @Min(value = 1, message = "페이지는 1 이상이어야 합니다.")

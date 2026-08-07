@@ -2,8 +2,10 @@ package com.moit.advertisement.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,8 @@ import com.moit.advertisement.entity.AdvertisementPayment;
 import com.moit.advertisement.entity.AdvertisementPositionPrice;
 import com.moit.advertisement.entity.AdvertisementPrice;
 import com.moit.advertisement.entity.AdvertisementTargetRegion;
+import com.moit.member.entity.Member;
+import com.moit.member.repository.MemberRepository;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -31,7 +35,8 @@ import com.moit.advertisement.entity.AdvertisementTargetRegion;
         AdvertisementPaymentRepository.class,
         AdvertisementPriceRepository.class,
         AdvertisementPositionPriceRepository.class,
-        AdvertisementDailyStatisticsRepository.class
+        AdvertisementDailyStatisticsRepository.class,
+        MemberRepository.class
     }
 )
 @ImportAutoConfiguration(exclude = {
@@ -59,6 +64,9 @@ class AdvertisementRepositoryTest {
 
     @Autowired
     private AdvertisementDailyStatisticsRepository advertisementDailyStatisticsRepository;
+    
+    @Autowired
+    private MemberRepository memberRepository;
 
 
     // =========================================================
@@ -228,6 +236,106 @@ class AdvertisementRepositoryTest {
                 System.out.println(
                         "statisticsId = " + stat.getStatId()
                 )
+        );
+    }
+    // ===============================================
+    private Member testMember;
+
+
+    @BeforeEach
+    void setUp(){
+
+        Member member = new Member();
+
+        member.setLoginId("advertiseTest");
+        member.setEmail("ad@test.com");
+        member.setNickname("광고테스트");
+        member.setPassword("1234");
+
+
+        testMember =
+            memberRepository.save(member);
+
+    }
+    
+    @Test
+    @DisplayName("광고 JPA 저장 테스트")
+    void advertisementSaveTest(){
+
+
+        Advertisement advertisement =
+            Advertisement.builder()
+            .title("JPA 테스트 광고")
+            .content("저장 테스트")
+            .landingUrl("https://test.com")
+            .startDatetime(LocalDateTime.now())
+            .endDatetime(LocalDateTime.now().plusDays(7))
+            .advertiser(testMember)
+            .build();
+
+        Advertisement saved =
+            advertisementRepository.save(advertisement);
+
+        assertThat(saved.getAdId())
+            .isNotNull();
+
+        System.out.println(
+            "생성 ID : " + saved.getAdId()
+        );
+    }
+
+
+    @Test
+    @DisplayName("광고 단건 조회 JPA 테스트")
+    void advertisementFindTest(){
+
+
+        Advertisement advertisement =
+            Advertisement.builder()
+            .title("조회 테스트 광고")
+            .content("조회")
+            .landingUrl("https://test.com")
+            .startDatetime(LocalDateTime.now())
+            .endDatetime(LocalDateTime.now().plusDays(7))
+            .advertiser(testMember)
+            .build();
+
+
+
+        Advertisement saved =
+            advertisementRepository.save(advertisement);
+
+
+
+        Advertisement result =
+            advertisementRepository.findById(saved.getAdId())
+            .orElseThrow();
+
+
+
+        System.out.println(
+            result.getTitle()
+        );
+
+
+        assertThat(result.getAdId())
+            .isEqualTo(saved.getAdId());
+
+    }
+    
+    @Test
+    @DisplayName("광고 전체 조회")
+    void advertisementFindAllTest(){
+
+        List<Advertisement> list =
+            advertisementRepository.findAll();
+
+        assertThat(list).isNotNull();
+
+        System.out.println("개수 : " + list.size());
+
+        list.forEach(ad ->
+            System.out.println(ad.getTitle())
         );
     }
 }
