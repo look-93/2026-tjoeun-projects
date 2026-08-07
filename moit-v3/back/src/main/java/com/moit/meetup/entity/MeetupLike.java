@@ -20,7 +20,7 @@ import lombok.Setter;
 @Getter
 @Builder
 @Setter
-@Table(name="MEETUP_LIKES", uniqueConstraints = {@UniqueConstraint(columnNames = {"MEMEBER_ID","MEETUP_ID"})})
+@Table(name="MEETUP_LIKES", uniqueConstraints = {@UniqueConstraint(columnNames = {"MEMBER_ID","MEETUP_ID"})})
 public class MeetupLike extends BaseEntity{
 
 	@Id

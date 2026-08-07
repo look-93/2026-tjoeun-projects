@@ -1,20 +1,26 @@
 package com.moit.reports.dto;
 
+import java.time.LocalDateTime;
+
+import com.moit.reports.entity.ReasonCode;
+import com.moit.reports.entity.Status;
+import com.moit.reports.entity.TargetType;
+
 import lombok.Data;
 
 @Data
 public class ReportsDto {
-	private int reportId;		// 신고 고유 ID
-	private String targetType;	// 'MEETUP', 'REVIEW'
-	private int targetId;		// 대상 글 고유 ID
-	private int memberId;
+	private Long reportId;		// 신고 고유 ID
+	private TargetType targetType;	// 'MEETUP', 'REVIEW'
+	private Long targetId;		// 대상 글 고유 ID
+	private Long memberId;
 	
-	private String reasonCode;	// 'ABUSE', 'SPAM', 'FAKE_INFO', 'AD', 'NOSHOW', 'ETC'
+	private ReasonCode reasonCode;	// 'ABUSE', 'SPAM', 'FAKE_INFO', 'AD', 'NOSHOW', 'ETC'
 	private String reasonDetail;// 상세사유
-	private String status;		// 상태 ('PENDING', 'REJECTED', 'APPROVED')
+	private Status status;		// 상태 ('PENDING', 'REJECTED', 'APPROVED')
 	private String deleteYn;	// 삭제 여부
-	private String createdAt;
-	private String updatedAt;	// 수정일자
+	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;	// 수정일자
 	
 	// members 에서 email
 	private String email;
