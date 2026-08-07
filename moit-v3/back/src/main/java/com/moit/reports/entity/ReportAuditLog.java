@@ -18,11 +18,12 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "report_audit_logs")	// 신고 처리 이력
-@Getter @Setter
+@Table(name = "REPORT_AUDIT_LOGS")	// 신고 처리 이력
+@Getter @Setter @NoArgsConstructor
 public class ReportAuditLog {
     @Id
     @GeneratedValue( strategy = GenerationType.SEQUENCE, generator = "report_audit_log_seq_generator")
@@ -61,13 +62,17 @@ public class ReportAuditLog {
     	this.processedAt = LocalDateTime.now();
     }
 
-	// 변경 전 신뢰도 점수
-//    @Column(name = "PREVIOUS_TRUST_SCORE", nullable = false)
-//    private Integer previousTrustScore;
     // 변화한 신뢰도 점수
     @Column(name = "TRUST_SCORE_CHANGE", nullable = false)
     private Integer trustScoreChange;
-    // 변경 후 신뢰도 점수
-//    @Column(name = "RESULT_TRUST_SCORE", nullable = false)
-//    private Integer resultTrustScore;
+
+	public ReportAuditLog(Report report, Member admin, Status previousStatus,
+			Status changedStatus, String processReason, Integer trustScoreChange) {
+		this.report = report;
+		this.admin = admin;
+		this.previousStatus = previousStatus;
+		this.changedStatus = changedStatus;
+		this.processReason = processReason;
+		this.trustScoreChange = trustScoreChange;
+	}
 }
