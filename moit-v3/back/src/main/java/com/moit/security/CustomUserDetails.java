@@ -56,7 +56,7 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 	       return List.of(new SimpleGrantedAuthority(authDto.getTypeName()));
 	   }	
 
-	public Integer getAppUserId() { return user.getMemberId(); }
+	public Long   getAppUserId() { return user.getMemberId(); }
 	public String  getEmail()     { return user.getEmail(); }
 	public String  getProvider()  { return user.getProvider(); }
 	public String getProfileUrl(){ return user.getProfileUrl(); }

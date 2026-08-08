@@ -13,13 +13,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.moit.advertisement.dao.AdvertisementMapper;
 import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementExtensionRequestDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.DashboardAiDto;
+import com.moit.advertisement.mapper.AdvertisementMapper;
 import com.moit.advertisement.type.AdvertisementPosition;
 
 import jakarta.servlet.http.HttpServletRequest;

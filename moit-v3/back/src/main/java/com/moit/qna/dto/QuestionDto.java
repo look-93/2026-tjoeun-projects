@@ -5,9 +5,9 @@ import lombok.Data;
 @Data
 public class QuestionDto {
 
-    private int questionId;
-    private Integer parentId;
-    private int memberId;
+    private Long questionId;
+    private Long parentId;
+    private Long memberId;
 
     private String category;   // MEETUP, ADMIN
     private String title;

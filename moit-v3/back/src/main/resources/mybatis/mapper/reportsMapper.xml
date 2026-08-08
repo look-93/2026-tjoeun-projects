@@ -58,203 +58,59 @@
 			and delete_yn = 'N'
 	</select>
 	
-	<!-- 신고 난사 방지 -->
-	<select id="TodayReport" resultType="int" parameterType="ReportsDto">
-		select count(*)
-		from reports
-		where member_id = #{memberId} and delete_yn = 'N'
-			and created_at >= trunc(sysdate)
-			and created_at &lt; trunc(sysdate) +1
-	</select>
 	
 	
 
 	
 	<!-- ===== admin ===== -->
 	<!-- ===== admin ===== -->
-	<!-- 신고당한 글 작성자 select (targetMemberId) -->
-	<!-- meetup / review , where = report_id -->
-	<select id="selectTargetMemberId" resultType="int" parameterType="ReportsDto">
-		select target_member_id
+	<!-- 신고당한 글 작성자 select (targetMemberId + targetNickname) -->
+	<select id="selectTargetMemberInfo" resultType="ReportsDto" parameterType="ReportsDto">
+		select	target_member_id	as targetMemberId,
+				target_nickname		as targetNickname
 		from (
 			select	r.report_id,
-					mt.member_id as target_member_id
-			from reports r		join meetups mt		on r.target_id = mt.meetup_id
+					mt.member_id	as target_member_id,
+					m.nickname as target_nickname
+			from reports r
+			join meetups mt			on r.target_id = mt.meetup_id
+			join members m			on mt.member_id = m.member_id
 			where r.target_type = 'MEETUP'
 			
 			union all
 			
 			select	r.report_id,
-					rv.member_id as target_member_id
-			from reports r		join reviews rv		on r.target_id = rv.review_id
+					rv.member_id	as target_member_id,
+					m.nickname		as target_nickname
+			from reports r		
+			join reviews rv			on r.target_id = rv.review_id
+			join members m			on rv.member_id = m.member_id
 			where r.target_type = 'REVIEW'
 		)
 		where report_id = #{reportId}
 	</select>
 	
-	<!-- 신고당한 글 작성자 select (targetMemberId + members.nickname) -->
-	<select id="selectTargetMemberNickname" resultType="String" parameterType="ReportsDto">
-		select target_nickname
-		from (
-			select	r.report_id,
-					m.nickname as target_nickname
-			from reports r
-			join meetups mt		on r.target_id = mt.meetup_id
-			join members m		on mt.member_id = m.member_id
-			where r.target_type = 'MEETUP'
-			
-			union all
-			
-			select	r.report_id,
-					m.nickname as target_nickname
-			from reports r
-			join reviews rv		on r.target_id = rv.review_id
-			join members m		on rv.member_id = m.member_id
-			where r.target_type = 'REVIEW'
-		)
-		where report_id = #{reportId}
+	<!-- 현재 신뢰도 점수 조회 -->
+	<select id="selectTrustScore" resultType="int">
+	    select trust_score
+	    from member_info
+	    where member_id = #{targetMemberId}
 	</select>
 	
-	<!-- APPROVED 승인 건수 조회 (MEETUP + REVIEW) -->
-	<select id="approvedCnt" resultType="int" parameterType="ReportsDto">
-		select count(*)
-		from (
-			select mt.member_id as target_member_id
-			from reports r		join meetups mt		on r.target_id = mt.meetup_id
-			where r.target_type = 'MEETUP' and r.status = 'APPROVED'
-				
-			union all
-				
-			select rv.member_id as target_member_id
-			from reports r		join reviews rv		on r.target_id = rv.review_id
-			where r.target_type = 'REVIEW' and r.status = 'APPROVED'
-		)		
-		where target_member_id = #{targetMemberId}
-	</select> 
-	
-	
-	
-	<!-- 신뢰도 점수 select 
-	<select id="selectTrustScore" resultType="int" parameterType="ReportsDto">
-		select member_info
-		set trust_score
-		where report_id = #{targetMemberId}
-	</select> -->
-	
-	<!-- 뱃지 select
-		member_info.report_status_id를 기준으로 꺼내고,
-		실제 표시명은 member_report_status랑 JOIN해서 가져오는 방향
-	<select id="selectBadge" resultType="String" parameterType="ReportsDto">
-		select report_status_id
-		from member_info mi		join member_report_status mrs
-								on mi.report_status_id = mrs.report_status_id
-		where mi.member_id = mrs.report_status_id
-	</select> -->
-	
-	<!-- 신뢰도 점수 update (member_info.trust_score) 
-	<update id="updateTrustScore" parameterType="ReportsDto">
-		update member_info
-		set trust_score = (
-			select 100 - (count(*) * 10)
-			from (
-				select mt.member_id as target_member_id
-				from reports r		join meetups mt		on r.target_id = mt.meetup_id
-				where r.target_type = 'MEETUP' and r.status = 'APPROVED'
-	
-				union all
-				
-				select rv.member_id as target_member_id
-				from reports r		join reviews rv		on r.target_id = rv.review_id
-				where r.target_type = 'REVIEW' and r.status = 'APPROVED'
-			)
-			where target_member_id = #{targetMemberId}
-		)
-		where member_id = #{targetMemberId}
-	</update> -->
-	
-	<!-- 뱃지 1/2/3 update (member_info.report_status_id) 
-	<update id="updateBadge" parameterType="ReportsDto">
-		update member_info
-		set report_status_id = #{reportStatusId}
-		where member_id = #{targetMemberId}
-	</update> -->
-	
-	
-	
-	
-	
-	<!-- 실시간 신뢰점수 산출 쿼리 (새벽 배치 타겟 정산용 - 인덱스 최적화 완비)
-		기본 점수 100점 + (승인 횟수 * 2) - (노쇼 * 10) - (신고당한 건수 * 5)
-	        (mi.trust_score
-			
-			approved_cnt = 모임 참여 승인 횟수		→ meetup_applications.status = 'APPROVED'
-			noshow_cnt = 모임 노쇼 횟수 			→ meetup_applications.status = 'NOSHOW'
-			report_cnt = 내가 작성한 '모임(MEETUP)'이 신고 승인(APPROVED)된 횟수 추출
-			내가 작성한 '후기(REVIEW)'가 신고 승인(APPROVED)된 횟수 추출 -->
-			
-	<select id="calTrustScore" resultType="int">
-	    select 
-	        (100
-	         + coalesce(ma.approved_cnt, 0) * 2 
-	         - coalesce(ma.noshow_cnt, 0) * 10 
-	         - (coalesce(r_met.report_cnt, 0) + coalesce(r_rev.report_cnt, 0)) * 5
-	        ) as calculated_trust_score
-	    from members m
-	    join member_info mi on m.member_id = mi.member_id
-	
-		    left join (
-		        select 
-		            member_id,
-		            count(case when status = 'APPROVED' then 1 end) as approved_cnt,
-		            count(case when status = 'NOSHOW' then 1 end) as noshow_cnt
-		        from meetup_applications
-		        where member_id = #{memberId}
-		          and updated_at >= sysdate - 90   
-		        group by member_id
-		    ) ma
-		    on m.member_id = ma.member_id
-		
-		    
-		    left join (
-		        select 
-		            mt.member_id,
-		            count(r.report_id) as report_cnt
-		        from reports r
-		        join meetups mt
-		            on r.target_type = 'MEETUP' and r.target_id = mt.meetup_id
-		        where mt.member_id = #{memberId}
-		          and r.status = 'APPROVED'
-		          and r.delete_yn = 'N'
-		          and r.updated_at >= sysdate - 90 
-		        group by mt.member_id
-		    ) r_met
-		    on m.member_id = r_met.member_id
-		
-		    left join (
-		        select 
-		            rv.member_id,
-		            count(r.report_id) as report_cnt
-		        from reports r
-		        join reviews rv on r.target_type = 'REVIEW' and r.target_id = rv.review_id
-		        where rv.member_id = #{memberId}
-		          and r.status = 'APPROVED'
-		          and r.delete_yn = 'N'
-		          and r.updated_at >= sysdate - 90 
-		        group by rv.member_id
-		    ) r_rev
-		    on m.member_id = r_rev.member_id
-	
-	    where m.member_id = #{memberId}
-	</select> 
+	<!-- 신고 승인 시 신뢰도 점수 5점 차감 -->
+	<update id="decreaseTrustScoreByReport">
+	    update member_info
+	    set trust_score = greatest(trust_score - 5, 0)
+	    where member_id = #{targetMemberId}
+	</update>
 
-	
 	<!-- 단순 조회용 쿼리 (로그인/마이페이지 호출용 member_info.trust_score - DB 부하 0%) -->
 	<!-- 신고자, 닉네임, 신뢰도 점수, 신고 상태(report_status_id), 신고 상태(code), 신고 상태(name) -->
 	<select id="findMemberTrustInfo" resultType="ReportsDto" parameterType="ReportsDto">
 		select	m.member_id				as targetMemberId,	<!-- 신고당한 유저 -->
 				m.nickname				as targetNickname,	<!-- 신고당한 유저 닉네임 -->
 				mi.trust_score			as trustScore,		<!-- 신뢰도 점수 -->
-				mi.report_status_id		as reportStatusId,	<!-- 뱃지 num -->
+				mrs.report_status_id	as reportStatusId,	<!-- 뱃지 num -->
 				mrs.status_code			as statusCode,		<!-- 뱃지 (eng) -->
 				mrs.status_name			as statusName		<!-- 뱃지 (kor) -->
 		from members m
@@ -262,103 +118,8 @@
 			left join member_report_status mrs	on mi.report_status_id = mrs.report_status_id
 		where m.member_id = #{targetMemberId}
 	</select>
-	
-	<!-- 실시간 신뢰점수 산출 count(*) 쿼리 3개
-		기본 점수 100점 + (승인 횟수 * 2) - (노쇼 * 10) - (신고당한 건수 * 5) -->
-	<!-- approved_cnt = 모임 참여 승인 횟수 (+2) meetup_applications.status = 'APPROVED'  -->
-	<select id="selectApprovedCnt" resultType="int" parameterType="int">
-		select count(*)
-		from meetup_applications
-		where member_id = #{memberId}
-			and status = 'APPROVED'
-			and updated_at >= sysdate - 90
-	</select> 
-	
-	<!-- noshow_cnt = 모임 노쇼 횟수 (-10) meetup_applications.status = 'NOSHOW' -->
-	<select id="selectNoshowCnt" resultType="int" parameterType="int">
-		select count(*)
-		from meetup_applications
-		where member_id = #{memberId}
-			and status = 'NOSHOW'
-			and updated_at >= sysdate - 90
-	</select> 
-	
-	<!-- report_cnt = 내가 작성한 MEETUP/REVIEW가 신고 승인된 횟수 (-5) -->
-	<select id="selectReportCnt" resultType="int" parameterType="int">
-		select count(*)
-		from (
-			select r.report_id,
-					mt.member_id as target_member_id
-			from reports r	join meetups mt
-				on r.target_type = 'MEETUP'
-					and r.target_id = mt.meetup_id
-					and r.status = 'APPROVED'
-					and r.delete_yn = 'N'
-					and r.updated_at >= sysdate -90
-					
-			union all
-			
-			select r.report_id,
-					rv.member_id as target_member_id
-			from reports r	join reviews rv
-				on r.target_type = 'REVIEW'
-					and r.target_id = rv.review_id
-					and r.status = 'APPROVED'
-					and r.delete_yn = 'N'
-					and r.updated_at >= sysdate -90
-		)
-		where target_member_id = #{targetMemberId}
-	</select> 
-	
-	
-	
-	
-	
-	<!-- 계산된 신뢰도 점수 업데이트 쿼리 -->
-	<update id="updateMemberTrustScore" parameterType="ReportsDto">
-		update member_info
-		set trust_score = #{trustScore}
-		where member_id = #{memberId}
-	</update>
-	<!-- 뱃지 업데이트 쿼리 -->
-	<update id="updateMemberBadge" parameterType="ReportsDto">
-		update member_info
-		set report_status_id = #{reportStatusId}
-		where member_id = #{memberId}
-	</update>
-	
-	<!-- 새벽 배치용: 전날 활동 이력(참여APPROVED/노쇼NOSHOW/신고(reports.status = 'APPROVED' 처리 이력)이 있는 회원 ID 타겟 추출 -->
-	<!-- 모임 신청 상태가 'APPROVED' OR 'NOSHOW'double 회원 member_id -->
-	<!-- MEETUP 에서 신고 처리가 'APPROVED' 된 모임글 작성자 mt.member_id -->
-	<!-- REVIEW 에서 신고 처리가 'APPROVED' 된 후기글 작성자 rv.member_id -->
-	<select id="selectTargetMembersYesterday" resultType="ReportsDto">
-	    select member_id
-	    from meetup_applications
-	    where status in ('APPROVED', 'NOSHOW')
-	        and (updated_at >= trunc(sysdate) -1 and updated_at &lt; trunc(sysdate))
-	            
-	    union
-	    
-	    select mt.member_id
-	    from reports r
-	    join meetups mt on r.target_type = 'MEETUP'
-	    					and r.target_id = mt.meetup_id
-	    where r.status = 'APPROVED'
-	        and (r.updated_at >= trunc(sysdate) -1 and r.updated_at &lt; trunc(sysdate))
-	
-	    union
-	    
-	    select rv.member_id
-	    from reports r
-	    join reviews rv on r.target_type = 'REVIEW'
-	    					and r.target_id = rv.review_id
-	    where r.status = 'APPROVED'
-	        and (r.updated_at >= trunc(sysdate) -1 and r.updated_at &lt; trunc(sysdate))
-	</select>
-	
-	
-	
-	<!-- 3일 전에 신고 상태 변경된 데이터 추출 -->
+
+	<!-- 3일 전에 신고 상태 변경된 데이터 추출 (3일 후 메일 만족도 조사) -->
 	<select id="selectThreeDaysAgo" resultType="ReportsDto">
 		select m.email
 		from reports r join members m on r.member_id = m.member_id
@@ -366,8 +127,7 @@
 			and r.updated_at >= trunc(sysdate) - 3
 			and r.updated_at &lt; trunc(sysdate) - 2
 	</select> 
-	
-	<!-- 당일에 신고 상태 변경된 데이터 추출 
+	<!-- 당일에 신고 상태 변경된 데이터 추출 (당일 메일 만족도 조사)
 	<select id="selectThreeDaysAgo" resultType="ReportsDto">
 	    select m.email
 	    from reports r join members m on r.member_id = m.member_id
@@ -375,9 +135,12 @@
 	    	and r.updated_at >= trunc(sysdate) 
 	</select> -->
 	
-	
-	
-	
+	<!-- members table에 report_id로 email 찾기 (SMTP 메일 전송) -->
+	<select id="selectEmail" resultType="String" parameterType="ReportsDto">
+		select m.email
+		from reports r join members m on r.member_id = m.member_id
+		where r.report_id = #{reportId}
+	</select>
 	
 	<!-- 신고 상태 변경 - PENDING(처리대기) or APPROVED(신고완료) -->
 	<update id="updateAdmin" parameterType="ReportsDto">
@@ -386,14 +149,7 @@
 	    where report_id = #{reportId}
 	    and status = 'PENDING'
 	</update>
-	<!-- members table에 report_id로 email 찾기 -->
-	<select id="selectEmail" resultType="String" parameterType="ReportsDto">
-		select m.email
-		from reports r join members m on r.member_id = m.member_id
-		where r.report_id = #{reportId}
-	</select>
 	
-
 	<!-- 신고 강제 삭제 -->
 	<delete id="deleteAdmin" parameterType="int">
 		delete

@@ -33,7 +33,7 @@ public class NotificationController {
     }
     
     @PostMapping("/notifications/read")
-    public void read(@RequestParam int notificationId){
+    public void read(@RequestParam Long notificationId){
         notificationService.readNotification(notificationId);
     }
     

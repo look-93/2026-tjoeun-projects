@@ -7,9 +7,9 @@ import com.moit.qna.dto.NotificationDto;
 @Mapper
 public interface NotificationMapper {
 
-    int unreadCount(int memberId);
+    int unreadCount(Long memberId);
     void insert(NotificationDto dto);
-    void readNotification(int notificationId);
-    List<NotificationDto> selectUnread(int memberId);
-    List<NotificationDto> selectAll(int memberId);
+    void readNotification(Long notificationId);
+    List<NotificationDto> selectUnread(Long memberId);
+    List<NotificationDto> selectAll(Long memberId);
 }
