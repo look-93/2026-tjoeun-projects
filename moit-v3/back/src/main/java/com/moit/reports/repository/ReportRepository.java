@@ -2,8 +2,11 @@ package com.moit.reports.repository;
 
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
 import com.moit.reports.entity.Report;
 import com.moit.reports.entity.Status;
 import com.moit.reports.entity.TargetType;

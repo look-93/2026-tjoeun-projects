@@ -2,28 +2,35 @@ package com.moit.meetup.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.moit.common.Sigungu;
+import com.moit.common.dto.SigunguDto;
 import com.moit.exception.ResourceNotFoundException;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicantResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplyMemberListResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MyApplicationListResponseDto;
+import com.moit.meetup.dto.MeetupCategoryDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
 import com.moit.meetup.entity.Meetup;
 import com.moit.meetup.entity.MeetupApplication;
+import com.moit.meetup.entity.MeetupCategory;
 import com.moit.meetup.entity.MeetupLike;
 import com.moit.meetup.enums.ApplyStatus;
 import com.moit.meetup.repository.MeetupApplicationRepository;
+import com.moit.meetup.repository.MeetupCategoryRepository;
 import com.moit.meetup.repository.MeetupLikesRepository;
 import com.moit.meetup.repository.MeetupRepository;
+import com.moit.meetup.repository.MeetupSigunguRepository;
 import com.moit.member.entity.Member;
 import com.moit.member.repository.MemberRepository;
 
@@ -38,8 +45,10 @@ public class MeetupServiceImpl implements MeetupService{
 	private final MeetupApplicationRepository meetupApplicationRepository;
 	private final MeetupLikesRepository meetupLikesRepository;
 	private final MemberRepository memberRepository; 
+	private final MeetupCategoryRepository meetupCategoryRepository;
+	private final MeetupSigunguRepository meetupSigunguRepository;
 	
-	//목록조회
+	//모임리스트조회
 	@Override
 	public MeetupListResponseDto search(Pageable pageable) {
 		Page<Meetup> page = meetupRepository.findAll(pageable);
@@ -84,7 +93,7 @@ public class MeetupServiceImpl implements MeetupService{
 		return response;
 	}
 	
-	//생성
+	//모임등록
 	@Transactional
 	@Override
 	public void create(MeetupRequestDto meetupRequestDto, Long memberId) {
@@ -111,7 +120,7 @@ public class MeetupServiceImpl implements MeetupService{
 		meetupRepository.save(meetup);
 	}
 	
-	//수정
+	//모임수정
 	@Transactional
 	@Override
 	public void update(MeetupRequestDto meetupRequestDto, Long meetupId) {
@@ -139,7 +148,7 @@ public class MeetupServiceImpl implements MeetupService{
 		meetup.setNy(meetupRequestDto.getNy());		
 	}
 	
-	//삭제
+	//모임삭제
 	@Transactional
 	@Override
 	public void delete(Long meetupId) {
@@ -152,28 +161,53 @@ public class MeetupServiceImpl implements MeetupService{
 	//모임신청
 	@Transactional
 	@Override	
-	public void meetupApply(Long memberId, Long meetupId) {
+	public void apply(Long memberId, Long meetupId) {
 		Meetup meetup = meetupRepository.findById(meetupId)
 										.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 게시글입니다. MEETUPID" + meetupId));
 		
 		Member member = memberRepository.findById(memberId)
 										.orElseThrow(()-> new ResourceNotFoundException("존재하지 않는 회원입니다.. MEMBERID" + memberId));
 		
+		
+		Optional<MeetupApplication> apply = meetupApplicationRepository.findByMeetup_IdAndMember_Id(meetupId, memberId);
+		
+	    // 이미 신청했으면 → 신청 취소
+	    if (apply.isPresent()) {	    	
+	    	MeetupApplication meetupApplication = apply.get();
+	    	
+	    	System.out.println(meetupApplication.getApplyStatus() );
+	    	
+	        // 신청 중이면 → 취소
+	        if (meetupApplication.getApplyStatus() == ApplyStatus.PENDING) {
+	            meetupApplication.setApplyStatus(ApplyStatus.CANCELED);
+	            return;
+	        }
+
+	        // 취소된 상태면 → 다시 신청
+	        if (meetupApplication.getApplyStatus() == ApplyStatus.CANCELED) {
+	            meetupApplication.setApplyStatus(ApplyStatus.PENDING);
+	            return;
+	        }
+	    }
+		
+	    // 신청 내역 자체가 없으면 → 신규 신청
 		MeetupApplication meetupApplication = MeetupApplication.builder()
 															   .applyStatus(ApplyStatus.PENDING)
 															   .meetup(meetup)
 															   .member(member)
 															   .build();
+		//당일 모임 신청 시 1시간 이후 취소 시 신뢰도 점수 차감
 		
 		meetupApplicationRepository.save(meetupApplication);
 	}
 	
 	//좋아요
 	@Override
-	public void meetupLike(Long meetupId, Long memberId) {
+	public void meetupLike(Long memberId, Long meetupId) {
 		
 		boolean exists = meetupLikesRepository.existsByMember_IdAndMeetup_Id(memberId, meetupId);
 		
+		//이미 좋아요 했으면 삭제
 		if(exists) {
 			meetupLikesRepository.deleteByMember_IdAndMeetup_Id(memberId, meetupId);
 			return;
@@ -184,8 +218,8 @@ public class MeetupServiceImpl implements MeetupService{
 
 		Member member = memberRepository.findById(memberId)
 				.orElseThrow(()-> new ResourceNotFoundException("존재하지 않는 회원입니다. MEMBERID" + memberId));
-
 		
+		//없으면 저장
 		MeetupLike meetupLike = MeetupLike.builder()
 										  .meetup(meetup)
 										  .member(member)
@@ -197,12 +231,12 @@ public class MeetupServiceImpl implements MeetupService{
 	//모집글 비공개(관리자)
 	@Transactional
 	@Override	
-	public void disableMeetup(Long meetupId) {
+	public void changeMeetupVisibility(Long meetupId) {
 		
 		Meetup meetup = meetupRepository.findById(meetupId)
-				.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 게시글입니다. MEETUPID" + meetupId));
+				.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 게시글입니다. MEETUPID" + meetupId));		
 		
-	    meetup.setHidden(true);
+		meetup.setHidden(!meetup.getHidden());
 	}
 	
 	//마이페이지 내가 신청한 모집글 목록 조회(페이징)
@@ -250,6 +284,23 @@ public class MeetupServiceImpl implements MeetupService{
 		return response;
 	}
 
+	//마이페이지 내가 모집한 모집글 조회(페이징)
+	@Override
+	public MeetupListResponseDto getMyMeetups(Long memberId, Pageable pageable) {
+		Page<Meetup> page = meetupRepository.findByMember_Id(memberId, pageable);
+		MeetupListResponseDto response = new MeetupListResponseDto();
+		
+		response.setTotalCount(page.getTotalElements());
+		response.setTotalPage((long) page.getTotalPages());
+		
+		List<MeetupResponseDto> meetups = page.getContent()
+											.stream()
+											.map(MeetupResponseDto::listFrom)
+											.toList();
+		response.setMeetups(meetups);
+		return response;
+	}	
+	
 	//마이페이지 승인, 거절(거절사유), 노쇼 처리
 	@Transactional
 	@Override
@@ -269,22 +320,46 @@ public class MeetupServiceImpl implements MeetupService{
 		}else{
 			meetupApplication.setRejectReason(null);
 		}
+		
+		//노쇼일 경우 신뢰도 점수 차감
 	}
 	
-	//마이페이지 내가 모집한 모집글 조회(페이징)
+	//카테고리 조회
 	@Override
-	public MeetupListResponseDto getMyMeetups(Long memberId, Pageable pageable) {
-		Page<Meetup> page = meetupRepository.findByMember_Id(memberId, pageable);
-		MeetupListResponseDto response = new MeetupListResponseDto();
+	public List<MeetupCategoryDto> getCategory() {
+		List<MeetupCategory> meetupCategory =  meetupCategoryRepository.findAll();
 		
-		response.setTotalCount(page.getTotalElements());
-		response.setTotalPage((long) page.getTotalPages());
+//		List<CategoryDto> result = meetupCategory.stream()
+//				.map(cate->{
+//			CategoryDto dto = CategoryDto.from(cate);
+//			return dto;
+//		}).toList();
 		
-		List<MeetupResponseDto> meetups = page.getContent()
-											.stream()
-											.map(MeetupResponseDto::listFrom)
-											.toList();
-		response.setMeetups(meetups);
-		return response;
+		
+		//아이디만 담으려고하면
+//		List<Long> result = meetupCategory.stream()
+//				.map(cate->{
+//			return cate.getId();
+//		}).toList();
+		
+//		List<CategoryDto> result =   meetupCategory.stream()
+//		.filter(cate->{
+//			return cate.getId() != 1L;
+//		})
+//		.map(CategoryDto::from)
+//		.toList();
+
+		return meetupCategory.stream().map(MeetupCategoryDto::from).toList();	
 	}
+	
+	//시군구 조회
+	@Override
+	public List<SigunguDto> getSigungu() {
+		
+		List<Sigungu> sigungu = meetupSigunguRepository.findAll();
+		
+		return sigungu.stream().map(SigunguDto::from).toList();
+	}
+	
+	//api - 날씨, 모임등록자동추천, ai 한줄평, 지도, 주소
 }
