@@ -55,8 +55,8 @@ public class MeetupApplicationDto {
 	public static class MyApplicationListResponseDto{
 		//내가 신청한 모집글 목록 조회(페이징)
 		private List<MeetupApplicationResponseDto> applications;
-		private Long totalCount; //전체갯수 100 , 101
-		private Long totalPage;  //총 몇개 페이지를 만들것인가 10개씩 보여준다고하면  10개 페이지가 나옴 , 11페이지
+		private Long totalCount;
+		private Long totalPage;
 	}	
 	
 	@Getter
@@ -88,8 +88,8 @@ public class MeetupApplicationDto {
 	public static class MeetupApplyMemberListResponseDto{
 		//마이페이지 내 모집글 신청자 리스트(페이징)
 		private List<MeetupApplicantResponseDto> applicants;
-		private Long totalCount; //전체갯수 100 , 101
-		private Long totalPage;  //총 몇개 페이지를 만들것인가 10개씩 보여준다고하면  10개 페이지가 나옴 , 11페이지
+		private Long totalCount;
+		private Long totalPage;
 	}
 	
 }
