@@ -8,5 +8,5 @@ import com.moit.review.entity.ReviewLike;
 
 @Repository
 public interface ReviewLikeRepository extends JpaRepository<ReviewLike, Long> {
-
+	
 }
