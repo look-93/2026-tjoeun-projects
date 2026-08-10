@@ -11,7 +11,7 @@ public interface ReportsService {
 	public List<ReportsDto> selectUserReport( int pstartno, int memberId);
 	
 	// select id="selectUserCnt" resultType="int"
-	public int selectUserCnt(int memberId);
+	public int selectUserCnt(Long memberId);
 	
 	// 사용자 본인이 작성한 신고 내역 상세 조회
 	public ReportsDto selectUserReportDetail(ReportsDto dto);

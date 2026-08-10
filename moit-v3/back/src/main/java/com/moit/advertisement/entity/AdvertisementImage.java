@@ -2,6 +2,8 @@ package com.moit.advertisement.entity;
 
 import java.time.LocalDateTime;
 
+import com.moit.advertisement.enums.AdPosition;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,14 +16,21 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.moit.advertisement.enums.AdPosition;
-
 @Entity
-@Table(name = "ADVERTISEMENT_IMAGES")
+@Table(
+    name = "ADVERTISEMENT_IMAGES",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "UK_AD_IMAGE_TYPE",
+            columnNames = {"AD_ID", "IMAGE_TYPE"}
+        )
+    }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AdvertisementImage {

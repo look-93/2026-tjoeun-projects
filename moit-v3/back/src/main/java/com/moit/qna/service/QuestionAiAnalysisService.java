@@ -22,7 +22,7 @@ public class QuestionAiAnalysisService {
     private final ProfanityFilter profanityFilter;
 
     @Transactional
-    public void analyzeAndSave(int questionId, String text) {
+    public void analyzeAndSave(Long questionId, String text) {
         QuestionAiAnalysisDto dto = new QuestionAiAnalysisDto();
         dto.setQuestionId(questionId);
 

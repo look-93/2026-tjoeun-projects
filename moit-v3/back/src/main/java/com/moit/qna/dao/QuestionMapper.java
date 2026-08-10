@@ -13,19 +13,19 @@ public interface QuestionMapper {
     List<QuestionDto> findAll(Map<String, Object> map);
 
     // 문의 상세 조회
-    QuestionDto findById(int questionId);
+    QuestionDto findById(Long questionId);
 
     // 문의 등록
     void insertQuestion(QuestionDto dto);
 
     // 답변 등록 시 문의 상태 변경
-    void updateStatusAnswered(int questionId);
+    void updateStatusAnswered(Long questionId);
 
     // 문의 수정
     void updateQuestion(QuestionDto dto);
 
     // 문의 삭제
-    void deleteQuestion(int questionId);
+    void deleteQuestion(Long questionId);
 
     // 제목, 내용, 답변여부 검색
     List<QuestionDto> findBySearch(QuestionDto dto);
@@ -51,11 +51,11 @@ public interface QuestionMapper {
     int findMyQuestionCnt(Map<String, Object> map);
     
     // 답변 삭제 시 문의 상태 변경
-    void updateStatusPending(int questionId);
+    void updateStatusPending(Long questionId);
     
     // 관리자용 선택 삭제
-    void deleteSelected(List<Integer> ids);
+    void deleteSelected(List<Long> ids);
     
     //
-    List<QuestionDto> selectByParentId(int parentId);
+    List<QuestionDto> selectByParentId(Long parentId);
 }

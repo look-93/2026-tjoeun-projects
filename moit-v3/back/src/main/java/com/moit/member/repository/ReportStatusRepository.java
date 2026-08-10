@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.moit.member.entity.MemberReportStatus;
+import com.moit.reports.entity.MemberReportStatus;
 
 @Repository
 public interface ReportStatusRepository extends JpaRepository<MemberReportStatus, Long>{

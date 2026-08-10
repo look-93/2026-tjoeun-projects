@@ -1,4 +1,4 @@
-package com.moit.advertisement.dao;
+package com.moit.advertisement.mapper;
 
 import java.util.List;
 

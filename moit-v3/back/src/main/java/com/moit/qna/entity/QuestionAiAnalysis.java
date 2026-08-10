@@ -14,7 +14,7 @@ public class QuestionAiAnalysis {
 
     @Id
     @Column(name = "QUESTION_ID")
-    private Integer questionId;
+    private Long questionId;
 
     @Column(name = "ANALYSIS_STATUS")
     private String analysisStatus;

@@ -308,9 +308,23 @@ public class ReportController {
 							HttpSession session,
 							Model model) {
 		
-//		Integer memberId = getLoginAdminId(session);
+		// 검색어 앞뒤 공백 제거
+	    if (keyword != null) {
+	        keyword = keyword.trim();
+
+	        if (keyword.isEmpty()) {
+	            keyword = null;
+	        }
+	    }
+
+	    // 검색어가 없으면 검색 유형도 사용하지 않음
+	    if (keyword == null) {
+	        searchType = null;
+	    }
 	
-		HashMap<String, Object> map = new HashMap<>();
+//		Integer memberId = getLoginAdminId(session);
+
+	    HashMap<String, Object> map = new HashMap<>();
 		
 		map.put("targetType", targetType);
 		map.put("status", status);
@@ -322,17 +336,14 @@ public class ReportController {
 		map.put("start", (pstartno-1)*10);
 		map.put("end", 10);
 		
-		model.addAttribute("menu", "report");
 		model.addAttribute("paging", new UtilPaging( service.selectAdminReportsCnt(map), pstartno));
 		model.addAttribute("list", service.selectAdminReports(map));
+		model.addAttribute("menu", "report");
 		
 		model.addAttribute("targetType", targetType); // meetup, review
 		model.addAttribute("status", status); // pendding
 		model.addAttribute("deleteYn", deleteYn); // delete
 
-		if( keyword != null ) {
-			keyword = keyword.trim();
-		}
 		model.addAttribute("searchType", searchType); // 검색 옵션
 		model.addAttribute("keyword", keyword); // 작성자, 사유, 날짜
 		

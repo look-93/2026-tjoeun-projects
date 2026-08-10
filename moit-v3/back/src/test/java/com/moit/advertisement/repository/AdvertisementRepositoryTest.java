@@ -2,13 +2,18 @@ package com.moit.advertisement.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import com.moit.advertisement.entity.Advertisement;
 import com.moit.advertisement.entity.AdvertisementDailyStatistics;
@@ -17,11 +22,28 @@ import com.moit.advertisement.entity.AdvertisementPayment;
 import com.moit.advertisement.entity.AdvertisementPositionPrice;
 import com.moit.advertisement.entity.AdvertisementPrice;
 import com.moit.advertisement.entity.AdvertisementTargetRegion;
+import com.moit.member.entity.Member;
+import com.moit.member.repository.MemberRepository;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@EnableJpaRepositories(
+    basePackageClasses = {
+        AdvertisementRepository.class,
+        AdvertisementImageRepository.class,
+        AdvertisementTargetRegionRepository.class,
+        AdvertisementPaymentRepository.class,
+        AdvertisementPriceRepository.class,
+        AdvertisementPositionPriceRepository.class,
+        AdvertisementDailyStatisticsRepository.class,
+        MemberRepository.class
+    }
+)
+@ImportAutoConfiguration(exclude = {
+    JpaRepositoriesAutoConfiguration.class
+})
 class AdvertisementRepositoryTest {
-
+ 
     @Autowired
     private AdvertisementRepository advertisementRepository;
 
@@ -42,6 +64,9 @@ class AdvertisementRepositoryTest {
 
     @Autowired
     private AdvertisementDailyStatisticsRepository advertisementDailyStatisticsRepository;
+    
+    @Autowired
+    private MemberRepository memberRepository;
 
 
     // =========================================================
@@ -65,7 +90,6 @@ class AdvertisementRepositoryTest {
     // =========================================================
     // 실제 Oracle DB 조회 테스트
     // =========================================================
-
     @Test
     @DisplayName("광고 Repository - 실제 DB 조회")
     void advertisementSelectTest() {

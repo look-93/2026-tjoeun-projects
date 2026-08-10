@@ -20,14 +20,18 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name="MEETUPS")
 public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하면 공통 컬럼 추가됩니다. 경로 따라가서 확인해보세요.
 	
@@ -78,7 +82,11 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	private Integer nx;
 	
 	@Column
-	private Integer ny;	
+	private Integer ny;
+	
+	@Builder.Default
+	@Column(nullable = false, columnDefinition = "NUMBER(1) DEFAULT 0")
+	private Boolean hidden = false;
 	
 	@ManyToOne
 	@JoinColumn(name="member_id", nullable = false)
