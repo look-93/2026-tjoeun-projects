@@ -206,7 +206,7 @@ public class UserServiceImpl  implements UserService{
 		dao.insertSocialInfo(dto);
 	}
 	
-	@Override public UserDto findByMemberId(int memberId) { return dao.findByMemberId(memberId); }
+	@Override public UserDto findByMemberId(Long memberId) { return dao.findByMemberId(memberId); }
 	
 	// 로그인 후 비밀번호 변경
 //	@Override
@@ -232,7 +232,7 @@ public class UserServiceImpl  implements UserService{
 //	}
 	@Override
 	public PasswordChangeResult changePassword(
-	        int memberId,
+			Long memberId,
 	        String currentPassword,
 	        String newPassword) {
 		
@@ -261,7 +261,7 @@ public class UserServiceImpl  implements UserService{
 	
 	@Transactional
 	@Override
-	public boolean deleteMember(int memberId,String password) {
+	public boolean deleteMember(Long memberId,String password) {
 
 		UserDto user = dao.findByMemberId(memberId);
 		
@@ -274,10 +274,10 @@ public class UserServiceImpl  implements UserService{
 	
 	
 	@Override
-	public List<String> getInterestList(int memberId) { return dao.selectInterestList(memberId); }
+	public List<String> getInterestList(Long memberId) { return dao.selectInterestList(memberId); }
 
 	@Override
-	public void updateInterest(Integer memberId, List<Integer> interestIds) {
+	public void updateInterest(Long memberId, List<Integer> interestIds) {
 		
 		// 기존 관심사 삭제
 		dao.deleteMemberInterest(memberId);
@@ -290,7 +290,7 @@ public class UserServiceImpl  implements UserService{
 
 	@Override public List<InterestDto> getAllInterest() { return dao.selectAllInterest(); }
 
-	@Override public List<Integer> getInterestIds(Integer memberId) { return dao.selectInterestIds(memberId); }
+	@Override public List<Integer> getInterestIds(Long memberId) { return dao.selectInterestIds(memberId); }
 
 	
 
