@@ -16,9 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.moit.member.dao.UserMapper;
 import com.moit.member.dto.AuthUserDto;
 import com.moit.member.dto.InterestDto;
-import com.moit.member.dto.MyPageDto;
 import com.moit.member.dto.UserDto;
-import com.moit.member.dto.UserJoinDto;
 import com.moit.member.enums.PasswordChangeResult;
 import com.moit.security.PasswordLeakService;
 
@@ -291,6 +289,41 @@ public class UserServiceImpl  implements UserService{
 	@Override public List<InterestDto> getAllInterest() { return dao.selectAllInterest(); }
 
 	@Override public List<Integer> getInterestIds(Long memberId) { return dao.selectInterestIds(memberId); }
+
+	
+	// 버전업 추가 코드
+	// 중복검사
+	@Override
+	public boolean existsByEmail(String email) {
+		Map<String,Object> map = new HashMap<>();
+		map.put("email", map);
+		
+		return dao.findUser(map) != null;
+	}
+
+	@Override
+	public boolean existsByNickname(String nickname) {
+		Map<String,Object> map = new HashMap<>();
+		map.put("nickname", map);
+		
+		return dao.findUser(map) != null;
+	}
+
+	@Override
+	public boolean existsByLoginId(String loginId) {
+		Map<String,Object> map = new HashMap<>();
+		map.put("loginId", map);
+		
+		return dao.findUser(map) != null;
+	}
+
+	@Override
+	public boolean existsByMobile(String mobile) {
+		Map<String,Object> map = new HashMap<>();
+		map.put("mobile", map);
+		
+		return dao.findUser(map) != null;
+	}
 
 	
 

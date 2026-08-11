@@ -40,4 +40,11 @@ public interface UserService {
 	List<InterestDto> getAllInterest();
 	List<Integer> getInterestIds(Long memberId);
 	public void updateInterest( Long memberId, List<Integer> interestIds );
+	
+	// 버전업 하면서 새로 추가된 코드
+	// 중복확인
+	public boolean existsByEmail(String email);
+	public boolean existsByNickname(String nickname);
+	public boolean existsByLoginId(String loginId);
+	public boolean existsByMobile(String mobile);
 }
