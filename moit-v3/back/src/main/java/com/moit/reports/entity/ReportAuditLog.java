@@ -3,6 +3,7 @@ package com.moit.reports.entity;
 import java.time.LocalDateTime;
 
 import com.moit.member.entity.Member;
+import com.moit.reports.enums.Status;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,16 +36,23 @@ public class ReportAuditLog {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "REPORT_ID", nullable = false)
     private Report report;
+//	entity.Report 에 추가
+//  @OneToMany(mappedBy = "report")
+//	private List<ReportAuditLog> reportAuditLogs = new ArrayList<>();
 
     // 신고를 처리한 관리자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ADMIN_ID", nullable = false)
-    private Member admin;
-
+    private Member adminMember;
+//	entity.Member 에 추가
+//	@OneToMany(mappedBy = "adminMember")
+//	private List<ReportAuditLog> reportAuditLogs = new ArrayList<>();
+    
     // 변경 전 상태
     @Enumerated(EnumType.STRING)
     @Column(name = "PREVIOUS_STATUS", nullable = false, length = 20)
     private Status previousStatus;
+    
     // 변경 후 상태
     @Enumerated(EnumType.STRING)
     @Column(name = "CHANGED_STATUS", nullable = false, length = 20)
@@ -53,6 +61,7 @@ public class ReportAuditLog {
     // 관리자가 입력한 처리 사유
     @Column(name = "PROCESS_REASON", nullable = false, length = 1000)
     private String processReason;
+    
     // 관리자 처리 시각
     @Column(name = "PROCESSED_AT", nullable = false, updatable = false)
     private LocalDateTime processedAt;
@@ -66,10 +75,10 @@ public class ReportAuditLog {
     @Column(name = "TRUST_SCORE_CHANGE", nullable = false)
     private Integer trustScoreChange;
 
-	public ReportAuditLog(Report report, Member admin, Status previousStatus,
-			Status changedStatus, String processReason, Integer trustScoreChange) {
+    // 관리자 처리 이력 로그
+	public ReportAuditLog(Report report, Member adminMember, Status previousStatus, Status changedStatus, String processReason, Integer trustScoreChange) {
 		this.report = report;
-		this.admin = admin;
+		this.adminMember = adminMember;
 		this.previousStatus = previousStatus;
 		this.changedStatus = changedStatus;
 		this.processReason = processReason;
