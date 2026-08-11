@@ -31,16 +31,23 @@ public class QuestionNotification extends BaseEntity{
     @JoinColumn(name = "QUESTION_ID", nullable = false)
     private Question question;
     
+    //유저는 많은 질문을 가질 수 있다
+	//    <Member>
+	//    @OneToMany( mappedBy = "member" ,cascade = CascadeType.ALL, orphanRemoval = true )
+	//    private List<QuestionNotification> questionNotifications = new ArrayList<>(); 
+    
     @ManyToOne
     @JoinColumn(name = "MEMBER_ID", nullable = false)
     private Member member;
 
+    // enum
     @Column(name = "TYPE", nullable = false)
     private String type;
 
     @Column(name = "MESSAGE", nullable = false)
     private String message;
 
+    //
     @Column(name = "IS_READ")
     private String isRead;
 }

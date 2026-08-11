@@ -66,7 +66,7 @@ public class QuestionController {
 		String loginId     = null, provider = null;
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
+		Long memberId = null;
 		//1. local
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
@@ -181,7 +181,7 @@ public class QuestionController {
 		String loginId     = null, provider = null;
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
+		Long memberId = null;
 		//1. local
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
@@ -201,7 +201,7 @@ public class QuestionController {
     
     // 문의 상세 화면 + 답변 조회 + 버튼 권한
     @GetMapping("/{id}")
-    public String detail(@PathVariable int id, HttpSession session, Model model,  RedirectAttributes rttr, Authentication authentication) {
+    public String detail(@PathVariable Long id, HttpSession session, Model model,  RedirectAttributes rttr, Authentication authentication) {
         QuestionDto data = questionService.getDetail(id);
 
         boolean canAnswer = canAnswer(data, session, authentication);
@@ -214,7 +214,7 @@ public class QuestionController {
 
     // 문의 수정 화면 이동
     @GetMapping("/edit/{id}")
-    public String editForm(@PathVariable int id, HttpSession session, Model model, RedirectAttributes rttr, Authentication authentication) {
+    public String editForm(@PathVariable Long id, HttpSession session, Model model, RedirectAttributes rttr, Authentication authentication) {
         QuestionDto question = questionService.getDetail(id);
         //System.out.println(question);
         if(!canEdit(question, session, authentication)){
@@ -239,7 +239,7 @@ public class QuestionController {
 
     // 문의 삭제 처리
     @GetMapping("/delete/{id}")
-    public String delete(@PathVariable int id, HttpSession session, RedirectAttributes rttr, Authentication authentication) {
+    public String delete(@PathVariable Long id, HttpSession session, RedirectAttributes rttr, Authentication authentication) {
 	    QuestionDto question =questionService.getDetail(id);
 	    
 	    if(!canEdit(question, session, authentication)){
@@ -265,7 +265,7 @@ public class QuestionController {
     
     // 답변 작성
     @GetMapping("/answer/write/{id}")
-    public String answerForm(@PathVariable int id, HttpSession session, Model model,  RedirectAttributes rttr, Authentication authentication) {
+    public String answerForm(@PathVariable Long id, HttpSession session, Model model,  RedirectAttributes rttr, Authentication authentication) {
         QuestionDto question = questionService.getDetail(id);
         if(!canAnswer(question, session, authentication)){
             rttr.addFlashAttribute("msg", "모임장 또는 관리자만 답변할 수 있습니다.");
@@ -277,7 +277,7 @@ public class QuestionController {
     
     // 답변 수정 화면
     @GetMapping("/answer/edit/{questionId}")
-    public String answerEditForm(@PathVariable int questionId, HttpSession session, Model model, Authentication authentication) {
+    public String answerEditForm(@PathVariable Long questionId, HttpSession session, Model model, Authentication authentication) {
         QuestionDto question = questionService.getDetail(questionId);
         
         if(!canAnswer(question, session, authentication)){
@@ -303,7 +303,7 @@ public class QuestionController {
 
     // 답변 삭제
     @GetMapping("/answer/delete/{answerId}/{questionId}")
-    public String answerDelete(@PathVariable int answerId,@PathVariable int questionId,
+    public String answerDelete(@PathVariable Long answerId,@PathVariable Long questionId,
     		HttpSession session, RedirectAttributes rttr, Authentication authentication) {
         QuestionDto question = questionService.getDetail(questionId);
         
@@ -320,7 +320,7 @@ public class QuestionController {
 		String loginId     = null, provider = null;
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
+		Long memberId = null;
 		//1. local
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
@@ -350,7 +350,7 @@ public class QuestionController {
 		String loginId     = null, provider = null;
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
+		Long memberId = null;
 		//1. local
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
