@@ -1,15 +1,14 @@
-package com.moit.common;
+package com.moit.common.entity;
 
 import org.hibernate.annotations.Comment;
-
-import com.moit.meetup.entity.Meetup;
-import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,16 +18,19 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-@Table(name="IMAGES")
-public class Image extends BaseEntity{
-
+@Table(name="SIGUNGUS")
+public class Sigungu {
+	
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(unique = true, nullable = false)
 	private Long id;
 	
-	@Comment("이미지 저장 경로(URL 또는 파일 경로")
-	@Column(length = 255, nullable = false)
-	private String imagePath;
-		
+	@Comment("시/군/구 이름")
+	@Column(length = 100, nullable = false)
+	private String name;
+	
+	@ManyToOne
+	@JoinColumn(name = "SIDO_ID", nullable = false)
+	private Sido sido;
 }

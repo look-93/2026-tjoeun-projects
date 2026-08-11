@@ -1,4 +1,4 @@
-package com.moit.meetup.client;
+package com.moit.common.service;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -17,12 +18,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.moit.meetup.dto.openapi.AddressSearchResponse;
-import com.moit.meetup.dto.openapi.WeatherInfoRequest;
-import com.moit.meetup.dto.openapi.WeatherInfoResponse;
+import com.moit.common.dto.AddressSearchResponse;
+import com.moit.common.dto.WeatherInfoRequest;
+import com.moit.common.dto.WeatherInfoResponse;
 import com.moit.util.GridUtil;
-
-import lombok.RequiredArgsConstructor;
 
 @Service
 public class OpenApiServiceImpl implements OpenApiService {
@@ -182,8 +181,10 @@ public class OpenApiServiceImpl implements OpenApiService {
 	}
 
 	@Override
-    public AddressSearchResponse addressSearch(String keyword,Integer pstartno) {
-
+    public AddressSearchResponse.AddressSearchListResponseDto addressSearch(String keyword, Pageable pageable) {
+	    int page = pageable.getPageNumber() + 1;
+	    int size = pageable.getPageSize();
+	    
         String json = vworldRestClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/req/search")
@@ -191,8 +192,8 @@ public class OpenApiServiceImpl implements OpenApiService {
                         .queryParam("request", "search")
                         .queryParam("version", "2.0")
                         .queryParam("crs", "EPSG:4326")
-                        .queryParam("size", 10)
-                        .queryParam("page", 1)
+                        .queryParam("size", size)
+                        .queryParam("page", page)
                         .queryParam("type", "ADDRESS")
                         .queryParam("category", "ROAD")
                         .queryParam("format", "json")
@@ -211,9 +212,8 @@ public class OpenApiServiceImpl implements OpenApiService {
                                  .path("result")
                                  .path("items");
             
-            JsonNode page = root.path("response")
+            JsonNode pageInfo = root.path("response")
                     .path("page");
-            AddressSearchResponse response = new AddressSearchResponse();
 
             List<AddressSearchResponse.AddressSearchDto> list = new ArrayList<>();
 
@@ -237,9 +237,22 @@ public class OpenApiServiceImpl implements OpenApiService {
 
                 list.add(dto);
             }
-            response.setTotalCount(page.path("total").asInt());
+            
+            AddressSearchResponse.AddressSearchListResponseDto response = new AddressSearchResponse.AddressSearchListResponseDto();
+            
+            // 목록
             response.setList(list);
 
+            // 전체 데이터 개수
+            long totalCount = pageInfo.path("total").asLong();
+            
+            response.setTotalCount(totalCount);
+
+            // 전체 페이지 수
+            long totalPage = (long) Math.ceil((double) totalCount / size);
+
+            response.setTotalPage(totalPage);
+            
             return response;
 
         } catch (Exception e) {

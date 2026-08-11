@@ -2,7 +2,6 @@ package com.moit.meetup.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -13,11 +12,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.moit.common.Sigungu;
 import com.moit.common.dto.SigunguDto;
+import com.moit.common.entity.Sigungu;
 import com.moit.exception.ResourceNotFoundException;
-import com.moit.meetup.client.OpenAiChatService;
-import com.moit.meetup.client.OpenApiService;
+import com.moit.meetup.client.OpenAiApiClient;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicantResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationResponseDto;
@@ -29,8 +27,6 @@ import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
-import com.moit.meetup.dto.openapi.WeatherInfoRequest;
-import com.moit.meetup.dto.openapi.WeatherInfoResponse;
 import com.moit.meetup.entity.Meetup;
 import com.moit.meetup.entity.MeetupApplication;
 import com.moit.meetup.entity.MeetupCategory;
@@ -39,6 +35,7 @@ import com.moit.meetup.enums.ApplyStatus;
 import com.moit.meetup.repository.MeetupApplicationRepository;
 import com.moit.meetup.repository.MeetupCategoryRepository;
 import com.moit.meetup.repository.MeetupLikesRepository;
+import com.moit.meetup.repository.MeetupParticipantCountDto;
 import com.moit.meetup.repository.MeetupRepository;
 import com.moit.meetup.repository.MeetupSigunguRepository;
 import com.moit.member.entity.Member;
@@ -58,9 +55,9 @@ public class MeetupServiceImpl implements MeetupService{
 	private final MemberRepository memberRepository; 
 	private final MeetupCategoryRepository meetupCategoryRepository;
 	private final MeetupSigunguRepository meetupSigunguRepository;
+	
+	private final OpenAiApiClient openAiApiClient;
 		
-	private final OpenAiChatService openAiChatService; 
-	private final OpenApiService openApiService;
 	//모임리스트조회
 	@Override
 	public MeetupListResponseDto search(Pageable pageable) {
@@ -79,6 +76,35 @@ public class MeetupServiceImpl implements MeetupService{
 			Meetup meetup = contents.get(i);			
 			list.add(MeetupResponseDto.listFrom(meetup));
 		}
+		
+		//list에서 id꺼내기
+		List<Long> ids = list.stream().map(item -> item.getId()).toList();
+		//쿼리통해서 ids에 해당하는 total_participants 를 구함
+		List<MeetupParticipantCountDto> result = meetupApplicationRepository.countByMeetup_IdInAndApplyStatusAndDeleteYn(ids, ApplyStatus.APPROVED, false);
+		
+		list.forEach(item->{
+			
+			result.forEach(cnt->{
+				
+				if(item.getId().equals(cnt.getMeetupId())) {
+					item.setTotalParticipants(cnt.getTotalParticipants());
+					return;
+				}
+			});
+			
+		});
+		
+		//내가 눌렀는지 
+//        LEFT JOIN meetup_likes H
+//            ON H.meetup_id = A.meetup_id
+//           AND H.member_id = :memberId
+		//전체 카운트
+//        LEFT JOIN (
+//                SELECT meetup_id, COUNT(*) AS like_cnt
+//                FROM meetup_likes
+//                GROUP BY meetup_id
+//            ) I ON I.meetup_id = A.meetup_id		
+		
 		listResponse.setMeetups(list);
 		return listResponse;
 
@@ -106,13 +132,16 @@ public class MeetupServiceImpl implements MeetupService{
 		Member member = memberRepository.findById(memberId)
 										.orElseThrow(()-> new ResourceNotFoundException("존재하지 않는 회원입니다. MEMBERID" + memberId));
 		
+		Sigungu sigungu = meetupSigunguRepository.findById(meetupRequestDto.getSigunguId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 지역입니다. SigunguId" + meetupRequestDto.getSigunguId()));
+		MeetupCategory meetupCategory = meetupCategoryRepository.findById(meetupRequestDto.getCategoryId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 카테고리입니다. meetupCategory" + meetupRequestDto.getCategoryId()));
+		
 	    Meetup meetup = Meetup.builder()
 							  .title(meetupRequestDto.getTitle())
 							  .content(meetupRequestDto.getContent())
 							  .maxParticipants(meetupRequestDto.getMaxParticipants())
 							  .minParticipants(meetupRequestDto.getMinParticipants())
-							  .sigunguId(meetupRequestDto.getSigunguId())
-							  .categoryId(meetupRequestDto.getCategoryId())
+							  .sigungu(sigungu)
+							  .meetupCategory(meetupCategory)
 							  .address(meetupRequestDto.getAddress())
 							  .addressDetail(meetupRequestDto.getAddressDetail())
 							  .meetupAt(meetupRequestDto.getMeetupAt())
@@ -133,6 +162,11 @@ public class MeetupServiceImpl implements MeetupService{
 		Meetup meetup = meetupRepository.findById(meetupId)
 										.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 게시글입니다. MEETUPID" + meetupId));
 		
+		Sigungu sigungu = meetupSigunguRepository.findById(meetupRequestDto.getSigunguId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 지역입니다. SigunguId" + meetupRequestDto.getSigunguId()));
+		MeetupCategory meetupCategory = meetupCategoryRepository.findById(meetupRequestDto.getCategoryId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 카테고리입니다. meetupCategory" + meetupRequestDto.getCategoryId()));
+		
+		
+		
 		if(meetup.getDeleteYn() == 'Y') {
 			throw new ResourceNotFoundException("삭제된 게시글 입니다. MEETUPID" + meetupId);
 		}
@@ -142,8 +176,8 @@ public class MeetupServiceImpl implements MeetupService{
 		meetup.setContent(meetupRequestDto.getContent());
 		meetup.setMaxParticipants(meetupRequestDto.getMaxParticipants());
 		meetup.setMinParticipants(meetupRequestDto.getMinParticipants());
-		meetup.setSigunguId(meetupRequestDto.getSigunguId());
-		meetup.setCategoryId(meetupRequestDto.getCategoryId());
+		meetup.setSigungu(sigungu);
+		meetup.setMeetupCategory(meetupCategory);
 		meetup.setAddress(meetupRequestDto.getAddress());
 		meetup.setAddressDetail(meetupRequestDto.getAddressDetail());
 		meetup.setMeetupAt(meetupRequestDto.getMeetupAt());
@@ -173,26 +207,22 @@ public class MeetupServiceImpl implements MeetupService{
 		
 		Member member = memberRepository.findById(memberId)
 										.orElseThrow(()-> new ResourceNotFoundException("존재하지 않는 회원입니다.. MEMBERID" + memberId));
-		
-		
+			
 		Optional<MeetupApplication> apply = meetupApplicationRepository.findByMeetup_IdAndMember_Id(meetupId, memberId);
 		
 	    // 이미 신청했으면 → 신청 취소
 	    if (apply.isPresent()) {	    	
 	    	MeetupApplication meetupApplication = apply.get();
-	    	
-	    	//System.out.println(meetupApplication.getApplyStatus() );
-	    	
+
 	        // 신청 중이면 → 취소
 	        if (meetupApplication.getApplyStatus() == ApplyStatus.PENDING) {
 	        	
 	        	//오늘 신청한 경우
 	        	if(meetupApplication.getCreatedAt().toLocalDate().isEqual(LocalDate.now())) {
+	        		
 		        	// 신청 1시간 이후 취소 시 신뢰도 점수 차감 - -5점
 		        	if(meetupApplication.getCreatedAt().plusHours(1).isBefore(LocalDateTime.now())) {
-		        		MemberInfo memberInfo = meetupApplication.getMember().getMemberInfo();
-		        		int trustScore = memberInfo.getTrustScore();
-		        		memberInfo.setTrustScore(trustScore -5);
+		        	    changeTrustScore(member, -5);
 		        	}
 	        	}
 	        	
@@ -201,12 +231,27 @@ public class MeetupServiceImpl implements MeetupService{
 	        }
 
 	        // 취소된 상태면 → 다시 신청
-	        if (meetupApplication.getApplyStatus() == ApplyStatus.CANCELED) {	        	
+	        if (meetupApplication.getApplyStatus() == ApplyStatus.CANCELED) {	 
+	            
+	        	// ⭐ 다시 신청할 때 정원 
+	            long applicantCount = meetupApplicationRepository.countByMeetupIdAndApplyStatus(meetupId, ApplyStatus.PENDING);
+
+	            if (applicantCount >= meetup.getMaxParticipants()) {
+	                throw new IllegalStateException( "모임 정원이 가득 찼습니다.");
+	            }
+	        	
 	            meetupApplication.setApplyStatus(ApplyStatus.PENDING);
 	            return;
 	        }
 	    }
-		
+	    
+	    // 신규 신청 → 정원 확인
+	    long applicantCount = meetupApplicationRepository.countByMeetupIdAndApplyStatus( meetupId, ApplyStatus.PENDING);
+
+	    if (applicantCount >= meetup.getMaxParticipants()) {
+	        throw new IllegalStateException("모임 정원이 가득 찼습니다.");
+	    }
+	    
 	    // 신청 내역 자체가 없으면 → 신규 신청
 		MeetupApplication meetupApplication = MeetupApplication.builder()
 															   .applyStatus(ApplyStatus.PENDING)
@@ -328,6 +373,8 @@ public class MeetupServiceImpl implements MeetupService{
 													                            "존재하지 않는 신청입니다. APPLICATION ID : " 
 													                            + requestDto.getApplicationId()
 													                        ));
+		Member member = meetupApplication.getMember();
+		
 		//기존 상태
 		ApplyStatus beforeStatus = meetupApplication.getApplyStatus();
 		//받아온 상태
@@ -342,14 +389,12 @@ public class MeetupServiceImpl implements MeetupService{
 			meetupApplication.setRejectReason(null);
 		}
 		
-		//기존 상태가 NOSHOW가 아니고 → 새 상태가 NOSHOW일 때만 -5
 		if(beforeStatus != ApplyStatus.NOSHOW && afterStatus == ApplyStatus.NOSHOW) {
-    		MemberInfo memberInfo = meetupApplication.getMember().getMemberInfo();
-    		memberInfo.setTrustScore(memberInfo.getTrustScore() -5);
+			//기존 상태가 NOSHOW가 아니고 → 새 상태가 NOSHOW일 때만 -5
+    		changeTrustScore(member, -5);
 		}else if(beforeStatus == ApplyStatus.NOSHOW && afterStatus != ApplyStatus.NOSHOW) {
 			//NOSHOW에서 다른 상태로 변경 (실수로 누른경우)
-    		MemberInfo memberInfo = meetupApplication.getMember().getMemberInfo();
-    		memberInfo.setTrustScore(memberInfo.getTrustScore() +5);	
+			changeTrustScore(member, 5);
 		}		
 	}
 	
@@ -414,7 +459,7 @@ public class MeetupServiceImpl implements MeetupService{
 				""".formatted(keyword);
 	    try {
 	    	// 1. AI 호출
-			String result = openAiChatService.getAIResponse(aiPrompt);
+			String result = openAiApiClient.getAIResponse(aiPrompt);
 			
 			// 2. AI 응답 JSON → DTO
 			ObjectMapper mapper = new ObjectMapper();
@@ -439,27 +484,46 @@ public class MeetupServiceImpl implements MeetupService{
 	    }
 	}
 	
-	//날씨
-	public WeatherInfoResponse getWeather(MeetupRequestDto meetupRequestDto) {
+	// 점수가 실제로 변경된 경우에만 AI 요약 갱신
+	private void changeTrustScore(Member member, int amount) {
 
-		MeetupResponseDto meetupResponseDto = detail(meetupRequestDto.getId());
-		/*날씨*/
-		WeatherInfoRequest weatherRequest  = new WeatherInfoRequest();
-		String dateTime = meetupResponseDto.getMeetupAt();
-		
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-		LocalDateTime localDateTime = LocalDateTime.parse(dateTime, formatter);
-		
-		weatherRequest.setMeetupDate(localDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));		
-		weatherRequest.setMeetupTime(localDateTime.getHour());		
-		weatherRequest.setNx(meetupResponseDto.getNx());
-		weatherRequest.setNy(meetupResponseDto.getNy());
-		WeatherInfoResponse weatherResponse = openApiService.getWeathreInfo(weatherRequest);
-		/*날씨*/
-		return weatherResponse;
+	    MemberInfo memberInfo = member.getMemberInfo();
+
+	    int currentScore = memberInfo.getTrustScore();
+
+	    int newScore = currentScore + amount;
+
+	    memberInfo.setTrustScore(newScore);
+
+	    // 점수가 실제로 변경된 경우에만 AI 요약 갱신
+	    if (currentScore != newScore) {
+	        updateAiSummary(member);
+	    }
 	}
+	
+	// 신뢰도 점수 AI 요약 갱신
+	private void updateAiSummary(Member member) {
 
-	//ai 한줄평
-	//지도
-	//주소
+	    Integer trustScore = member.getMemberInfo().getTrustScore();
+
+	    String aiSummary;
+
+	    if (trustScore < 60) {
+
+	        String aiPrompt = "[대상 유저 이력 정보]\n"
+	                + "- 최근 3개월 내 무단 노쇼(NOSHOW), 당일 모임 신청 후 1시간 이내 취소 등의 이력을 종합\n"
+	                + "- 총 신뢰도 점수: " + trustScore + "점\n"
+	                + "- 신뢰도 점수가 60점 이하면 주의가 필요한 회원\n"
+	                + "위 이력을 바탕으로 모임 개설자가 주의할 수 있게 "
+	                + "20자 내외의 경고성 한 줄 요약문을 만들어줘.";
+
+	        aiSummary = openAiApiClient.getAIResponse(aiPrompt);
+
+	    } else {
+
+	        aiSummary = "신뢰도가 높은 회원입니다.";
+	    }
+
+	    member.getMemberInfo().setAiSummary(aiSummary);
+	}	
 }

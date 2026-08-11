@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Pageable;
 
 import com.moit.common.dto.SigunguDto;
+import com.moit.common.dto.WeatherInfoResponse;
 import com.moit.meetup.dto.MeetupCategoryDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplyMemberListResponseDto;
@@ -14,7 +15,6 @@ import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
-import com.moit.meetup.dto.openapi.WeatherInfoResponse;
 
 public interface MeetupService {
 	//목록조회
@@ -60,10 +60,6 @@ public interface MeetupService {
 	public List<SigunguDto> getSigungu();
 	
 	// ################### open api ###################
-	
 	//ai 제목/카테고리/컨텐츠 추가
 	public RecommendMeetupResponseDto meetupWriteAiRecommended(RecommendMeetupRequestDto request);
-	
-	//날씨
-	public WeatherInfoResponse getWeather(MeetupRequestDto meetupRequestDto);
 }

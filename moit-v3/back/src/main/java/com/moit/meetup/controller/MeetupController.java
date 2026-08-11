@@ -25,7 +25,6 @@ import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
-import com.moit.meetup.dto.openapi.WeatherInfoResponse;
 import com.moit.meetup.service.MeetupService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -157,12 +156,6 @@ public class MeetupController {
 	@PostMapping("/write/ai/recommended")
 	public ResponseEntity<RecommendMeetupResponseDto> meetupWriteAiRecommended(@RequestBody RecommendMeetupRequestDto request){
 		return ResponseEntity.ok(meetupService.meetupWriteAiRecommended(request));
-	}
-	
-	@Operation(summary = "날씨", description = "날씨를 조회합니다.")
-	@GetMapping("/detail/weather")
-	public ResponseEntity<WeatherInfoResponse> getWeather(@RequestBody MeetupRequestDto meetupRequestDto){
-		return ResponseEntity.ok(meetupService.getWeather(meetupRequestDto));
 	}
 }
 
