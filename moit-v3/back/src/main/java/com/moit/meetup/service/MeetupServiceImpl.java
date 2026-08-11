@@ -1,5 +1,8 @@
 package com.moit.meetup.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -9,9 +12,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moit.common.Sigungu;
 import com.moit.common.dto.SigunguDto;
 import com.moit.exception.ResourceNotFoundException;
+import com.moit.meetup.client.OpenAiChatService;
+import com.moit.meetup.client.OpenApiService;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicantResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationResponseDto;
@@ -21,6 +27,10 @@ import com.moit.meetup.dto.MeetupCategoryDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
+import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
+import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
+import com.moit.meetup.dto.openapi.WeatherInfoRequest;
+import com.moit.meetup.dto.openapi.WeatherInfoResponse;
 import com.moit.meetup.entity.Meetup;
 import com.moit.meetup.entity.MeetupApplication;
 import com.moit.meetup.entity.MeetupCategory;
@@ -32,6 +42,7 @@ import com.moit.meetup.repository.MeetupLikesRepository;
 import com.moit.meetup.repository.MeetupRepository;
 import com.moit.meetup.repository.MeetupSigunguRepository;
 import com.moit.member.entity.Member;
+import com.moit.member.entity.MemberInfo;
 import com.moit.member.repository.MemberRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -47,7 +58,9 @@ public class MeetupServiceImpl implements MeetupService{
 	private final MemberRepository memberRepository; 
 	private final MeetupCategoryRepository meetupCategoryRepository;
 	private final MeetupSigunguRepository meetupSigunguRepository;
-	
+		
+	private final OpenAiChatService openAiChatService; 
+	private final OpenApiService openApiService;
 	//모임리스트조회
 	@Override
 	public MeetupListResponseDto search(Pageable pageable) {
@@ -73,22 +86,15 @@ public class MeetupServiceImpl implements MeetupService{
 	
 	//상세조회
 	@Override
-	public MeetupResponseDto detail(Long meetupId, Long memberId) {		
+	public MeetupResponseDto detail(Long meetupId) {		
 		Meetup meetup = meetupRepository.findById(meetupId)
 										.orElseThrow(()->new ResourceNotFoundException("존재하지 않는 게시글입니다. ID: "+ meetupId));
 		
-		MeetupApplication meetupApplication = meetupApplicationRepository.findByMeetup_IdAndMember_Id(meetupId, memberId).orElse(null);
-		
-
 		if(meetup.getDeleteYn() == 'Y') {
 			throw new IllegalArgumentException("삭제된 게시글 입니다.");
-		}
-		
+		}		
 		
 		MeetupResponseDto response = MeetupResponseDto.detailFrom(meetup);
-		if(meetupApplication != null) {
-			response.setApplyStatus(meetupApplication.getApplyStatus());
-		}
 		
 		return response;
 	}
@@ -175,16 +181,27 @@ public class MeetupServiceImpl implements MeetupService{
 	    if (apply.isPresent()) {	    	
 	    	MeetupApplication meetupApplication = apply.get();
 	    	
-	    	System.out.println(meetupApplication.getApplyStatus() );
+	    	//System.out.println(meetupApplication.getApplyStatus() );
 	    	
 	        // 신청 중이면 → 취소
 	        if (meetupApplication.getApplyStatus() == ApplyStatus.PENDING) {
+	        	
+	        	//오늘 신청한 경우
+	        	if(meetupApplication.getCreatedAt().toLocalDate().isEqual(LocalDate.now())) {
+		        	// 신청 1시간 이후 취소 시 신뢰도 점수 차감 - -5점
+		        	if(meetupApplication.getCreatedAt().plusHours(1).isBefore(LocalDateTime.now())) {
+		        		MemberInfo memberInfo = meetupApplication.getMember().getMemberInfo();
+		        		int trustScore = memberInfo.getTrustScore();
+		        		memberInfo.setTrustScore(trustScore -5);
+		        	}
+	        	}
+	        	
 	            meetupApplication.setApplyStatus(ApplyStatus.CANCELED);
 	            return;
 	        }
 
 	        // 취소된 상태면 → 다시 신청
-	        if (meetupApplication.getApplyStatus() == ApplyStatus.CANCELED) {
+	        if (meetupApplication.getApplyStatus() == ApplyStatus.CANCELED) {	        	
 	            meetupApplication.setApplyStatus(ApplyStatus.PENDING);
 	            return;
 	        }
@@ -196,7 +213,6 @@ public class MeetupServiceImpl implements MeetupService{
 															   .meetup(meetup)
 															   .member(member)
 															   .build();
-		//당일 모임 신청 시 1시간 이후 취소 시 신뢰도 점수 차감
 		
 		meetupApplicationRepository.save(meetupApplication);
 	}
@@ -312,6 +328,11 @@ public class MeetupServiceImpl implements MeetupService{
 													                            "존재하지 않는 신청입니다. APPLICATION ID : " 
 													                            + requestDto.getApplicationId()
 													                        ));
+		//기존 상태
+		ApplyStatus beforeStatus = meetupApplication.getApplyStatus();
+		//받아온 상태
+		ApplyStatus afterStatus = requestDto.getApplyStatus();
+		
 		meetupApplication.setApplyStatus(requestDto.getApplyStatus());
 		
 		//거절일 경우 거절 사유 저장
@@ -321,7 +342,15 @@ public class MeetupServiceImpl implements MeetupService{
 			meetupApplication.setRejectReason(null);
 		}
 		
-		//노쇼일 경우 신뢰도 점수 차감
+		//기존 상태가 NOSHOW가 아니고 → 새 상태가 NOSHOW일 때만 -5
+		if(beforeStatus != ApplyStatus.NOSHOW && afterStatus == ApplyStatus.NOSHOW) {
+    		MemberInfo memberInfo = meetupApplication.getMember().getMemberInfo();
+    		memberInfo.setTrustScore(memberInfo.getTrustScore() -5);
+		}else if(beforeStatus == ApplyStatus.NOSHOW && afterStatus != ApplyStatus.NOSHOW) {
+			//NOSHOW에서 다른 상태로 변경 (실수로 누른경우)
+    		MemberInfo memberInfo = meetupApplication.getMember().getMemberInfo();
+    		memberInfo.setTrustScore(memberInfo.getTrustScore() +5);	
+		}		
 	}
 	
 	//카테고리 조회
@@ -361,5 +390,76 @@ public class MeetupServiceImpl implements MeetupService{
 		return sigungu.stream().map(SigunguDto::from).toList();
 	}
 	
-	//api - 날씨, 모임등록자동추천, ai 한줄평, 지도, 주소
+	// ################### open api ###################
+
+	//ai 제목/카테고리/컨텐츠 추가
+	@Override
+	public RecommendMeetupResponseDto meetupWriteAiRecommended(RecommendMeetupRequestDto request){
+		String keyword = request.getKeyword();
+		String aiPrompt = """
+				사용자가 입력한 키워드를 바탕으로 많이 모을수 있는, 재미있는, 사용자들이 클릭하고 싶은 모임 정보를 생성해.
+				category는 웬만해서 입력한 키워드로 해줘. 
+				
+				키워드: %s
+
+				아래 JSON 형식으로만 응답해.
+
+				{
+				  "title": "",
+				  "category": "",
+				  "content": ""
+				}
+
+				JSON 외의 다른 설명은 절대 하지 마.
+				""".formatted(keyword);
+	    try {
+	    	// 1. AI 호출
+			String result = openAiChatService.getAIResponse(aiPrompt);
+			
+			// 2. AI 응답 JSON → DTO
+			ObjectMapper mapper = new ObjectMapper();
+			RecommendMeetupResponseDto dto =
+			        mapper.readValue(result, RecommendMeetupResponseDto.class);
+			
+			// 3. 카테고리 이름 → 카테고리 ID
+			Long categoryId = getCategory()
+								.stream()
+								.filter(category -> category.getCategoryName().equals(dto.getCategory()))
+								.map(MeetupCategoryDto::getId)
+								.findFirst()
+								.orElse(0L);
+			
+			dto.setId(categoryId == null ? 0 : categoryId);
+	
+	
+	        return dto;
+	
+	    } catch (Exception e) {
+	        throw new RuntimeException("AI 모임 추천 생성 중 오류가 발생했습니다.", e);
+	    }
+	}
+	
+	//날씨
+	public WeatherInfoResponse getWeather(MeetupRequestDto meetupRequestDto) {
+
+		MeetupResponseDto meetupResponseDto = detail(meetupRequestDto.getId());
+		/*날씨*/
+		WeatherInfoRequest weatherRequest  = new WeatherInfoRequest();
+		String dateTime = meetupResponseDto.getMeetupAt();
+		
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		LocalDateTime localDateTime = LocalDateTime.parse(dateTime, formatter);
+		
+		weatherRequest.setMeetupDate(localDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));		
+		weatherRequest.setMeetupTime(localDateTime.getHour());		
+		weatherRequest.setNx(meetupResponseDto.getNx());
+		weatherRequest.setNy(meetupResponseDto.getNy());
+		WeatherInfoResponse weatherResponse = openApiService.getWeathreInfo(weatherRequest);
+		/*날씨*/
+		return weatherResponse;
+	}
+
+	//ai 한줄평
+	//지도
+	//주소
 }

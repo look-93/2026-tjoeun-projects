@@ -16,6 +16,7 @@ public class MeetupDto {
 	@Getter
 	@NoArgsConstructor
 	public static class MeetupRequestDto{
+		private Long id;
 		private Long memberId;
 		private String title;
 		private String content;

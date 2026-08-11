@@ -15,14 +15,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.moit.meetup.dto.MeetupCategoryDto;
 import com.moit.common.dto.SigunguDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplyMemberListResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MyApplicationListResponseDto;
+import com.moit.meetup.dto.MeetupCategoryDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
+import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
+import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
+import com.moit.meetup.dto.openapi.WeatherInfoResponse;
 import com.moit.meetup.service.MeetupService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,16 +51,15 @@ public class MeetupController {
 	
 	@Operation(summary = "모임상세조회", description = "모임 상세를 조회합니다.")
 	@GetMapping("/{meetupId}")
-	public ResponseEntity<MeetupResponseDto> detail(@PathVariable("meetupId") Long meetupId){
-		Long memberId = 2L;  //세션으로 수정		
-		MeetupResponseDto meetupResponseDto = meetupService.detail(meetupId, memberId);
+	public ResponseEntity<MeetupResponseDto> detail(@PathVariable("meetupId") Long meetupId){		
+		MeetupResponseDto meetupResponseDto = meetupService.detail(meetupId);
 		return ResponseEntity.ok(meetupResponseDto);
 	}
 	
 	@Operation(summary = "모임등록", description = "모임을 등록합니다.")
 	@PostMapping //  세션으로 수정
 	public ResponseEntity<Void> create(@RequestBody MeetupRequestDto meetupRequestDto){
-		Long memberId = 2L;  //세션으로 수정		
+		Long memberId = 1L;  //세션으로 수정		
 		meetupService.create(meetupRequestDto, memberId);
 		return ResponseEntity.status(HttpStatus.CREATED).build(); // 성공 응답 201
 	}
@@ -79,7 +81,7 @@ public class MeetupController {
 	@Operation(summary = "모임신청", description = "모임을 신청합니다.")
 	@PostMapping("/{meetupId}/apply")
 	public ResponseEntity<Void> apply(@PathVariable("meetupId") Long meetupId){
-		Long memberId = 2L; //세션으로 수정		
+		Long memberId = 1L; //세션으로 수정		
 		meetupService.apply(memberId, meetupId);
 		return ResponseEntity.ok().build(); // 성공 응답 200
 	}
@@ -87,7 +89,7 @@ public class MeetupController {
 	@Operation(summary = "좋아요", description = "모임 좋아요.")
 	@PatchMapping("/{meetupId}/like")
 	public ResponseEntity<Void> meetupLike(@PathVariable("meetupId") Long meetupId){
-		Long memberId = 2L; //세션으로 수정
+		Long memberId = 1L; //세션으로 수정
 		meetupService.meetupLike(memberId, meetupId);
 		return ResponseEntity.ok().build(); // 성공 응답 200
 	}	
@@ -102,7 +104,7 @@ public class MeetupController {
 	@Operation(summary = "마이페이지 내 신청 조회", description = "내가 신청한 모집글 목록을 조회합니다.")
 	@GetMapping("/applications")
 	public ResponseEntity<MyApplicationListResponseDto> getMyApplications(Pageable pageable){
-		Long memberId = 2L; //세션으로 수정
+		Long memberId = 1L; //세션으로 수정
 		MyApplicationListResponseDto  response = meetupService.getMyApplications(memberId, pageable);
 		
 		return ResponseEntity.ok(response);
@@ -111,7 +113,7 @@ public class MeetupController {
 	@Operation(summary = "마이페이지 내 모집글 - 신청자 리스트 조회", description = "모집글 신청자 리스트를 조회합니다.")
 	@GetMapping("/{meetupId}/applicants")
 	public ResponseEntity<MeetupApplyMemberListResponseDto> getMyMeetupApplicants(@PathVariable("meetupId") Long meetupId, Pageable pageable){
-		Long memberId = 2L; //세션으로 수정
+		Long memberId = 1L; //세션으로 수정
 		MeetupApplyMemberListResponseDto  response = meetupService.getMyMeetupApplicants(meetupId, memberId, pageable);
 		
 		return ResponseEntity.ok(response);
@@ -120,7 +122,7 @@ public class MeetupController {
 	@Operation(summary = "마이페이지 내 모집글 조회", description = "내가 모집한 모집글 목록을 조회합니다.")
 	@GetMapping("/my")
 	public ResponseEntity<MeetupListResponseDto> getMyMeetups(Pageable pageable){
-		Long memberId = 2L; //세션으로 수정
+		Long memberId = 1L; //세션으로 수정
 		MeetupListResponseDto  response = meetupService.getMyMeetups(memberId, pageable);
 		
 		return ResponseEntity.ok(response);
@@ -149,6 +151,19 @@ public class MeetupController {
 		return ResponseEntity.ok(meetupService.getSigungu());
 	}
 	
+	// ################### open api ###################
+
+	@Operation(summary = "AI 모임 제목/카테고리/내용 추천", description = "사용자가 입력한 키워드를 기반으로 AI가 모임 제목, 카테고리, 내용을 추천합니다.")
+	@PostMapping("/write/ai/recommended")
+	public ResponseEntity<RecommendMeetupResponseDto> meetupWriteAiRecommended(@RequestBody RecommendMeetupRequestDto request){
+		return ResponseEntity.ok(meetupService.meetupWriteAiRecommended(request));
+	}
+	
+	@Operation(summary = "날씨", description = "날씨를 조회합니다.")
+	@GetMapping("/detail/weather")
+	public ResponseEntity<WeatherInfoResponse> getWeather(@RequestBody MeetupRequestDto meetupRequestDto){
+		return ResponseEntity.ok(meetupService.getWeather(meetupRequestDto));
+	}
 }
 
 //성공 응답
