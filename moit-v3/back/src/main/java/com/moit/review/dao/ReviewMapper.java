@@ -28,10 +28,7 @@ public interface ReviewMapper {
 
     int deleteUserReview(Long reviewId);
 
-    int updateUserReviewHide(
-            @Param("reviewId") Long reviewId, 
-            @Param("isPublic") String isPublic
-    );
+    int updateUserReviewHide(ReviewDto.Request dto);
 
     // 마이페이지 목록 + 검색
     List<ReviewDto.Response> selectReviewByMemberId(
