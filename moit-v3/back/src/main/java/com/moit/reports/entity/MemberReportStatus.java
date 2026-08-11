@@ -32,16 +32,18 @@ public class MemberReportStatus {
 	private Long reportStatusId;
 	
 	@Column(name = "STATUS_CODE", length = 20, nullable = false)
-	private String statusCode;	// 상태코드
+	private String statusCode;
 	
 	@Column(name = "STATUS_NAME", length = 20, nullable = false)
-	private String statusName;	// 상태이름
+	private String statusName;
 
+	// 신고 뱃지
 	public MemberReportStatus(String statusCode, String statusName) {
 		this.statusCode = statusCode;
 		this.statusName = statusName;
 	}
 	
+	// 뱃지 상태 업데이트
 	public void updateStatusName(String statusName) {
         this.statusName = statusName;
     }
