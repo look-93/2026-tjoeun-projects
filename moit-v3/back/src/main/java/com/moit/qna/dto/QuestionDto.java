@@ -1,6 +1,7 @@
 package com.moit.qna.dto;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -48,4 +49,53 @@ public class QuestionDto {
         private String analysisStatus;
         private int aggressionScore;
     }
+    
+    // 관리자 문의 목록 응답 DTO
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class QuestionAdminResponseDto {
+        // 문의 목록
+        private List<QuestionResponseDto> list;
+
+        // 페이징
+        private int page;
+        private int pageSize;
+        private int totalCnt;
+        private int totalPage;
+        private int startPage;
+        private int endPage;
+
+        // 검색 조건
+        private String type;
+        private String keyword;
+        private String status;
+        private String startDate;
+        private String endDate;
+
+        // 문의 통계
+        private int allCnt;
+        private int pendingCnt;
+        private int answeredCnt;
+        private int todayCnt;
+    }
+    
+    // 내 문의 목록 응답 DTO
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class QuestionMyResponseDto {
+
+        // 문의 목록
+        private List<QuestionResponseDto> list;
+
+        // 페이징
+        private int page;
+        private int totalCnt;
+        private int totalPage;
+        
+        private int startPage;
+        private int endPage;
+
+        // 검색 조건
+        private String type;
+        private String keyword;
+    }
+    
 }

@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/meetups")
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class MeetupController {
 
 	private final MeetupService meetupService;

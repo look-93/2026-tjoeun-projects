@@ -6,7 +6,6 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import com.moit.qna.dao.AnswerMapper;
 import com.moit.qna.dao.QuestionMapper;
 import com.moit.qna.dto.AnswerDto.AnswerResponseDto;
 import com.moit.qna.dto.QuestionDto.QuestionRequestDto;
@@ -18,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class QuestionService {
     private final QuestionMapper questionMapper;
-    private final AnswerMapper answerMapper;
     private final QuestionAiAnalysisService questionAiAnalysisService;
 
     // 전체 문의 목록 조회 (페이징)
@@ -46,7 +44,7 @@ public class QuestionService {
 
         // 답변 정보 추가
         for (QuestionResponseDto q : list) {
-        	AnswerResponseDto answer = answerMapper.findByQuestionId(q.getQuestionId());
+        	AnswerResponseDto answer = questionMapper.findByQuestionId(q.getQuestionId());
             q.setAnswer(answer);
         }
         return list;
@@ -57,7 +55,7 @@ public class QuestionService {
         // 문의 정보 조회
         QuestionResponseDto question = questionMapper.findById(id);
         // 해당 문의의 답변 조회
-        AnswerResponseDto answer = answerMapper.findByQuestionId(id);
+        AnswerResponseDto answer = questionMapper.findByQuestionId(id);
 
         question.setAnswer(answer);
         return question;
@@ -142,7 +140,7 @@ public class QuestionService {
 
         // 답변 정보 추가
         for (QuestionResponseDto q : list) {
-        	AnswerResponseDto answer = answerMapper.findByQuestionId(q.getQuestionId());
+        	AnswerResponseDto answer = questionMapper.findByQuestionId(q.getQuestionId());
             q.setAnswer(answer);
         }
 

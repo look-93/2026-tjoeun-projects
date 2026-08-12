@@ -5,6 +5,8 @@ import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -40,14 +42,15 @@ public class QuestionNotification extends BaseEntity{
     @JoinColumn(name = "MEMBER_ID", nullable = false)
     private Member member;
 
-    // enum
-    @Column(name = "TYPE", nullable = false)
-    private String type;
 
     @Column(name = "MESSAGE", nullable = false)
     private String message;
 
-    //
-    @Column(name = "IS_READ")
-    private String isRead;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "TYPE", length = 20, nullable = false)
+    private Type type;
+	
+	@Enumerated(EnumType.STRING)
+	@Column(name = "IS_READ", length = 20, nullable = false)
+    private IsRead isRead;
 }

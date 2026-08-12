@@ -7,7 +7,11 @@ import org.apache.ibatis.annotations.Mapper;
 
 import com.moit.qna.dto.QuestionDto.QuestionRequestDto;
 import com.moit.qna.dto.QuestionDto.QuestionResponseDto;
+import com.moit.qna.dto.NotificationDto;
+import com.moit.qna.dto.QuestionAiAnalysisDto;
 import com.moit.qna.dto.QuestionSearchDto;
+import com.moit.qna.dto.AnswerDto.AnswerRequestDto;
+import com.moit.qna.dto.AnswerDto.AnswerResponseDto;
 
 @Mapper
 public interface QuestionMapper {
@@ -62,4 +66,37 @@ public interface QuestionMapper {
 
     // 특정 모임 문의 조회
     List<QuestionResponseDto> selectByParentId(Long parentId);
+    
+    
+    // =====  답변  =====
+    // 질문에 대한 답변 조회
+    AnswerResponseDto findByQuestionId(Long questionId);
+
+    // 답변 등록
+    void insertAnswer(AnswerRequestDto dto);
+
+    // 답변 수정
+    void updateAnswer(AnswerRequestDto dto);
+
+    // 답변 삭제
+    void deleteAnswer(Long answerId);
+
+    // 삭제된 답변 조회
+    AnswerResponseDto findByQuestionIdAll(Long questionId);
+
+    // 삭제된 답변 복구용
+    void restoreAnswer(AnswerRequestDto dto);
+    
+    
+    // =====  Ai 공격성  =====
+    void insertAiAnalysis(QuestionAiAnalysisDto dto);
+    void changeToNormal(Long questionId);
+
+    
+    // =====  답변 알림(비동기)  =====
+    int unreadCount(Long memberId);
+    void insertNotification(NotificationDto dto);
+    void readNotification(Long notificationId, Long memberId);
+    List<NotificationDto> selectUnread(Long memberId);
+    List<NotificationDto> selectAll(Long memberId);
 }

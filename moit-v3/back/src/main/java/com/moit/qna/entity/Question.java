@@ -57,7 +57,7 @@ public class Question extends BaseEntity{
     private Status status;
     
 	@Enumerated(EnumType.STRING)
-	@Column(name = "IsPublic", length = 20, nullable = false)
+	@Column(name = "IS_PUBLIC", length = 20, nullable = false)
     private IsPublic isPublic;
 
 }
