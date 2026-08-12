@@ -60,12 +60,12 @@ public class AdvertisementDto {
         private String approvalStatus;
         private String adGrade;
 
-        private Integer approvedBy;
+        private Long approvedBy;
         private LocalDateTime approvedAt;
 
         private String rejectReason;
 
-        private Integer statusUpdatedBy;
+        private Long statusUpdatedBy;
         private LocalDateTime statusUpdatedAt;
     }
 

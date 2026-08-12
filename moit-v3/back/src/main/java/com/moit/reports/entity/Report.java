@@ -1,6 +1,12 @@
 package com.moit.reports.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.moit.member.entity.Member;
+import com.moit.reports.enums.ReasonCode;
+import com.moit.reports.enums.Status;
+import com.moit.reports.enums.TargetType;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -13,6 +19,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -41,6 +48,9 @@ public class Report extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "MEMBER_ID", nullable = false)
 	private Member member;
+//	entity.Member 에 추가
+//	@OneToMany(mappedBy = "member")
+//	private List<Report> reports = new ArrayList<>();
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "REASON_CODE", length = 20, nullable = false)
@@ -53,8 +63,8 @@ public class Report extends BaseEntity {
 	@Column(name = "STATUS", length = 20, nullable = false)
 	private Status status;
 	
-	public Report(TargetType targetType, Long targetId, Member member,
-			ReasonCode reasonCode, String reasonDetail) {
+	// 
+	public Report(TargetType targetType, Long targetId, Member member, ReasonCode reasonCode, String reasonDetail) {
 		this.targetType = targetType;
 		this.targetId = targetId;
 		this.member = member;
@@ -63,13 +73,15 @@ public class Report extends BaseEntity {
 		this.status = Status.PENDING;
 	}
 	
+	// 신고 사유 코드 및 내용 수정
 	public void updateReason(ReasonCode reasonCode, String reasonDetail) {
         this.reasonCode = reasonCode;
         this.reasonDetail = reasonDetail;
     }
 	
+	// 상태 변경
     public void changeStatus(Status status) { this.status = status; }
     
-	//@Column
-	//private String memberId;
+    @OneToMany( mappedBy = "report")
+	private List<ReportAuditLog> reportAuditLogs = new ArrayList<>();
 }

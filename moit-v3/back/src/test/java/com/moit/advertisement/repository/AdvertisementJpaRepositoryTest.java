@@ -62,7 +62,7 @@ class AdvertisementJpaRepositoryTest {
 
         MemberType type = new MemberType();
         type.setMemberTypeId(1L);
-        type.setTypeName("ROLE_MEMBER");
+        type.setTypeName("ROLE_PARTNER");
 
         memberTypeRepository.saveAndFlush(type);
 

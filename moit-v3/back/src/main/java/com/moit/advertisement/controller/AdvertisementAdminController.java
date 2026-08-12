@@ -140,7 +140,7 @@ public class AdvertisementAdminController {
     public String approve(@RequestParam Long adId,
                           HttpSession session) {
 
-        Integer loginMemberId = getLogin(session);
+        Long loginMemberId = 1L; // 보안끼면 수정
 
         AdvertisementDto.AdvertisementAdminUpdateDto dto =
                 new AdvertisementDto.AdvertisementAdminUpdateDto();
@@ -161,7 +161,7 @@ public class AdvertisementAdminController {
                          @RequestParam String rejectReason,
                          HttpSession session) {
 
-        Integer loginMemberId = getLogin(session);
+    	Long loginMemberId = 1L;
 
         AdvertisementDto.AdvertisementAdminUpdateDto dto =
                 new AdvertisementDto.AdvertisementAdminUpdateDto();
@@ -182,7 +182,7 @@ public class AdvertisementAdminController {
                          @RequestParam String status,
                          HttpSession session) {
 
-        Integer loginMemberId = getLogin(session);
+    	Long loginMemberId = 1L;
 
         AdvertisementDto.AdvertisementAdminUpdateDto dto =
                 new AdvertisementDto.AdvertisementAdminUpdateDto();
@@ -229,7 +229,7 @@ public class AdvertisementAdminController {
 		            @RequestParam String status,
 		            HttpSession session) {
 		
-    	Integer loginMemberId = getLogin(session);
+    	Long loginMemberId = 1L;
     	
     	AdvertisementDto.AdvertisementAdminUpdateDto dto =
     	        new AdvertisementDto.AdvertisementAdminUpdateDto();

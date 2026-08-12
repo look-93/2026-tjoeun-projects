@@ -16,10 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.moit.member.dao.UserMapper;
 import com.moit.member.dto.AuthUserDto;
 import com.moit.member.dto.InterestDto;
-import com.moit.member.dto.MyPageDto;
 import com.moit.member.dto.UserDto;
-import com.moit.member.dto.UserJoinDto;
-import com.moit.member.enums.PasswordChangeResult;
+import com.moit.member.enums.PasswordChangeResultEnum;
 import com.moit.security.PasswordLeakService;
 
 @Service
@@ -206,7 +204,7 @@ public class UserServiceImpl  implements UserService{
 		dao.insertSocialInfo(dto);
 	}
 	
-	@Override public UserDto findByMemberId(int memberId) { return dao.findByMemberId(memberId); }
+	@Override public UserDto findByMemberId(Long memberId) { return dao.findByMemberId(memberId); }
 	
 	// 로그인 후 비밀번호 변경
 //	@Override
@@ -231,8 +229,8 @@ public class UserServiceImpl  implements UserService{
 //		return true;
 //	}
 	@Override
-	public PasswordChangeResult changePassword(
-	        int memberId,
+	public PasswordChangeResultEnum changePassword(
+			Long memberId,
 	        String currentPassword,
 	        String newPassword) {
 		
@@ -240,7 +238,7 @@ public class UserServiceImpl  implements UserService{
 
 	    // 현재 비밀번호 확인
 	    if (!pwencoder.matches(currentPassword, user.getPassword())) {
-	        return PasswordChangeResult.WRONG_PASSWORD;
+	        return PasswordChangeResultEnum.WRONG_PASSWORD;
 	    }
 
 	    // HIBP 검사  임시 주석처리
@@ -256,12 +254,12 @@ public class UserServiceImpl  implements UserService{
 
 	    dao.changePassword(dto);
 	    
-	    return PasswordChangeResult.SUCCESS;
+	    return PasswordChangeResultEnum.SUCCESS;
 	}
 	
 	@Transactional
 	@Override
-	public boolean deleteMember(int memberId,String password) {
+	public boolean deleteMember(Long memberId,String password) {
 
 		UserDto user = dao.findByMemberId(memberId);
 		
@@ -274,10 +272,10 @@ public class UserServiceImpl  implements UserService{
 	
 	
 	@Override
-	public List<String> getInterestList(int memberId) { return dao.selectInterestList(memberId); }
+	public List<String> getInterestList(Long memberId) { return dao.selectInterestList(memberId); }
 
 	@Override
-	public void updateInterest(Integer memberId, List<Integer> interestIds) {
+	public void updateInterest(Long memberId, List<Integer> interestIds) {
 		
 		// 기존 관심사 삭제
 		dao.deleteMemberInterest(memberId);
@@ -290,7 +288,42 @@ public class UserServiceImpl  implements UserService{
 
 	@Override public List<InterestDto> getAllInterest() { return dao.selectAllInterest(); }
 
-	@Override public List<Integer> getInterestIds(Integer memberId) { return dao.selectInterestIds(memberId); }
+	@Override public List<Integer> getInterestIds(Long memberId) { return dao.selectInterestIds(memberId); }
+
+	
+	// 버전업 추가 코드
+	// 중복검사
+	@Override
+	public boolean existsByEmail(String email) {
+		Map<String,Object> map = new HashMap<>();
+		map.put("email", map);
+		
+		return dao.findUser(map) != null;
+	}
+
+	@Override
+	public boolean existsByNickname(String nickname) {
+		Map<String,Object> map = new HashMap<>();
+		map.put("nickname", map);
+		
+		return dao.findUser(map) != null;
+	}
+
+	@Override
+	public boolean existsByLoginId(String loginId) {
+		Map<String,Object> map = new HashMap<>();
+		map.put("loginId", map);
+		
+		return dao.findUser(map) != null;
+	}
+
+	@Override
+	public boolean existsByMobile(String mobile) {
+		Map<String,Object> map = new HashMap<>();
+		map.put("mobile", map);
+		
+		return dao.findUser(map) != null;
+	}
 
 	
 

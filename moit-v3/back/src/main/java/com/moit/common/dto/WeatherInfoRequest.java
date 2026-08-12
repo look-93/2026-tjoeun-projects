@@ -1,4 +1,4 @@
-package com.moit.meetup.dto.openapi;
+package com.moit.common.dto;
 
 import lombok.Data;
 

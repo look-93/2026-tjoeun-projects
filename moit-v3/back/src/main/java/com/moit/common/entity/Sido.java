@@ -1,4 +1,4 @@
-package com.moit.common;
+package com.moit.common.entity;
 
 import java.util.ArrayList;
 import java.util.List;

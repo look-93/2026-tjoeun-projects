@@ -41,7 +41,7 @@ public interface UserMapper {
     //8. 마이페이지(회원조회)
     UserDto findByLoginId(UserDto dto);
     // 마이페이지 (관심사)
-    List<String> selectInterestList(int memberId);
+    List<String> selectInterestList(Long memberId);
     
     //9. 아이디 찾기
     UserDto findId(UserDto dto);
@@ -52,21 +52,21 @@ public interface UserMapper {
     //11. 비밀번호변경
     int changePassword(UserDto dto);
     
-    UserDto findByMemberId(int memberId);
+    UserDto findByMemberId(Long memberId);
     
     //12. 회원탈퇴
-    boolean deleteMember(int memberId);
+    boolean deleteMember(Long memberId);
     
     //13. 관심사
     int insertMemberInterest(Map<String,Object> map);
     
-    List<Integer> selectInterestIds(Integer memberId);
+    List<Integer> selectInterestIds(Long memberId);
 
     List<InterestDto> selectAllInterest();
 
-    int deleteMemberInterest(Integer memberId);
+    int deleteMemberInterest(Long memberId);
 
-    int insertMemberInterest( @Param("memberId") Integer memberId, @Param("interestId") Integer interestId );
+    int insertMemberInterest( @Param("memberId") Long memberId, @Param("interestId") Integer interestId );
     
     /* security */
     // 로그인
