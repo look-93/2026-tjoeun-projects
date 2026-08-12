@@ -4,6 +4,8 @@ import { wrapper } from '../store/configureStore';  // Redux Store를 연결해�
 import AppLayout from '../components/AppLayout';    // 공통레이아웃
 import 'antd/dist/antd.css'; // ant 디자인
 import '../styles/global.css'; // 전역 css
+import 'bootstrap/dist/css/bootstrap.min.css';    // bootstrap css
+
 
 //부품
 function MyApp({Component, pageProps}) { // ## 부품, 초기설정값
