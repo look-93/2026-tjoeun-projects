@@ -1,6 +1,5 @@
 package com.moit.review.entity;
 
-import com.moit.common.Image;
 import com.moit.member.entity.Member;
 import com.moit.util.BaseEntity;
 

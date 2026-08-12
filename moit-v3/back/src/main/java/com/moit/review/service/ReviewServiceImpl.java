@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.moit.common.Image;
+import com.moit.common.entity.Image;
 import com.moit.exception.ResourceNotFoundException;
 import com.moit.meetup.entity.Meetup;
 import com.moit.meetup.repository.MeetupRepository;
@@ -49,6 +49,7 @@ public class ReviewServiceImpl implements ReviewService {
                               .content(requestDto.getContent())
                               .rating(requestDto.getRating())
                               .isPublic(requestDto.getIsPublic() != null ? requestDto.getIsPublic() : "Y")
+                              .viewsCount(0)
                               .build();
 
         Review savedReview = reviewRepository.save(review);
@@ -77,8 +78,10 @@ public class ReviewServiceImpl implements ReviewService {
         if ("N".equals(review.getIsPublic())) {
             throw new IllegalArgumentException("비공개 처리된 리뷰입니다.");
         }
-
-        review.setViewsCount(review.getViewsCount() + 1);
+        
+        // [수정] review.getViewsCount() + 1 대신 NPE를 방지하도록 currentViews + 1 적용
+        int currentViews = (review.getViewsCount() != null) ? review.getViewsCount() : 0;
+        review.setViewsCount(currentViews + 1);
 
         return ReviewResponseDto.detailFrom(review);
     }
@@ -132,11 +135,12 @@ public class ReviewServiceImpl implements ReviewService {
     // 특정 모임의 리뷰 목록 조회
     @Override
     public ReviewListResponseDto getReviewsByMeetup(Long meetupId, Pageable pageable) {
+        // [맞춤] Repository 메소드가 String deleteYn을 받으므로 "N" (String) 적용
         List<Review> reviewList = reviewRepository.findByMeetup_IdAndDeleteYnAndIsPublicOrderByIdDesc(meetupId, "N", "Y");
 
         ReviewListResponseDto response = new ReviewListResponseDto();
         response.setTotalCount((long) reviewList.size());
-        response.setTotalPage(1); // Long(1L) -> Integer(1) 로 변경
+        response.setTotalPage(1);
 
         List<ReviewResponseDto> reviews = reviewList.stream()
                                                      .map(ReviewResponseDto::listFrom)
@@ -149,11 +153,12 @@ public class ReviewServiceImpl implements ReviewService {
     // 내가 작성한 리뷰 목록 조회
     @Override
     public ReviewListResponseDto getMyReviews(Long memberId, Pageable pageable) {
+        // [맞춤] 쿼리 내부 2번째 파라미터는 deleteYn이 아닌 :keyword 문자열 검색 파라미터이므로 null 전달
         List<Review> reviewList = reviewRepository.selectReviewByMemberId(memberId, null);
 
         ReviewListResponseDto response = new ReviewListResponseDto();
         response.setTotalCount((long) reviewList.size());
-        response.setTotalPage(1); // Long(1L) -> Integer(1) 로 변경
+        response.setTotalPage(1);
 
         List<ReviewResponseDto> reviews = reviewList.stream()
                                                      .map(ReviewResponseDto::listFrom)
@@ -197,10 +202,9 @@ public class ReviewServiceImpl implements ReviewService {
     // 관리자 - 전체 리뷰 목록 조회
     @Override
     public ReviewListResponseDto getAdminReviewList(String keyword, Pageable pageable) {
-        
+        // [맞춤] adminGetReviewList의 2번째 파라미터는 :memberId (Long) 이므로 전체 조회를 위한 nullL 전달
         Page<Review> page = reviewRepository.adminGetReviewList(keyword, null, pageable);
 
-        
         return ReviewListResponseDto.from(page);
     }
 
