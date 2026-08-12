@@ -5,20 +5,20 @@ import java.util.List;
 import org.springframework.data.domain.Pageable;
 
 import com.moit.common.dto.SigunguDto;
-import com.moit.common.dto.WeatherInfoResponse;
-import com.moit.meetup.dto.MeetupCategoryDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplyMemberListResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MyApplicationListResponseDto;
+import com.moit.meetup.dto.MeetupCategoryDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
+import com.moit.meetup.dto.MeetupSearchRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 
 public interface MeetupService {
 	//목록조회
-	public MeetupListResponseDto search(Pageable pageable);
+	public MeetupListResponseDto search(Pageable pageable, Long memberId);
 	
 	//상세조회
 	public MeetupResponseDto detail(Long meetupId);
