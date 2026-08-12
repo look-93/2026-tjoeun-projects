@@ -1,6 +1,6 @@
 package com.moit.member.enums;
 
-public enum PointType {
+public enum PointTypeEnum {
 
     SAVE,       // 포인트 적립
     USE,        // 포인트 사용
