@@ -11,26 +11,38 @@ import lombok.Setter;
 
 public class ReportsDto {
 	
-	// 신고 작성 요청 Dto
-	@Setter @Getter
+	// 신고 작성/수정 요청 RequestDto
+	@Getter @Setter
 	public static class ReportRequestDto {
+		private TargetType targetType;
+		private Long targetId;
+		private ReasonCode reasonCode;
+		private String reasonDetail;
+	}
+
+	// 신고 응답 ResponseDto
+	@Getter @Setter
+	public static class ReportResponseDto {
 		private Long reportId;
 		private TargetType targetType;
 		private Long targetId;
 		private Long memberId;
+		private String memberNickname;
 		private ReasonCode reasonCode;
 		private String reasonDetail;
 		private Status status;
-		private String deleteYn;
+		private Character deleteYn;
 		private LocalDateTime createdAt;
 		private LocalDateTime updatedAt;
 	}
-
-	// 신고 작성 응답 Dto
-	@Getter
-	public static class ReportResponseDto {
-		
+	
+	// 관리자 신고 처리 (승인/반려)
+	@Getter @Setter
+	public static class ReportProcessDto {
+		private Status status;			// 상태변경
+		private String processReason;	// 처리사유
 	}
+
 }
 
 //	private Long reportId;		// 신고 고유 ID
