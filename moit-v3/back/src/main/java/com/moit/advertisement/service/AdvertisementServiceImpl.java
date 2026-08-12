@@ -6,20 +6,26 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.entity.Advertisement;
+import com.moit.advertisement.entity.AdvertisementClickLog;
 import com.moit.advertisement.entity.AdvertisementImage;
+import com.moit.advertisement.entity.AdvertisementImpressionLog;
 import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.AdStatus;
 import com.moit.advertisement.enums.ApprovalStatus;
+import com.moit.advertisement.repository.AdvertisementClickLogRepository;
 import com.moit.advertisement.repository.AdvertisementImageRepository;
+import com.moit.advertisement.repository.AdvertisementImpressionLogRepository;
 import com.moit.advertisement.repository.AdvertisementRepository;
 import com.moit.member.entity.Member;
 import com.moit.member.repository.MemberRepository;
@@ -34,6 +40,9 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     private final AdvertisementRepository advertisementRepository;
     private final AdvertisementImageRepository advertisementImageRepository;
     private final MemberRepository memberRepository;
+    
+    private final AdvertisementClickLogRepository clickLogRepository;
+    private final AdvertisementImpressionLogRepository impressionLogRepository;
 
     private final MailService mailService;
     private final AiSummaryService aiSummaryService;
@@ -87,19 +96,21 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     public List<AdvertisementDto> searchByAdmin(
             AdvertisementSearchDto dto) {
 
-        List<Advertisement> advertisements =
-                advertisementRepository.findAll();
+        List<Advertisement> advertisements;
+
+        if (dto.getApprovalStatus() == null) {
+            advertisements =
+                    advertisementRepository.findByDeleteYn('N');
+        } else {
+            advertisements =
+                    advertisementRepository
+                            .findByDeleteYnAndApprovalStatus(
+                                    'N',
+                                    dto.getApprovalStatus()
+                            );
+        }
 
         return advertisements.stream()
-        		.filter(ad -> ad.getDeleteYn() == 'N')
-                .filter(ad -> {
-
-                    if (dto.getApprovalStatus() == null) {
-                        return true;
-                    }
-
-                    return ad.getApprovalStatus() == dto.getApprovalStatus();
-                })
                 .map(this::toDto)
                 .toList();
     }
@@ -109,7 +120,17 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     public int selectAdminAdvertisementTotalCnt(
             AdvertisementSearchDto dto) {
 
-        return searchByAdmin(dto).size();
+        if (dto.getApprovalStatus() == null) {
+            return (int)
+                    advertisementRepository.countByDeleteYn('N');
+        }
+
+        return (int)
+                advertisementRepository
+                        .countByDeleteYnAndApprovalStatus(
+                                'N',
+                                dto.getApprovalStatus()
+                        );
     }
 
 
@@ -171,55 +192,54 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     @Transactional
     public int insertAdvertisement(
             AdvertisementDto dto) {
+    	Member advertiser =
+    	        memberRepository.findById(dto.getAdvertiserId())
+    	                .orElseThrow(() ->
+    	                        new IllegalArgumentException(
+    	                                "광고주 회원을 찾을 수 없습니다."
+    	                        )
+    	                );
 
-        Advertisement advertisement =
-                Advertisement.builder()
-
-                        .title(dto.getTitle())
-                        .content(dto.getContent())
-                        .landingUrl(dto.getLandingUrl())
-
-                        .targetAgeMin(dto.getTargetAgeMin())
-                        .targetAgeMax(dto.getTargetAgeMax())
-                        .targetGender(dto.getTargetGender())
-
-                        .startDatetime(
-                                dto.getStartDatetime()
-                        )
-                        .endDatetime(
-                                dto.getEndDatetime()
-                        )
-
-                        .totalBudget(
-                                dto.getTotalBudget()
-                        )
-
-                        .build();
+    	Advertisement advertisement =
+    	        Advertisement.builder()
+    	                .advertiser(advertiser)
+    	                .title(dto.getTitle())
+    	                .content(dto.getContent())
+    	                .landingUrl(dto.getLandingUrl())
+    	                .targetAgeMin(dto.getTargetAgeMin())
+    	                .targetAgeMax(dto.getTargetAgeMax())
+    	                .targetGender(dto.getTargetGender())
+    	                .startDatetime(dto.getStartDatetime())
+    	                .endDatetime(dto.getEndDatetime())
+    	                .totalBudget(dto.getTotalBudget())
+    	                .build();
 
         advertisementRepository.save(advertisement);
 
         return 1;
     }
     
- // =========================================================
- // 광고 조회
- // =========================================================
+	 // =========================================================
+	 // 광고 조회
+	 // =========================================================
+	
+    @Override
+    public AdvertisementDto selectTopAdvertisement(String position) {
 
-	 @Override
-	 public AdvertisementDto selectTopAdvertisement(
-	         String position,
-	         Integer memberId,
-	         String sessionId) {
-	
-	     Advertisement advertisement =
-	             advertisementRepository.findTopAdvertisement(position);
-	
-	     if (advertisement == null) {
-	         return null;
-	     }
-	
-	     return toDto(advertisement);
-	 }
+        AdPosition adPosition = AdPosition.valueOf(position);
+
+        List<Advertisement> advertisements =
+                advertisementRepository.findAvailableAdvertisements(
+                        adPosition,
+                        PageRequest.of(0, 1)
+                );
+
+        if (advertisements.isEmpty()) {
+            return null;
+        }
+
+        return toDto(advertisements.get(0));
+    }
 
 
     // =========================================================
@@ -646,6 +666,120 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
         return result;
     }
+    
+    // 클릭 & 노툴 로그
+	    
+	 // =========================================================
+	 // 클릭 로그
+	 // =========================================================
+	
+    @Override
+    @Transactional
+    public boolean insertClickLog(
+            Long adId,
+            String position,
+            Long memberId,
+            String ip,
+            String userAgent) {
+
+        Advertisement advertisement =
+                advertisementRepository.findById(adId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
+
+        Member member = null;
+
+        if (memberId != null) {
+            member = memberRepository.findById(memberId)
+                    .orElse(null);
+        }
+
+        AdPosition adPosition =
+                AdPosition.valueOf(position);
+
+        AdvertisementClickLog clickLog =
+                AdvertisementClickLog.builder()
+                        .advertisement(advertisement)
+                        .member(member)
+                        .deviceType(getDeviceType(userAgent))
+                        .ipAddress(ip)
+                        .position(adPosition)
+                        .build();
+
+        clickLogRepository.save(clickLog);
+
+        return true;
+    }
+    
+    private String getDeviceType(String userAgent) {
+
+        if (userAgent == null) {
+            return "UNKNOWN";
+        }
+
+        String ua = userAgent.toLowerCase();
+
+        if (ua.contains("mobile")) {
+            return "MOBILE";
+        }
+
+        if (ua.contains("tablet")
+                || ua.contains("ipad")) {
+            return "TABLET";
+        }
+
+        return "PC";
+    }
+	 
+	// =========================================================
+	// 노출 로그
+	// =========================================================
+
+	@Override
+	@Transactional
+	public boolean insertImpressionLog(
+	        Long adId,
+	        String position,
+	        Long memberId,
+	        String ip,
+	        String userAgent) {
+
+	    // 노출 로그 저장 로직
+	    // TODO: AdvertisementImpressionLog Entity + Repository 연결
+		Advertisement advertisement =
+                advertisementRepository.findById(adId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
+
+        Member member = null;
+
+        if (memberId != null) {
+            member = memberRepository.findById(memberId)
+                    .orElse(null);
+        }
+
+        AdPosition adPosition =
+                AdPosition.valueOf(position);
+		
+		AdvertisementImpressionLog impressionLog =
+		        AdvertisementImpressionLog.builder()
+		                .advertisement(advertisement)
+		                .member(member)
+		                .deviceType(getDeviceType(userAgent))
+		                .ipAddress(ip)
+		                .position(adPosition)
+		                .build();
+
+		impressionLogRepository.save(impressionLog);
+
+	    return true;
+	}
 
 
     // =========================================================
@@ -662,29 +796,87 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
     @Override
     public int selectOpenAdvertisementCnt() {
-
-        return advertisementRepository
-                .findByStatus(AdStatus.OPEN)
-                .size();
+        return (int) advertisementRepository
+                .countByStatus(AdStatus.OPEN);
     }
 
 
     @Override
     public int selectPendingAdvertisementCnt() {
 
-        return advertisementRepository
-                .findByStatus(AdStatus.PENDING)
-                .size();
+        return (int) advertisementRepository
+                .countByStatus(AdStatus.PENDING);
     }
 
 
     @Override
     public int selectClosedAdvertisementCnt() {
 
-        return advertisementRepository
-                .findByStatus(AdStatus.CLOSED)
-                .size();
+        return (int) advertisementRepository
+                .countByStatus(AdStatus.CLOSED);
     }
+    
+    
+	 // =========================================================
+	 // 통계 차트
+	 // =========================================================
+	
+	 @Override
+	 public AdvertisementChartDto selectSummary() {
+	
+	     AdvertisementChartDto dto = new AdvertisementChartDto();
+	
+	     dto.setTotalAd(selectTotalAdvertisementCnt());
+	
+	     // TODO Repository에서 전체 노출/클릭 조회
+	     // dto.setTotalImp(...);
+	     // dto.setTotalClick(...);
+	     // dto.setAvgCtr(...);
+	
+	     return dto;
+	 }
+	
+	 @Override
+	 public List<AdvertisementChartDto> selectDailyChart() {
+	
+	     // TODO 일일통계 Repository 조회
+	     return List.of();
+	 }
+	
+	 @Override
+	 public List<AdvertisementChartDto> selectTopCtrChart() {
+	
+	     // TODO 광고별 CTR 계산 후 상위 5개 조회
+	     return List.of();
+	 }
+	
+	 @Override
+	 public List<AdvertisementChartDto> selectGradeChart() {
+	
+	     // TODO AdGrade별 광고 개수 조회
+	     return List.of();
+	 }
+	
+	 @Override
+	 public List<AdvertisementChartDto> selectPositionChart() {
+	
+	     // TODO 광고 위치별 노출 조회
+	     return List.of();
+	 }
+	
+	 @Override
+	 public double selectExtensionRate() {
+	
+	     // TODO 연장 광고 / 전체 광고
+	     return 0.0;
+	 }
+	
+	 @Override
+	 public List<AdvertisementChartDto> selectPositionCtrChart() {
+	
+	     // TODO 위치별 CTR 계산
+	     return List.of();
+	 }
 
 
     // =========================================================
