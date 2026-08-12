@@ -1,324 +1,116 @@
 package com.moit.review.controller;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.moit.member.dto.UserDto;
-import com.moit.review.client.OpenAiReviewService;
-import com.moit.review.dto.ReviewDto;
+import com.moit.review.dto.ReviewDto.ReviewListResponseDto;
+import com.moit.review.dto.ReviewDto.ReviewRequestDto;
+import com.moit.review.dto.ReviewDto.ReviewResponseDto;
 import com.moit.review.service.ReviewService;
 import com.moit.security.CustomUserDetails;
 
-@Controller
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+
+@Tag(name = "Review Api", description = "리뷰 관련 API")
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/reviews")
 public class ReviewController {
 
-    @Autowired
-    ReviewService reviewService;
-    @Autowired
-	private OpenAiReviewService openAiReviewService;
+    private final ReviewService reviewService;
 
-
-    // 후기 작성 페이지
-    @GetMapping("/meetup/review/insert")
-    public String insertUserReview_get() {
-
-        return "user/meetup/review/reviewInsert";
+    // 인증 객체에서 memberId 추출 공통 메서드
+    private Long extractMemberId(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            Long memberId = userDetails.getUser().getMemberId();
+            return memberId != null ? memberId.longValue() : null;
+        }
+        return null;
     }
 
+    @Operation(summary = "리뷰 작성", description = "새로운 리뷰를 작성합니다.")
+    @PostMapping
+    public ResponseEntity<Void> create(@RequestBody ReviewRequestDto requestDto, Authentication authentication) {
+        Long memberId = extractMemberId(authentication);
+        reviewService.create(requestDto, memberId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
 
- // 후기 등록
-    @PostMapping("/meetup/review/insert")
-    public String insertUserReview_post(
-            ReviewDto dto,
-            @RequestParam(value = "attachedImages", required = false)
-            MultipartFile[] attachedImages,
+    @Operation(summary = "리뷰 상세 조회", description = "리뷰 단건을 상세 조회합니다.")
+    @GetMapping("/{reviewId}")
+    public ResponseEntity<ReviewResponseDto> detail(@PathVariable("reviewId") Long reviewId) {
+        ReviewResponseDto response = reviewService.detail(reviewId);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "리뷰 수정", description = "작성한 리뷰를 수정합니다.")
+    @PutMapping("/{reviewId}")
+    public ResponseEntity<Void> update(
+            @PathVariable("reviewId") Long reviewId,
+            @RequestBody ReviewRequestDto requestDto,
+            Authentication authentication) {
+        Long memberId = extractMemberId(authentication);
+        reviewService.update(requestDto, memberId, reviewId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "리뷰 삭제", description = "작성한 리뷰를 삭제(논리 삭제)합니다.")
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<Void> delete(@PathVariable("reviewId") Long reviewId, Authentication authentication) {
+        Long memberId = extractMemberId(authentication);
+        reviewService.delete(reviewId, memberId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "특정 모임의 리뷰 목록 조회", description = "특정 모임에 작성된 리뷰 목록을 조회합니다.")
+    @GetMapping("/meetup/{meetupId}")
+    public ResponseEntity<ReviewListResponseDto> getReviewsByMeetup(
+            @PathVariable("meetupId") Long meetupId,
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        ReviewListResponseDto response = reviewService.getReviewsByMeetup(meetupId, pageable);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "내가 작성한 리뷰 목록 조회", description = "마이페이지에서 내가 작성한 리뷰 목록을 조회합니다.")
+    @GetMapping("/my")
+    public ResponseEntity<ReviewListResponseDto> getMyReviews(
             Authentication authentication,
-            RedirectAttributes redirectAttributes) {
-
-
-        String loginId = null;
-        String provider = null;
-        UserDto user = null;
-
-        Object principal = authentication.getPrincipal();
-
-        Integer memberId = null;
-
-
-        if(principal instanceof CustomUserDetails) {
-
-            CustomUserDetails users = (CustomUserDetails) principal;
-
-            user = users.getUser();
-
-            loginId = users.getUser().getLoginId();
-
-            memberId = users.getUser().getMemberId();
-        }
-
-
-        dto.setMemberId(memberId);
-
-
-        try {
-
-            reviewService.insertUserReview(dto, attachedImages);
-
-
-        } catch(RuntimeException e) {
-
-
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage",
-                    e.getMessage()
-            );
-
-
-            return "redirect:/meetup/review/insert?meetupId="
-                    + dto.getMeetupId();
-
-        }
-
-
-        return "redirect:/meetup/detail?meetupId="
-                + dto.getMeetupId()
-                + "#review-section";
-    }
-    
-    // 특정 모임 후기 목록 조회
-    @GetMapping("/meetup/review/meetup/{meetupId}")
-    public String selectUserReview(
-            @PathVariable int meetupId,
-            @RequestParam(value = "sort", defaultValue = "latest") String sort,
-            @RequestParam(value = "keyword", required = false) String keyword,
-            Model model) {
-
-        List<ReviewDto> reviewList =
-                reviewService.selectReviewByContent(meetupId, keyword, sort);
-
-        model.addAttribute("reviews", reviewList);
-        model.addAttribute("meetupId", meetupId);
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("sort", sort);
-       
-        return "user/meetup/detail";
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        Long memberId = extractMemberId(authentication);
+        ReviewListResponseDto response = reviewService.getMyReviews(memberId, pageable);
+        return ResponseEntity.ok(response);
     }
 
-
-
-
-    // 마이페이지 내가 작성한 후기 목록 조회
-    @GetMapping("/mypage/review")
-    public String selectReviewByMemberId(
-            @RequestParam(value = "keyword", required = false) String keyword,
-            @RequestParam(value = "sort", required = false, defaultValue = "latest") String sort,
-            Model model, Authentication authentication) {
-
-        // 시큐리티 적용 후 로그인 회원 id로 변경
-		String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		} 
-        //int memberId = 2;
-
-        List<ReviewDto> myReviewList =
-                reviewService.selectReviewByMemberId(memberId, keyword, sort);
-        
-        model.addAttribute("dto" , user); 
-        model.addAttribute("myReviews", myReviewList);
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("sort", sort);
-        model.addAttribute("menu", "review");
-
-        return "user/mypage/review";
+    @Operation(summary = "리뷰 좋아요 토글", description = "리뷰 좋아요를 등록하거나 취소합니다.")
+    @PostMapping("/{reviewId}/like")
+    public ResponseEntity<Void> reviewLike(@PathVariable("reviewId") Long reviewId, Authentication authentication) {
+        Long memberId = extractMemberId(authentication);
+        reviewService.reviewLike(memberId, reviewId);
+        return ResponseEntity.ok().build();
     }
 
-
-
-
-
-    // 후기 수정 페이지(get)
-    @GetMapping("/meetup/review/update/{reviewId}")
-    public String updateUserReview_get(
-            @PathVariable int reviewId,
-            @RequestParam(required = false) int meetupId,
-            @RequestParam(required = false) String from,
-            Model model) {
-
-
-        ReviewDto targetReview =
-                reviewService.selectReviewById(reviewId);
-
-
-        if(targetReview != null) {
-
-            model.addAttribute("review", targetReview);
-            model.addAttribute("meetupId",
-                    targetReview.getMeetupId());
-        }
-
-
-        model.addAttribute("from", from);
-
-
-        return "user/meetup/review/reviewInsert";
-    }
-    
-    
-    @PostMapping("/meetup/review/update")
-    public String updateUserReview_post(
-            ReviewDto dto,
-            @RequestParam(required = false) String from,
-            RedirectAttributes rttr) {
-
-        System.out.println("수정 from = " + from);
-
-        try {
-
-            reviewService.updateUserReview(dto);
-
-        } catch (RuntimeException e) {
-
-            rttr.addFlashAttribute("errorMessage", e.getMessage());
-
-            return "redirect:/meetup/review/update/"
-                    + dto.getReviewId()
-                    + "?meetupId=" + dto.getMeetupId()
-                    + "&from=" + from;
-        }
-
-        if ("mypage".equals(from)) {
-            return "redirect:/mypage/review";
-        }
-
-        return "redirect:/meetup/detail?meetupId=" + dto.getMeetupId();
+    @Operation(summary = "AI 리뷰 분석", description = "모임 리뷰 내용을 바탕으로 AI 분석 결과를 반환합니다.")
+    @PostMapping("/meetup/{meetupId}/analysis")
+    public ResponseEntity<String> reviewAnalysis(@PathVariable("meetupId") Long meetupId) {
+        String result = reviewService.reviewAnalysis(meetupId);
+        return ResponseEntity.ok(result);
     }
 
-	
-
-
-
-
-    // 후기 삭제
-    @GetMapping("/meetup/review/delete/{reviewId}")
-    public String deleteUserReview_get(
-            ReviewDto dto,
-            RedirectAttributes rttr) {
-
-
-        reviewService.deleteUserReview(dto);
-
-
-        rttr.addFlashAttribute(
-                "deleteResult",
-                "success");
-
-
-        return "redirect:/meetup/detail?meetupId="
-                + dto.getMeetupId();
-    }
-
-
-
-
-
-    // 후기 삭제 POST
-    @PostMapping("/meetup/review/delete")
-    public String deleteUserReview(
-            ReviewDto dto,
-            RedirectAttributes rttr,
-            @RequestParam(value="from", required=false)
-            String from) {
-
-
-        boolean result =
-                reviewService.deleteUserReview(dto) == 1;
-
-
-        rttr.addFlashAttribute(
-                "deleteResult",
-                result);
-
-
-
-        if("mypage".equals(from)) {
-
-            return "redirect:/mypage/review";
-        }
-
-
-
-        return "redirect:/meetup/"
-                + dto.getMeetupId();
-    }
-    
-    
-    //좋아요 기능 (비동기 처리)
-    @PostMapping("/meetup/review/like/{reviewId}")
-    @ResponseBody
-    public Map<String, Object> toggleReviewLike(@PathVariable("reviewId") int reviewId, Authentication authentication) {
-        
-        Map<String, Object> resultBody = new HashMap<>();
-        
-        String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		} 
-		
-        //int memberId = 2; 
-        
-        try {
-            int updatedLikesCount = reviewService.toggleReviewLike(reviewId, memberId);
-            resultBody.put("success", true);
-            resultBody.put("likesCount", updatedLikesCount);
-        } catch (Exception e) {
-            e.printStackTrace();
-            resultBody.put("success", false);
-            resultBody.put("message", "좋아요 처리 중 오류가 발생했습니다.");
-        }
-        
-        return resultBody;
-    }
-    
-    @PostMapping("/meetup/review/analysis")
-    @ResponseBody
-	public String activeReviewAiAnalysis(@RequestParam("meetupId") int meetupId) {
-		
-		// 1. 해당 모임 아이디로 등록된 후기 리스트 전체 조회 
-		List<ReviewDto> reviewList = reviewService.selectUserReview(meetupId, "latest");
-		
-		// 2. 가공되지 않은 후기 리스트를 AI 서비스단으로 넘겨 프롬프트 분석 결과 문자열 수신
-		String aiReportResult = openAiReviewService.reviewAnalysis(reviewList);
-		
-		
-		return aiReportResult;
-	}
 
 }
