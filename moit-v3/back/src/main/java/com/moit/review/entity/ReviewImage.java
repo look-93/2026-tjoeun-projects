@@ -1,6 +1,6 @@
 package com.moit.review.entity;
 
-import com.moit.common.Image;
+import com.moit.common.entity.Image;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -36,5 +36,5 @@ public class ReviewImage extends BaseEntity {
 	//이미지 번호
 	@OneToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name = "IMAGE_ID", nullable = false)
-	private Image imageId;
+	private Image image;
 }

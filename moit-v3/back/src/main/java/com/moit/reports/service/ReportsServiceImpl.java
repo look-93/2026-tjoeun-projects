@@ -27,8 +27,8 @@ public class ReportsServiceImpl implements ReportsService {
 	}
 
 	@Override // select id="selectUserCnt" resultType="int"
-	public int selectUserCnt(int memberId) {
-		return dao.selectUserCnt(memberId);
+	public int selectUserCnt(Long memberId) {
+	    return dao.selectUserCnt(memberId);
 	}
 
 	@Override // 사용자 본인이 작성한 신고 내역 상세 조회
@@ -72,7 +72,7 @@ public class ReportsServiceImpl implements ReportsService {
 		if (count > 0) { return -1; }
 
 		// 신고 작성 횟수 5회 (난사 방지) select count(*) 쿼리 호출
-		int todayCnt = dao.TodayReport(dto);
+//		int todayCnt = dao.TodayReport(dto);
 		// 5회 이상 신고하면 insert를 하지 않고 -2 반환
 //		if (todayCnt >= 5) { return -2; }
 		

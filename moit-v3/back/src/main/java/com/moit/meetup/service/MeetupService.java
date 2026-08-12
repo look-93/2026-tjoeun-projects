@@ -1,20 +1,27 @@
 package com.moit.meetup.service;
 
+import java.util.List;
+
 import org.springframework.data.domain.Pageable;
 
+import com.moit.common.dto.SigunguDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplyMemberListResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MyApplicationListResponseDto;
+import com.moit.meetup.dto.MeetupCategoryDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
+import com.moit.meetup.dto.MeetupSearchRequestDto;
+import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
+import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 
 public interface MeetupService {
 	//목록조회
-	public MeetupListResponseDto search(Pageable pageable);
+	public MeetupListResponseDto search(Pageable pageable, Long memberId);
 	
 	//상세조회
-	public MeetupResponseDto detail(Long meetupId, Long memberId);
+	public MeetupResponseDto detail(Long meetupId);
 	
 	//저장
 	public void create(MeetupRequestDto meetupRequest, Long memberId);
@@ -26,24 +33,33 @@ public interface MeetupService {
 	public void delete(Long meetupId);	
 	
 	//모임신청
-	public void meetupApply(Long memberId, Long meetupId);
+	public void apply(Long memberId, Long meetupId);
 	
 	//좋아요
-	public void meetupLike(Long meetupId, Long memberId);
+	public void meetupLike(Long memberId, Long meetupId);
 	
 	//모집글 비공개(관리자)
-	public void disableMeetup(Long meetupId);
+	public void changeMeetupVisibility(Long meetupId);
 	
 	//마이페이지 내가 신청한 모집글 목록 조회(페이징)
-	public MyApplicationListResponseDto getMyApplications(Long memberId);
+	public MyApplicationListResponseDto getMyApplications(Long memberId, Pageable pageable);
 	
 	//마이페이지 내 모집글 신청자 리스트(페이징)
-	public MeetupApplyMemberListResponseDto getMyMeetupApplicants(Long meetupId);
+	public MeetupApplyMemberListResponseDto getMyMeetupApplicants(Long memberId, Long meetupId, Pageable pageable);
+	
+	//마이페이지 내가 모집한 모집글 조회(페이징)
+	public MeetupListResponseDto getMyMeetups(Long memberId, Pageable pageable);
 	
 	//마이페이지 승인, 거절(거절사유), 노쇼 처리
 	public void updateApplicationStatus(MeetupApplicationRequestDto requestDto);
+
+	//카테고리 조회
+	public List<MeetupCategoryDto> getCategory();
 	
-	//마이페이지 내가 모집한 모집글 조회(페이징)
-	public MyApplicationListResponseDto getMyMeetups(Long memberId);
- 	
+	//시군구 조회
+	public List<SigunguDto> getSigungu();
+	
+	// ################### open api ###################
+	//ai 제목/카테고리/컨텐츠 추가
+	public RecommendMeetupResponseDto meetupWriteAiRecommended(RecommendMeetupRequestDto request);
 }

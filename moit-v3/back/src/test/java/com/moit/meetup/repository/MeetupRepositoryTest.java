@@ -2,13 +2,17 @@ package com.moit.meetup.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+
+import com.moit.security.PasswordLeakService;
 
 
 @DataJpaTest
@@ -32,7 +36,6 @@ class MeetupRepositoryTest {
     private MeetupLikesRepository meetupLikesRepository;
     @Autowired
     private MeetupRepository meetupRepository;
-
 
     @Test
     @DisplayName("모임 Repository 전체 Bean 생성 테스트")

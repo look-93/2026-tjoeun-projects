@@ -74,7 +74,7 @@ public class Oauth2UserService extends DefaultOAuth2UserService{
 			    // 로그인 객체는 임시 생성
 			    user = new UserDto();
 			    
-			    user.setMemberId(0);
+			    user.setMemberId(0L);
 			    user.setLoginId(provider + "_" + providerId);
 			    user.setEmail(email);
 			    user.setNickname(nickname);

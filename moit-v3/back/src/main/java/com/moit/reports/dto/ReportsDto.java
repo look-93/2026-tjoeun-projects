@@ -1,36 +1,62 @@
 package com.moit.reports.dto;
 
-import lombok.Data;
+import java.time.LocalDateTime;
 
-@Data
+import com.moit.reports.enums.ReasonCode;
+import com.moit.reports.enums.Status;
+import com.moit.reports.enums.TargetType;
+
+import lombok.Getter;
+import lombok.Setter;
+
 public class ReportsDto {
-	private int reportId;		// 신고 고유 ID
-	private String targetType;	// 'MEETUP', 'REVIEW'
-	private int targetId;		// 대상 글 고유 ID
-	private int memberId;
 	
-	private String reasonCode;	// 'ABUSE', 'SPAM', 'FAKE_INFO', 'AD', 'NOSHOW', 'ETC'
-	private String reasonDetail;// 상세사유
-	private String status;		// 상태 ('PENDING', 'REJECTED', 'APPROVED')
-	private String deleteYn;	// 삭제 여부
-	private String createdAt;
-	private String updatedAt;	// 수정일자
-	
-	// members 에서 email
-	private String email;
-	
-	// 신고 승인 데이터 기반 신뢰도 점수
-	private int targetMemberId;			// 신고당한 유저
-	private String targetNickname;		// 신고당한 유저 닉네임
-	private int trustScore;				// 신뢰도점수
-	
-	private int approvedCnt;			// 신고 승인(APPROVED) 건수
-	
-	//뱃지 표현
-	private int reportStatusId;		//	1		/	2		/	3
-	private String statusCode;		// 'ACTIVE' / 'WARNING' / 'SUSPENDED'
-	private String statusName;		// '정상'		/ '주의'		/ '정지'
-									// 클린한 유저 / 선 넘은 어그로 유저 / 진실의 방으로...
-	
-//	private int reportCount;	// �Ű� �Ǽ�
+	// 신고 작성 요청 Dto
+	@Setter @Getter
+	public static class ReportRequestDto {
+		private Long reportId;
+		private TargetType targetType;
+		private Long targetId;
+		private Long memberId;
+		private ReasonCode reasonCode;
+		private String reasonDetail;
+		private Status status;
+		private String deleteYn;
+		private LocalDateTime createdAt;
+		private LocalDateTime updatedAt;
+	}
+
+	// 신고 작성 응답 Dto
+	@Getter
+	public static class ReportResponseDto {
+		
+	}
 }
+
+//	private Long reportId;		// 신고 고유 ID
+//	private TargetType targetType;	// 'MEETUP', 'REVIEW'
+//	private Long targetId;		// 대상 글 고유 ID
+//	private Long memberId;
+//	
+//	private ReasonCode reasonCode;	// 'ABUSE', 'SPAM', 'FAKE_INFO', 'AD', 'NOSHOW', 'ETC'
+//	private String reasonDetail;// 상세사유
+//	private Status status;		// 상태 ('PENDING', 'REJECTED', 'APPROVED')
+//	private String deleteYn;	// 삭제 여부
+//	private LocalDateTime createdAt;
+//	private LocalDateTime updatedAt;	// 수정일자
+//	
+//	// members 에서 email
+//	private String email;
+//	
+//	// 신고 승인 데이터 기반 신뢰도 점수
+//	private int targetMemberId;			// 신고당한 유저
+//	private String targetNickname;		// 신고당한 유저 닉네임
+//	private int trustScore;				// 신뢰도점수
+//	
+//	private int approvedCnt;			// 신고 승인(APPROVED) 건수
+//	
+//	//뱃지 표현
+//	private int reportStatusId;		//	1		/	2		/	3
+//	private String statusCode;		// 'ACTIVE' / 'WARNING' / 'SUSPENDED'
+//	private String statusName;		// '정상'		/ '주의'		/ '정지'
+//									// 클린한 유저 / 선 넘은 어그로 유저 / 진실의 방으로...

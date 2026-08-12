@@ -3,6 +3,7 @@ package com.moit.meetup.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.moit.common.entity.Sigungu;
 import com.moit.meetup.enums.MeetupStatus;
 import com.moit.member.entity.Member;
 import com.moit.util.BaseEntity;
@@ -20,14 +21,18 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name="MEETUPS")
 public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하면 공통 컬럼 추가됩니다. 경로 따라가서 확인해보세요.
 	
@@ -48,12 +53,6 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	
 	@Column
 	private Integer minParticipants;
-	
-	@Column
-	private Integer sigunguId;
-	
-	@Column
-	private Integer categoryId;
 	
 	@Column
 	private String address;
@@ -82,7 +81,7 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	
 	@Builder.Default
 	@Column(nullable = false, columnDefinition = "NUMBER(1) DEFAULT 0")
-	private Boolean visible = false;
+	private Boolean hidden = false;
 	
 	@ManyToOne
 	@JoinColumn(name="member_id", nullable = false)
@@ -94,4 +93,14 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	@OneToMany(mappedBy = "meetup", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<MeetupImage> meetupImages = new ArrayList<>();
 	
+	@ManyToOne
+	@JoinColumn(name="meetupCategory_id", nullable = false)
+	private MeetupCategory meetupCategory;	
+	
+	@ManyToOne
+	@JoinColumn(name="sigungu_id", nullable = false)
+	private Sigungu sigungu;
+	
+	@OneToMany(mappedBy = "meetup", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<MeetupLike> meetupLike;
 }

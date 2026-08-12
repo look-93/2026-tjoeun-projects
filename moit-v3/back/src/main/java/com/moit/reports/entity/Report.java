@@ -1,6 +1,12 @@
 package com.moit.reports.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.moit.member.entity.Member;
+import com.moit.reports.enums.ReasonCode;
+import com.moit.reports.enums.Status;
+import com.moit.reports.enums.TargetType;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -13,6 +19,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -29,7 +36,7 @@ public class Report extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "reportId_seq")
 	@SequenceGenerator(name = "reportId_seq", sequenceName = "REPORT_SEQ", allocationSize = 1)
 	@Column(name = "REPORT_ID")
-	private Long Id;
+	private Long reportId;
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "TARGET_TYPE", length = 20, nullable = false)
@@ -41,6 +48,9 @@ public class Report extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "MEMBER_ID", nullable = false)
 	private Member member;
+//	entity.Member 에 추가
+//	@OneToMany(mappedBy = "member")
+//	private List<Report> reports = new ArrayList<>();
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "REASON_CODE", length = 20, nullable = false)
@@ -53,44 +63,25 @@ public class Report extends BaseEntity {
 	@Column(name = "STATUS", length = 20, nullable = false)
 	private Status status;
 	
-//	@Column(name = "DELETE_YN", length = 1, nullable = false)
-//	private String deleteYn;
-	
-//	@Column(name = "CREATED_AT", nullable = false)
-//	private LocalDateTime createdAt;
-//	@Column(name = "UPDATED_AT", nullable = false)
-//	private LocalDateTime updatedAt;
-//	
-//	@PrePersist
-//	void onCreate() {
-//		this.createdAt = LocalDateTime.now();
-//		this.updatedAt = LocalDateTime.now();
-//	}
-//	@PreUpdate
-//	void onUpdate() {
-//		this.updatedAt = LocalDateTime.now();
-//	}
-
-	public Report(TargetType targetType, Long targetId, Member member,
-			ReasonCode reasonCode, String reasonDetail) {
+	// 
+	public Report(TargetType targetType, Long targetId, Member member, ReasonCode reasonCode, String reasonDetail) {
 		this.targetType = targetType;
 		this.targetId = targetId;
 		this.member = member;
 		this.reasonCode = reasonCode;
 		this.reasonDetail = reasonDetail;
 		this.status = Status.PENDING;
-//      this.deleteYn = "N";
 	}
 	
+	// 신고 사유 코드 및 내용 수정
 	public void updateReason(ReasonCode reasonCode, String reasonDetail) {
         this.reasonCode = reasonCode;
         this.reasonDetail = reasonDetail;
     }
 	
-    public void changeStatus(Status status) {this.status = status; }
+	// 상태 변경
+    public void changeStatus(Status status) { this.status = status; }
     
-//  public void delete() { this.deleteYn = "Y"; }
-	
-	//@Column
-	//private String memberId;
+    @OneToMany( mappedBy = "report")
+	private List<ReportAuditLog> reportAuditLogs = new ArrayList<>();
 }

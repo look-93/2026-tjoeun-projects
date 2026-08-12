@@ -13,13 +13,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.moit.advertisement.dao.AdvertisementMapper;
 import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
-import com.moit.advertisement.dto.AdvertisementExtensionRequestDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.DashboardAiDto;
+import com.moit.advertisement.mapper.AdvertisementMapper;
+import com.moit.advertisement.repository.AdvertisementRepository;
 import com.moit.advertisement.type.AdvertisementPosition;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +34,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     private final AdvertisementMapper advertisementMapper;
     private final MailService mailService;
     private final AiSummaryService aiSummaryService;
+    private final AdvertisementRepository advertisementRepository;
 
     private static final String UPLOAD_PATH = "C:/upload/ad";
 
@@ -187,15 +188,6 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         return advertisementMapper.selectWaitingTotalCnt(dto);
     }
 
-
-    /**
-     * 광고 연장 신청 목록
-     */
-    @Override
-    public List<AdvertisementDto> selectExtensionList() {
-
-        return advertisementMapper.selectExtensionList();
-    }
 
 
     // =========================================================
@@ -401,7 +393,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     @Override
     @Transactional
     public int updateAdvertisementStatus(
-            AdvertisementDto dto) {
+            AdvertisementDto.AdvertisementAdminUpdateDto dto) {
 
         return advertisementMapper
                 .updateAdvertisementStatus(dto);
@@ -414,18 +406,16 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     @Override
     @Transactional
     public int updateApprovalStatus(
-            AdvertisementDto dto) {
+            AdvertisementDto.AdvertisementAdminUpdateDto dto) {
 
         if ("APPROVED".equals(dto.getApprovalStatus())) {
 
-            return advertisementMapper
-                    .approveAd(dto);
+            return advertisementMapper.approveAd(dto);
         }
 
         if ("REJECTED".equals(dto.getApprovalStatus())) {
 
-            return advertisementMapper
-                    .rejectAd(dto);
+            return advertisementMapper.rejectAd(dto);
         }
 
         throw new IllegalArgumentException(
@@ -470,46 +460,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     // 광고 연장
     // =========================================================
 
-    /**
-     * 광고 연장 신청
-     */
-	/*
-	 * @Override
-	 * 
-	 * @Transactional public void requestExtension( AdvertisementExtensionRequestDto
-	 * dto) {
-	 * 
-	 * AdvertisementDto ad = advertisementMapper
-	 * .selectAdvertisementOne(dto.getAdId());
-	 * 
-	 * if (ad == null) { throw new IllegalArgumentException( "존재하지 않는 광고입니다." ); }
-	 * 
-	 * if (ad.getAdvertiserId() != dto.getAdvertiserId()) { throw new
-	 * IllegalArgumentException( "광고 연장 신청 권한이 없습니다." ); }
-	 * 
-	 * if (dto.getExtensionRequestEndDatetime() == null) { throw new
-	 * IllegalArgumentException( "연장 종료일을 입력해주세요." ); }
-	 * 
-	 * if (ad.getEndDatetime() == null) { throw new IllegalArgumentException(
-	 * "기존 광고 종료일이 없습니다." ); }
-	 * 
-	 * if (dto.getExtensionRequestEndDatetime() .isBefore(ad.getEndDatetime())) {
-	 * 
-	 * throw new IllegalArgumentException( "기존 종료일 이후의 날짜만 신청할 수 있습니다." ); }
-	 * 
-	 * advertisementMapper.requestExtension(dto); }
-	 */
 
-    /**
-     * 광고 연장 승인 상태 변경
-     */
-	/*
-	 * @Override
-	 * 
-	 * @Transactional public void updateExtensionApprove( AdvertisementDto dto) {
-	 * 
-	 * advertisementMapper .updateExtensionApprove(dto); }
-	 */
 
 
     // =========================================================
@@ -559,25 +510,32 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
     /**
      * 광고 노출 수 증가
-     */
-    @Override
+     */ 
     @Transactional
-    public int updateImpressions(Long adId) {
+    public void increaseImpression(Long adId) {
 
-        return advertisementMapper
-                .updateImpressions(adId);
+        int result = advertisementRepository.increaseImpressions(adId);
+
+        if (result == 0) {
+            throw new IllegalArgumentException("광고를 찾을 수 없습니다.");
+        }
     }
 
 
     /**
      * 광고 클릭 수 증가
      */
-    @Override
     @Transactional
-    public int updateAdvertisementClick(Long adId) {
+    public void increaseClick(Long adId) {
 
-        return advertisementMapper
-                .updateAdvertisementClick(adId);
+        int result =
+                advertisementRepository.increaseClicks(adId);
+
+        if (result == 0) {
+            throw new IllegalArgumentException(
+                    "광고를 찾을 수 없습니다."
+            );
+        }
     }
 
 
@@ -1271,16 +1229,4 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     }
 
 
-	@Override
-	public void updateExtensionApprove(AdvertisementDto dto) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	@Override
-	public void requestExtension(AdvertisementExtensionRequestDto dto) {
-		// TODO Auto-generated method stub
-		
-	}
 }
