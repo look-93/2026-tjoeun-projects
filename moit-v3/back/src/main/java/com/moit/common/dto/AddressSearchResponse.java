@@ -1,13 +1,15 @@
-package com.moit.meetup.dto.openapi;
+package com.moit.common.dto;
 
 import java.util.List;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Data
 public class AddressSearchResponse {
-	private int totalCount;
-	List<AddressSearchResponse.AddressSearchDto> list;
+//	private int totalCount;
+//	List<AddressSearchResponse.AddressSearchDto> list;
 	
 	@Data
     public static class AddressSearchDto{
@@ -24,5 +26,13 @@ public class AddressSearchResponse {
 		
         
     }
+	
+	@Getter
+	@Setter
+	public static class AddressSearchListResponseDto{
+		private List<AddressSearchDto> list;
+		private Long totalCount; // 전체 데이터 수
+		private Long totalPage;  // 전체 페이지 수
+	}
 
 }

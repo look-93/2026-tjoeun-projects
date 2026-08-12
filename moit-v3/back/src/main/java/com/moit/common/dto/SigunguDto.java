@@ -1,6 +1,6 @@
 package com.moit.common.dto;
 
-import com.moit.common.Sigungu;
+import com.moit.common.entity.Sigungu;
 
 import lombok.Builder;
 import lombok.Data;

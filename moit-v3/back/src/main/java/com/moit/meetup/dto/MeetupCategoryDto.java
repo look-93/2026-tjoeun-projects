@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 @Builder
 public class MeetupCategoryDto {
-	private Long categoryId;
+	private Long id;
 	private Long parentId;
 	private String categoryName;
 	
@@ -18,7 +18,7 @@ public class MeetupCategoryDto {
 		Long parentId = meetupCategory.getParent() != null ? meetupCategory.getParent().getId() : null; 
 		
 		return MeetupCategoryDto.builder()
-						  .categoryId(meetupCategory.getId())
+						  .id(meetupCategory.getId())
 						  .categoryName(meetupCategory.getCategoryName())
 						  .parentId(parentId)
 						  .build();
