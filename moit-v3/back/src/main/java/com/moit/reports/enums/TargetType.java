@@ -1,4 +1,4 @@
-package com.moit.reports.entity;
+package com.moit.reports.enums;
 
 public enum TargetType {
 	MEETUP,

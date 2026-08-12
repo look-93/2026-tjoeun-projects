@@ -241,7 +241,7 @@ public class UserController {
 	@PostMapping("/changePassword")
 	public String changePassword(UserDto dto, HttpSession session,
 	                             RedirectAttributes rttr) {
-		Integer memberId = (Integer)session.getAttribute("findMemberId");
+		Long memberId = (Long)session.getAttribute("findMemberId");
 		
 		if(memberId == null) {
 			return "redirect:/user/member/findPassword";

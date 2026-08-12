@@ -51,13 +51,13 @@ public interface AdvertisementRepository
 	    Pageable pageable
 	);
 	
-	List<Advertisement> findByAdvertiser_MemberId(Long id);
+	List<Advertisement> findByAdvertiser_Id(Long id);
 
 	List<Advertisement> findByApprovalStatus(ApprovalStatus approvalStatus);
 
 	List<Advertisement> findByStatus(AdStatus status);
 
-	List<Advertisement> findByAdvertiser_MemberIdAndApprovalStatus(
+	List<Advertisement> findByAdvertiser_IdAndApprovalStatus(
 	        Long id,
 	        ApprovalStatus approvalStatus
 	);
