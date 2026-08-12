@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.moit.common.entity.Sigungu;
 import com.moit.meetup.entity.Meetup;
+import com.moit.meetup.entity.MeetupLike;
 import com.moit.meetup.enums.ApplyStatus;
 import com.moit.meetup.enums.MeetupStatus;
 
@@ -58,20 +59,20 @@ public class MeetupDto {
 		private String sigunguName;
 		private String sidoName;
 		
-		private Long totalParticipants;
+		private Long totalParticipants = 0L;
+		private Boolean hasLike = false;
+		private Long likeCount = 0L;
 		
 		public static MeetupResponseDto listFrom(Meetup meetup) { // list에만 보여줄 MeetupResponse
 			MeetupResponseDto response = new MeetupResponseDto();
 			Sigungu sigungu = meetup.getSigungu();
+	
+			response.setId(meetup.getId());
 			response.setTitle(meetup.getTitle());
 			response.setNickname(meetup.getMember().getNickname());
 			
 			response.setSidoName(sigungu.getSido().getName());
 			response.setSigunguName(sigungu.getName());
-			
-			//좋아요
-			//지역
-			//등등...
 			return response;
 		}
 		
