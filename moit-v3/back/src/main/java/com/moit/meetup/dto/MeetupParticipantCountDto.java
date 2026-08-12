@@ -1,4 +1,4 @@
-package com.moit.meetup.repository;
+package com.moit.meetup.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
