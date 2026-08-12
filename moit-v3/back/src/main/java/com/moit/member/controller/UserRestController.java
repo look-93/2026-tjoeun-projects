@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.moit.member.dto.UserDto;
 import com.moit.member.dto.UserRequestDto;
 import com.moit.member.dto.UserResponseDto;
+import com.moit.member.dto.UserUpdateRequestDto;
 import com.moit.member.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -98,6 +100,15 @@ public class UserRestController {
 		
 		return ResponseEntity.ok(UserResponseDto.from(user));
 	}
+	
+	// 회원정보 수정
+	@Operation(summary = "회원정보 수정", description = "로그인한 사용자의 회원정보와 관심사를 수정합니다.")
+	@GetMapping("/me")
+	public ResponseEntity<UserResponseDto> updateMember(
+			Authentication authentication,
+			@RequestBody UserUpdateRequestDto request
+			){
+	
 	
 	
 }
