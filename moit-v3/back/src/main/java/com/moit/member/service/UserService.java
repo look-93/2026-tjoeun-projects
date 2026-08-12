@@ -10,7 +10,7 @@ import com.moit.member.dto.InterestDto;
 import com.moit.member.dto.MyPageDto;
 import com.moit.member.dto.UserDto;
 import com.moit.member.dto.UserJoinDto;
-import com.moit.member.enums.PasswordChangeResult;
+import com.moit.member.enums.PasswordChangeResultEnum;
 
 public interface UserService {
 	public int      	 insert(UserDto dto);  // 회원가입 + 권한추가
@@ -27,7 +27,7 @@ public interface UserService {
 	public UserDto findPasswordUser(UserDto dto); // 비밀번호 찾기(정보조회)
 	public boolean changePassword(UserDto dto); // 비밀번호 재발급(변경)
 	//boolean changePassword( int memberId, String currentPassword, String newPassword ); // 비밀번호 변경
-	PasswordChangeResult changePassword(Long memberId, String currentPassword, String newPassword);
+	PasswordChangeResultEnum changePassword(Long memberId, String currentPassword, String newPassword);
 	public UserDto findByMemberId( Long memberId);
 	
 	/* security login */
