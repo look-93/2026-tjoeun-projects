@@ -5,21 +5,22 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Service
-public class OpenAiService2 {
+@Component
+public class OpenAiApiClient {
 	@Value("${openai.api.key}") private String apiKey;
 	
 	private static final String API_URL="https://api.openai.com/v1/chat/completions"; //1. 주소고정
 	private final ObjectMapper objectMapper = new ObjectMapper();
 	private final RestClient restClient;
 	
-    public OpenAiService2(RestClient.Builder restClientBuilder) {
+    public OpenAiApiClient(RestClient.Builder restClientBuilder) {
         this.restClient = restClientBuilder.baseUrl(API_URL).build();
     }	
 	

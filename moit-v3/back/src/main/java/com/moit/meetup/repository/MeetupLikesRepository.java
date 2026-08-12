@@ -1,5 +1,6 @@
 package com.moit.meetup.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,7 +10,11 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.moit.meetup.dto.MeetupLikeCountDto;
+import com.moit.meetup.dto.MeetupLikeDto;
+import com.moit.meetup.dto.MeetupParticipantCountDto;
 import com.moit.meetup.entity.MeetupLike;
+import com.moit.meetup.enums.ApplyStatus;
 
 @Repository
 public interface MeetupLikesRepository extends JpaRepository<MeetupLike, Long>{
@@ -34,5 +39,33 @@ public interface MeetupLikesRepository extends JpaRepository<MeetupLike, Long>{
 	@Transactional
 	@Query("DELETE FROM MeetupLike ml WHERE ml.member.id = :memberId AND ml.meetup.id = :meetupId")
 	void deleteByMember_IdAndMeetup_Id(@Param("memberId") Long memberId, @Param("meetupId") Long meetupId);	
+	
+	//내가 좋아요 눌렀는지
+	@Query("""
+		    SELECT new com.moit.meetup.dto.MeetupLikeDto( 
+		     ml.meetup.id, ml.member.id)
+		     
+		    FROM MeetupLike ml
+		    WHERE ml.meetup.id IN :meetupIds
+		      AND ml.member.id = :memberId
+		""")
+		List<MeetupLikeDto> findLikedMeetups(
+		        @Param("meetupIds") List<Long> meetupIds,
+		        @Param("memberId") Long memberId
+		);
+	
+	//좋아요 갯수
+	@Query("""
+		    SELECT new com.moit.meetup.dto.MeetupLikeCountDto(
+		        ml.meetup.id,
+		        COUNT(ml.id)
+		    )
+			  FROM MeetupLike ml
+			 WHERE ml.meetup.id IN :meetupList
+			 GROUP BY ml.meetup.id
+		""")
+		List<MeetupLikeCountDto> countByMeetup_Id(
+		        @Param("meetupList") List<Long> meetupList
+		);
 }
  

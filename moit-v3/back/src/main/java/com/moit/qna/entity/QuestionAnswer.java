@@ -5,12 +5,15 @@ import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -28,7 +31,12 @@ public class QuestionAnswer extends BaseEntity{
     @Column(name = "ANSWER_ID")
     private Long answerId;
 
-    @ManyToOne
+    //유저는 많은 질문을 가질 수 있다
+	//    <Member>
+	//    @OneToMany( mappedBy = "member" ,cascade = CascadeType.ALL, orphanRemoval = true )
+	//    private List<QuestionAnswer> questionAnswers = new ArrayList<>(); 
+
+    @OneToOne
     @JoinColumn(name = "QUESTION_ID", nullable = false)
     private Question question;
     
@@ -40,6 +48,7 @@ public class QuestionAnswer extends BaseEntity{
     @Column(name = "CONTENT", nullable = false)
     private String content;
 
-    @Column(name = "IS_PUBLIC")
-    private String isPublic;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "IS_PUBLIC", length = 20, nullable = false)
+    private IsPublic isPublic;
 }

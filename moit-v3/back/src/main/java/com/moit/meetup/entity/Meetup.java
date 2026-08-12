@@ -3,6 +3,7 @@ package com.moit.meetup.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.moit.common.entity.Sigungu;
 import com.moit.meetup.enums.MeetupStatus;
 import com.moit.member.entity.Member;
 import com.moit.util.BaseEntity;
@@ -54,12 +55,6 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	private Integer minParticipants;
 	
 	@Column
-	private Integer sigunguId;
-	
-	@Column
-	private Integer categoryId;
-	
-	@Column
 	private String address;
 	
 	@Column
@@ -98,4 +93,14 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	@OneToMany(mappedBy = "meetup", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<MeetupImage> meetupImages = new ArrayList<>();
 	
+	@ManyToOne
+	@JoinColumn(name="meetupCategory_id", nullable = false)
+	private MeetupCategory meetupCategory;	
+	
+	@ManyToOne
+	@JoinColumn(name="sigungu_id", nullable = false)
+	private Sigungu sigungu;
+	
+	@OneToMany(mappedBy = "meetup", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<MeetupLike> meetupLike;
 }
