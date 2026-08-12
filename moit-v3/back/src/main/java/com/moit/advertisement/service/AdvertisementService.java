@@ -78,7 +78,7 @@ public interface AdvertisementService {
     int updateAdvertisementClick(Long adId);
 
     // 광고 조회
-//    AdvertisementDto selectTopAdvertisement(String position, Integer memberId, String sessionId);
+    AdvertisementDto selectTopAdvertisement(String position, Integer memberId, String sessionId);
 
     // 통계
     int selectTotalAdvertisementCnt();
@@ -90,29 +90,29 @@ public interface AdvertisementService {
     int selectClosedAdvertisementCnt();
 
     // 클릭 로그
-//	boolean insertClickLog(Long adId, String position, HttpServletRequest request, HttpSession session);
+	boolean insertClickLog(Long adId, String position, HttpServletRequest request, HttpSession session);
 	
 	// 노출 로그
-//	boolean insertImpressionLog(Long adId, String position, HttpServletRequest request, HttpSession session);
+	boolean insertImpressionLog(Long adId, String position, HttpServletRequest request, HttpSession session);
 
 	// 일일통계
-//	void insertDailyStatistics();
+	void insertDailyStatistics();
 	
-//	// 통계 차트
-//	// 총 통계
-//	AdvertisementChartDto selectSummary();
-//	// 7일치 통계차트
-//	List<AdvertisementChartDto> selectDailyChart();
-//	// ctr 탑5
-//	List<AdvertisementChartDto> selectTopCtrChart();
-//	// 등급비율
-//	List<AdvertisementChartDto> selectGradeChart();
-//	// 위치별 노출
-//	List<AdvertisementChartDto> selectPositionChart(); 
-//	// 연장률
-//	double selectExtensionRate();	
-//	// 위치별 ctr 차트
-//	List<AdvertisementChartDto> selectPositionCtrChart();
+	// 통계 차트
+	// 총 통계
+	AdvertisementChartDto selectSummary();
+	// 7일치 통계차트
+	List<AdvertisementChartDto> selectDailyChart();
+	// ctr 탑5
+	List<AdvertisementChartDto> selectTopCtrChart();
+	// 등급비율
+	List<AdvertisementChartDto> selectGradeChart();
+	// 위치별 노출
+	List<AdvertisementChartDto> selectPositionChart(); 
+	// 연장률
+	double selectExtensionRate();	
+	// 위치별 ctr 차트
+	List<AdvertisementChartDto> selectPositionCtrChart();
 //	// AI 통계 요약
 //	DashboardAiDto getDashboardAiData();
 //	DashboardAiDto getLatestAiSummary(); 

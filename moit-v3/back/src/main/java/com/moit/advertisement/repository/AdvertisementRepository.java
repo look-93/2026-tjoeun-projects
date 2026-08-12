@@ -43,7 +43,7 @@ public interface AdvertisementRepository
 	
 	Optional<Advertisement> findByAdIdAndDeleteYn(
 	    Long adId,
-	    String deleteYn
+	    Character deleteYn
 	);
 	
 	Page<Advertisement> findAll(

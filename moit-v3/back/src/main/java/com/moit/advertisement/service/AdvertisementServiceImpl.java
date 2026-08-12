@@ -91,18 +91,14 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                 advertisementRepository.findAll();
 
         return advertisements.stream()
-                .filter(ad ->
-                        "N".equals(String.valueOf(ad.getDeleteYn())))
+        		.filter(ad -> ad.getDeleteYn() == 'N')
                 .filter(ad -> {
 
-                    if (dto.getApprovalStatus() == null
-                            || dto.getApprovalStatus().isBlank()) {
-
+                    if (dto.getApprovalStatus() == null) {
                         return true;
                     }
 
-                    return ad.getApprovalStatus().name()
-                            .equals(dto.getApprovalStatus());
+                    return ad.getApprovalStatus() == dto.getApprovalStatus();
                 })
                 .map(this::toDto)
                 .toList();
@@ -126,14 +122,9 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             AdvertisementSearchDto dto) {
 
         return advertisementRepository
-                .findByApprovalStatus(
-                        ApprovalStatus.WAITING
-                )
+        		.findByApprovalStatus(ApprovalStatus.WAITING)
                 .stream()
-                .filter(ad ->
-                        "N".equals(
-                                String.valueOf(ad.getDeleteYn())
-                        ))
+                .filter(ad -> ad.getDeleteYn() == 'N')
                 .map(this::toDto)
                 .toList();
     }
@@ -161,7 +152,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
         Advertisement advertisement =
                 advertisementRepository
-                        .findByAdIdAndDeleteYn(adId, "N")
+                        .findByAdIdAndDeleteYn(adId, 'N')
                         .orElse(null);
 
         if (advertisement == null) {

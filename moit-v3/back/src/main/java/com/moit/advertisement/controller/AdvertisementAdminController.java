@@ -17,6 +17,7 @@ import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.DashboardAiDto;
+import com.moit.advertisement.enums.ApprovalStatus;
 import com.moit.advertisement.service.AdvertisementService;
 
 import jakarta.servlet.http.HttpSession;
@@ -36,7 +37,7 @@ public class AdvertisementAdminController {
         dto.setPage(dto.getPage() <= 0 ? 1 : dto.getPage());
         dto.setSize(dto.getSize() <= 0 ? 10 : dto.getSize());
 
-        dto.setApprovalStatus("WAITING");
+        dto.setApprovalStatus(ApprovalStatus.WAITING);
 
         List<AdvertisementDto> list =
                 advertisementService.searchWaitingList(dto);
@@ -66,7 +67,7 @@ public class AdvertisementAdminController {
 
         if ("approval".equals(tab)) {
 
-            dto.setApprovalStatus("WAITING");
+        	dto.setApprovalStatus(ApprovalStatus.WAITING);
 
             list = advertisementService.searchWaitingList(dto);
             totalCnt = advertisementService.selectWaitingTotalCnt(dto);
@@ -77,7 +78,7 @@ public class AdvertisementAdminController {
         
         else {
 
-            dto.setApprovalStatus("APPROVED");
+        	dto.setApprovalStatus(ApprovalStatus.APPROVED);
 
             list = advertisementService.searchByAdmin(dto);
             totalCnt = advertisementService.selectAdminAdvertisementTotalCnt(dto);

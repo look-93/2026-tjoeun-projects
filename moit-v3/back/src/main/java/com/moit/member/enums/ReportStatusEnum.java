@@ -1,6 +1,6 @@
 package com.moit.member.enums;
 
-public enum ReportStatus {
+public enum ReportStatusEnum {
 
     ACTIVE,       // 정상
     WARNING,      // 주의

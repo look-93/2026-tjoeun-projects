@@ -1,19 +1,13 @@
 spring:
-  profiles:
-    active: local        # → application-local.properties 자동 로드됨
-  config:
-    import:
-      - optional:application-oauth.properties
-
   datasource:
-    driver-class-name: oracle.jdbc.OracleDriver
     url: jdbc:oracle:thin:@localhost:1521/XE
-    username: moit3
-    password: 1234
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: oracle.jdbc.OracleDriver
 
   jpa:
     hibernate:
-      ddl-auto: create-drop  # test 환경 create-drop 매번초기화 / update 부분수정
+      ddl-auto: create-drop  # test 환경 create-drop 매번초기화 / update 부분수정  
     properties:
       hibernate:
         format_sql: true
@@ -23,18 +17,18 @@ spring:
     multipart:
       enabled: true
       max-file-size: 10MB
-      max-request-size: 50MB
+      max-request-size: 20MB      
 
-    data:
-      redis:
-        host: localhost
-        port: 6379
-        timeout: 2000
-  
-    config:
-      import:
-        - optional:application-oauth.yml
-        - optional:file:.env[.properties]
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000
+
+  config:
+    import: 
+      - optional:application-oauth.yml
+      - optional:file:.env[.properties]
 
 mybatis:
   # config-location: classpath:mybatis-config.xml

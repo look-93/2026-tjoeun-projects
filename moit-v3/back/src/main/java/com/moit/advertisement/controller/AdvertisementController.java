@@ -184,16 +184,13 @@ public class AdvertisementController {
         AdvertisementDto dto =
                 advertisementService.selectAdvertisementOne(adId);
 
-        String loginId     = null, provider = null;
-		UserDto user=null;
-
-		Long memberId = getLoginMemberId(authentication);
+        Long loginMemberId = 1L; // 보안끼면 수정
 
         if (dto == null) {
             return "redirect:/user/advertisement/list";
         }
 
-        if (!memberId.equals(dto.getAdvertiserId())) {
+        if (!loginMemberId.equals(dto.getAdvertiserId())) {
             return "redirect:/user/advertisement/list";
         }
 

@@ -17,7 +17,7 @@ import com.moit.member.dao.UserMapper;
 import com.moit.member.dto.AuthUserDto;
 import com.moit.member.dto.InterestDto;
 import com.moit.member.dto.UserDto;
-import com.moit.member.enums.PasswordChangeResult;
+import com.moit.member.enums.PasswordChangeResultEnum;
 import com.moit.security.PasswordLeakService;
 
 @Service
@@ -229,7 +229,7 @@ public class UserServiceImpl  implements UserService{
 //		return true;
 //	}
 	@Override
-	public PasswordChangeResult changePassword(
+	public PasswordChangeResultEnum changePassword(
 			Long memberId,
 	        String currentPassword,
 	        String newPassword) {
@@ -238,7 +238,7 @@ public class UserServiceImpl  implements UserService{
 
 	    // 현재 비밀번호 확인
 	    if (!pwencoder.matches(currentPassword, user.getPassword())) {
-	        return PasswordChangeResult.WRONG_PASSWORD;
+	        return PasswordChangeResultEnum.WRONG_PASSWORD;
 	    }
 
 	    // HIBP 검사  임시 주석처리
@@ -254,7 +254,7 @@ public class UserServiceImpl  implements UserService{
 
 	    dao.changePassword(dto);
 	    
-	    return PasswordChangeResult.SUCCESS;
+	    return PasswordChangeResultEnum.SUCCESS;
 	}
 	
 	@Transactional
