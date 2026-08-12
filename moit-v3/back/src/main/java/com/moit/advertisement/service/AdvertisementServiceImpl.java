@@ -200,6 +200,26 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
         return 1;
     }
+    
+ // =========================================================
+ // 광고 조회
+ // =========================================================
+
+	 @Override
+	 public AdvertisementDto selectTopAdvertisement(
+	         String position,
+	         Integer memberId,
+	         String sessionId) {
+	
+	     Advertisement advertisement =
+	             advertisementRepository.findTopAdvertisement(position);
+	
+	     if (advertisement == null) {
+	         return null;
+	     }
+	
+	     return toDto(advertisement);
+	 }
 
 
     // =========================================================
