@@ -1,6 +1,6 @@
 package com.moit.member.enums;
 
-public enum MemberStatus {
+public enum MemberStatusEnum {
 
     ACTIVE,       // 활성화
     PENDING,      // 대기중

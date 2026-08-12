@@ -1,6 +1,6 @@
 package com.moit.member.enums;
 
-public enum PasswordChangeResult {
+public enum PasswordChangeResultEnum {
 
     SUCCESS,            // 성공
     WRONG_PASSWORD,     // 현재 비밀번호 불일치

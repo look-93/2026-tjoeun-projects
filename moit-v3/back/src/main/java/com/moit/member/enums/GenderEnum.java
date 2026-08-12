@@ -1,6 +1,6 @@
 package com.moit.member.enums;
 
-public enum Gender {
+public enum GenderEnum {
 
     M,    // 남성
     F,    // 여성

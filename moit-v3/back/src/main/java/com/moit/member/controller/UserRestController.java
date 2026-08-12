@@ -98,4 +98,6 @@ public class UserRestController {
 		
 		return ResponseEntity.ok(UserResponseDto.from(user));
 	}
+	
+	
 }
