@@ -40,7 +40,6 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
     private static final String UPLOAD_PATH = "C:/upload/ad";
 
-
     // =========================================================
     // 광고 목록
     // =========================================================
