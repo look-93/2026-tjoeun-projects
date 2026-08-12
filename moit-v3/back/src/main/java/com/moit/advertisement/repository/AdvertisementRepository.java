@@ -43,7 +43,7 @@ public interface AdvertisementRepository
 	
 	Optional<Advertisement> findByAdIdAndDeleteYn(
 	    Long adId,
-	    String deleteYn
+	    Character deleteYn
 	);
 	
 	Page<Advertisement> findAll(
@@ -51,7 +51,11 @@ public interface AdvertisementRepository
 	    Pageable pageable
 	);
 	
+	
 	List<Advertisement> findByAdvertiser_Id(Long id);
+	
+	long countByAdvertiser_Id(Long id);
+	long countByApprovalStatus(ApprovalStatus status);
 
 	List<Advertisement> findByApprovalStatus(ApprovalStatus approvalStatus);
 

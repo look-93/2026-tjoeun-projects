@@ -2,25 +2,22 @@ package com.moit.advertisement.controller;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
-import com.moit.advertisement.dto.AdvertisementExtensionRequestDto;
 import com.moit.advertisement.service.AdvertisementService;
 import com.moit.member.dto.UserDto;
 import com.moit.security.CustomUserDetails;
@@ -37,29 +34,30 @@ public class AdvertisementController {
     private final AdvertisementService advertisementService;
 
     private static final String UPLOAD_PATH = "C:/upload/ad/";
+    
+    // 사용자 id
+    private Long getLoginMemberId(Authentication authentication) {
+
+        CustomUserDetails user =
+                (CustomUserDetails) authentication.getPrincipal();
+
+        return user.getUser().getMemberId();
+    }
 
     // 내 광고 목록
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/list")
     public String list(
             AdvertisementSearchDto dto,
-            HttpSession session,
             Authentication authentication,
             Model model) {
     	
 		String loginId     = null, provider = null;
 		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Long memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		} 
+		
+		Long memberId = getLoginMemberId(authentication);
 
-        dto.setAdvertiserId(memberId);
+		dto.setAdvertiserId(memberId);
 
         int page = dto.getPage() <= 0 ? 1 : dto.getPage();
         int size = dto.getSize() <= 0 ? 10 : dto.getSize();
@@ -73,12 +71,12 @@ public class AdvertisementController {
         System.out.println("광고 개수 = " + list.size());
 
         for(AdvertisementDto ad : list){
-            System.out.println(
-                "adId=" + ad.getAdId()
-                + ", title=" + ad.getTitle()
-                + ", end=" + ad.getEndDatetime()
-                // + ", extension=" + ad.getExtensionStatus()
-            );
+        	System.out.println(
+                    "adId=" + ad.getAdId()
+                    + ", title=" + ad.getTitle()
+                    + ", end=" + ad.getEndDatetime()
+                    // + ", extension=" + ad.getExtensionStatus()
+                );
         }
 
         int totalCnt =
@@ -128,16 +126,9 @@ public class AdvertisementController {
 
         	String loginId     = null, provider = null;
     		UserDto user=null;
-    		Object principal = authentication.getPrincipal();
-    		Long memberId = null;
-    		//1. local
-    		if(   principal   instanceof CustomUserDetails ) {
-    			CustomUserDetails  users = (CustomUserDetails)principal;
-    			user=users.getUser();
-    			loginId    =  users.getUser().getLoginId();
-    			memberId = users.getUser().getMemberId();
-    		}
-
+    		
+    		Long memberId = getLoginMemberId(authentication);
+    		
             dto.setAdvertiserId(memberId);
 
             advertisementService.insertAdvertisement(dto);
@@ -193,23 +184,13 @@ public class AdvertisementController {
         AdvertisementDto dto =
                 advertisementService.selectAdvertisementOne(adId);
 
-        String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Long memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		}
+        Long loginMemberId = 1L; // 보안끼면 수정
 
         if (dto == null) {
             return "redirect:/user/advertisement/list";
         }
 
-        if (!memberId.equals(dto.getAdvertiserId())) {
+        if (!loginMemberId.equals(dto.getAdvertiserId())) {
             return "redirect:/user/advertisement/list";
         }
 
@@ -230,15 +211,8 @@ public class AdvertisementController {
 
         String loginId     = null, provider = null;
 		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Long memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		}
+
+		Long memberId = getLoginMemberId(authentication);
 
         if (dto == null) {
             return "redirect:/user/advertisement/list";
@@ -272,33 +246,29 @@ public class AdvertisementController {
 
     	String loginId     = null, provider = null;
 		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Long memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
+
+		Long memberId = getLoginMemberId(authentication);
+
+		AdvertisementDto origin =
+		        advertisementService.selectAdvertisementOne(dto.getAdId());
+
+		if (origin == null) {
+		    return "redirect:/user/advertisement/list";
 		}
 
-        AdvertisementDto origin =
-                advertisementService.selectAdvertisementOne(dto.getAdId());
+		// DB에 저장된 실제 광고주 ID로 권한 검사
+		if (!Objects.equals(memberId, origin.getAdvertiserId())) {
+		    return "redirect:/user/advertisement/list";
+		}
 
-        if (origin == null) {
-            return "redirect:/user/advertisement/list";
-        }
+		// 수정 DTO에는 서버에서 직접 주입
+		dto.setAdvertiserId(memberId);
 
-        if (!memberId.equals(dto.getAdvertiserId())) {
-            return "redirect:/user/advertisement/list";
-        }
-
-        dto.setAdvertiserId(memberId);
-
-        advertisementService.updateAdvertisement(
-                dto,
-                imageFiles,
-                imageTypes);
+		advertisementService.updateAdvertisement(
+		        dto,
+		        imageFiles,
+		        imageTypes
+		);
 
         return "redirect:/user/advertisement/detail?adId=" + dto.getAdId();
     }
@@ -354,15 +324,8 @@ public class AdvertisementController {
 
         	String loginId     = null, provider = null;
     		UserDto user=null;
-    		Object principal = authentication.getPrincipal();
-    		Long memberId = null;
-    		//1. local
-    		if(   principal   instanceof CustomUserDetails ) {
-    			CustomUserDetails  users = (CustomUserDetails)principal;
-    			user=users.getUser();
-    			loginId    =  users.getUser().getLoginId();
-    			memberId = users.getUser().getMemberId();
-    		}
+
+    		Long memberId = getLoginMemberId(authentication);
 
         // 권한 체크
         if (dto == null) {
@@ -380,38 +343,38 @@ public class AdvertisementController {
     }
 
 
-    // 광고 클릭
-    @GetMapping("/click")
-    public String click(
-            @RequestParam Long adId,
-            @RequestParam String position,
-            HttpServletRequest request,
-            HttpSession session) {
-
-
-    	// 클릭 로그 확인 (1시간에 한번만 +1 인정)
-    	boolean counted = advertisementService.insertClickLog(
-    	        adId,
-    	        position,
-    	        request,
-    	        session
-    	);
-    	// 한시간 내에 기록 x면 증가
-    	if (counted) {
-    	    advertisementService.updateAdvertisementClick(adId);
-    	}
-
-        AdvertisementDto dto =
-                advertisementService.selectAdvertisementOne(adId);
-
-
-        if(dto == null || dto.getLandingUrl() == null){
-            return "redirect:/";
-        }
-
-
-        return "redirect:" + dto.getLandingUrl();
-    }
+//    // 광고 클릭
+//    @GetMapping("/click")
+//    public String click(
+//            @RequestParam Long adId,
+//            @RequestParam String position,
+//            HttpServletRequest request,
+//            HttpSession session) {
+//
+//
+//    	// 클릭 로그 확인 (1시간에 한번만 +1 인정)
+//    	boolean counted = advertisementService.insertClickLog(
+//    	        adId,
+//    	        position,
+//    	        request,
+//    	        session
+//    	);
+//    	// 한시간 내에 기록 x면 증가
+//    	if (counted) {
+//    	    advertisementService.updateAdvertisementClick(adId);
+//    	}
+//
+//        AdvertisementDto dto =
+//                advertisementService.selectAdvertisementOne(adId);
+//
+//
+//        if(dto == null || dto.getLandingUrl() == null){
+//            return "redirect:/";
+//        }
+//
+//
+//        return "redirect:" + dto.getLandingUrl();
+//    }
     
     // 광고 기간 연장 신청
 //    @PostMapping("/extensionRequest")
@@ -420,10 +383,7 @@ public class AdvertisementController {
 //            @RequestBody AdvertisementExtensionRequestDto dto,
 //            Authentication authentication) {
 //
-//        CustomUserDetails user =
-//                (CustomUserDetails) authentication.getPrincipal();
-//
-//        Long memberId = user.getUser().getMemberId();
+//        Long memberId = getLoginMemberId(authentication);
 //			
 //			advertisementService.requestExtension(
 //			    dto,

@@ -17,6 +17,7 @@ import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.DashboardAiDto;
+import com.moit.advertisement.enums.ApprovalStatus;
 import com.moit.advertisement.service.AdvertisementService;
 
 import jakarta.servlet.http.HttpSession;
@@ -36,7 +37,7 @@ public class AdvertisementAdminController {
         dto.setPage(dto.getPage() <= 0 ? 1 : dto.getPage());
         dto.setSize(dto.getSize() <= 0 ? 10 : dto.getSize());
 
-        dto.setApprovalStatus("WAITING");
+        dto.setApprovalStatus(ApprovalStatus.WAITING);
 
         List<AdvertisementDto> list =
                 advertisementService.searchWaitingList(dto);
@@ -66,7 +67,7 @@ public class AdvertisementAdminController {
 
         if ("approval".equals(tab)) {
 
-            dto.setApprovalStatus("WAITING");
+        	dto.setApprovalStatus(ApprovalStatus.WAITING);
 
             list = advertisementService.searchWaitingList(dto);
             totalCnt = advertisementService.selectWaitingTotalCnt(dto);
@@ -77,7 +78,7 @@ public class AdvertisementAdminController {
         
         else {
 
-            dto.setApprovalStatus("APPROVED");
+        	dto.setApprovalStatus(ApprovalStatus.APPROVED);
 
             list = advertisementService.searchByAdmin(dto);
             totalCnt = advertisementService.selectAdminAdvertisementTotalCnt(dto);
@@ -250,80 +251,80 @@ public class AdvertisementAdminController {
         return "admin/advertisement/statistics";
 
     }
-    // 대시보드 차트
-    // 총 통계
-    @ResponseBody
-    @GetMapping("/chart/summary")
-    public AdvertisementChartDto summary(){
-
-        return advertisementService.selectSummary();
-
-    }
-    // 일일통계 차트
-    @ResponseBody
-    @GetMapping("/chart/daily")
-    public List<AdvertisementChartDto> dailyChart(){
-
-        return advertisementService.selectDailyChart();
-
-    }
-    // ctr 탑5
-    @ResponseBody
-    @GetMapping("/chart/ctr")
-    public List<AdvertisementChartDto> ctrChart(){
-
-        return advertisementService.selectTopCtrChart();
-
-    }
-    // 등급비율
-    @ResponseBody
-    @GetMapping("/chart/grade")
-    public List<AdvertisementChartDto> gradeChart(){
-
-        return advertisementService.selectGradeChart();
-
-    }
-    // 위치별 노출
-    @GetMapping("/chart/position")
-    @ResponseBody
-    public List<AdvertisementChartDto> positionChart() {
-
-        return advertisementService.selectPositionChart();
-
-    }
-    // 연장률
-    @GetMapping("/chart/extension-rate")
-    @ResponseBody
-    public double extensionRate() {
-
-        return advertisementService.selectExtensionRate();
-
-    }
-    // 위치별 ctr 차트
-    @GetMapping("/chart/positionCtr")
-    @ResponseBody
-    public List<AdvertisementChartDto> positionCtrChart(){
-
-        return advertisementService.selectPositionCtrChart();
-
-    }
-    // AI 통계 요약
- // AI 통계 요약
-    @GetMapping("/chart/ai-summary")
-    @ResponseBody
-    public DashboardAiDto aiSummary() {
-
-    	DashboardAiDto dto =
-                advertisementService.getLatestAiSummary();
-
-        if(dto == null) {
-            dto = new DashboardAiDto();
-            dto.setSummary("아직 생성된 AI 분석이 없습니다.");
-            dto.setCreatedAt("-");
-        }
-
-        return dto;
-    }
+//    // 대시보드 차트
+//    // 총 통계
+//    @ResponseBody
+//    @GetMapping("/chart/summary")
+//    public AdvertisementChartDto summary(){
+//
+//        return advertisementService.selectSummary();
+//
+//    }
+//    // 일일통계 차트
+//    @ResponseBody
+//    @GetMapping("/chart/daily")
+//    public List<AdvertisementChartDto> dailyChart(){
+//
+//        return advertisementService.selectDailyChart();
+//
+//    }
+//    // ctr 탑5
+//    @ResponseBody
+//    @GetMapping("/chart/ctr")
+//    public List<AdvertisementChartDto> ctrChart(){
+//
+//        return advertisementService.selectTopCtrChart();
+//
+//    }
+//    // 등급비율
+//    @ResponseBody
+//    @GetMapping("/chart/grade")
+//    public List<AdvertisementChartDto> gradeChart(){
+//
+//        return advertisementService.selectGradeChart();
+//
+//    }
+//    // 위치별 노출
+//    @GetMapping("/chart/position")
+//    @ResponseBody
+//    public List<AdvertisementChartDto> positionChart() {
+//
+//        return advertisementService.selectPositionChart();
+//
+//    }
+//    // 연장률
+//    @GetMapping("/chart/extension-rate")
+//    @ResponseBody
+//    public double extensionRate() {
+//
+//        return advertisementService.selectExtensionRate();
+//
+//    }
+//    // 위치별 ctr 차트
+//    @GetMapping("/chart/positionCtr")
+//    @ResponseBody
+//    public List<AdvertisementChartDto> positionCtrChart(){
+//
+//        return advertisementService.selectPositionCtrChart();
+//
+//    }
+//    // AI 통계 요약
+// // AI 통계 요약
+//    @GetMapping("/chart/ai-summary")
+//    @ResponseBody
+//    public DashboardAiDto aiSummary() {
+//
+//    	DashboardAiDto dto =
+//                advertisementService.getLatestAiSummary();
+//
+//        if(dto == null) {
+//            dto = new DashboardAiDto();
+//            dto.setSummary("아직 생성된 AI 분석이 없습니다.");
+//            dto.setCreatedAt("-");
+//        }
+//
+//        return dto;
+//    }
 
     // 로그인 헬퍼
 //    private Integer getLogin(HttpSession session) {
