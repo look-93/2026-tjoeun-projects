@@ -6,23 +6,21 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import com.moit.qna.dao.AnswerMapper;
 import com.moit.qna.dao.QuestionMapper;
-import com.moit.qna.dto.AnswerDto;
-import com.moit.qna.dto.QuestionDto;
+import com.moit.qna.dto.AnswerDto.AnswerResponseDto;
+import com.moit.qna.dto.QuestionDto.QuestionRequestDto;
+import com.moit.qna.dto.QuestionDto.QuestionResponseDto;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class QuestionService {
-
     private final QuestionMapper questionMapper;
-    private final AnswerMapper answerMapper;
     private final QuestionAiAnalysisService questionAiAnalysisService;
 
     // 전체 문의 목록 조회 (페이징)
-    public List<QuestionDto> getList(
+    public List<QuestionResponseDto> getList(
             int start,
             int end,
             String type,
@@ -41,42 +39,40 @@ public class QuestionService {
         map.put("status", status);
         map.put("startDate", startDate);
         map.put("endDate", endDate);
-        
-        List<QuestionDto> list = questionMapper.findAll(map);
+
+        List<QuestionResponseDto> list = questionMapper.findAll(map);
 
         // 답변 정보 추가
-        for (QuestionDto q : list) {
-            AnswerDto answer = answerMapper.findByQuestionId(q.getQuestionId());
+        for (QuestionResponseDto q : list) {
+        	AnswerResponseDto answer = questionMapper.findByQuestionId(q.getQuestionId());
             q.setAnswer(answer);
         }
         return list;
     }
 
- // 문의 상세 조회 + 답변 정보 조회
-    public QuestionDto getDetail(Long id) {
-    	// 문의 정보 조회
-        QuestionDto question = questionMapper.findById(id);
+    // 문의 상세 조회 + 답변 정보 조회
+    public QuestionResponseDto getDetail(Long id) {
+        // 문의 정보 조회
+        QuestionResponseDto question = questionMapper.findById(id);
         // 해당 문의의 답변 조회
-        AnswerDto answer = answerMapper.findByQuestionId(id);
-        
+        AnswerResponseDto answer = questionMapper.findByQuestionId(id);
+
         question.setAnswer(answer);
         return question;
     }
-    
+
     // 문의 등록
-    public void register(QuestionDto dto) {
+    public void register(QuestionRequestDto dto) {
         // questions 테이블 저장
         questionMapper.insertQuestion(dto);
-
         // AI 분석
         String text = dto.getTitle() + "\n" + dto.getContent();
-        questionAiAnalysisService.analyzeAndSave(
-                dto.getQuestionId(), text
-        );
+
+        questionAiAnalysisService.analyzeAndSave( dto.getQuestionId(), text );
     }
-    
+
     // 문의 수정
-    public void updateQuestion(QuestionDto dto) {
+    public void updateQuestion(QuestionRequestDto dto) {
         questionMapper.updateQuestion(dto);
     }
 
@@ -84,11 +80,12 @@ public class QuestionService {
     public void deleteQuestion(Long questionId) {
         questionMapper.deleteQuestion(questionId);
     }
-    
+
     // 전체 문의 수 조회
     public int getAllCnt() {
         return questionMapper.findAllCnt();
     }
+
     // 검색 문의 수 조회
     public int getSearchCnt(
             String type,
@@ -122,9 +119,15 @@ public class QuestionService {
     public int getTodayCnt() {
         return questionMapper.findTodayCnt();
     }
-    
+
     // 사용자 문의 목록 페이징 조회
-    public List<QuestionDto> getMyQuestions( Long memberId, int start, int end, String type, String keyword) {
+    public List<QuestionResponseDto> getMyQuestions(
+            Long memberId,
+            int start,
+            int end,
+            String type,
+            String keyword) {
+
         Map<String, Object> map = new HashMap<>();
 
         map.put("memberId", memberId);
@@ -133,33 +136,35 @@ public class QuestionService {
         map.put("type", type);
         map.put("keyword", keyword);
 
-        List<QuestionDto> list = questionMapper.findMyQuestions(map);
+        List<QuestionResponseDto> list = questionMapper.findMyQuestions(map);
+
         // 답변 정보 추가
-        for (QuestionDto q : list) {
-            AnswerDto answer = answerMapper.findByQuestionId(q.getQuestionId());
+        for (QuestionResponseDto q : list) {
+        	AnswerResponseDto answer = questionMapper.findByQuestionId(q.getQuestionId());
             q.setAnswer(answer);
         }
 
         return list;
     }
-    
+
     // 내 문의 총 개수 조회
     public int getMyQuestionCnt(Long memberId, String type, String keyword) {
-    	Map<String, Object> map = new HashMap<>();
-    	map.put("memberId", memberId);
-    	map.put("type", type);
-    	map.put("keyword", keyword);
-    	return questionMapper.findMyQuestionCnt(map);
+        Map<String, Object> map = new HashMap<>();
+
+        map.put("memberId", memberId);
+        map.put("type", type);
+        map.put("keyword", keyword);
+
+        return questionMapper.findMyQuestionCnt(map);
     }
 
     //관리자용 선택 삭제
     public void deleteSelected(List<Long> ids){
         questionMapper.deleteSelected(ids);
     }
-    
+
     //해당 모임의 문의 목록
-    public List<QuestionDto> selectByParentId(Long parentId){
+    public List<QuestionResponseDto> selectByParentId(Long parentId){
         return questionMapper.selectByParentId(parentId);
     }
-    
 }

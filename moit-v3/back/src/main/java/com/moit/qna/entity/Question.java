@@ -5,6 +5,8 @@ import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,12 +32,14 @@ public class Question extends BaseEntity{
     @Column(name = "PARENT_ID", nullable = false)
     private Long parentId;
     
+    //유저는 많은 질문을 가질 수 있다
+	//    <Member>
+	//    @OneToMany( mappedBy = "member" ,cascade = CascadeType.ALL, orphanRemoval = true )
+	//    private List<Question> questions = new ArrayList<>(); 
+    
     @ManyToOne
     @JoinColumn(name = "MEMBER_ID", nullable = false)
     private Member member;
-
-    @Column(name = "CATEGORY")
-    private String category;
 
     @Column(name = "TITLE", nullable = false)
     private String title;
@@ -44,10 +48,16 @@ public class Question extends BaseEntity{
     @Column(name = "CONTENT", nullable = false)
     private String content;
 
-    @Column(name = "STATUS")
-    private String status;
-
-    @Column(name = "IS_PUBLIC")
-    private String isPublic;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "CATEGORY", length = 20, nullable = false)
+    private Category category;
+    
+	@Enumerated(EnumType.STRING)
+	@Column(name = "STATUS", length = 20, nullable = false)
+    private Status status;
+    
+	@Enumerated(EnumType.STRING)
+	@Column(name = "IS_PUBLIC", length = 20, nullable = false)
+    private IsPublic isPublic;
 
 }

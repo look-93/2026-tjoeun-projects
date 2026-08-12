@@ -3,7 +3,7 @@
 <mapper namespace="com.moit.qna.dao.QuestionMapper">
 
 	<!-- 관리자측 페이징 -->
-	<select id="findAll" resultType="QuestionDto" parameterType="map">
+	<select id="findAll" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto" parameterType="map">
 		SELECT q.*, qa.analysis_status, qa.aggression_score
 	    FROM questions q LEFT JOIN question_ai_analysis qa
 	    ON	 q.question_id = qa.question_id
@@ -102,7 +102,7 @@
 	</select>
 
 	<!-- 상세보기 -->
-	<select id="findById" resultType="QuestionDto">
+	<select id="findById" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto">
 		SELECT q.*, qa.analysis_status, qa.aggression_score
 	    FROM questions q LEFT JOIN question_ai_analysis qa
 	    ON q.question_id = qa.question_id
@@ -110,7 +110,7 @@
 	</select>
 
 	<!-- 제목, 내용, 등록일 검색 (관리자용)-->
-	<select id="findBySearch" resultType="QuestionDto">
+	<select id="findBySearch" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto">
 		SELECT
 		question_id, parent_id, member_id, category, title, content, status,
 		is_public, delete_yn, created_at, updated_at
@@ -131,7 +131,7 @@
 	</select>
 
 	<!--  제목, 내용 검색 (사용자용) -->
-	<select id="findMyQuestions" resultType="QuestionDto" parameterType="map">
+	<select id="findMyQuestions" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto" parameterType="map">
 	    SELECT q.*, qa.analysis_status, qa.aggression_score
 	    FROM questions q LEFT JOIN question_ai_analysis qa
 	    ON q.question_id = qa.question_id
@@ -151,9 +151,9 @@
 	</select>
 
 	<!-- 문의글 작성 -->
-	<insert id="insertQuestion" parameterType="QuestionDto">
+	<insert id="insertQuestion" parameterType="com.moit.qna.dto.QuestionDto$QuestionRequestDto">
 	<selectKey keyProperty="questionId"
-               resultType="int"
+               resultType="long"
                order="BEFORE">
         SELECT question_seq.NEXTVAL FROM dual
     </selectKey>
@@ -161,7 +161,7 @@
     (question_id, parent_id, member_id, category, title, content,
      is_public, delete_yn)
     VALUES
-    (#{questionId}, #{parentId,jdbcType=INTEGER}, #{memberId}, #{category},
+    (#{questionId}, #{parentId,jdbcType=BIGINT}, #{memberId}, #{category},
      #{title}, #{content},
      #{isPublic}, #{deleteYn})
 	</insert>
@@ -174,7 +174,7 @@
 	</update>
 
 	<!-- 문의 수정 -->
-	<update id="updateQuestion">
+	<update id="updateQuestion" parameterType="com.moit.qna.dto.QuestionDto$QuestionRequestDto">
 		UPDATE questions
 		SET
 		title = #{title},
@@ -208,7 +208,7 @@
 	</update>
 	
 	<!-- 모임 문의 목록(다른 사람들이 보는 페이지) -->
-	<select id="selectByParentId" parameterType="int" resultType="QuestionDto">
+	<select id="selectByParentId" parameterType="long" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto">
 	    SELECT q.*, m.nickname, qa.analysis_status, qa.aggression_score
 	    FROM questions q LEFT JOIN members m ON q.member_id = m.member_id
 			LEFT JOIN question_ai_analysis qa ON q.question_id = qa.question_id
@@ -222,5 +222,110 @@
           )
 	    ORDER BY q.question_id DESC
 	</select>
+	
+	<!-- 문의글 답변 -->
+	<!-- 문의글 답변 -->
+	
+	<!-- 문의글 답변 조회 -->
+	<select id="findByQuestionId" resultType="com.moit.qna.dto.AnswerDto$AnswerResponseDto">
+		select * from answers where question_id = #{questionId} and delete_yn = 'N'
+	</select>
+
+	<!-- 답변 등록 -->
+	<insert id="insertAnswer" parameterType="com.moit.qna.dto.AnswerDto$AnswerRequestDto">
+		insert into answers
+		( answer_id, question_id, member_id, content, delete_yn )
+		values
+		( answer_seq.NEXTVAL, #{questionId}, #{memberId}, #{content}, 'N' )
+	</insert>
+
+	<!-- 답변 수정 -->
+	<update id="updateAnswer" parameterType="com.moit.qna.dto.AnswerDto$AnswerRequestDto">
+		update answers
+		set content = #{content}
+		where answer_id = #{answerId}
+	</update>
+
+	<!-- 답변 삭제(논리삭제) -->
+	<update id="deleteAnswer">
+		update answers
+		set delete_yn = 'Y'
+		where answer_id = #{answerId}
+	</update>
+
+	<!-- 질문 ID로 답변 조회(삭제 포함) -->
+	<select id="findByQuestionIdAll" resultType="com.moit.qna.dto.AnswerDto$AnswerResponseDto">
+		select *
+		from answers
+		where question_id = #{questionId}
+	</select>
+
+	<!-- 삭제된 답변 복구용 -->
+	<update id="restoreAnswer" parameterType="com.moit.qna.dto.AnswerDto$AnswerRequestDto">
+		update answers
+		set content = #{content},
+		delete_yn = 'N'
+		where question_id = #{questionId}
+	</update>
+
+	<!-- 답변 알림(비동기) -->
+	<!-- 답변 알림(비동기) -->
+
+	<insert id="insertNotification" parameterType="NotificationDto">
+	    <selectKey keyProperty="notificationId" resultType="long" order="BEFORE">
+	        SELECT notification_seq.NEXTVAL
+	        FROM dual
+	    </selectKey>
+		    INSERT INTO notifications
+		    ( notification_id, question_id, member_id, type, message )
+		    VALUES
+		    ( #{notificationId}, #{questionId}, #{memberId}, #{type}, #{message} )
+	</insert>
+	
+	<select id="selectUnread" parameterType="long" resultType="com.moit.qna.dto.NotificationDto">
+	    SELECT *
+	    FROM notifications
+	    WHERE member_id=#{memberId}
+	      AND is_read='N'
+	    ORDER BY created_at DESC
+	</select>
+
+	<select id="selectAll" parameterType="long" resultType="com.moit.qna.dto.NotificationDto">
+		SELECT *
+		FROM notifications
+		WHERE member_id=#{memberId}
+		ORDER BY created_at DESC
+	</select>
+
+	<update id="readNotification" parameterType="map">
+	    UPDATE notifications
+	    SET is_read='Y'
+	    WHERE notification_id=#{notificationId}
+	    AND member_id = #{memberId}
+	</update>
+	
+	<select id="unreadCount" parameterType="long" resultType="int">
+		SELECT COUNT(*)
+		FROM notifications
+		WHERE member_id=#{memberId}
+		AND is_read='N'
+	</select>
+	
+	<!-- AI 공격성 점수 -->
+	<!-- AI 공격성 점수 -->
+
+    <insert id="insertAiAnalysis" parameterType="QuestionAiAnalysisDto">
+        INSERT INTO question_ai_analysis
+        ( question_id, analysis_status, aggression_score )
+        VALUES
+        ( #{questionId}, #{analysisStatus}, #{aggressionScore} )
+    </insert>
+
+	<update id="changeToNormal">
+	    UPDATE QUESTION_AI_ANALYSIS
+	    SET ANALYSIS_STATUS='NORMAL'
+	    WHERE QUESTION_ID=#{questionId}
+	</update>
+	
 </mapper>
 
