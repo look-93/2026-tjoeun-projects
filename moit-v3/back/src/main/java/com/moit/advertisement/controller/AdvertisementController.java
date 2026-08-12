@@ -50,7 +50,7 @@ public class AdvertisementController {
 		String loginId     = null, provider = null;
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
+		Long memberId = null;
 		//1. local
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
@@ -77,7 +77,7 @@ public class AdvertisementController {
                 "adId=" + ad.getAdId()
                 + ", title=" + ad.getTitle()
                 + ", end=" + ad.getEndDatetime()
-                + ", extension=" + ad.getExtensionStatus()
+                // + ", extension=" + ad.getExtensionStatus()
             );
         }
 
@@ -129,7 +129,7 @@ public class AdvertisementController {
         	String loginId     = null, provider = null;
     		UserDto user=null;
     		Object principal = authentication.getPrincipal();
-    		Integer memberId = null;
+    		Long memberId = null;
     		//1. local
     		if(   principal   instanceof CustomUserDetails ) {
     			CustomUserDetails  users = (CustomUserDetails)principal;
@@ -196,7 +196,7 @@ public class AdvertisementController {
         String loginId     = null, provider = null;
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
+		Long memberId = null;
 		//1. local
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
@@ -209,7 +209,7 @@ public class AdvertisementController {
             return "redirect:/user/advertisement/list";
         }
 
-        if (dto.getAdvertiserId() != memberId) {
+        if (!memberId.equals(dto.getAdvertiserId())) {
             return "redirect:/user/advertisement/list";
         }
 
@@ -231,7 +231,7 @@ public class AdvertisementController {
         String loginId     = null, provider = null;
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
+		Long memberId = null;
 		//1. local
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
@@ -244,7 +244,7 @@ public class AdvertisementController {
             return "redirect:/user/advertisement/list";
         }
 
-        if (dto.getAdvertiserId() != memberId) {
+        if (!memberId.equals(dto.getAdvertiserId())) {
             return "redirect:/user/advertisement/list";
         }
 
@@ -273,7 +273,7 @@ public class AdvertisementController {
     	String loginId     = null, provider = null;
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
+		Long memberId = null;
 		//1. local
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
@@ -289,7 +289,7 @@ public class AdvertisementController {
             return "redirect:/user/advertisement/list";
         }
 
-        if (origin.getAdvertiserId() != memberId) {
+        if (!memberId.equals(dto.getAdvertiserId())) {
             return "redirect:/user/advertisement/list";
         }
 
@@ -355,7 +355,7 @@ public class AdvertisementController {
         	String loginId     = null, provider = null;
     		UserDto user=null;
     		Object principal = authentication.getPrincipal();
-    		Integer memberId = null;
+    		Long memberId = null;
     		//1. local
     		if(   principal   instanceof CustomUserDetails ) {
     			CustomUserDetails  users = (CustomUserDetails)principal;
@@ -369,7 +369,7 @@ public class AdvertisementController {
             return "redirect:/user/advertisement/list";
         }
 
-        if (dto.getAdvertiserId() != memberId) {
+        if (!memberId.equals(dto.getAdvertiserId())) {
             return "redirect:/user/advertisement/list";
         }
 
@@ -414,17 +414,22 @@ public class AdvertisementController {
     }
     
     // 광고 기간 연장 신청
-    @PostMapping("/extensionRequest")
-    @ResponseBody
-    public ResponseEntity<?> extensionRequest(
-            @RequestBody AdvertisementExtensionRequestDto dto,
-            Authentication authentication) {
-
-        CustomUserDetails user =
-                (CustomUserDetails) authentication.getPrincipal();
-
-        advertisementService.requestExtension( dto );
-
-        return ResponseEntity.ok().build();
-    }
+//    @PostMapping("/extensionRequest")
+//    @ResponseBody
+//    public ResponseEntity<?> extensionRequest(
+//            @RequestBody AdvertisementExtensionRequestDto dto,
+//            Authentication authentication) {
+//
+//        CustomUserDetails user =
+//                (CustomUserDetails) authentication.getPrincipal();
+//
+//        Long memberId = user.getUser().getMemberId();
+//			
+//			advertisementService.requestExtension(
+//			    dto,
+//			    memberId
+//			);
+//
+//        return ResponseEntity.ok().build();
+//    }
 }

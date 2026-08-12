@@ -24,7 +24,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 //import com.moit.meetup.service.MeetupService1;
 import com.moit.member.dto.UserDto;
-import com.moit.member.enums.PasswordChangeResult;
+import com.moit.member.enums.PasswordChangeResultEnum;
 import com.moit.member.service.UserService;
 import com.moit.security.CustomUserDetails;
 import com.moit.security.PasswordLeakService;
@@ -241,7 +241,7 @@ public class UserController {
 	@PostMapping("/changePassword")
 	public String changePassword(UserDto dto, HttpSession session,
 	                             RedirectAttributes rttr) {
-		Integer memberId = (Integer)session.getAttribute("findMemberId");
+		Long memberId = (Long)session.getAttribute("findMemberId");
 		
 		if(memberId == null) {
 			return "redirect:/user/member/findPassword";
@@ -372,7 +372,7 @@ public class UserController {
 //		
 //		return "redirect:/user/member/mypage";	
 		
-		PasswordChangeResult result = service.changePassword( user.getAppUserId(), currentPassword, newPassword );
+		PasswordChangeResultEnum result = service.changePassword( user.getAppUserId(), currentPassword, newPassword );
 
 		switch (result) {
 		    case SUCCESS:  rttr.addFlashAttribute( "msg", "비밀번호가 변경되었습니다." );

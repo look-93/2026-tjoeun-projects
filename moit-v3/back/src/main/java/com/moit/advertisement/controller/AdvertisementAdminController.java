@@ -4,9 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,13 +28,6 @@ import lombok.RequiredArgsConstructor;
 public class AdvertisementAdminController {
 
     private final AdvertisementService advertisementService;
-
-    // 스케줄러
-    @EnableScheduling
-    @SpringBootApplication
-    public class MoitApplication {
-
-    }
     
     // 승인 대기 목록
     @GetMapping("/approvalList")
@@ -83,15 +74,8 @@ public class AdvertisementAdminController {
             model.addAttribute("waitingCnt", totalCnt);
 
         } 
-        else if ("extension".equals(tab)) {
-
-
-            list = advertisementService.selectExtensionList();
-
-            totalCnt = list.size();
-
-
-        } else {
+        
+        else {
 
             dto.setApprovalStatus("APPROVED");
 
@@ -156,9 +140,10 @@ public class AdvertisementAdminController {
     public String approve(@RequestParam Long adId,
                           HttpSession session) {
 
-        Integer loginMemberId = getLogin(session);
+        Long loginMemberId = 1L; // 보안끼면 수정
 
-        AdvertisementDto dto = new AdvertisementDto();
+        AdvertisementDto.AdvertisementAdminUpdateDto dto =
+                new AdvertisementDto.AdvertisementAdminUpdateDto();
         dto.setAdId(adId);
         dto.setApprovalStatus("APPROVED");
         dto.setStatus("PENDING");
@@ -169,22 +154,6 @@ public class AdvertisementAdminController {
 
         return "redirect:/admin/advertisement/manageList?tab=approval";
     }
-    // 연장 승인
-    @PostMapping("/extensionApprove")
-    public String extensionApprove(
-            @RequestParam Long adId) {
-
-
-        AdvertisementDto dto = new AdvertisementDto();
-
-        dto.setAdId(adId);
-
-
-        advertisementService.updateExtensionApprove(dto);
-
-
-        return "redirect:/admin/advertisement/manageList?tab=extension";
-    }
 
     // 반려 처리
     @PostMapping("/reject")
@@ -192,9 +161,10 @@ public class AdvertisementAdminController {
                          @RequestParam String rejectReason,
                          HttpSession session) {
 
-        Integer loginMemberId = getLogin(session);
+    	Long loginMemberId = 1L;
 
-        AdvertisementDto dto = new AdvertisementDto();
+        AdvertisementDto.AdvertisementAdminUpdateDto dto =
+                new AdvertisementDto.AdvertisementAdminUpdateDto();
         dto.setAdId(adId);
         dto.setApprovalStatus("REJECTED");
         dto.setApprovedBy(loginMemberId);
@@ -212,9 +182,10 @@ public class AdvertisementAdminController {
                          @RequestParam String status,
                          HttpSession session) {
 
-        Integer loginMemberId = getLogin(session);
+    	Long loginMemberId = 1L;
 
-        AdvertisementDto dto = new AdvertisementDto();
+        AdvertisementDto.AdvertisementAdminUpdateDto dto =
+                new AdvertisementDto.AdvertisementAdminUpdateDto();
         dto.setAdId(adId);
         dto.setStatus(status);
         dto.setStatusUpdatedBy(loginMemberId);
@@ -258,9 +229,10 @@ public class AdvertisementAdminController {
 		            @RequestParam String status,
 		            HttpSession session) {
 		
-    	Integer loginMemberId = getLogin(session);
+    	Long loginMemberId = 1L;
     	
-		AdvertisementDto dto = new AdvertisementDto();
+    	AdvertisementDto.AdvertisementAdminUpdateDto dto =
+    	        new AdvertisementDto.AdvertisementAdminUpdateDto();
 		dto.setAdId(adId);
 		dto.setStatus(status);
 		dto.setStatusUpdatedBy(loginMemberId);
@@ -354,8 +326,8 @@ public class AdvertisementAdminController {
     }
 
     // 로그인 헬퍼
-    private Integer getLogin(HttpSession session) {
-        Integer id = (Integer) session.getAttribute("loginMemberId");
-        return (id != null) ? id : 22;
-    }
+//    private Integer getLogin(HttpSession session) {
+//        Integer id = (Integer) session.getAttribute("loginMemberId");
+//        return (id != null) ? id : 22;
+//    }
 }

@@ -16,9 +16,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 public interface AdvertisementService {
-
-	// 스케쥴러
-	void updateAdvertisementStatus();
 	
 	int updatePriorityScore();
 	
@@ -39,9 +36,6 @@ public interface AdvertisementService {
 
 	// 승인 목록 개수
 	int selectWaitingTotalCnt(AdvertisementSearchDto dto);
-
-	// 기간연장 승인 대기 목록
-	List<AdvertisementDto> selectExtensionList();
 	
     // 상세 조회
     AdvertisementDto selectAdvertisementOne(Long adId);
@@ -59,13 +53,10 @@ public interface AdvertisementService {
     int deleteAdvertisement(Long adId);
 
     // 승인
-    int updateApprovalStatus(AdvertisementDto dto);
+    int updateApprovalStatus(AdvertisementDto.AdvertisementAdminUpdateDto dto);
     
     // 상태 변경
-    int updateAdvertisementStatus(AdvertisementDto dto);
-    
- // 연장승인 상태 변경
-    void updateExtensionApprove( AdvertisementDto dto );
+    int updateAdvertisementStatus(AdvertisementDto.AdvertisementAdminUpdateDto dto);
 
     // 우선도 설정
 	int updateAdGrade(Long adId, String adGrade);
@@ -135,8 +126,5 @@ public interface AdvertisementService {
 
 	// 메일 발송
 	void sendReminderMail();
-	
-	// 광고 연장
-	void requestExtension(AdvertisementExtensionRequestDto dto);
 
 }

@@ -37,12 +37,12 @@ public class Review  extends BaseEntity{
 	//모임번호
 	@ManyToOne(fetch = FetchType.LAZY) //lazy 필요할 때 가져옴
 	@JoinColumn(name="MEETUP_ID" ,nullable=false)
-	private Meetup meetupId;
+	private Meetup meetup;
 	
 	//작성자 번호
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="MEMBER_ID" ,nullable=false)
-	private  Member memberId;
+	private  Member member;
 	
 	@OneToMany(mappedBy="review",cascade=CascadeType.ALL,orphanRemoval=true)
 	private List<ReviewImage> reviewImages=new ArrayList<>();
