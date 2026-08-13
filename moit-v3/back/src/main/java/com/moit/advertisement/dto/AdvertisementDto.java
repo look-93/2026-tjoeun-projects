@@ -74,7 +74,28 @@ public class AdvertisementDto {
     @AllArgsConstructor
     public static class AdvertisementRequestDto {
 
-        private Long advertiserId;
+        private String title;
+        private String content;
+        private String landingUrl;
+
+        private Integer targetAgeMin;
+        private Integer targetAgeMax;
+        private TargetGender targetGender;
+
+        private LocalDateTime startDatetime;
+        private LocalDateTime endDatetime;
+
+        private BigDecimal totalBudget;
+    }
+    
+    // =========================================================
+    //  광고 수정 요청
+    // =========================================================
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AdvertisementUpdateRequestDto {
 
         private String title;
         private String content;
@@ -207,6 +228,34 @@ public class AdvertisementDto {
                     .updatedAt(ad.getUpdatedAt())
 
                     .build();
+        }
+    }
+    
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AdvertisementPageResponseDto {
+
+        private List<AdvertisementDto> list;
+        private int totalCnt;
+        private int totalPage;
+        private int page;
+        private int size;
+
+        public AdvertisementPageResponseDto(
+                List<AdvertisementDto> list,
+                int totalCnt,
+                int page,
+                int size) {
+
+            this.list = list;
+            this.totalCnt = totalCnt;
+            this.page = page;
+            this.size = size;
+
+            this.totalPage =
+                    (int) Math.ceil((double) totalCnt / size);
         }
     }
 }

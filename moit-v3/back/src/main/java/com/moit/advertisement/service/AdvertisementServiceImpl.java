@@ -190,15 +190,17 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
     @Override
     @Transactional
-    public int insertAdvertisement(
-            AdvertisementDto dto) {
-    	Member advertiser =
-    	        memberRepository.findById(dto.getAdvertiserId())
-    	                .orElseThrow(() ->
-    	                        new IllegalArgumentException(
-    	                                "광고주 회원을 찾을 수 없습니다."
-    	                        )
-    	                );
+    public Long insertAdvertisement(
+    		AdvertisementDto.AdvertisementRequestDto dto,
+            Long advertiserId) {
+
+        Member advertiser =
+                memberRepository.findById(advertiserId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고주 회원을 찾을 수 없습니다."
+                                )
+                        );
 
     	Advertisement advertisement =
     	        Advertisement.builder()
@@ -216,7 +218,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
         advertisementRepository.save(advertisement);
 
-        return 1;
+        return advertisement.getAdId();
     }
     
 	 // =========================================================
@@ -249,13 +251,15 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     @Override
     @Transactional
     public int updateAdvertisement(
-            AdvertisementDto dto,
+            Long adId,
+            Long memberId,
+            AdvertisementDto.AdvertisementUpdateRequestDto dto,
             List<MultipartFile> imageFiles,
             List<String> imageTypes) {
 
         Advertisement advertisement =
                 advertisementRepository
-                        .findById(dto.getAdId())
+                        .findById(adId)
                         .orElseThrow(() ->
                                 new IllegalArgumentException(
                                         "광고를 찾을 수 없습니다."
@@ -299,9 +303,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         // 기존 이미지 삭제
         List<AdvertisementImage> oldImages =
                 advertisementImageRepository
-                        .findByAdvertisement_AdId(
-                                dto.getAdId()
-                        );
+                        .findByAdvertisement_AdId( adId );
 
         deletePhysicalFiles(oldImages);
 
