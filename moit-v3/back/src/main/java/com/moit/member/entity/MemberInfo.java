@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import com.moit.reports.entity.MemberReportStatus;
+//import com.moit.reports.entity.MemberReportStatus;
 
 @Entity
 @Table(name = "member_info")
@@ -62,8 +62,8 @@ public class MemberInfo {
 	        trustScore = 100;
 	}
 	
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "report_status_id", nullable = false)
-	private MemberReportStatus reportStatus;
+//	@ManyToOne(fetch = FetchType.LAZY)
+//	@JoinColumn(name = "report_status_id", nullable = false)
+//	private MemberReportStatus reportStatus;
 	
 }

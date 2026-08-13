@@ -18,9 +18,11 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Builder
 @Entity
 @Table(
     name = "ADVERTISEMENT_IMAGES",
@@ -72,6 +74,21 @@ public class AdvertisementImage {
     // 이미지 등록일시
     @Column(name = "CREATED_AT", nullable = false)
     private LocalDateTime createdAt;
+    
+    // 테스트나 기존 코드에서 직접 생성할 때 사용
+    public AdvertisementImage(
+            Long imageId,
+            Advertisement advertisement,
+            AdPosition imageType,
+            String imageUrl,
+            LocalDateTime createdAt) {
+
+        this.imageId = imageId;
+        this.advertisement = advertisement;
+        this.imageType = imageType;
+        this.imageUrl = imageUrl;
+        this.createdAt = createdAt;
+    }
 
 
     // Entity 최초 저장 시 등록일시 자동 설정

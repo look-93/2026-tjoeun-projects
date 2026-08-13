@@ -10,6 +10,7 @@ import com.moit.member.dto.InterestDto;
 import com.moit.member.dto.MyPageDto;
 import com.moit.member.dto.UserDto;
 import com.moit.member.dto.UserJoinDto;
+import com.moit.member.dto.UserUpdateRequestDto;
 import com.moit.member.enums.PasswordChangeResultEnum;
 
 public interface UserService {
@@ -47,4 +48,6 @@ public interface UserService {
 	public boolean existsByNickname(String nickname);
 	public boolean existsByLoginId(String loginId);
 	public boolean existsByMobile(String mobile);
+	// 정보 수정
+	UserDto updateMember(Long memberId, UserUpdateRequestDto request);
 }

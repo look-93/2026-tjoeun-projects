@@ -3,12 +3,10 @@ package com.moit.advertisement.service;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,13 +15,21 @@ import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
-import com.moit.advertisement.dto.DashboardAiDto;
-import com.moit.advertisement.mapper.AdvertisementMapper;
+import com.moit.advertisement.entity.Advertisement;
+import com.moit.advertisement.entity.AdvertisementClickLog;
+import com.moit.advertisement.entity.AdvertisementImage;
+import com.moit.advertisement.entity.AdvertisementImpressionLog;
+import com.moit.advertisement.enums.AdGrade;
+import com.moit.advertisement.enums.AdPosition;
+import com.moit.advertisement.enums.AdStatus;
+import com.moit.advertisement.enums.ApprovalStatus;
+import com.moit.advertisement.repository.AdvertisementClickLogRepository;
+import com.moit.advertisement.repository.AdvertisementImageRepository;
+import com.moit.advertisement.repository.AdvertisementImpressionLogRepository;
 import com.moit.advertisement.repository.AdvertisementRepository;
-import com.moit.advertisement.type.AdvertisementPosition;
+import com.moit.member.entity.Member;
+import com.moit.member.repository.MemberRepository;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -31,212 +37,215 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class AdvertisementServiceImpl implements AdvertisementService {
 
-    private final AdvertisementMapper advertisementMapper;
+    private final AdvertisementRepository advertisementRepository;
+    private final AdvertisementImageRepository advertisementImageRepository;
+    private final MemberRepository memberRepository;
+    
+    private final AdvertisementClickLogRepository clickLogRepository;
+    private final AdvertisementImpressionLogRepository impressionLogRepository;
+
     private final MailService mailService;
     private final AiSummaryService aiSummaryService;
-    private final AdvertisementRepository advertisementRepository;
 
     private static final String UPLOAD_PATH = "C:/upload/ad";
-
-
-    // =========================================================
-    // 광고 상태 / 우선도
-    // =========================================================
-
-    /**
-     * 광고 상태 자동 변경
-     * PENDING -> OPEN
-     * OPEN -> CLOSED
-     */
-    @Override
-    @Transactional
-    public void updateAdvertisementStatus() {
-
-        int openCnt = advertisementMapper.updatePendingToOpen();
-        int closeCnt = advertisementMapper.updateOpenToClosed();
-
-        System.out.println("OPEN 변경 : " + openCnt);
-        System.out.println("CLOSED 변경 : " + closeCnt);
-    }
-
-
-    /**
-     * 광고 우선도 점수 갱신
-     */
-    @Override
-    @Transactional
-    public int updatePriorityScore() {
-
-        return advertisementMapper.updatePriorityScore();
-    }
-
 
     // =========================================================
     // 광고 목록
     // =========================================================
 
-    /**
-     * 제휴사용자 광고 목록
-     */
     @Override
     public List<AdvertisementDto> searchMyAdvertisement(
             AdvertisementSearchDto dto) {
 
-        List<AdvertisementDto> list =
-                advertisementMapper.searchMyAdvertisement(dto);
+        Long advertiserId = dto.getAdvertiserId();
 
-        for (AdvertisementDto ad : list) {
-
-            ad.setImageList(
-                    advertisementMapper
-                            .selectAdvertisementImageList(ad.getAdId())
-            );
+        if (advertiserId == null) {
+            return List.of();
         }
 
-        return list;
+        List<Advertisement> advertisements =
+                advertisementRepository
+                        .findByAdvertiser_Id(advertiserId);
+
+        return advertisements.stream()
+                .map(this::toDto)
+                .toList();
     }
 
 
-    /**
-     * 제휴사용자 광고 목록 개수
-     */
     @Override
     public int selectMyAdvertisementTotalCnt(
             AdvertisementSearchDto dto) {
 
-        return advertisementMapper
-                .selectMyAdvertisementTotalCnt(dto);
+        Long advertiserId = dto.getAdvertiserId();
+
+        if (advertiserId == null) {
+            return 0;
+        }
+
+        return (int) advertisementRepository
+                .countByAdvertiser_Id(advertiserId);
     }
 
 
-    /**
-     * 관리자 광고 목록
-     */
+    // =========================================================
+    // 관리자 광고 목록
+    // =========================================================
+
     @Override
     public List<AdvertisementDto> searchByAdmin(
             AdvertisementSearchDto dto) {
 
-        List<AdvertisementDto> list =
-                advertisementMapper.searchByAdmin(dto);
+        List<Advertisement> advertisements;
 
-        for (AdvertisementDto ad : list) {
-
-            ad.setImageList(
-                    advertisementMapper
-                            .selectAdvertisementImageList(ad.getAdId())
-            );
-
-            AdvertisementDto stat =
-                    advertisementMapper
-                            .selectAdvertisementStatistics(ad.getAdId());
-
-            if (stat != null) {
-
-                ad.setRecentCtr(stat.getRecentCtr());
-                ad.setPreviousCtr(stat.getPreviousCtr());
-                ad.setRepeatRate(stat.getRepeatRate());
-
-                calculateFatigue(ad);
-            }
+        if (dto.getApprovalStatus() == null) {
+            advertisements =
+                    advertisementRepository.findByDeleteYn('N');
+        } else {
+            advertisements =
+                    advertisementRepository
+                            .findByDeleteYnAndApprovalStatus(
+                                    'N',
+                                    dto.getApprovalStatus()
+                            );
         }
 
-        return list;
+        return advertisements.stream()
+                .map(this::toDto)
+                .toList();
     }
 
 
-    /**
-     * 관리자 광고 목록 개수
-     */
     @Override
     public int selectAdminAdvertisementTotalCnt(
             AdvertisementSearchDto dto) {
 
-        return advertisementMapper
-                .selectAdminAdvertisementTotalCnt(dto);
+        if (dto.getApprovalStatus() == null) {
+            return (int)
+                    advertisementRepository.countByDeleteYn('N');
+        }
+
+        return (int)
+                advertisementRepository
+                        .countByDeleteYnAndApprovalStatus(
+                                'N',
+                                dto.getApprovalStatus()
+                        );
     }
 
 
-    /**
-     * 승인 대기 광고 목록
-     */
+    // =========================================================
+    // 승인 대기 목록
+    // =========================================================
+
     @Override
     public List<AdvertisementDto> searchWaitingList(
             AdvertisementSearchDto dto) {
 
-        List<AdvertisementDto> list =
-                advertisementMapper.searchWaitingList(dto);
-
-        for (AdvertisementDto ad : list) {
-
-            ad.setImageList(
-                    advertisementMapper
-                            .selectAdvertisementImageList(ad.getAdId())
-            );
-        }
-
-        return list;
+        return advertisementRepository
+        		.findByApprovalStatus(ApprovalStatus.WAITING)
+                .stream()
+                .filter(ad -> ad.getDeleteYn() == 'N')
+                .map(this::toDto)
+                .toList();
     }
 
 
-    /**
-     * 승인 대기 광고 개수
-     */
     @Override
     public int selectWaitingTotalCnt(
             AdvertisementSearchDto dto) {
 
-        return advertisementMapper.selectWaitingTotalCnt(dto);
+        return advertisementRepository
+                .findByApprovalStatus(
+                        ApprovalStatus.WAITING
+                )
+                .size();
     }
-
 
 
     // =========================================================
     // 광고 상세
     // =========================================================
 
-    /**
-     * 광고 상세 조회
-     */
     @Override
-    public AdvertisementDto selectAdvertisementOne(Long adId) {
+    public AdvertisementDto selectAdvertisementOne(
+            Long adId) {
 
-        AdvertisementDto dto =
-                advertisementMapper.selectAdvertisementOne(adId);
+        Advertisement advertisement =
+                advertisementRepository
+                        .findByAdIdAndDeleteYn(adId, 'N')
+                        .orElse(null);
 
-        if (dto != null) {
-
-            dto.setImageList(
-                    advertisementMapper
-                            .selectAdvertisementImageList(adId)
-            );
+        if (advertisement == null) {
+            return null;
         }
 
-        return dto;
+        return toDto(advertisement);
     }
 
 
     // =========================================================
-    // 광고 등록 / 수정 / 삭제
+    // 광고 등록
     // =========================================================
 
-    /**
-     * 광고 등록
-     */
     @Override
     @Transactional
     public int insertAdvertisement(
             AdvertisementDto dto) {
+    	Member advertiser =
+    	        memberRepository.findById(dto.getAdvertiserId())
+    	                .orElseThrow(() ->
+    	                        new IllegalArgumentException(
+    	                                "광고주 회원을 찾을 수 없습니다."
+    	                        )
+    	                );
 
-        return advertisementMapper.insertAdvertisement(dto);
+    	Advertisement advertisement =
+    	        Advertisement.builder()
+    	                .advertiser(advertiser)
+    	                .title(dto.getTitle())
+    	                .content(dto.getContent())
+    	                .landingUrl(dto.getLandingUrl())
+    	                .targetAgeMin(dto.getTargetAgeMin())
+    	                .targetAgeMax(dto.getTargetAgeMax())
+    	                .targetGender(dto.getTargetGender())
+    	                .startDatetime(dto.getStartDatetime())
+    	                .endDatetime(dto.getEndDatetime())
+    	                .totalBudget(dto.getTotalBudget())
+    	                .build();
+
+        advertisementRepository.save(advertisement);
+
+        return 1;
+    }
+    
+	 // =========================================================
+	 // 광고 조회
+	 // =========================================================
+	
+    @Override
+    public AdvertisementDto selectTopAdvertisement(String position) {
+
+        AdPosition adPosition = AdPosition.valueOf(position);
+
+        List<Advertisement> advertisements =
+                advertisementRepository.findAvailableAdvertisements(
+                        adPosition,
+                        PageRequest.of(0, 1)
+                );
+
+        if (advertisements.isEmpty()) {
+            return null;
+        }
+
+        return toDto(advertisements.get(0));
     }
 
 
-    /**
-     * 광고 수정
-     *
-     * 광고 정보 수정 + 새 이미지가 있으면
-     * 기존 이미지 삭제 후 새 이미지 저장
-     */
+    // =========================================================
+    // 광고 수정
+    // =========================================================
+
     @Override
     @Transactional
     public int updateAdvertisement(
@@ -244,62 +253,76 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             List<MultipartFile> imageFiles,
             List<String> imageTypes) {
 
-        // 광고 정보 수정
-        advertisementMapper.updateAdvertisement(dto);
+        Advertisement advertisement =
+                advertisementRepository
+                        .findById(dto.getAdId())
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
 
-        // 이미지 정보가 없으면 광고 정보만 수정
-        if (imageFiles == null || imageTypes == null) {
-            return 1;
-        }
+        /*
+         * Entity 내부 update 메서드를 이용한다.
+         * Service에서 필드를 직접 변경하지 않는다.
+         */
+        advertisement.updateAdvertisement(
+                dto.getTitle(),
+                dto.getContent(),
+                dto.getLandingUrl(),
+                dto.getTargetAgeMin(),
+                dto.getTargetAgeMax(),
+                dto.getTargetGender(),
+                dto.getStartDatetime(),
+                dto.getEndDatetime(),
+                dto.getTotalBudget()
+        );
+
+
+        // -----------------------------------------------------
+        // 새 이미지가 있는 경우
+        // -----------------------------------------------------
 
         boolean hasNewImage =
-                imageFiles.stream()
+                imageFiles != null
+                        && imageFiles.stream()
                         .anyMatch(file ->
-                                file != null && !file.isEmpty());
+                                file != null
+                                        && !file.isEmpty()
+                        );
 
         if (!hasNewImage) {
             return 1;
         }
 
-        // 기존 이미지 조회
-        List<AdvertisementImageDto> oldImages =
-                advertisementMapper
-                        .selectAdvertisementImageList(dto.getAdId());
 
-        // 실제 파일 삭제
-        for (AdvertisementImageDto image : oldImages) {
+        // 기존 이미지 삭제
+        List<AdvertisementImage> oldImages =
+                advertisementImageRepository
+                        .findByAdvertisement_AdId(
+                                dto.getAdId()
+                        );
 
-            if (image.getImageUrl() == null) {
-                continue;
-            }
+        deletePhysicalFiles(oldImages);
 
-            String fileName =
-                    image.getImageUrl()
-                            .replace("/upload/ad/", "");
+        advertisementImageRepository.deleteAll(oldImages);
 
-            File oldFile =
-                    new File(UPLOAD_PATH, fileName);
-
-            if (oldFile.exists()) {
-                oldFile.delete();
-            }
-        }
-
-        // DB 이미지 삭제
-        advertisementMapper
-                .deleteAdvertisementImages(dto.getAdId());
-
-        // 업로드 디렉토리 생성
-        File dir = new File(UPLOAD_PATH);
-
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
 
         // 새 이미지 저장
-        for (int i = 0; i < imageFiles.size(); i++) {
+        File directory =
+                new File(UPLOAD_PATH);
 
-            MultipartFile file = imageFiles.get(i);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
+
+        for (int i = 0;
+             i < imageFiles.size();
+             i++) {
+
+            MultipartFile file =
+                    imageFiles.get(i);
 
             if (file == null || file.isEmpty()) {
                 continue;
@@ -316,107 +339,133 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             try {
 
                 file.transferTo(
-                        new File(dir, saveName)
+                        new File(
+                                directory,
+                                saveName
+                        )
                 );
 
             } catch (IOException e) {
 
                 throw new RuntimeException(
-                        "광고 이미지 저장 실패", e
+                        "광고 이미지 저장 실패",
+                        e
                 );
             }
 
-            AdvertisementImageDto imageDto =
-                    new AdvertisementImageDto();
 
-            imageDto.setAdId(dto.getAdId());
-            imageDto.setImageType(imageTypes.get(i));
-            imageDto.setImageUrl(
-                    "/upload/ad/" + saveName
-            );
+            AdvertisementImage image =
+                    AdvertisementImage.builder()
+                            .advertisement(advertisement)
+                            .imageType(
+                                    AdPosition.valueOf(
+                                            imageTypes.get(i)
+                                    )
+                            )
+                            .imageUrl(
+                                    "/upload/ad/"
+                                            + saveName
+                            )
+                            .build();
 
-            advertisementMapper
-                    .insertAdvertisementImage(imageDto);
+            advertisementImageRepository.save(image);
         }
 
         return 1;
     }
 
 
-    /**
-     * 광고 삭제
-     */
+    // =========================================================
+    // 광고 삭제
+    // =========================================================
+
     @Override
     @Transactional
-    public int deleteAdvertisement(Long adId) {
+    public int deleteAdvertisement(
+            Long adId) {
 
-        List<AdvertisementImageDto> imageList =
-                advertisementMapper
-                        .selectAdvertisementImageList(adId);
+        Advertisement advertisement =
+                advertisementRepository
+                        .findById(adId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
 
-        // 실제 이미지 파일 삭제
-        for (AdvertisementImageDto image : imageList) {
 
-            if (image.getImageUrl() == null) {
-                continue;
-            }
+        // 이미지 조회
+        List<AdvertisementImage> images =
+                advertisementImageRepository
+                        .findByAdvertisement_AdId(adId);
 
-            String fileName =
-                    image.getImageUrl()
-                            .replace("/upload/ad/", "");
 
-            File file =
-                    new File(UPLOAD_PATH, fileName);
+        // 실제 파일 삭제
+        deletePhysicalFiles(images);
 
-            if (file.exists()) {
-                file.delete();
-            }
-        }
 
-        // DB 이미지 삭제
-        advertisementMapper
-                .deleteAdvertisementImages(adId);
+        // 이미지 DB 삭제
+        advertisementImageRepository
+                .deleteAll(images);
 
-        // 광고 삭제
-        return advertisementMapper
-                .deleteAdvertisement(adId);
+
+        /*
+         * 현재 Entity에는 deleteYn을 사용하고 있으므로
+         * 실제 DELETE보다는 논리 삭제를 사용하는 것이 안전하다.
+         */
+        advertisement.delete();
+
+
+        return 1;
     }
 
 
     // =========================================================
-    // 승인 / 상태 / 등급 / 기간
+    // 광고 승인
     // =========================================================
 
-    /**
-     * 광고 상태 변경
-     */
-    @Override
-    @Transactional
-    public int updateAdvertisementStatus(
-            AdvertisementDto.AdvertisementAdminUpdateDto dto) {
-
-        return advertisementMapper
-                .updateAdvertisementStatus(dto);
-    }
-
-
-    /**
-     * 광고 승인 / 거절
-     */
     @Override
     @Transactional
     public int updateApprovalStatus(
             AdvertisementDto.AdvertisementAdminUpdateDto dto) {
 
+        Advertisement advertisement =
+                advertisementRepository
+                        .findById(dto.getAdId())
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
+
+
         if ("APPROVED".equals(dto.getApprovalStatus())) {
 
-            return advertisementMapper.approveAd(dto);
+            Member admin =
+                    memberRepository
+                            .findById(dto.getApprovedBy())
+                            .orElseThrow(() ->
+                                    new IllegalArgumentException(
+                                            "관리자를 찾을 수 없습니다."
+                                    )
+                            );
+
+            advertisement.approve(admin);
+
+            return 1;
         }
 
-        if ("REJECTED".equals(dto.getApprovalStatus())) {
 
-            return advertisementMapper.rejectAd(dto);
+        if ("REJECTED".equals(
+                dto.getApprovalStatus())) {
+
+            advertisement.reject(
+                    dto.getRejectReason()
+            );
+
+            return 1;
         }
+
 
         throw new IllegalArgumentException(
                 "잘못된 승인 상태값입니다."
@@ -424,23 +473,66 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     }
 
 
-    /**
-     * 광고 등급 변경
-     */
+    // =========================================================
+    // 광고 상태 변경
+    // =========================================================
+
     @Override
     @Transactional
-    public int updateAdGrade(
-    		Long adId,
-            String adGrade) {
+    public int updateAdvertisementStatus(
+            AdvertisementDto.AdvertisementAdminUpdateDto dto) {
 
-        return advertisementMapper
-                .updateAdGrade(adId, adGrade);
+        Advertisement advertisement =
+                advertisementRepository
+                        .findById(dto.getAdId())
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
+
+        AdStatus status =
+                AdStatus.valueOf(
+                        dto.getStatus()
+                );
+
+        advertisement.changeStatus(status);
+
+        return 1;
     }
 
 
-    /**
-     * 광고 기간 변경
-     */
+    // =========================================================
+    // 광고 등급 변경
+    // =========================================================
+
+    @Override
+    @Transactional
+    public int updateAdGrade(
+            Long adId,
+            String adGrade) {
+
+        Advertisement advertisement =
+                advertisementRepository
+                        .findById(adId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
+
+        advertisement.changeGrade(
+                AdGrade.valueOf(adGrade)
+        );
+
+        return 1;
+    }
+
+
+    // =========================================================
+    // 광고 기간 변경
+    // =========================================================
+
     @Override
     @Transactional
     public void updatePeriod(
@@ -448,8 +540,16 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             LocalDateTime start,
             LocalDateTime end) {
 
-        advertisementMapper.updatePeriod(
-                adId,
+        Advertisement advertisement =
+                advertisementRepository
+                        .findById(adId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
+
+        advertisement.changePeriod(
                 start,
                 end
         );
@@ -457,50 +557,70 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
 
     // =========================================================
-    // 광고 연장
-    // =========================================================
-
-
-
-
-    // =========================================================
     // 이미지
     // =========================================================
 
-    /**
-     * 광고 이미지 등록
-     */
     @Override
     @Transactional
     public int insertAdvertisementImage(
             AdvertisementImageDto dto) {
 
-        return advertisementMapper
-                .insertAdvertisementImage(dto);
+        Advertisement advertisement =
+                advertisementRepository
+                        .findById(dto.getAdId())
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
+
+
+        AdvertisementImage image =
+                AdvertisementImage.builder()
+                        .advertisement(advertisement)
+                        .imageType(
+                                AdPosition.valueOf(
+                                        dto.getImageType()
+                                )
+                        )
+                        .imageUrl(dto.getImageUrl())
+                        .build();
+
+
+        advertisementImageRepository.save(image);
+
+        return 1;
     }
 
 
-    /**
-     * 광고 이미지 조회
-     */
     @Override
     public List<AdvertisementImageDto>
-            selectAdvertisementImageList(Long adId) {
+            selectAdvertisementImageList(
+                    Long adId) {
 
-        return advertisementMapper
-                .selectAdvertisementImageList(adId);
+        return advertisementImageRepository
+                .findByAdvertisement_AdId(adId)
+                .stream()
+                .map(this::toImageDto)
+                .toList();
     }
 
 
-    /**
-     * 광고 이미지 전체 삭제
-     */
     @Override
     @Transactional
-    public int deleteAdvertisementImage(Long adId) {
+    public int deleteAdvertisementImage(
+            Long adId) {
 
-        return advertisementMapper
-                .deleteAdvertisementImages(adId);
+        List<AdvertisementImage> images =
+                advertisementImageRepository
+                        .findByAdvertisement_AdId(adId);
+
+        deletePhysicalFiles(images);
+
+        advertisementImageRepository
+                .deleteAll(images);
+
+        return images.size();
     }
 
 
@@ -508,53 +628,158 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     // 광고 노출 / 클릭
     // =========================================================
 
-    /**
-     * 광고 노출 수 증가
-     */ 
+    @Override
     @Transactional
-    public void increaseImpression(Long adId) {
-
-        int result = advertisementRepository.increaseImpressions(adId);
-
-        if (result == 0) {
-            throw new IllegalArgumentException("광고를 찾을 수 없습니다.");
-        }
-    }
-
-
-    /**
-     * 광고 클릭 수 증가
-     */
-    @Transactional
-    public void increaseClick(Long adId) {
+    public int updateImpressions(
+            Long adId) {
 
         int result =
-                advertisementRepository.increaseClicks(adId);
+                advertisementRepository
+                        .increaseImpressions(adId);
 
         if (result == 0) {
+
             throw new IllegalArgumentException(
                     "광고를 찾을 수 없습니다."
             );
         }
+
+        return result;
     }
 
 
-    /**
-     * 사용자 광고 1건 조회
-     */
     @Override
-    public AdvertisementDto selectTopAdvertisement(
-            String position,
-            Integer memberId,
-            String sessionId) {
+    @Transactional
+    public int updateAdvertisementClick(
+            Long adId) {
 
-        return advertisementMapper
-                .selectTopAdvertisement(
-                        position,
-                        memberId,
-                        sessionId
-                );
+        int result =
+                advertisementRepository
+                        .increaseClicks(adId);
+
+        if (result == 0) {
+
+            throw new IllegalArgumentException(
+                    "광고를 찾을 수 없습니다."
+            );
+        }
+
+        return result;
     }
+    
+    // 클릭 & 노툴 로그
+	    
+	 // =========================================================
+	 // 클릭 로그
+	 // =========================================================
+	
+    @Override
+    @Transactional
+    public boolean insertClickLog(
+            Long adId,
+            String position,
+            Long memberId,
+            String ip,
+            String userAgent) {
+
+        Advertisement advertisement =
+                advertisementRepository.findById(adId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
+
+        Member member = null;
+
+        if (memberId != null) {
+            member = memberRepository.findById(memberId)
+                    .orElse(null);
+        }
+
+        AdPosition adPosition =
+                AdPosition.valueOf(position);
+
+        AdvertisementClickLog clickLog =
+                AdvertisementClickLog.builder()
+                        .advertisement(advertisement)
+                        .member(member)
+                        .deviceType(getDeviceType(userAgent))
+                        .ipAddress(ip)
+                        .position(adPosition)
+                        .build();
+
+        clickLogRepository.save(clickLog);
+
+        return true;
+    }
+    
+    private String getDeviceType(String userAgent) {
+
+        if (userAgent == null) {
+            return "UNKNOWN";
+        }
+
+        String ua = userAgent.toLowerCase();
+
+        if (ua.contains("mobile")) {
+            return "MOBILE";
+        }
+
+        if (ua.contains("tablet")
+                || ua.contains("ipad")) {
+            return "TABLET";
+        }
+
+        return "PC";
+    }
+	 
+	// =========================================================
+	// 노출 로그
+	// =========================================================
+
+	@Override
+	@Transactional
+	public boolean insertImpressionLog(
+	        Long adId,
+	        String position,
+	        Long memberId,
+	        String ip,
+	        String userAgent) {
+
+	    // 노출 로그 저장 로직
+	    // TODO: AdvertisementImpressionLog Entity + Repository 연결
+		Advertisement advertisement =
+                advertisementRepository.findById(adId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
+
+        Member member = null;
+
+        if (memberId != null) {
+            member = memberRepository.findById(memberId)
+                    .orElse(null);
+        }
+
+        AdPosition adPosition =
+                AdPosition.valueOf(position);
+		
+		AdvertisementImpressionLog impressionLog =
+		        AdvertisementImpressionLog.builder()
+		                .advertisement(advertisement)
+		                .member(member)
+		                .deviceType(getDeviceType(userAgent))
+		                .ipAddress(ip)
+		                .position(adPosition)
+		                .build();
+
+		impressionLogRepository.save(impressionLog);
+
+	    return true;
+	}
 
 
     // =========================================================
@@ -563,670 +788,264 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
     @Override
     public int selectTotalAdvertisementCnt() {
-        return advertisementMapper
-                .selectTotalAdvertisementCnt();
+
+        return (int)
+                advertisementRepository.count();
     }
 
 
     @Override
     public int selectOpenAdvertisementCnt() {
-        return advertisementMapper
-                .selectOpenAdvertisementCnt();
+        return (int) advertisementRepository
+                .countByStatus(AdStatus.OPEN);
     }
 
 
     @Override
     public int selectPendingAdvertisementCnt() {
-        return advertisementMapper
-                .selectPendingAdvertisementCnt();
+
+        return (int) advertisementRepository
+                .countByStatus(AdStatus.PENDING);
     }
 
 
     @Override
     public int selectClosedAdvertisementCnt() {
-        return advertisementMapper
-                .selectClosedAdvertisementCnt();
+
+        return (int) advertisementRepository
+                .countByStatus(AdStatus.CLOSED);
     }
+    
+    
+	 // =========================================================
+	 // 통계 차트
+	 // =========================================================
+	
+	 @Override
+	 public AdvertisementChartDto selectSummary() {
+	
+	     AdvertisementChartDto dto = new AdvertisementChartDto();
+	
+	     dto.setTotalAd(selectTotalAdvertisementCnt());
+	
+	     // TODO Repository에서 전체 노출/클릭 조회
+	     // dto.setTotalImp(...);
+	     // dto.setTotalClick(...);
+	     // dto.setAvgCtr(...);
+	
+	     return dto;
+	 }
+	
+	 @Override
+	 public List<AdvertisementChartDto> selectDailyChart() {
+	
+	     // TODO 일일통계 Repository 조회
+	     return List.of();
+	 }
+	
+	 @Override
+	 public List<AdvertisementChartDto> selectTopCtrChart() {
+	
+	     // TODO 광고별 CTR 계산 후 상위 5개 조회
+	     return List.of();
+	 }
+	
+	 @Override
+	 public List<AdvertisementChartDto> selectGradeChart() {
+	
+	     // TODO AdGrade별 광고 개수 조회
+	     return List.of();
+	 }
+	
+	 @Override
+	 public List<AdvertisementChartDto> selectPositionChart() {
+	
+	     // TODO 광고 위치별 노출 조회
+	     return List.of();
+	 }
+	
+	 @Override
+	 public double selectExtensionRate() {
+	
+	     // TODO 연장 광고 / 전체 광고
+	     return 0.0;
+	 }
+	
+	 @Override
+	 public List<AdvertisementChartDto> selectPositionCtrChart() {
+	
+	     // TODO 위치별 CTR 계산
+	     return List.of();
+	 }
 
 
     // =========================================================
-    // 클릭 로그
+    // DTO 변환
     // =========================================================
 
-    @Override
-    @Transactional
-    public boolean insertClickLog(
-    		Long adId,
-            String position,
-            HttpServletRequest request,
-            HttpSession session) {
-
-        Integer loginMemberId =
-                (Integer) session
-                        .getAttribute("loginMemberId");
-
-        String ip =
-                request.getRemoteAddr();
-
-        String userAgent =
-                request.getHeader("User-Agent");
-
-        String deviceType =
-                getDeviceType(userAgent);
-
-        int count =
-                advertisementMapper
-                        .checkDuplicateClick(
-                                adId,
-                                loginMemberId,
-                                ip
-                        );
-
-        // 최근 1시간 이내 클릭 기록이 있으면 저장하지 않음
-        if (count > 0) {
-            return false;
-        }
-
-        String sessionId =
-                request.getSession().getId();
-
-        String referrer =
-                request.getHeader("Referer");
-
-        advertisementMapper.insertClickLog(
-                adId,
-                loginMemberId,
-                deviceType,
-                ip,
-                sessionId,
-                referrer,
-                position
-        );
-
-        // 로그인 회원이면 포인트 지급
-        if (loginMemberId != null) {
-
-            int pointCount =
-                    advertisementMapper
-                            .checkAdvertisementPoint(
-                                    loginMemberId
-                            );
-
-            if (pointCount == 0) {
-
-                advertisementMapper
-                        .updateMemberPoint(
-                                loginMemberId
-                        );
-
-                advertisementMapper
-                        .insertPointHistory(
-                                loginMemberId
-                        );
-            }
-        }
-
-        return true;
-    }
-
-
-    // =========================================================
-    // 노출 로그
-    // =========================================================
-
-    @Override
-    @Transactional
-    public boolean insertImpressionLog(
-    		Long adId,
-            String position,
-            HttpServletRequest request,
-            HttpSession session) {
-
-        Integer memberId =
-                (Integer) session
-                        .getAttribute("loginMemberId");
-
-        String ip =
-                request.getRemoteAddr();
-
-        String sessionId =
-                request.getSession().getId();
-
-        String deviceType =
-                getDeviceType(
-                        request.getHeader("User-Agent")
-                );
-
-        int count =
-                advertisementMapper
-                        .checkDuplicateImpression(
-                                adId,
-                                memberId,
-                                sessionId
-                        );
-
-        if (count > 0) {
-            return false;
-        }
-
-        advertisementMapper.insertImpressionLog(
-                adId,
-                memberId,
-                deviceType,
-                ip,
-                sessionId,
-                position
-        );
-
-        return true;
-    }
-
-
-    /**
-     * User-Agent 기반 디바이스 구분
-     */
-    private String getDeviceType(String userAgent) {
-
-        if (userAgent == null) {
-            return "PC";
-        }
-
-        String ua =
-                userAgent.toLowerCase();
-
-        if (ua.contains("ipad")
-                || ua.contains("tablet")) {
-
-            return "TABLET";
-        }
-
-        if (ua.contains("mobile")
-                || ua.contains("android")
-                || ua.contains("iphone")) {
-
-            return "MOBILE";
-        }
-
-        return "PC";
-    }
-
-
-    // =========================================================
-    // 일일 통계
-    // =========================================================
-
-    @Override
-    @Transactional
-    public void insertDailyStatistics() {
-
-        int result =
-                advertisementMapper
-                        .insertDailyStatistics();
-
-        System.out.println(
-                "================================="
-        );
-        System.out.println(
-                "광고 일일통계 저장 건수 : " + result
-        );
-        System.out.println(
-                "================================="
-        );
-    }
-
-
-    // =========================================================
-    // 광고 통계 차트
-    // =========================================================
-
-    @Override
-    public AdvertisementChartDto selectSummary() {
-
-        return advertisementMapper
-                .selectSummary();
-    }
-
-
-    @Override
-    public List<AdvertisementChartDto> selectDailyChart() {
-
-        return advertisementMapper
-                .selectDailyChart();
-    }
-
-
-    @Override
-    public List<AdvertisementChartDto> selectTopCtrChart() {
-
-        return advertisementMapper
-                .selectTopCtrChart();
-    }
-
-
-    @Override
-    public List<AdvertisementChartDto> selectGradeChart() {
-
-        return advertisementMapper
-                .selectGradeChart();
-    }
-
-
-    /**
-     * 위치별 노출 통계
-     *
-     * DB에 데이터가 없는 위치도 0으로 반환
-     */
-    @Override
-    public List<AdvertisementChartDto>
-            selectPositionChart() {
-
-        List<AdvertisementChartDto> dbList =
-                advertisementMapper
-                        .selectPositionChart();
-
-        return Arrays.stream(
-                    AdvertisementPosition.values()
-                )
-                .map(position ->
-                        dbList.stream()
-                                .filter(dto ->
-                                        position.name()
-                                                .equals(dto.getPosition())
-                                )
-                                .findFirst()
-                                .orElseGet(() -> {
-
-                                    AdvertisementChartDto empty =
-                                            new AdvertisementChartDto();
-
-                                    empty.setPosition(
-                                            position.name()
-                                    );
-
-                                    empty.setImpressions(0);
-
-                                    return empty;
-                                })
-                )
-                .toList();
-    }
-
-
-    /**
-     * 광고 연장률
-     */
-    @Override
-    public double selectExtensionRate() {
-
-        return advertisementMapper
-                .selectExtensionRate();
-    }
-
-
-    /**
-     * 위치별 CTR
-     *
-     * DB에 데이터가 없는 위치도 0으로 반환
-     */
-    @Override
-    public List<AdvertisementChartDto>
-            selectPositionCtrChart() {
-
-        List<AdvertisementChartDto> dbList =
-                advertisementMapper
-                        .selectPositionCtrChart();
-
-        return Arrays.stream(
-                    AdvertisementPosition.values()
-                )
-                .map(position ->
-                        dbList.stream()
-                                .filter(dto ->
-                                        position.name()
-                                                .equals(dto.getPosition())
-                                )
-                                .findFirst()
-                                .orElseGet(() -> {
-
-                                    AdvertisementChartDto empty =
-                                            new AdvertisementChartDto();
-
-                                    empty.setPosition(
-                                            position.name()
-                                    );
-
-                                    empty.setCtr(0.0);
-
-                                    return empty;
-                                })
-                )
-                .toList();
-    }
-
-
-    // =========================================================
-    // AI 대시보드
-    // =========================================================
-
-    @Override
-    public DashboardAiDto getDashboardAiData() {
-
-        DashboardAiDto dto =
-                new DashboardAiDto();
-
-        // 1. 전체 통계
-        AdvertisementChartDto chartSummary =
-                advertisementMapper.selectSummary();
-
-        if (chartSummary != null) {
-
-            dto.setTotalAd(
-                    chartSummary.getTotalAd()
-            );
-
-            dto.setTotalImp(
-                    chartSummary.getTotalImp()
-            );
-
-            dto.setTotalClick(
-                    chartSummary.getTotalClick()
-            );
-
-            dto.setAvgCtr(
-                    chartSummary.getAvgCtr()
-            );
-        }
-
-        // 2. 연장률
-        dto.setExtensionRate(
-                advertisementMapper
-                        .selectExtensionRate()
-        );
-
-        // 3. 위치별 CTR
-        List<AdvertisementChartDto> ctrList =
-                advertisementMapper
-                        .selectPositionCtrChart();
-
-        if (ctrList != null && !ctrList.isEmpty()) {
-
-            ctrList.sort(
-                    Comparator.comparing(
-                            AdvertisementChartDto::getCtr,
-                            Comparator.nullsFirst(
-                                    Comparator.naturalOrder()
-                            )
-                    )
-            );
-
-            dto.setWorstPosition(
-                    ctrList.get(0).getPosition()
-            );
-
-            dto.setBestPosition(
-                    ctrList.get(
-                            ctrList.size() - 1
-                    ).getPosition()
-            );
-        }
-
-        // 4. 가장 많이 사용되는 광고 등급
-        List<AdvertisementChartDto> gradeList =
-                advertisementMapper
-                        .selectGradeChart();
-
-        if (gradeList != null
-                && !gradeList.isEmpty()) {
-
-            gradeList.sort(
-                    Comparator.comparing(
-                            AdvertisementChartDto::getCount,
-                            Comparator.nullsFirst(
-                                    Comparator.reverseOrder()
-                            )
-                    )
-            );
-
-            dto.setTopGrade(
-                    gradeList.get(0).getAdGrade()
-            );
-        }
-
-        // 5. 광고 피로도 경고 개수
-        AdvertisementSearchDto searchDto =
-                new AdvertisementSearchDto();
-
-        searchDto.setPage(1);
-        searchDto.setSize(1000);
-
-        List<AdvertisementDto> adList =
-                advertisementMapper
-                        .searchByAdmin(searchDto);
-
-        int warningCount = 0;
-
-        if (adList != null) {
-
-            for (AdvertisementDto ad : adList) {
-
-                AdvertisementDto stat =
-                        getAdvertisementStatistics(
-                                ad.getAdId()
-                        );
-
-                if (stat != null
-                        && "교체 권장".equals(
-                                stat.getFatigueStatus()
-                        )) {
-
-                    warningCount++;
-                }
-            }
-        }
-
-        dto.setFatigueWarningCount(
-                warningCount
-        );
-
-        // 6. AI 요약 생성
-        String summary =
-                aiSummaryService.createSummary(dto);
-
-        dto.setSummary(summary);
-
-        dto.setCreatedAt(
-                LocalDateTime.now()
-                        .format(
-                                DateTimeFormatter.ofPattern(
-                                        "yyyy-MM-dd HH:mm:ss"
-                                )
-                        )
-        );
-
-        return dto;
-    }
-
-
-    /**
-     * AI 요약 저장
-     */
-    @Override
-    @Transactional
-    public void saveAiSummary(String summary) {
-
-        advertisementMapper
-                .insertAiSummary(summary);
-    }
-
-
-    /**
-     * 가장 최근 AI 요약 조회
-     */
-    @Override
-    public DashboardAiDto getLatestAiSummary() {
-
-        return advertisementMapper
-                .selectLatestAiSummary();
-    }
-
-
-    // =========================================================
-    // 광고 피로도
-    // =========================================================
-
-    @Override
-    public AdvertisementDto
-            getAdvertisementStatistics(Long adId) {
+    private AdvertisementDto toDto(
+            Advertisement ad) {
 
         AdvertisementDto dto =
-                advertisementMapper
-                        .selectAdvertisementStatistics(adId);
+                new AdvertisementDto();
 
-        if (dto == null) {
-            return null;
-        }
+        dto.setAdId(ad.getAdId());
 
-        calculateFatigue(dto);
+        dto.setTitle(ad.getTitle());
+        dto.setContent(ad.getContent());
+        dto.setLandingUrl(ad.getLandingUrl());
+
+        dto.setTargetAgeMin(
+                ad.getTargetAgeMin()
+        );
+
+        dto.setTargetAgeMax(
+                ad.getTargetAgeMax()
+        );
+
+        dto.setTargetGender(
+                ad.getTargetGender()
+        );
+
+        dto.setStartDatetime(
+                ad.getStartDatetime()
+        );
+
+        dto.setEndDatetime(
+                ad.getEndDatetime()
+        );
+
+        dto.setStatus(
+                ad.getStatus()
+        );
+
+        dto.setApprovalStatus(
+                ad.getApprovalStatus()
+        );
+
+        dto.setPaymentStatus(
+                ad.getPaymentStatus()
+        );
+
+        dto.setAdGrade(
+                ad.getAdGrade()
+        );
+
+        dto.setAdvertiserId(
+                ad.getAdvertiser() != null
+                        ? ad.getAdvertiser().getId()
+                        : null
+        );
+
+        dto.setImpressions(
+                ad.getImpressions()
+        );
+
+        dto.setClicks(
+                ad.getClicks()
+        );
+
+        dto.setPriorityScore(
+                ad.getPriorityScore()
+        );
+
+        dto.setTotalBudget(
+                ad.getTotalBudget()
+        );
+
+        dto.setFatigueScore(
+                ad.getFatigueScore()
+        );
+
+        dto.setReminder30dSent(
+                ad.getReminder30dSent()
+        );
+
+        dto.setReminder14dSent(
+                ad.getReminder14dSent()
+        );
+
+        dto.setDeleteYn(
+                ad.getDeleteYn()
+        );
+
+        dto.setCreatedAt(
+                ad.getCreatedAt()
+        );
+
+        dto.setUpdatedAt(
+                ad.getUpdatedAt()
+        );
+
+        dto.setImageList(
+                selectAdvertisementImageList(
+                        ad.getAdId()
+                )
+        );
 
         return dto;
     }
 
 
-    /**
-     * 광고 피로도 계산
-     */
-    private void calculateFatigue(
-            AdvertisementDto dto) {
+    private AdvertisementImageDto toImageDto(
+            AdvertisementImage image) {
 
-        double recentCtr =
-                dto.getRecentCtr() == null
-                        ? 0
-                        : dto.getRecentCtr();
+        AdvertisementImageDto dto =
+                new AdvertisementImageDto();
 
-        double previousCtr =
-                dto.getPreviousCtr() == null
-                        ? 0
-                        : dto.getPreviousCtr();
-
-        double repeatRate =
-                dto.getRepeatRate() == null
-                        ? 0
-                        : dto.getRepeatRate();
-
-        double decrease = 0;
-
-        if (previousCtr > 0) {
-
-            decrease =
-                    ((previousCtr - recentCtr)
-                            / previousCtr)
-                            * 100;
-        }
-
-        double roundedDecrease =
-                Math.round(decrease * 100)
-                        / 100.0;
-
-        dto.setCtrDecrease(
-                roundedDecrease
+        dto.setImageId(
+                image.getImageId()
         );
 
-        double score =
-                decrease * 0.6
-                + repeatRate * 0.4;
-
-        double roundedScore =
-                Math.round(score * 100)
-                        / 100.0;
-
-        dto.setFatigueScore(
-                roundedScore
+        dto.setAdId(
+                image.getAdvertisement()
+                        .getAdId()
         );
 
-        if (score >= 70) {
+        dto.setImageType(
+                image.getImageType()
+                        .name()
+        );
 
-            dto.setFatigueStatus(
-                    "교체 권장"
-            );
+        dto.setImageUrl(
+                image.getImageUrl()
+        );
 
-        } else if (score >= 40) {
-
-            dto.setFatigueStatus(
-                    "관심"
-            );
-
-        } else {
-
-            dto.setFatigueStatus(
-                    "정상"
-            );
-        }
+        return dto;
     }
 
 
     // =========================================================
-    // 광고 만료 알림 메일
+    // 실제 이미지 파일 삭제
     // =========================================================
 
-    @Override
-    @Transactional
-    public void sendReminderMail() {
+    private void deletePhysicalFiles(
+            List<AdvertisementImage> images) {
 
-        // -----------------------------
-        // 30일 전
-        // -----------------------------
+        for (AdvertisementImage image : images) {
 
-        List<AdvertisementDto> reminder30 =
-                advertisementMapper
-                        .selectReminder30List();
+            String imageUrl =
+                    image.getImageUrl();
 
-        System.out.println(
-                "30일 만료 알림 대상 = "
-                        + reminder30.size()
-        );
+            if (imageUrl == null) {
+                continue;
+            }
 
-        for (AdvertisementDto ad : reminder30) {
-
-            mailService
-                    .sendAdvertisementReminderMail(
-                            ad,
-                            30
+            String fileName =
+                    imageUrl.replace(
+                            "/upload/ad/",
+                            ""
                     );
 
-            advertisementMapper
-                    .updateReminder30Sent(
-                            ad.getAdId()
-                    );
-        }
-
-
-        // -----------------------------
-        // 14일 전
-        // -----------------------------
-
-        List<AdvertisementDto> reminder14 =
-                advertisementMapper
-                        .selectReminder14List();
-
-        System.out.println(
-                "14일 만료 알림 대상 = "
-                        + reminder14.size()
-        );
-
-        for (AdvertisementDto ad : reminder14) {
-
-            mailService
-                    .sendAdvertisementReminderMail(
-                            ad,
-                            14
+            File file =
+                    new File(
+                            UPLOAD_PATH,
+                            fileName
                     );
 
-            advertisementMapper
-                    .updateReminder14Sent(
-                            ad.getAdId()
-                    );
+            if (file.exists()) {
+                file.delete();
+            }
         }
     }
-
-
 }

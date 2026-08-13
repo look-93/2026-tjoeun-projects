@@ -1,49 +1,38 @@
 package com.moit.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.moit.member.dao.UserMapper;
-import com.moit.member.dto.AuthUserDto;
-import com.moit.member.dto.MyPageDto;
 import com.moit.member.dto.UserDto;
+import com.moit.member.service.MemberService;
+
+import lombok.RequiredArgsConstructor;
 
 
 @Service //##
+@RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService{
 
-   @Autowired UserMapper dao;   
+	private final MemberService service;  
    
    @Override
    public UserDetails loadUserByUsername(String username)
            throws UsernameNotFoundException {
 
 
-       AuthUserDto authDto = dao.readByLoginId(username);
+       UserDto user = service.findByLoginId(username);
 
-       if(authDto == null){
+       if(user == null){
            throw new UsernameNotFoundException( "사용자를 찾을 수 없습니다 : " + username );
        }
       
-       if(authDto.getStatusId() == 2) {
+       if(user.getStatusId() == 2L) {
            throw new BadCredentialsException("WAIT");
-       }
-       
-       UserDto user = new UserDto();
-
-       user.setLoginId( username );
-       
-       UserDto dto = dao.findByLoginId(user);
-       
-       if (dto == null) {
-            throw new UsernameNotFoundException( "회원정보를 찾을 수 없습니다 : " + username);
-
-        }     
+       }         
               
-       return new CustomUserDetails( dto, authDto );
+       return new CustomUserDetails(user);
 	}
 }

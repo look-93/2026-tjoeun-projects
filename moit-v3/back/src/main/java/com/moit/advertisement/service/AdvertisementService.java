@@ -9,15 +9,11 @@ import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
+import com.moit.advertisement.dto.AdvertisementStatisticsDto;
 import com.moit.advertisement.dto.DashboardAiDto;
-import com.moit.advertisement.dto.AdvertisementExtensionRequestDto;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 
 public interface AdvertisementService {
-	
-	int updatePriorityScore();
 	
 	// 제휴사용자 목록
 	List<AdvertisementDto> searchMyAdvertisement(AdvertisementSearchDto dto);
@@ -80,7 +76,7 @@ public interface AdvertisementService {
     int updateAdvertisementClick(Long adId);
 
     // 광고 조회
-    AdvertisementDto selectTopAdvertisement(String position, Integer memberId, String sessionId);
+    AdvertisementDto selectTopAdvertisement(String position);
 
     // 통계
     int selectTotalAdvertisementCnt();
@@ -92,13 +88,23 @@ public interface AdvertisementService {
     int selectClosedAdvertisementCnt();
 
     // 클릭 로그
-	boolean insertClickLog(Long adId, String position, HttpServletRequest request, HttpSession session);
+    boolean insertClickLog(
+            Long adId,
+            String position,
+            Long memberId,
+            String ip,
+            String userAgent);
 	
 	// 노출 로그
-	boolean insertImpressionLog(Long adId, String position, HttpServletRequest request, HttpSession session);
+    boolean insertImpressionLog(
+            Long adId,
+            String position,
+            Long memberId,
+            String ip,
+            String userAgent);
 
 	// 일일통계
-	void insertDailyStatistics();
+//	void insertDailyStatistics();
 	
 	// 통계 차트
 	// 총 통계
@@ -115,16 +121,17 @@ public interface AdvertisementService {
 	double selectExtensionRate();	
 	// 위치별 ctr 차트
 	List<AdvertisementChartDto> selectPositionCtrChart();
-	// AI 통계 요약
-	DashboardAiDto getDashboardAiData();
-	DashboardAiDto getLatestAiSummary(); 
-    void saveAiSummary(String summary); 
+//	// AI 통계 요약
+//	DashboardAiDto getDashboardAiData();
+//	DashboardAiDto getLatestAiSummary(); 
+//    void saveAiSummary(String summary); 
 	
 	
 	// 피로도
-	AdvertisementDto getAdvertisementStatistics(Long adId);
+//    AdvertisementStatisticsDto getAdvertisementStatistics(Long adId);
 
 	// 메일 발송
-	void sendReminderMail();
+//	void sendReminderMail();
 
+	// 스케쥴러 돌리는건 일단 주석처리함
 }
