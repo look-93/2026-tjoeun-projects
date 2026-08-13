@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
-public class ModerationClient {
+public class ModerationClientService {
 
 
     @Value("${openai.api.key}")
