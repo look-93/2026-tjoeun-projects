@@ -2,7 +2,6 @@ package com.moit.reports.service;
 
 import java.util.List;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.moit.reports.dto.MemberTrustInfoDto;
@@ -26,7 +25,7 @@ public interface ReportsService {
 	// findByReportIdAndMember_IdAndDeleteYnAndStatus
 	ReportResponseDto updateUserReport(Long reportId, Long memberId, ReportRequestDto requestDto);
 	
-	// 사용자 신고 삭제 (논리삭제)
+	// 사용자 신고 삭제 (논리삭제 update delete_yn = 'Y')
 	void deleteUserReport(Long reportId, Long memberId);
 	
 	// 사용자 신고 목록 조회 + 페이징
@@ -45,9 +44,9 @@ public interface ReportsService {
 	// =============
 	// =   admin   =
 	// =============
-	// 관리자 처리 상태 (승인/반려/신뢰도점수) 변경
+	// 관리자 처리 상태 (승인/반려/신뢰도점수/감사로그) 변경
 	// findByReportIdAndStatus
-	void updateAdminReport(Long reportId, Long adminMemberId, ReportProcessDto processDto);
+	void updateAdminReport(Long reportId, Long MemberId, ReportProcessDto processDto);
 	
 	// 관리자 신고 삭제 (물리삭제)
 	void deleteAdminReport(Long reportId);
@@ -77,7 +76,10 @@ public interface ReportsService {
 	// =   apiEmail   =
 	// ================
 	// 3일 전 신고 처리한 이메일 조회
-	List<String> getThreeDaysAgoReportEmails();
+//	List<String> getThreeDaysAgoReportEmails();
+	
+	// 3일 전 신고 처리한 이메일 발송
+	void sendThreeDaysAgoReportEmails();
 }
 
 
