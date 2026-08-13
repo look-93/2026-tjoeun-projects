@@ -12,8 +12,8 @@ public class AuthUserDto {
 	private String nickname;
 	private String typeName;
 	private String profileUrl;
-	private Integer statusId;
-	private Integer memberTypeId;
+	private Long statusId;
+	private Long memberTypeId;
 
 	private  List<AuthDto> authList;  
 	

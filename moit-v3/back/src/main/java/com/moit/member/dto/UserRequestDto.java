@@ -1,5 +1,6 @@
 package com.moit.member.dto;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -26,9 +27,9 @@ public class UserRequestDto {
 	private String password;
 	private String nickname;
 	private String mobile;
-	private Integer memberTypeId;
+	private Long  memberTypeId;
 	private String gender;
-	private String birth;
+	private LocalDate birth;
 	private String provider;
 	private String providerId;
 	private MultipartFile profileImage;
@@ -43,7 +44,7 @@ public class UserRequestDto {
         dto.setPassword(password);
         dto.setNickname(nickname);
         dto.setMobile(mobile);
-        dto.setMemberTypeId( memberTypeId != null ? memberTypeId : 1 );
+        dto.setMemberTypeId( memberTypeId != null ? memberTypeId : 1L );
         dto.setGender(gender);
         dto.setBirth(birth);
         dto.setProvider(provider);
