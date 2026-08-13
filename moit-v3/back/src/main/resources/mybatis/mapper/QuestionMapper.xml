@@ -223,6 +223,24 @@
 	    ORDER BY q.question_id DESC
 	</select>
 	
+	<!-- 답변이 등록된 문의 수정 불가 -->
+	<select id="findStatusByQuestionId" parameterType="long" resultType="string">
+	    SELECT status
+	    FROM questions
+	    WHERE question_id = #{questionId}
+	      AND delete_yn = 'N'
+	</select>
+	
+	<!-- 중복 문의 확인 -->
+	<select id="countDuplicateQuestion" parameterType="map" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    WHERE member_id = #{memberId}
+	      AND title = #{title}
+	      AND content = #{content}
+	      AND delete_yn = 'N'
+	</select>
+	
 	<!-- 문의글 답변 -->
 	<!-- 문의글 답변 -->
 	
@@ -266,7 +284,29 @@
 		set content = #{content},
 		delete_yn = 'N'
 		where question_id = #{questionId}
-	</update>
+	</update>	
+	
+	<!-- 회원별 알림이 10개를 초과하면 가장 오래된 알림 삭제 -->
+	<delete id="deleteOldestNotification" parameterType="long">
+	    DELETE FROM notifications
+	    WHERE notification_id = (
+	        SELECT notification_id
+	        FROM (
+	            SELECT notification_id
+	            FROM notifications
+	            WHERE member_id = #{memberId}
+	            ORDER BY created_at ASC
+	        )
+	        WHERE ROWNUM = 1
+	    )
+	</delete>
+	
+	<!-- 회원의 전체 알림 개수 -->
+	<select id="countNotifications" parameterType="long" resultType="int">
+	    SELECT COUNT(*)
+	    FROM notifications
+	    WHERE member_id = #{memberId}
+	</select>
 
 	<!-- 답변 알림(비동기) -->
 	<!-- 답변 알림(비동기) -->
@@ -309,28 +349,6 @@
 		FROM notifications
 		WHERE member_id=#{memberId}
 		AND is_read='N'
-	</select>
-	
-	<!-- 회원별 알림이 10개를 초과하면 가장 오래된 알림 삭제 -->
-	<delete id="deleteOldestNotification" parameterType="long">
-	    DELETE FROM notifications
-	    WHERE notification_id = (
-	        SELECT notification_id
-	        FROM (
-	            SELECT notification_id
-	            FROM notifications
-	            WHERE member_id = #{memberId}
-	            ORDER BY created_at ASC
-	        )
-	        WHERE ROWNUM = 1
-	    )
-	</delete>
-	
-	<!-- 회원의 전체 알림 개수 -->
-	<select id="countNotifications" parameterType="long" resultType="int">
-	    SELECT COUNT(*)
-	    FROM notifications
-	    WHERE member_id = #{memberId}
 	</select>
 	
 	<!-- AI 공격성 점수 -->
