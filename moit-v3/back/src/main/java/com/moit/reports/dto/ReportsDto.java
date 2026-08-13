@@ -24,8 +24,8 @@ public class ReportsDto {
 	@Getter @Setter
 	public static class ReportResponseDto {
 		private Long reportId;
-		private TargetType targetType;
-		private Long targetId;
+		private TargetType targetType;	// MEETUP/REVIEW
+		private Long targetId;			// 모임글번호/리뷰글번호
 		private Long memberId;
 		private String memberNickname;
 		private ReasonCode reasonCode;

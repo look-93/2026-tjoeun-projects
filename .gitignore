@@ -54,6 +54,7 @@ front/build/
 
 # 환경변수
 .env
+.env.txt
 front/.env
 front/.env.local
 front/.env.*.local

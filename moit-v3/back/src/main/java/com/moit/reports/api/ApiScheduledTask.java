@@ -27,11 +27,9 @@ public class ApiScheduledTask {
 	public void threeSendEmail() { 
 
 		System.out.println("...신고처리 3일 후 sendEmail 스케줄러 실행");
-		
 		try {
 			service.selectThreeDaysAgo();
 		} catch (Exception e) { e.printStackTrace(); }
-		
 		System.out.println("...신고처리 3일 후 sendEmail 스케줄러 종료");
 	}
 
@@ -41,11 +39,9 @@ public class ApiScheduledTask {
 		
 		// 참여APPROVED/노쇼NOSHOW/신고(reports.status = 'APPROVED' 처리 이력
 		System.out.println("...어제 승인/노쇼/신고 집계 스케줄러 실행");
-		
 		try {
 			service.selectTargetMembersYesterday();
 		} catch (Exception e) { e.printStackTrace(); }
-		
 		System.out.println("...어제 승인/노쇼/신고 집계 스케줄러 종료");
 	}
 }
