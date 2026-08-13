@@ -1,6 +1,6 @@
 package com.moit.qna.entity;
 
-public enum Status {
+public enum QnaStatus {
 	PENDING,
 	ANSWERED
 }
