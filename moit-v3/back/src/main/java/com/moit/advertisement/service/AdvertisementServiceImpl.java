@@ -251,13 +251,15 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     @Override
     @Transactional
     public int updateAdvertisement(
+            Long adId,
+            Long memberId,
             AdvertisementDto.AdvertisementUpdateRequestDto dto,
             List<MultipartFile> imageFiles,
             List<String> imageTypes) {
 
         Advertisement advertisement =
                 advertisementRepository
-                        .findById(dto.getAdId())
+                        .findById(adId)
                         .orElseThrow(() ->
                                 new IllegalArgumentException(
                                         "광고를 찾을 수 없습니다."
@@ -301,9 +303,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         // 기존 이미지 삭제
         List<AdvertisementImage> oldImages =
                 advertisementImageRepository
-                        .findByAdvertisement_AdId(
-                                dto.getAdId()
-                        );
+                        .findByAdvertisement_AdId( adId );
 
         deletePhysicalFiles(oldImages);
 

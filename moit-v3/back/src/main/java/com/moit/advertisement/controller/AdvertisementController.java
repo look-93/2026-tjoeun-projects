@@ -163,7 +163,7 @@ public class AdvertisementController {
 	)
 	@GetMapping("/{adId}")
 	public ResponseEntity<AdvertisementDto> detail(
-	        @PathVariable Long adId) {
+			@PathVariable("adId") Long adId) {
 
 	    AdvertisementDto dto =
 	            advertisementService.selectAdvertisementOne(adId);
@@ -195,24 +195,22 @@ public class AdvertisementController {
 	    consumes = MediaType.MULTIPART_FORM_DATA_VALUE
 	)
     public ResponseEntity<AdvertisementDto> editAction(
+    		
+    		@PathVariable("adId") Long adId,
+    		
+    		@ModelAttribute("dto")
+    		AdvertisementDto.AdvertisementUpdateRequestDto dto,
 
-    		@PathVariable Long adId,
-
-    		@ModelAttribute AdvertisementDto.AdvertisementUpdateRequestDto dto,
-
-            @RequestParam(value = "imageFiles", required = false)
+    	    @RequestPart( value = "imageFiles", required = false )
             List<MultipartFile> imageFiles,
 
             @RequestParam(value = "imageTypes", required = false)
             List<String> imageTypes
         ) {
-    	
-    	dto.setAdId(adId);
 
     	Long memberId = LOGIN_MEMBER_ID;
 
-		AdvertisementDto origin =
-		        advertisementService.selectAdvertisementOne(dto.getAdId());
+        AdvertisementDto origin = advertisementService.selectAdvertisementOne(adId);
 
 		if (origin == null) {
 		    throw new ResponseStatusException(
@@ -221,6 +219,7 @@ public class AdvertisementController {
 		    );
 		}
 
+		// 광고주 본인 확인
 		if (!Objects.equals(memberId, origin.getAdvertiserId())) {
 		    throw new ResponseStatusException(
 		            HttpStatus.FORBIDDEN,
@@ -228,14 +227,14 @@ public class AdvertisementController {
 		    );
 		}
 
-		// 수정 DTO에는 서버에서 직접 주입
-		dto.setAdvertiserId(LOGIN_MEMBER_ID);
-
 		advertisementService.updateAdvertisement(
-		        dto,
-		        imageFiles,
-		        imageTypes
-		);
+	            adId,
+	            memberId,
+	            dto,
+	            imageFiles,
+	            imageTypes
+	    );
+
 
 		return ResponseEntity.ok(
 	            advertisementService.selectAdvertisementOne(adId)
@@ -249,7 +248,7 @@ public class AdvertisementController {
 	)
     @DeleteMapping("/{adId}")
     public ResponseEntity<Void> delete(
-    		@PathVariable Long adId
+    		@PathVariable("adId") Long adId
         ) {
 
         AdvertisementDto dto =

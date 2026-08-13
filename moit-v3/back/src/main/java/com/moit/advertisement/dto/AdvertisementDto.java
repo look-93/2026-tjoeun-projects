@@ -96,9 +96,6 @@ public class AdvertisementDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class AdvertisementUpdateRequestDto {
-    	
-    	private Long adId;
-        private Long advertiserId;
 
         private String title;
         private String content;
