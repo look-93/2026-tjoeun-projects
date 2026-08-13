@@ -8,6 +8,15 @@ public interface MemberService {
 	
 	// 로그인용 회원조회
 	UserDto findByLoginId(String loginId);
+	
+	// JWT 회원조회
+    UserDto findByMemberId(Long memberId);
+    
+    // 회원정보 수정
+    UserDto updateMember(Long memberId, UserDto dto);
+    
+    // 회원 탈퇴
+    void deleteMember(Long memberId);
 
     // 중복 확인
     boolean existsByLoginId(String loginId);

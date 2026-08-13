@@ -166,6 +166,96 @@ public class MemberServiceImpl implements MemberService{
 		return dto;
 	}
 	
+	// JWT 회원조회
+	@Override
+	public UserDto findByMemberId(Long memberId) {
+		
+		Member member = memberRepository.findById(memberId).orElse(null);
+		
+		if (member == null) { return null; }
+		
+		MemberInfo memberInfo = memberInfoRepository.findById(memberId)
+	            					.orElse(null);
+		
+		UserDto dto = new UserDto();
+		
+		dto.setMemberId(member.getId());
+	    dto.setLoginId(member.getLoginId());
+	    dto.setPassword(member.getPassword());
+	    dto.setEmail(member.getEmail());
+	    dto.setNickname(member.getNickname());
+	    dto.setMobile(member.getMobile());
+	    dto.setProfileUrl(member.getProfileUrl());
+
+	    dto.setMemberTypeId(member.getMemberType().getMemberTypeId());
+	    dto.setStatusId(member.getMemberStatus().getStatusId());
+	    
+	    if(memberInfo != null) {
+	    	dto.setGender(memberInfo.getGender());
+	        dto.setBirth(memberInfo.getBirth());
+	    }
+		
+		return dto;
+	}
+	
+	// 회원정보 수정
+	@Transactional
+	@Override
+	public UserDto updateMember(Long memberId, UserDto dto) {
+		
+		//1. 회원조회
+		Member member = memberRepository.findById(memberId)
+							.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원입니다."));
+		
+		//2. 회원 기본정보 수정
+		member.setNickname(dto.getNickname());
+		member.setMobile(dto.getMobile());
+		
+		// 프로필 이미지 수정
+		if(dto.getProfileUrl() != null && !dto.getProfileUrl().isBlank()) {
+			member.setProfileUrl(dto.getProfileUrl());
+		}
+		
+		//3. 회원 상세정보 조회
+		MemberInfo memberInfo = memberInfoRepository.findById(memberId)
+									.orElseThrow(()-> new IllegalArgumentException("회원 상세정보가 존재하지 않습니다.") );
+		
+		//4. 상세정보 수정
+		memberInfo.setGender(dto.getGender());
+		memberInfo.setBirth(dto.getBirth());
+		
+		//5. DTO에 반영
+		dto.setMemberId(member.getId());
+		dto.setLoginId(member.getLoginId());
+		dto.setEmail(member.getEmail());
+		dto.setNickname(member.getNickname());
+		dto.setMobile(member.getMobile());
+		dto.setProfileUrl(member.getProfileUrl());
+		
+		dto.setMemberTypeId(member.getMemberType().getMemberTypeId());
+		dto.setStatusId(member.getMemberStatus().getStatusId());
+		
+		return dto;
+	}
+	
+	// 회원탈퇴(논리삭제)
+	@Transactional
+	@Override
+	public void deleteMember(Long memberId) {
+		//1. 회원조회
+		Member member = memberRepository.findById(memberId)
+							.orElseThrow(()->new IllegalArgumentException("존재하지 않는 회원입니다."));
+		
+		//2. delete 상태 조회
+		MemberStatus deletedStatus = memberStatusRepository.findById(4L)
+										.orElseThrow(()->new IllegalArgumentException("삭제 상태가 존재하지 않습니다."));
+		
+		//3. 상태변경
+		member.setMemberStatus(deletedStatus);
+		
+		member.setDeleteYn('Y');
+	}
+	
 	
 	
 }
