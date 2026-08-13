@@ -6,7 +6,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
+//import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,11 +19,9 @@ import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.service.AdvertisementService;
-import com.moit.member.dto.UserDto;
-import com.moit.security.CustomUserDetails;
+//import com.moit.member.dto.UserDto;
+//import com.moit.security.CustomUserDetails;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -35,27 +33,26 @@ public class AdvertisementController {
 
     private static final String UPLOAD_PATH = "C:/upload/ad/";
     
+    private static final Long LOGIN_MEMBER_ID = 1L; // 로그인끼면 변경 (하드로 박는중)
+    
     // 사용자 id
-    private Long getLoginMemberId(Authentication authentication) {
-
-        CustomUserDetails user =
-                (CustomUserDetails) authentication.getPrincipal();
-
-        return user.getUser().getMemberId();
-    }
+//    private Long getLoginMemberId(Authentication authentication) {
+//
+//        CustomUserDetails user =
+//                (CustomUserDetails) authentication.getPrincipal();
+//
+//        return user.getUser().getMemberId();
+//    }
 
     // 내 광고 목록
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/list")
     public String list(
             AdvertisementSearchDto dto,
-            Authentication authentication,
+            // Authentication authentication,
             Model model) {
     	
-		String loginId     = null, provider = null;
-		UserDto user=null;
-		
-		Long memberId = getLoginMemberId(authentication);
+    	Long memberId = LOGIN_MEMBER_ID;
 
 		dto.setAdvertiserId(memberId);
 
@@ -90,7 +87,7 @@ public class AdvertisementController {
 
         model.addAttribute("list", list);
         model.addAttribute("search", dto);
-        model.addAttribute("dto" , user); 
+//        model.addAttribute("dto" , user); 
         model.addAttribute("totalCnt", totalCnt);
         model.addAttribute("totalPage", totalPage);
         model.addAttribute("menu", "advertisement");
@@ -118,16 +115,14 @@ public class AdvertisementController {
             List<MultipartFile> imageFiles,
 
             @RequestParam(value = "imageTypes", required = false)
-            List<String> imageTypes,
+            List<String> imageTypes
 
-            Authentication authentication) {
+            // ,Authentication authentication
+            ) {
 
         try {
 
-        	String loginId     = null, provider = null;
-    		UserDto user=null;
-    		
-    		Long memberId = getLoginMemberId(authentication);
+        	Long memberId = LOGIN_MEMBER_ID;
     		
             dto.setAdvertiserId(memberId);
 
@@ -178,7 +173,7 @@ public class AdvertisementController {
     @GetMapping("/detail")
     public String detail(
             @RequestParam Long adId,
-            Authentication authentication,
+            // Authentication authentication,
             Model model) {
 
         AdvertisementDto dto =
@@ -203,16 +198,13 @@ public class AdvertisementController {
     @GetMapping("/edit")
     public String edit(
             @RequestParam Long adId,
-            Authentication authentication,
+            // Authentication authentication,
             Model model) {
 
         AdvertisementDto dto =
                 advertisementService.selectAdvertisementOne(adId);
 
-        String loginId     = null, provider = null;
-		UserDto user=null;
-
-		Long memberId = getLoginMemberId(authentication);
+        Long memberId = LOGIN_MEMBER_ID;
 
         if (dto == null) {
             return "redirect:/user/advertisement/list";
@@ -240,14 +232,13 @@ public class AdvertisementController {
             List<MultipartFile> imageFiles,
 
             @RequestParam(value = "imageTypes", required = false)
-            List<String> imageTypes,
+            List<String> imageTypes
 
-            Authentication authentication) {
+            // , Authentication authentication
+        ) {
+    	
 
-    	String loginId     = null, provider = null;
-		UserDto user=null;
-
-		Long memberId = getLoginMemberId(authentication);
+    	Long memberId = LOGIN_MEMBER_ID;
 
 		AdvertisementDto origin =
 		        advertisementService.selectAdvertisementOne(dto.getAdId());
@@ -316,16 +307,14 @@ public class AdvertisementController {
  // 삭제
     @PostMapping("/delete")
     public String delete(
-            @RequestParam Long adId,
-            Authentication authentication) {
+            @RequestParam Long adId
+            // ,Authentication authentication
+        ) {
 
         AdvertisementDto dto =
                 advertisementService.selectAdvertisementOne(adId);
 
-        	String loginId     = null, provider = null;
-    		UserDto user=null;
-
-    		Long memberId = getLoginMemberId(authentication);
+        Long memberId = LOGIN_MEMBER_ID;
 
         // 권한 체크
         if (dto == null) {
