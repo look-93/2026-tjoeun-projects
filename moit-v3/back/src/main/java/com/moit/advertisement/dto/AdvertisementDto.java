@@ -209,4 +209,32 @@ public class AdvertisementDto {
                     .build();
         }
     }
+    
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AdvertisementPageResponseDto {
+
+        private List<AdvertisementDto> list;
+        private int totalCnt;
+        private int totalPage;
+        private int page;
+        private int size;
+
+        public AdvertisementPageResponseDto(
+                List<AdvertisementDto> list,
+                int totalCnt,
+                int page,
+                int size) {
+
+            this.list = list;
+            this.totalCnt = totalCnt;
+            this.page = page;
+            this.size = size;
+
+            this.totalPage =
+                    (int) Math.ceil((double) totalCnt / size);
+        }
+    }
 }
