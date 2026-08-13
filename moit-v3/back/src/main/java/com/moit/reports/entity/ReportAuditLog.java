@@ -3,7 +3,7 @@ package com.moit.reports.entity;
 import java.time.LocalDateTime;
 
 import com.moit.member.entity.Member;
-import com.moit.reports.enums.Status;
+import com.moit.reports.enums.ReportStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -51,12 +51,12 @@ public class ReportAuditLog {
     // 변경 전 상태
     @Enumerated(EnumType.STRING)
     @Column(name = "PREVIOUS_STATUS", nullable = false, length = 20)
-    private Status previousStatus;
+    private ReportStatus previousStatus;
     
     // 변경 후 상태
     @Enumerated(EnumType.STRING)
     @Column(name = "CHANGED_STATUS", nullable = false, length = 20)
-    private Status changedStatus;
+    private ReportStatus changedStatus;
 
     // 관리자가 입력한 처리 사유
     @Column(name = "PROCESS_REASON", nullable = false, length = 1000)
@@ -76,7 +76,7 @@ public class ReportAuditLog {
     private Integer trustScoreChange;
 
     // 관리자 처리 이력 로그
-	public ReportAuditLog(Report report, Member adminMember, Status previousStatus, Status changedStatus, String processReason, Integer trustScoreChange) {
+	public ReportAuditLog(Report report, Member adminMember, ReportStatus previousStatus, ReportStatus changedStatus, String processReason, Integer trustScoreChange) {
 		this.report = report;
 		this.adminMember = adminMember;
 		this.previousStatus = previousStatus;
