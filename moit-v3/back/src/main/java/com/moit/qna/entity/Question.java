@@ -53,7 +53,7 @@ public class Question extends BaseEntity{
     private Category category;
     
 	@Enumerated(EnumType.STRING)
-	@Column(name = "QNASTATUS", length = 20, nullable = false)
+	@Column(name = "QNA_STATUS", length = 20, nullable = false)
     private QnaStatus status;
     
 	@Enumerated(EnumType.STRING)

@@ -67,6 +67,11 @@ public interface QuestionMapper {
     // 특정 모임 문의 조회
     List<QuestionResponseDto> selectByParentId(Long parentId);
     
+    // 답변이 등록된 문의 수정 불가
+    String findStatusByQuestionId(Long questionId);
+    
+    // 중복 문의 방지
+    int countDuplicateQuestion(Long memberId, String title, String content);
     
     // =====  답변  =====
     // 질문에 대한 답변 조회
@@ -86,7 +91,6 @@ public interface QuestionMapper {
 
     // 삭제된 답변 복구용
     void restoreAnswer(AnswerRequestDto dto);
-    
     
     // =====  Ai 공격성  =====
     void insertAiAnalysis(QuestionAiAnalysisDto dto);

@@ -51,4 +51,10 @@ public class QuestionAnswer extends BaseEntity{
 	@Enumerated(EnumType.STRING)
 	@Column(name = "IS_PUBLIC", length = 20, nullable = false)
     private IsPublic isPublic;
+	
+	@Column(name = "RATING")
+	private Integer rating;
+
+	@Column(name = "FEEDBACK", length = 1000)
+	private String feedback;
 }

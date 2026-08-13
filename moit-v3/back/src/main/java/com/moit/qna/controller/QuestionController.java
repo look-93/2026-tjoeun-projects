@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.moit.member.dto.UserDto;
 import com.moit.qna.dto.AnswerDto.AnswerRequestDto;
+import com.moit.qna.dto.AnswerDto.SatisfactionRequestDto;
 import com.moit.qna.dto.QuestionDto.QuestionAdminResponseDto;
 import com.moit.qna.dto.QuestionDto.QuestionMyResponseDto;
 import com.moit.qna.dto.QuestionDto.QuestionRequestDto;
@@ -29,6 +30,7 @@ import com.moit.security.CustomUserDetails;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -42,6 +44,20 @@ public class QuestionController {
     private final QuestionService questionService;
     private final AnswerService answerService;
     private final QuestionAiAnalysisService questionAiAnalysisService;
+    
+    // 답변 만족도 평가
+    @Operation(summary = "답변 만족도 평가", description = "답변에 대한 만족도 점수와 의견을 등록합니다.")
+    @PatchMapping("/answer/{answerId}/satisfaction")
+    public ResponseEntity<Void> updateSatisfaction(
+            @PathVariable Long answerId,
+            @Valid @RequestBody SatisfactionRequestDto dto,
+            Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long memberId = userDetails.getUser().getMemberId();
+        dto.setAnswerId(answerId);
+        answerService.updateSatisfaction(dto, memberId);
+        return ResponseEntity.noContent().build();
+    }
     
     //관리자용 선택 삭제
     @Operation(summary = "관리자용 선택 삭제", description = "관리자가 글을 삭제합니다.")

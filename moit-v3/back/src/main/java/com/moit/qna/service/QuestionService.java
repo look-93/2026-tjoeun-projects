@@ -63,16 +63,27 @@ public class QuestionService {
 
     // 문의 등록
     public void register(QuestionRequestDto dto) {
-        // questions 테이블 저장
+    	// 동일 사용자 + 동일 제목 + 동일 내용의 문의가 있는지 확인
+        int duplicateCount = questionMapper.countDuplicateQuestion(
+                dto.getMemberId(),
+                dto.getTitle(),
+                dto.getContent()
+        );
+        if (duplicateCount > 0) {
+            throw new IllegalStateException("이미 등록한 동일한 문의가 있습니다.");
+        }
+    	// questions 테이블 저장
         questionMapper.insertQuestion(dto);
         // AI 분석
         String text = dto.getTitle() + "\n" + dto.getContent();
-
         questionAiAnalysisService.analyzeAndSave( dto.getQuestionId(), text );
     }
 
     // 문의 수정
     public void updateQuestion(QuestionRequestDto dto) {
+    	String status = questionMapper.findStatusByQuestionId(dto.getQuestionId());
+
+        if ("ANSWERED".equals(status)) { throw new IllegalStateException("답변이 등록된 문의는 수정할 수 없습니다."); }
         questionMapper.updateQuestion(dto);
     }
 
