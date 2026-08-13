@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -95,28 +96,26 @@ public class AdvertisementController {
 	    summary = "광고 등록",
 	    description = "광고 정보를 등록하고 광고 이미지를 함께 업로드합니다."
 	)
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)	
-    public AdvertisementDto writeAction(
+    @PostMapping( consumes = MediaType.MULTIPART_FORM_DATA_VALUE )
+	public AdvertisementDto writeAction(
 
-            AdvertisementDto dto,
+		@ModelAttribute("dto")
+	    AdvertisementDto.AdvertisementRequestDto dto,
 
-            @RequestParam(value = "imageFiles", required = false)
-            List<MultipartFile> imageFiles,
+	    @RequestPart( value = "imageFiles", required = false )
+	    List<MultipartFile> imageFiles,
 
-            @RequestParam(value = "imageTypes", required = false)
-            List<String> imageTypes
-
-            // ,Authentication authentication
-            ) {
+	    @RequestParam(value = "imageTypes", required = false)
+	    List<String> imageTypes	) {
 
         try {
 
         	Long memberId = LOGIN_MEMBER_ID;
-    		
-            dto.setAdvertiserId(memberId);
 
-            advertisementService.insertAdvertisement(dto);
+            // 광고 등록
+            Long adId = advertisementService.insertAdvertisement(dto, memberId);
 
+            // 이미지 등록
             if (imageFiles != null && imageTypes != null) {
 
                 File dir = new File(UPLOAD_PATH);
@@ -142,20 +141,19 @@ public class AdvertisementController {
 
                     AdvertisementImageDto imageDto =
                             new AdvertisementImageDto();
-
-                    imageDto.setAdId(dto.getAdId());
+                    
+                    imageDto.setAdId(adId);
                     imageDto.setImageType(imageTypes.get(i));
                     imageDto.setImageUrl("/upload/ad/" + saveName);
 
                     advertisementService.insertAdvertisementImage(imageDto);
                 }
             }
+            return advertisementService.selectAdvertisementOne(adId);
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        return advertisementService.selectAdvertisementOne(dto.getAdId());
     }
 
     // 상세
@@ -200,7 +198,7 @@ public class AdvertisementController {
 
     		@PathVariable Long adId,
 
-            @ModelAttribute AdvertisementDto dto,
+    		@ModelAttribute AdvertisementDto.AdvertisementUpdateRequestDto dto,
 
             @RequestParam(value = "imageFiles", required = false)
             List<MultipartFile> imageFiles,
@@ -231,7 +229,6 @@ public class AdvertisementController {
 		}
 
 		// 수정 DTO에는 서버에서 직접 주입
-		dto.setAdvertiserId(memberId);
 		dto.setAdvertiserId(LOGIN_MEMBER_ID);
 
 		advertisementService.updateAdvertisement(

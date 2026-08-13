@@ -37,11 +37,14 @@ public interface AdvertisementService {
     AdvertisementDto selectAdvertisementOne(Long adId);
 
     // 광고 등록
-    int insertAdvertisement(AdvertisementDto dto);
+    Long insertAdvertisement(
+	    AdvertisementDto.AdvertisementRequestDto dto,
+	    Long advertiserId
+	);
 
     // 광고 수정
     int updateAdvertisement(
-            AdvertisementDto dto,
+    		AdvertisementDto.AdvertisementUpdateRequestDto dto,
             List<MultipartFile> imageFiles,
             List<String> imageTypes);
 

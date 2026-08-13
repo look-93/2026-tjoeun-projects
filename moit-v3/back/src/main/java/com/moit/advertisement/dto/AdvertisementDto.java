@@ -74,6 +74,30 @@ public class AdvertisementDto {
     @AllArgsConstructor
     public static class AdvertisementRequestDto {
 
+        private String title;
+        private String content;
+        private String landingUrl;
+
+        private Integer targetAgeMin;
+        private Integer targetAgeMax;
+        private TargetGender targetGender;
+
+        private LocalDateTime startDatetime;
+        private LocalDateTime endDatetime;
+
+        private BigDecimal totalBudget;
+    }
+    
+    // =========================================================
+    //  광고 수정 요청
+    // =========================================================
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AdvertisementUpdateRequestDto {
+    	
+    	private Long adId;
         private Long advertiserId;
 
         private String title;
