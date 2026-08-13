@@ -25,7 +25,7 @@ import com.moit.reports.entity.MemberReportStatus;
 import com.moit.reports.entity.Report;
 import com.moit.reports.entity.ReportAuditLog;
 import com.moit.reports.enums.ReasonCode;
-import com.moit.reports.enums.Status;
+import com.moit.reports.enums.ReportStatus;
 import com.moit.reports.enums.TargetType;
 import com.moit.reports.repository.MemberReportStatusRepository;
 import com.moit.reports.repository.ReportAuditLogRepository;
@@ -106,7 +106,7 @@ class ReportRepositoryTest {
 		assertThat(found.get().getTargetId()).isEqualTo(1L);
 		assertThat(found.get().getReasonCode()).isEqualTo(ReasonCode.SPAM);
 		assertThat(found.get().getReasonDetail()).isEqualTo("광고성 게시글 신고");
-		assertThat(found.get().getStatus()).isEqualTo(Status.PENDING);
+		assertThat(found.get().getStatus()).isEqualTo(ReportStatus.PENDING);
 		assertThat(found.get().getMember().getId()).isEqualTo(testMember.getId());
 	}
 
@@ -174,7 +174,7 @@ class ReportRepositoryTest {
 				saved.getReportId(),
 				testMember.getId(),
 				'N',
-				Status.PENDING
+				ReportStatus.PENDING
 			);
 		assertThat(found).isPresent();
 		
@@ -224,24 +224,24 @@ class ReportRepositoryTest {
 				ReasonCode.SPAM,
 				"신고 테스트 6 - 관리자 처리 상태 변경 테스트"
 			);
-		assertThat(saved.getStatus()).isEqualTo(Status.PENDING);
+		assertThat(saved.getStatus()).isEqualTo(ReportStatus.PENDING);
 
 		Optional<Report> found =
 			reportRepository.findByReportIdAndStatus(
 				saved.getReportId(),
-				Status.PENDING
+				ReportStatus.PENDING
 			);
 		assertThat(found).isPresent();
 
 		Report report = found.get();
-		report.changeStatus(Status.APPROVED);
+		report.changeStatus(ReportStatus.APPROVED);
 
 		reportRepository.flush();
 
 		Report changed =
 			reportRepository.findById(report.getReportId()).orElseThrow();
 
-		assertThat(changed.getStatus()).isEqualTo(Status.APPROVED);
+		assertThat(changed.getStatus()).isEqualTo(ReportStatus.APPROVED);
 	}
 
 	
@@ -297,8 +297,8 @@ class ReportRepositoryTest {
 		ReportAuditLog auditLog = new ReportAuditLog(
 			report,
 			admin,
-			Status.PENDING,
-			Status.APPROVED,
+			ReportStatus.PENDING,
+			ReportStatus.APPROVED,
 			"신고 내용 확인 후 승인",
 			-5
 		);
@@ -314,8 +314,8 @@ class ReportRepositoryTest {
 
 		assertThat(found.getReport().getReportId()).isEqualTo(report.getReportId());
 		assertThat(found.getAdminMember().getId()).isEqualTo(testMember.getId());
-		assertThat(found.getPreviousStatus()).isEqualTo(Status.PENDING);
-		assertThat(found.getChangedStatus()).isEqualTo(Status.APPROVED);
+		assertThat(found.getPreviousStatus()).isEqualTo(ReportStatus.PENDING);
+		assertThat(found.getChangedStatus()).isEqualTo(ReportStatus.APPROVED);
 		assertThat(found.getProcessReason()).isEqualTo("신고 내용 확인 후 승인");
 		assertThat(found.getTrustScoreChange()).isEqualTo(-5);
 		assertThat(found.getProcessedAt()).isNotNull();

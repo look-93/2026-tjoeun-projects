@@ -26,7 +26,7 @@ public class AdminController {
 	@PostMapping("/admin/member/join")
 	public String adminJoin(UserDto dto, RedirectAttributes rttr) {
 		
-		dto.setMemberTypeId(3); // 일반 관리자 권한으로 고정
+		dto.setMemberTypeId(3L); // 일반 관리자 권한으로 고정
 
 		int result = service.insert(dto);
 		
