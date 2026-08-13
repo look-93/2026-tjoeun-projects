@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import com.moit.reports.dto.MemberTrustInfoDto;
 import com.moit.reports.dto.ReportAuditLogDto;
 import com.moit.reports.dto.ReportSearchDto;
+import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
 import com.moit.reports.dto.ReportsDto.ReportProcessDto;
 import com.moit.reports.dto.ReportsDto.ReportRequestDto;
 import com.moit.reports.dto.ReportsDto.ReportResponseDto;
@@ -30,7 +31,7 @@ public interface ReportsService {
 	
 	// 사용자 신고 목록 조회 + 페이징
 	// findByMember_IdAndDeleteYnOrderByReportIdDesc
-	Page<ReportResponseDto> getUserReports(Long memberId, Pageable pageable);
+	ReportListResponseDto getUserReports(Long memberId, Pageable pageable);
 	
 	// 사용자 신고 상세 조회
 	// findByReportIdAndMember_IdAndDeleteYn
@@ -44,15 +45,15 @@ public interface ReportsService {
 	// =============
 	// =   admin   =
 	// =============
-	// 관리자 처리 상태 (승인/반려) 변경
+	// 관리자 처리 상태 (승인/반려/신뢰도점수) 변경
 	// findByReportIdAndStatus
-	void processReport(Long reportId, Long adminMemberId, ReportProcessDto processDto);
+	void updateAdminReport(Long reportId, Long adminMemberId, ReportProcessDto processDto);
 	
 	// 관리자 신고 삭제 (물리삭제)
 	void deleteAdminReport(Long reportId);
 	
 	// 관리자 신고 목록 조회 + 검색 + 페이징
-	Page<ReportResponseDto> getAdminReports(ReportSearchDto searchDto, Pageable pageable);
+	ReportListResponseDto getAdminReports(ReportSearchDto searchDto, Pageable pageable);
 
 	// 관리자 신고 상세 조회
 	ReportResponseDto getAdminReportDetail(Long reportId);

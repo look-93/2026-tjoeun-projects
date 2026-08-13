@@ -9,14 +9,14 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import com.moit.reports.entity.Report;
-import com.moit.reports.enums.Status;
+import com.moit.reports.enums.ReportStatus;
 import com.moit.reports.enums.TargetType;
 
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long>, JpaSpecificationExecutor<Report> {
 	// 사용자 신고 수정
 	Optional<Report> findByReportIdAndMember_IdAndDeleteYnAndStatus(
-        Long reportId, Long memberId, Character deleteYn, Status status
+        Long reportId, Long memberId, Character deleteYn, ReportStatus status
     );
 	
 	// 사용자 신고 목록 조회 + 페이징
@@ -35,7 +35,7 @@ public interface ReportRepository extends JpaRepository<Report, Long>, JpaSpecif
     );
 
 	// 관리자 (승인/반려) 처리를 위한 신고 조회
-	Optional<Report> findByReportIdAndStatus(Long reportId, Status status);
+	Optional<Report> findByReportIdAndStatus(Long reportId, ReportStatus status);
 }
 
 /*

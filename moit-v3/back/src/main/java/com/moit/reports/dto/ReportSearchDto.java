@@ -3,7 +3,7 @@ package com.moit.reports.dto;
 import java.time.LocalDate;
 
 import com.moit.reports.enums.ReasonCode;
-import com.moit.reports.enums.Status;
+import com.moit.reports.enums.ReportStatus;
 import com.moit.reports.enums.TargetType;
 
 import lombok.Getter;
@@ -11,7 +11,7 @@ import lombok.Setter;
 
 @Getter @Setter
 public class ReportSearchDto {
-	private Status status;			// 상태
+	private ReportStatus status;			// 상태
 	private Character deleteYn;		// 상태 (논리삭제)
 	
 	private TargetType targetType;	// 대상
