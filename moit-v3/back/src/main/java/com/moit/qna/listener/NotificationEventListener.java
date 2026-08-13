@@ -28,6 +28,12 @@ public class NotificationEventListener {
 
         dto.setType("ANSWER_CREATED");
         dto.setMessage("'" + question.getTitle() + "' 문의에 답변이 등록되었습니다.");
+        // 알림 생성
         questionMapper.insertNotification(dto);
+        // 알림이 10개를 초과하면 가장 오래된 알림 삭제
+        int notificationCount = questionMapper.countNotifications(dto.getMemberId());
+        if (notificationCount > 10) {
+            questionMapper.deleteOldestNotification(dto.getMemberId());
+        }
     }
 }

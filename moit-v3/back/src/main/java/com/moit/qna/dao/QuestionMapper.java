@@ -97,6 +97,8 @@ public interface QuestionMapper {
     int unreadCount(Long memberId);
     void insertNotification(NotificationDto dto);
     void readNotification(Long notificationId, Long memberId);
+    void deleteOldestNotification(Long memberId);
+    int countNotifications(Long memberId);
     List<NotificationDto> selectUnread(Long memberId);
     List<NotificationDto> selectAll(Long memberId);
 }
