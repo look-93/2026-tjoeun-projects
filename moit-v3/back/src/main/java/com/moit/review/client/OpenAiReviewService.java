@@ -15,7 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.moit.review.dto.ReviewDto;
+import com.moit.review.dto.ReviewDto.ReviewResponseDto; 
 
 @Service
 public class OpenAiReviewService {
@@ -23,7 +23,8 @@ public class OpenAiReviewService {
 	@Value("${openai.api.key}")
 	private String apiKey;
 
-	public String reviewAnalysis(List<ReviewDto> reviewList) {
+	
+	public String reviewAnalysis(List<ReviewResponseDto> reviewList) {
 		
 		// 후기가 없을 경우 예외 처리
 		if (reviewList == null || reviewList.isEmpty()) {
@@ -32,9 +33,10 @@ public class OpenAiReviewService {
 		
 		// 후기 내용 합치기
 		StringBuilder reviewText = new StringBuilder();
-		for(ReviewDto review : reviewList) {
+		// [수정] ReviewDto -> ReviewResponseDto 로 변경
+		for(ReviewResponseDto review : reviewList) {
 			reviewText.append("- ")
-					  .append(review.getContent())
+					  .append(review.getContent()) // 이제 정상적으로 getContent() 호출 가능!
 					  .append("\n");
 		}
 
@@ -70,7 +72,6 @@ public class OpenAiReviewService {
 		HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 		
 		try {
-			// [수정] 빈 주입 예외(500 에러)를 방지하기 위해 RestTemplate 객체를 직접 생성합니다.
 			RestTemplate restTemplate = new RestTemplate();
 			
 			ResponseEntity<String> response = restTemplate.postForEntity(
@@ -86,7 +87,6 @@ public class OpenAiReviewService {
 			return root.path("choices").get(0).path("message").path("content").asText();
 			
 		} catch(Exception e) {
-			// 자바 콘솔창에 진짜 에러 원인이 무엇인지 상세히 찍어주도록 설정
 			System.err.println("=== OpenAI API 호출 중 예외 발생 ===");
 			e.printStackTrace(); 
 			return "AI 분석 중 오류가 발생했습니다. 원인: " + e.getMessage();

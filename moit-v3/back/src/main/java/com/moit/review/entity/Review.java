@@ -19,13 +19,19 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
 @Table(name="REVIEWS")
+@Builder
+@NoArgsConstructor  
+@AllArgsConstructor 
 public class Review  extends BaseEntity{
 	
 	
