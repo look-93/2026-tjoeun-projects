@@ -167,12 +167,12 @@ public class ReportController {
 			@RequestBody ReportProcessDto processDto ) {
 		
 		// 관리자 로그인 하드코딩
-		Long adminMemberId = 99L;
+		Long MemberId = 99L;
 		
 		// 로그인한 adminMemberId 꺼내오기
 //		Long adminMemberId =  authUserJwtService.getCurrentMemberId(authentication);
 		
-		return ResponseEntity.ok( reportsService.updateProcessReport(reportId, adminMemberId, processDto));
+		return ResponseEntity.ok( reportsService.updateProcessReport(reportId, MemberId, processDto));
 	};
 	
 	// 신고 삭제

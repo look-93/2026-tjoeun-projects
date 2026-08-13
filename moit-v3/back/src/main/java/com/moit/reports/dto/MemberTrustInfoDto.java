@@ -7,7 +7,6 @@ import lombok.Setter;
 public class MemberTrustInfoDto {	// 회원 신고 신뢰도/뱃지 조회 DTO
 	// MEMBERS
 	private Long targetMemberId;	// 신고당한 회원 id
-	// 
 	private String targetNickname;	// 신고당한 회원 닉네임	MemberRepository
 	
 	// MEMBER_INFO

@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import com.moit.reports.dto.ReportSearchDto;
+import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
 import com.moit.reports.entity.Report;
 import com.moit.reports.enums.ReportStatus;
 import com.moit.reports.enums.TargetType;
@@ -23,7 +25,7 @@ public interface ReportRepository extends JpaRepository<Report, Long>, JpaSpecif
 	Page<Report> findByMember_IdAndDeleteYnOrderByReportIdDesc(
         Long memberId, Character deleteYn, Pageable pageable
     );
-
+	
 	// 사용자 신고 상세 조회
 	Optional<Report> findByReportIdAndMember_IdAndDeleteYn(
         Long reportId, Long memberId, Character deleteYn
