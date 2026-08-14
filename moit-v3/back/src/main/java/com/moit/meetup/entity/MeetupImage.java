@@ -1,7 +1,6 @@
 package com.moit.meetup.entity;
 
-import com.moit.common.Image;
-
+import com.moit.common.entity.Image;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;

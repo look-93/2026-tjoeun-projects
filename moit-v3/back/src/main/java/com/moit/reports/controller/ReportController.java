@@ -4,34 +4,56 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.annotation.authentication.configurers.userdetails.DaoAuthenticationConfigurer;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.moit.member.dto.UserDto;
-import com.moit.reports.api.ApiEmail;
+import com.moit.member.repository.ReportStatusRepository;
 import com.moit.reports.api.ApiOpenAi;
 import com.moit.reports.dto.ReportsDto;
+import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
+import com.moit.reports.dto.ReportsDto.ReportProcessDto;
+import com.moit.reports.dto.ReportsDto.ReportRequestDto;
+import com.moit.reports.dto.ReportsDto.ReportResponseDto;
+import com.moit.reports.entity.Report;
+import com.moit.reports.repository.MemberReportStatusRepository;
+import com.moit.reports.repository.ReportAuditLogRepository;
+import com.moit.reports.repository.ReportRepository;
 import com.moit.reports.service.ReportsService;
 import com.moit.security.CustomUserDetails;
 import com.moit.util.UtilPaging;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 
-@Controller
+@Tag(name = "Reports Api", description = "신고 관련 API")
+@RestController
+@RequestMapping("/api/reports")
+@RequiredArgsConstructor
 public class ReportController {
-	@Autowired ReportsService service;
-	@Autowired ApiEmail apiEmail;
-	@Autowired ApiOpenAi apiOpenAi;
+	
+	private final ReportsService reportsService;
+
 	
 	// test button
 	@RequestMapping("/user/meetup/report/button")
@@ -40,6 +62,10 @@ public class ReportController {
     }
 	
 	// 사용자 로그인 헬퍼
+//	private Long getLoginMemberId(Authentication authentication) {
+//		Integer id = (Integer) session.getAttribute("loginMemberId");
+//		return (id != null) ? id : 1; // 일반회원 테스트용
+//	}
 //	private Integer getLoginMemberId(HttpSession session) {
 //		Integer id = (Integer) session.getAttribute("loginMemberId");
 //		return (id != null) ? id : 1; // 일반회원 테스트용
@@ -51,251 +77,128 @@ public class ReportController {
 //		return (id != null) ? id : 22; // 관리자 테스트용
 //	}
 	
-	// 내 신고내역 화면 mylist
-	@RequestMapping("/user/meetup/report/mylist")
-	public String reportMylist( @RequestParam(value="pstartno", defaultValue="1") int pstartno,
-								HttpSession session,
-								Model model,
-								Authentication authentication) {
-		
 
-		String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
+	
+	// 신고 작성
+	@Operation(summary = "사용자 신고 작성", description = "")
+	@PostMapping
+	public ResponseEntity<ReportResponseDto> createReport(
+			Authentication authentication,
+			@Parameter(description = "작성자 ID") @RequestParam("memberId") Long memberId,
+			@RequestBody ReportRequestDto requestDto ) {
 		
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		} 	
+		// 로그인한 memberId 꺼내오기
+//		Long memberId = authUserJwtService.getCurrentMemberId(authentication);
 		
-//		HashMap<String, Object> map = new HashMap<>();
-//		map.put("start", 0);
-//		map.put("end", 10);
-//		map.put("memberId", memberId); // 로그인 회원 번호 test
+		return ResponseEntity.ok( reportsService.createUserReport(memberId, requestDto));
+	};
+	
+	// 신고 수정
+	@Operation(summary = "사용자 신고 수정", description = "")
+	@PatchMapping(value = "/{reportId}")
+	public ResponseEntity<ReportResponseDto> updateReport(
+			Authentication authentication,
+			@Parameter(description = "수정할 신고글 ID") @PathVariable(name = "reportId") Long reportId,
+			@RequestBody ReportRequestDto requestDto ) {
 		
-		model.addAttribute("dto", user);
-		model.addAttribute("paging", new UtilPaging( service.selectUserCnt(memberId), pstartno ));
-		model.addAttribute("list", service.selectUserReport(pstartno, memberId));
-		model.addAttribute("menu", "myReport");
-		return "user/meetup/report/mylist";
+		// 로그인 하드코딩
+		Long memberId = 1L;
+		
+		// 로그인한 memberId 꺼내오기
+//		Long memberId =  authUserJwtService.getCurrentMemberId(authentication);
+		
+		ReportResponseDto response = reportsService.updateUserReport(reportId, memberId, requestDto);
+		
+		return ResponseEntity.ok(response);
+	};
+	
+	// 신고 삭제
+	@Operation(summary = "사용자 신고 삭제", description = "")
+	@DeleteMapping("/{reportId}")
+	public ResponseEntity<Long> deleteReport(
+			Authentication	authentication,
+			@PathVariable("reportId") Long reportId ) {
+		
+		// 로그인 하드코딩
+		Long memberId = 1L;
+		
+		// 로그인한 memberId 꺼내오기
+//		Long memberId = authUserJwtService.getCurrentMemberId(authentication);
+		
+		reportsService.deleteUserReport(reportId, memberId);
+		return ResponseEntity.ok(reportId);
+	}
+	
+	// 내 신고내역 조회 (사용자 신고 목록 조회 + 페이징)
+	@Operation(summary = "내 신고내역 조회", description = "")
+	@GetMapping
+	public ResponseEntity<ReportListResponseDto> getAllReportMylist(
+			Authentication authentication, 
+			@Parameter(description = "작성자 ID") @RequestParam("memberId") Long memberId ) {
+		
+		// 로그인한 memberId 꺼내오기
+//		Long memberId = authUserJwtService.getCurrentMemberId(authentication);
+		
+		return ResponseEntity.ok( reportsService.getUserReports(memberId, null) );
+	}
+	
+	// 사용자 신고 상세 조회
+	@Operation(summary = "내 신고내역 상세조회", description = "")
+	@GetMapping("/{reportId}")
+	public ResponseEntity<ReportResponseDto> selectPost(
+			@PathVariable("reportId") Long reportId) {
+		
+		// 로그인 하드코딩
+		Long memberId = 1L;
+		
+		// 로그인한 memberId 꺼내오기
+//		Long memberId = authUserJwtService.getCurrentMemberId(authentication);
+		
+		Report report = reportsService.getUserReportDetail(reportId, memberId);
+		return ResponseEntity.ok( new ReportResponseDto(post) );	// 200
 	}
 	
 	
-	// br등록
-	@RequestMapping("/user/meetup/report/myPageMyReportList")
-	public String myPageMyReport( @RequestParam(value="pstartno", defaultValue="1") int pstartno,
-								HttpSession session,
-								Model model,
-								Authentication authentication) {
-		String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		} 		
+	
+	////////////////////////////////////////////////////////////////
+	// 관리자 신고 수정
+	@Operation(summary = "관리자 신고 처리 (승인/반려)", description = "")
+	@PatchMapping(value = "/{reportId}")
+	public ResponseEntity<Long> updateAdminReport(
+			Authentication authentication,
+			@Parameter(description = "처리할 신고글 ID") @PathVariable(name = "reportId") Long reportId,
+			@RequestParam ReportProcessDto processDto ) {
 		
-		model.addAttribute("paging", new UtilPaging( service.selectUserCnt(memberId), pstartno ));
-		model.addAttribute("list", service.selectUserReport(pstartno, memberId));
-		model.addAttribute("menu", "myReport");
-		return "user/meetup/report/myPageMyReportList";
-	}
-	// 신고 작성 화면 write
-	@GetMapping("/user/meetup/report/write")
-	public String reportWrite(	@RequestParam("targetType") String targetType,
-								@RequestParam("targetId") int targetId,
-								Model model) {
+		// 관리자 로그인 하드코딩
+		Long MemberId = 99L;
 		
-		ReportsDto dto = new ReportsDto();
-		dto.setTargetType(targetType);
-		dto.setTargetId(targetId);
+		// 로그인한 adminMemberId 꺼내오기
+//		Long adminMemberId =  authUserJwtService.getCurrentMemberId(authentication);
 		
-		model.addAttribute("dto", dto);
+		reportsService.updateAdminReport(reportId, MemberId, processDto);
 		
-		return "user/meetup/report/write";
-	}
-	// 신고 작성 기능
-	@PostMapping("/user/meetup/report/write")
-	public String reportWrite_post(	ReportsDto dto,
-									RedirectAttributes rttr,
-									HttpSession session,
-									Authentication authentication) {
+		return ResponseEntity.ok(reportId);
+	};
+	
+	// 신고 삭제
+	@Operation(summary = "관리자 신고 삭제", description = "")
+	@DeleteMapping("/{reportId}")
+	public ResponseEntity<Long> deleteAdminReport(
+			Authentication	authentication,
+			@PathVariable("reportId") Long reportId,
+			@RequestParam("processReason") String processReason ) {
 		
-		String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		} 		
-				
+		// 로그인 하드코딩
+		Long adminMemberId = 99L;
 		
-		dto.setMemberId(memberId); // 로그인 회원 번호 test
+		// 로그인한 adminMemberId 꺼내오기
+//		Long adminMemberId = authUserJwtService.getCurrentMemberId(authentication);
 		
-//		Integer memberId = getLoginMemberId(session);
-		
-		int result_TargetType = -1;
-		String result = "신고등록 실패";
-
-//		if ( "MEETUP".equals(dto.getTargetType()) ) {
-//			result_TargetType = service.insertUserReport(dto);
-//		} else if ( "REVIEW".equals(dto.getTargetType()) ) {
-//			result_TargetType = service.insertUserReport(dto);
-//		}
-		if ("MEETUP".equals(dto.getTargetType()) || "REVIEW".equals(dto.getTargetType())) {
-	        result_TargetType = service.insertUserReport(dto);
-	    }
-		
-		if (result_TargetType > 0) {
-			result = "신고등록 완료";
-			rttr.addFlashAttribute("result", result);
-			
-			return "redirect:/user/meetup/report/mylist";
-			
-		} else if (result_TargetType == -1) { // 중복 신고 케이스 (서비스에서 -1을 보냈을 때)
-			if (result_TargetType == -1) {
-				result = "이미 신고 내역이 존재합니다.";
-			} else { result = "신고 등록 중 오류가 발생했습니다. 다시 시도해주세요."; }
-		
-		} else if (result_TargetType == -2) { // 신고 작성 횟수 제한 (서비스에서 -2를 보냈을 때)
-			if (result_TargetType == -2) {
-				result = "5회 이상의 신고 내역이 존재합니다. 다음 날 다시 시도해주세요.";
-			} else { result = "신고 등록 중 오류가 발생했습니다. 다시 시도해주세요."; }
-		}
-
-		
-    	rttr.addFlashAttribute("result", result);
-    	return "redirect:/user/meetup/report/write?targetType=" + dto.getTargetType() + "&targetId=" + dto.getTargetId();
+		reportsService.deleteAdminReport(reportId, adminMemberId, processReason);
+		return ResponseEntity.ok(reportId);
 	}
 	
-	// 내 신고 상세 화면 detail
-	@RequestMapping("/user/meetup/report/detail")
-	public String reportDetail( int reportId, HttpSession session, Model model,
-								Authentication authentication) {
-		
-		String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
-		
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		}
-		
-		ReportsDto dto = new ReportsDto();
-		dto.setReportId(reportId);
-		dto.setMemberId(memberId);
-		
-		
-//		Integer memberId = getLoginMemberId(session); // 사용자 login
-		
-//		model.addAttribute("dto", service.selectUserReportDetail(dto));
-		ReportsDto detail = service.selectUserReportDetail(dto);
-		model.addAttribute("dto", detail);
-		
-		return "user/meetup/report/detail";
-	}
 	
-	// 신고 수정 화면 update
-	@GetMapping( value="/user/meetup/report/update")
-	public String reportUpdate(	int reportId, HttpSession session, Model model,
-								Authentication authentication) {
-
-		String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		} 		
-		
-		ReportsDto dto = new ReportsDto();
-		dto.setReportId(reportId);
-		
-//		Integer memberId = getLoginMemberId(session); // 사용자 login
-		dto.setMemberId(memberId);
-		
-		model.addAttribute("dto", service.selectUserReportDetail(dto));
-		return "user/meetup/report/update";
-	}
-	
-	// 신고 수정 처리
-	@PostMapping("/user/meetup/report/update")
-	public String reportUpdate_post(ReportsDto dto, HttpSession session, RedirectAttributes rttr,
-									Authentication authentication) {
-		String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		} 		
-//		Integer memberId = getLoginMemberId(session); // 사용자 login
-		dto.setMemberId(memberId);
-		
-		String result="신고수정 실패";
-		
-		if( service.updateUserReport(dto) > 0 ) {
-			result="신고수정 완료";
-		}
-
-		rttr.addFlashAttribute("result", result);
-		return "redirect:/user/meetup/report/detail?reportId=" + dto.getReportId();
-	}
-	
-	// 신고 삭제 처리 delete
-	@PostMapping("/user/meetup/report/delete")
-	public String reportDelete_post(ReportsDto dto, HttpSession session, RedirectAttributes rttr,
-									Authentication authentication) {
-		String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		}
-//		Integer memberId = getLoginMemberId(session); // 사용자 login
-		dto.setMemberId(memberId);
-		
-		String result="신고삭제 실패";
-		
-		if( service.deleteUserReport(dto) > 0 ) {
-			result="신고삭제 성공";
-		}
-		
-		rttr.addFlashAttribute("result", result);
-		return "redirect:/user/meetup/report/mylist";
-	}
-	
-	////////////////////////////////////////////////////////////////////////////////////////
 	// 관리자 리스트 목록
 	@GetMapping("/admin/report/adminList")
 	public String adminList(@RequestParam(value="pstartno", defaultValue="1") int pstartno,
@@ -308,7 +211,7 @@ public class ReportController {
 							HttpSession session,
 							Model model) {
 		
-//		Integer memberId = getLoginAdminId(session);
+//			Integer memberId = getLoginAdminId(session);
 	
 		HashMap<String, Object> map = new HashMap<>();
 		
@@ -346,14 +249,14 @@ public class ReportController {
 								HttpSession session,
 								Model model) {
 		
-//		Integer memberId = (Integer) session.getAttribute("loginMemberId");
-//		if (memberId == null) { memberId = 12; }
+//			Integer memberId = (Integer) session.getAttribute("loginMemberId");
+//			if (memberId == null) { memberId = 12; }
 		
-//		Integer memberId = getLoginAdminId(session);
+//			Integer memberId = getLoginAdminId(session);
 		
 		HashMap<String, Object> map = new HashMap<>(); // 조회 조건
 		map.put("reportId", reportId);
-//		model.addAttribute("dto", service.selectAdminReports(map));
+//			model.addAttribute("dto", service.selectAdminReports(map));
 		
 		List<ReportsDto> list = service.selectAdminReports(map); // 관리자 상세 조회 결과
 		if (list != null && !list.isEmpty()) {
@@ -361,44 +264,6 @@ public class ReportController {
 		}
 		
 		return "admin/report/adminDetail";
-	}
-	
-	// 관리자 APPROVED 수정
-	@PostMapping("/admin/report/update")
-	public String reportUpdateAdmin_post(ReportsDto dto, HttpSession session, RedirectAttributes rttr) {
-		
-//		Integer memberId = getLoginAdminId(session);
-		
-		String result="status 상태 수정 실패";
-		
-		if( service.updateAdmin(dto) > 0 ) {
-			if( "APPROVED".equals(dto.getStatus()) ) {
-				result="APPROVED 수정 성공";
-			}
-			
-			else if ( "REJECTED".equals(dto.getStatus()) ) {
-				result="REJECTED 수정 성공";
-			}
-		}
-		rttr.addFlashAttribute("result", result);
-		return "redirect:/admin/report/adminDetail?reportId=" + dto.getReportId();
-	}
-	
-	// 관리자 신고 삭제
-	@PostMapping("/admin/report/delete")
-	public String reportDeleteAdmin_post(	@RequestParam("reportId") int reportId,
-											ReportsDto dto, HttpSession session, RedirectAttributes rttr) {
-		
-//		Integer memberId = getLoginAdminId(session);
-		
-		String result="신고삭제 실패";
-		
-		if( service.deleteAdmin(reportId) > 0 ) {
-			result="신고삭제 성공";
-		}
-		
-		rttr.addFlashAttribute("result", result);
-		return "redirect:/admin/report/adminList";
 	}
 	
 	

@@ -1,100 +1,261 @@
 package com.moit.advertisement.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Data;
+import com.moit.advertisement.entity.Advertisement;
+import com.moit.advertisement.enums.AdGrade;
+import com.moit.advertisement.enums.AdStatus;
+import com.moit.advertisement.enums.ApprovalStatus;
+import com.moit.advertisement.enums.PaymentStatus;
+import com.moit.advertisement.enums.TargetGender;
 
-@Data
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AdvertisementDto {
 
-    // PK
     private Long adId;
 
-    // 기본 정보
+    private Long advertiserId;
+
     private String title;
     private String content;
-    private List<AdvertisementImageDto> imageList = new ArrayList<>();
     private String landingUrl;
 
-    // 유형/노출
-    private String position;     // MAIN / SIDE 등
-
-    // 타겟팅
     private Integer targetAgeMin;
     private Integer targetAgeMax;
-    private String targetGender;
-    private String deviceType;
+    private TargetGender targetGender;
 
-    // 기간
     private LocalDateTime startDatetime;
     private LocalDateTime endDatetime;
 
-    // 상태
-    private String status;              // PENDING / OPEN / CLOSED
-    private String approvalStatus;      // WAITING / APPROVED / REJECTED
+    private AdStatus status;
+    private ApprovalStatus approvalStatus;
+    private PaymentStatus paymentStatus;
+    private AdGrade adGrade;
 
-    // 승인 정보
-    private Integer approvedBy; // 승인관리자
-    private LocalDateTime approvedAt;  // 승인시각
-    private String rejectReason; // 반려사유
-    private Integer statusUpdatedBy;
-    private LocalDateTime statusUpdatedAt;
-    // 기간 연장 메일 전송시 현재종료시일저장 
-    private LocalDateTime extensionRequestEndDatetime;
-    private String extensionStatus;
+    private Long impressions;
+    private Long clicks;
 
-    // 통계
-    private int impressions;
-    private int clicks;
+    private Integer priorityScore;
 
-    // 운영
-    private int priorityScore;
-    private Long totalBudget;
+    private BigDecimal totalBudget;
 
-    private Double fatigueScore;
-    
-    // 일반 / 프리미엄 구분
-    private String adGrade;
+    private BigDecimal fatigueScore;
 
-    // AI 검수
-    private Double reviewScore;
-    private String isSuitable;
-    private String reviewMessage;
-    private LocalDateTime reviewedAt;
-
-    // 리마인더
     private String reminder30dSent;
     private String reminder14dSent;
 
-    // 관계
-    private Long advertiserId;
- // 화면 조회용
-    private String nickname;
+    private Character deleteYn;
 
-    // 시스템
-    private String deleteYn;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
-    // 메일용 정보
-    private String email;
-    private String memberName;
-    private long dday;
-    
- // ===== 통계 =====
-//    private Integer impressions;
-//    private Integer clicks;
-    private Double ctr;
 
-    // 최근 성과
-    private Double recentCtr;
-    private Double previousCtr;
-    private Double ctrDecrease;
-    private Double repeatRate;
+    // 광고 이미지 목록
+    private List<AdvertisementImageDto> imageList;
 
-    // 피로도
-//    private Double fatigueScore;
-    private String fatigueStatus;
+
+    // =========================================================
+    // 광고 등록 요청
+    // =========================================================
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AdvertisementRequestDto {
+
+        private String title;
+        private String content;
+        private String landingUrl;
+
+        private Integer targetAgeMin;
+        private Integer targetAgeMax;
+        private TargetGender targetGender;
+
+        private LocalDateTime startDatetime;
+        private LocalDateTime endDatetime;
+
+        private BigDecimal totalBudget;
+    }
+    
+    // =========================================================
+    //  광고 수정 요청
+    // =========================================================
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AdvertisementUpdateRequestDto {
+
+        private String title;
+        private String content;
+        private String landingUrl;
+
+        private Integer targetAgeMin;
+        private Integer targetAgeMax;
+        private TargetGender targetGender;
+
+        private LocalDateTime startDatetime;
+        private LocalDateTime endDatetime;
+
+        private BigDecimal totalBudget;
+    }
+
+
+    // =========================================================
+    // 관리자 광고 업데이트 요청
+    // =========================================================
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AdvertisementAdminUpdateDto {
+
+        private Long adId;
+
+        private String status;
+        private String approvalStatus;
+        private String adGrade;
+
+        private Long approvedBy;
+        private LocalDateTime approvedAt;
+
+        private String rejectReason;
+
+        private Long statusUpdatedBy;
+        private LocalDateTime statusUpdatedAt;
+    }
+
+
+    // =========================================================
+    // 광고 조회 응답
+    // =========================================================
+
+    @Getter
+    @Builder
+    public static class AdvertisementResponseDto {
+
+        private Long adId;
+
+        private String title;
+        private String content;
+        private String landingUrl;
+
+        private Integer targetAgeMin;
+        private Integer targetAgeMax;
+        private TargetGender targetGender;
+
+        private LocalDateTime startDatetime;
+        private LocalDateTime endDatetime;
+
+        private AdStatus status;
+        private ApprovalStatus approvalStatus;
+        private PaymentStatus paymentStatus;
+        private AdGrade adGrade;
+
+        private Long advertiserId;
+
+        private Long impressions;
+        private Long clicks;
+
+        private Integer priorityScore;
+
+        private BigDecimal totalBudget;
+
+        private BigDecimal fatigueScore;
+
+        private String reminder30dSent;
+        private String reminder14dSent;
+
+        private Character deleteYn;
+
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+
+
+        public static AdvertisementResponseDto fromEntity(
+                Advertisement ad
+        ) {
+
+            return AdvertisementResponseDto.builder()
+                    .adId(ad.getAdId())
+                    .title(ad.getTitle())
+                    .content(ad.getContent())
+                    .landingUrl(ad.getLandingUrl())
+
+                    .targetAgeMin(ad.getTargetAgeMin())
+                    .targetAgeMax(ad.getTargetAgeMax())
+                    .targetGender(ad.getTargetGender())
+
+                    .startDatetime(ad.getStartDatetime())
+                    .endDatetime(ad.getEndDatetime())
+
+                    .status(ad.getStatus())
+                    .approvalStatus(ad.getApprovalStatus())
+                    .paymentStatus(ad.getPaymentStatus())
+                    .adGrade(ad.getAdGrade())
+
+                    .advertiserId(
+                            ad.getAdvertiser() != null
+                                    ? ad.getAdvertiser().getId()
+                                    : null
+                    )
+
+                    .impressions(ad.getImpressions())
+                    .clicks(ad.getClicks())
+                    .priorityScore(ad.getPriorityScore())
+
+                    .totalBudget(ad.getTotalBudget())
+                    .fatigueScore(ad.getFatigueScore())
+
+                    .reminder30dSent(ad.getReminder30dSent())
+                    .reminder14dSent(ad.getReminder14dSent())
+
+                    .deleteYn(ad.getDeleteYn())
+
+                    .createdAt(ad.getCreatedAt())
+                    .updatedAt(ad.getUpdatedAt())
+
+                    .build();
+        }
+    }
+    
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AdvertisementPageResponseDto {
+
+        private List<AdvertisementDto> list;
+        private int totalCnt;
+        private int totalPage;
+        private int page;
+        private int size;
+
+        public AdvertisementPageResponseDto(
+                List<AdvertisementDto> list,
+                int totalCnt,
+                int page,
+                int size) {
+
+            this.list = list;
+            this.totalCnt = totalCnt;
+            this.page = page;
+            this.size = size;
+
+            this.totalPage =
+                    (int) Math.ceil((double) totalCnt / size);
+        }
+    }
 }

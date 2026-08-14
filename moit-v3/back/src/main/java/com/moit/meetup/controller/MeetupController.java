@@ -15,14 +15,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.moit.meetup.dto.MeetupCategoryDto;
 import com.moit.common.dto.SigunguDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplyMemberListResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MyApplicationListResponseDto;
+import com.moit.meetup.dto.MeetupCategoryDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
+import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
+import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.meetup.service.MeetupService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/meetups")
+//@CrossOrigin(origins = "*")
 public class MeetupController {
 
 	private final MeetupService meetupService;
@@ -42,15 +45,15 @@ public class MeetupController {
 	@Operation(summary = "모임리스트조회", description = "모임리스트를 조회합니다.")
 	@GetMapping // 프론트에서 호출할때 /all?page=0&size=10 하면 pageable 에 저절로 들어감
 	public ResponseEntity<MeetupListResponseDto> search(Pageable pageable){
-		MeetupListResponseDto listResponseDto = meetupService.search(pageable);		
+		Long memberId = 2L; // jwt토큰
+		MeetupListResponseDto listResponseDto = meetupService.search(pageable, memberId);		
 		return ResponseEntity.ok(listResponseDto); // 200 + data
 	}
 	
 	@Operation(summary = "모임상세조회", description = "모임 상세를 조회합니다.")
 	@GetMapping("/{meetupId}")
-	public ResponseEntity<MeetupResponseDto> detail(@PathVariable("meetupId") Long meetupId){
-		Long memberId = 2L;  //세션으로 수정		
-		MeetupResponseDto meetupResponseDto = meetupService.detail(meetupId, memberId);
+	public ResponseEntity<MeetupResponseDto> detail(@PathVariable("meetupId") Long meetupId){		
+		MeetupResponseDto meetupResponseDto = meetupService.detail(meetupId);
 		return ResponseEntity.ok(meetupResponseDto);
 	}
 	
@@ -149,6 +152,13 @@ public class MeetupController {
 		return ResponseEntity.ok(meetupService.getSigungu());
 	}
 	
+	// ################### open api ###################
+
+	@Operation(summary = "AI 모임 제목/카테고리/내용 추천", description = "사용자가 입력한 키워드를 기반으로 AI가 모임 제목, 카테고리, 내용을 추천합니다.")
+	@PostMapping("/write/ai/recommended")
+	public ResponseEntity<RecommendMeetupResponseDto> meetupWriteAiRecommended(@RequestBody RecommendMeetupRequestDto request){
+		return ResponseEntity.ok(meetupService.meetupWriteAiRecommended(request));
+	}
 }
 
 //성공 응답

@@ -153,28 +153,6 @@ public class Advertisement extends BaseEntity{
     private Integer priorityScore;
 
 
-    // AI 광고 검수 점수
-    @Column(name = "REVIEW_SCORE", precision = 5, scale = 2)
-    private BigDecimal reviewScore;
-
-
-    // AI 광고 검수 적합 여부
-    // Y = 적합 / N = 부적합
-    @Column(name = "IS_SUITABLE", length = 1)
-    private String isSuitable;
-
-
-    // AI 광고 검수 결과 및 수정 가이드
-    @Lob
-    @Column(name = "REVIEW_MESSAGE")
-    private String reviewMessage;
-
-
-    // AI 광고 검수 완료 일시
-    @Column(name = "REVIEWED_AT")
-    private LocalDateTime reviewedAt;
-
-
     // 광고 피로도 점수
     @Column(
         name = "FATIGUE_SCORE",
@@ -227,8 +205,6 @@ public class Advertisement extends BaseEntity{
     @PrePersist
     void onCreate() {
 
-        LocalDateTime now = LocalDateTime.now();
-
         // 광고 상태 기본값
         if (this.status == null) {
             this.status = AdStatus.PENDING;
@@ -263,6 +239,11 @@ public class Advertisement extends BaseEntity{
         if (this.priorityScore == null) {
             this.priorityScore = 5;
         }
+        
+        // 타겟 성별 기본값
+        if (this.targetGender == null) {
+            this.targetGender = TargetGender.ALL;
+        }
 
         // 광고 피로도 기본값
         if (this.fatigueScore == null) {
@@ -280,4 +261,71 @@ public class Advertisement extends BaseEntity{
         }
 
     }
+    
+    public void approve(Member admin) {
+        this.approvalStatus = ApprovalStatus.APPROVED;
+        this.status = AdStatus.PENDING;
+        this.approvedBy = admin;
+        this.approvedAt = LocalDateTime.now();
+        this.rejectReason = null;
+    }
+    
+    public void updateAdvertisement(
+            String title,
+            String content,
+            String landingUrl,
+            Integer targetAgeMin,
+            Integer targetAgeMax,
+            TargetGender targetGender,
+            LocalDateTime startDatetime,
+            LocalDateTime endDatetime,
+            BigDecimal totalBudget) {
+
+        this.title = title;
+        this.content = content;
+        this.landingUrl = landingUrl;
+
+        this.targetAgeMin = targetAgeMin;
+        this.targetAgeMax = targetAgeMax;
+        this.targetGender = targetGender;
+
+        this.startDatetime = startDatetime;
+        this.endDatetime = endDatetime;
+
+        this.totalBudget = totalBudget;
+    }
+
+
+    public void changeStatus(AdStatus status) {
+        this.status = status;
+    }
+
+
+    public void changeGrade(AdGrade adGrade) {
+        this.adGrade = adGrade;
+    }
+
+
+    public void changePeriod(
+            LocalDateTime start,
+            LocalDateTime end) {
+
+        this.startDatetime = start;
+        this.endDatetime = end;
+    }
+
+
+    public void reject(String rejectReason) {
+
+        this.approvalStatus =
+                ApprovalStatus.REJECTED;
+
+        this.rejectReason =
+                rejectReason;
+    }
+    
+    public void delete() {
+        this.setDeleteYn('Y');
+    }
+
 }

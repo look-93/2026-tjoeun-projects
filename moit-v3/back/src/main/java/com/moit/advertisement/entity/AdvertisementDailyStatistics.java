@@ -18,12 +18,21 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "ADVERTISEMENT_DAILY_STATISTICS")
+@Table(
+    name = "ADVERTISEMENT_DAILY_STATISTICS",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "UK_AD_DAILY_STAT",
+            columnNames = {"AD_ID", "STAT_DATE", "POSITION"}
+        )
+    }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AdvertisementDailyStatistics {

@@ -127,7 +127,7 @@
 			and r.updated_at >= trunc(sysdate) - 3
 			and r.updated_at &lt; trunc(sysdate) - 2
 	</select> 
-	<!-- 당일에 신고 상태 변경된 데이터 추출 (당일 메일 만족도 조사)
+	<!-- 당일에 신고 상태 변경된 데이터 추출 (당일 메일 만족도 조사 test)
 	<select id="selectThreeDaysAgo" resultType="ReportsDto">
 	    select m.email
 	    from reports r join members m on r.member_id = m.member_id

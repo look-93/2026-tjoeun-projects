@@ -6,6 +6,6 @@ import lombok.Data;
 public class RecommendMeetupResponseDto {
     private String title;
     private String category;
-    private Integer categoryId;
+    private Long Id;
     private String content;
 }
