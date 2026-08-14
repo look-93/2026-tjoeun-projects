@@ -85,7 +85,7 @@ public class ReportController {
 			@RequestBody ReportRequestDto requestDto ) {
 		
 		// 로그인 하드코딩
-		Long memberId = 1L;
+		Long memberId = 2L;
 		
 		// 로그인한 memberId 꺼내오기
 //		Long memberId =  authUserJwtService.getCurrentMemberId(authentication);
@@ -103,7 +103,7 @@ public class ReportController {
 			@PathVariable("reportId") Long reportId ) {
 		
 		// 로그인 하드코딩
-		Long memberId = 1L;
+		Long memberId = 2L;
 		
 		// 로그인한 memberId 꺼내오기
 //		Long memberId = authUserJwtService.getCurrentMemberId(authentication);
@@ -118,11 +118,7 @@ public class ReportController {
 	public ResponseEntity<ReportListResponseDto> getReportsMylist (
 			Authentication authentication, 
 			@Parameter(description = "작성자 ID") @RequestParam("memberId") Long memberId,
-			@PageableDefault(
-		            size = 10,							// 한 페이지에 10개
-		            sort = "reportId",					// reportId
-		            direction = Sort.Direction.DESC		// 내림차순 조회
-		        ) Pageable pageable ) {
+			@PageableDefault(size = 10) Pageable pageable ) {
 		
 		// 로그인한 memberId 꺼내오기
 //		Long memberId = authUserJwtService.getCurrentMemberId(authentication);
@@ -138,7 +134,7 @@ public class ReportController {
 			@PathVariable("reportId") Long reportId) {
 		
 		// 로그인 하드코딩
-		Long memberId = 1L;
+		Long memberId = 2L;
 		
 		// 로그인한 memberId 꺼내오기
 //		Long memberId = authUserJwtService.getCurrentMemberId(authentication);
@@ -187,26 +183,41 @@ public class ReportController {
 	}
 	
 	// 관리자 신고 목록 조회 + 검색 + 페이징
-	@Operation(summary = "관리자 신고 목록 조회", description = "신고 상태, 삭제 여부, 대상 유형, 작성자(닉네임), 신고 사유로 검색합니다.")
+	@Operation(summary = "관리자 신고 목록 조회", description = "필터(버튼)이랑 서치(키워드)를 혼합하여 검색합니다.")
 	@GetMapping("/admin/adminReportsList")
 	public ResponseEntity<ReportListResponseDto> getReportsAdmin (
 			Authentication	authentication,
 			@ModelAttribute ReportSearchDto searchDto,	// 검색조건
-			@PageableDefault(							// 페이지 정보
-					size = 10,
-					sort = "reportId",
-					direction = Sort.Direction.DESC ) Pageable pageable ) {
+			@PageableDefault(size = 10) Pageable pageable ) {
+		
+		// 로그인 하드코딩
+		Long adminMemberId = 99L;
+		
+		// 로그인한 adminMemberId 꺼내오기
+//		Long adminMemberId = authUserJwtService.getCurrentMemberId(authentication);
+		
 		
 		// 검색 기능 추가 ReportSearchDto
 		// 신고 상태
 		if (searchDto.getStatus() != null) {
 			
 		}
-			
 		// 삭제 여부
+		if (searchDto.getDeleteYn() != null) {
+			
+		}
 		// 대상 유형
+		if (searchDto.getTargetType() != null) {
+			
+		}
 		// 작성자(닉네임)
+		if (searchDto.getMemberNickname() != null) {
+			
+		}
 		// 신고 사유
+		if (searchDto.getReasonCode() != null) {
+			
+		}
 		
 		ReportListResponseDto response = reportsService.getAdminReports(searchDto, pageable);
 		return ResponseEntity.ok(response);

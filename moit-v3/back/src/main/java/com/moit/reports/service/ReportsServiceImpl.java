@@ -3,6 +3,7 @@ package com.moit.reports.service;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -111,8 +112,10 @@ public class ReportsServiceImpl implements ReportsService {
 	// 사용자 신고 목록 조회 + 페이징
 	@Override
 	public ReportListResponseDto getUserReports(Long memberId, Pageable pageable) {
+		Pageable pageRequest = PageRequest.of( pageable.getPageNumber(), pageable.getPageSize() );
+		
 		Page<Report> page = reportRepository
-				.findByMember_IdAndDeleteYnOrderByReportIdDesc(memberId, 'N', pageable);
+				.findByMember_IdAndDeleteYnOrderByReportIdDesc(memberId, 'N', pageRequest);
 		
 		// 조회된 신고 Entity 목록을 ResponseDto 목록으로 변환
 		List<ReportResponseDto> response = page.getContent()
@@ -121,12 +124,9 @@ public class ReportsServiceImpl implements ReportsService {
 				.toList();
 		
 		ReportListResponseDto responseDto = new ReportListResponseDto();
-		// 신고 목록
-		responseDto.setReports(response);
-		// 전체 신고 개수					- long
-		responseDto.setTotalCount(page.getTotalElements());
-		// 전체 페이지 수 (20/10 = 2...)	- int
-		responseDto.setTotalPage((long) page.getTotalPages());
+		responseDto.setReports(response);	// 신고 목록
+		responseDto.setTotalCount(page.getTotalElements());		// 전체 신고 개수
+		responseDto.setTotalPage((long) page.getTotalPages());	// 전체 페이지 수 (20/10 = 2...)
 		
 		return responseDto;
 	}
@@ -231,7 +231,7 @@ public class ReportsServiceImpl implements ReportsService {
 					.findByStatusCode(statusCode)
 					.orElseThrow(()-> new IllegalArgumentException("회원 신고 상태 조회 불가!"));
 			
-			memberInfo.setReportStatus(memberReportStatus);
+			memberInfo.setMemberReportStatus(memberReportStatus);
 		}
 		
 		// 관리자 Member 조회
@@ -384,8 +384,8 @@ public class ReportsServiceImpl implements ReportsService {
 		
 		memberInfoDto.setTrustScore(memberInfo.getTrustScore());	// 신뢰도 점수
 		
-		if (memberInfo.getReportStatus() != null) {					// 뱃지 정보
-			MemberReportStatus reportStatus = memberInfo.getReportStatus();
+		if (memberInfo.getMemberReportStatus() != null) {					// 뱃지 정보
+			MemberReportStatus reportStatus = memberInfo.getMemberReportStatus();
 			memberInfoDto.setReportStatusId( reportStatus.getReportStatusId() );
 			memberInfoDto.setStatusCode( reportStatus.getStatusCode());
 			memberInfoDto.setStatusName( reportStatus.getStatusName());
