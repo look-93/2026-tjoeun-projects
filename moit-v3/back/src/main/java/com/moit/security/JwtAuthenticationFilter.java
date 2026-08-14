@@ -47,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 	    if (authorization == null || !authorization.startsWith("Bearer ")) {
 
 	        System.out.println("JWT 없음");
-
+ 
 	        filterChain.doFilter(request, response);
 	        return;
 	    }
