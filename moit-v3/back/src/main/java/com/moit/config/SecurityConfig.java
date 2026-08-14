@@ -43,6 +43,7 @@ public class SecurityConfig {
 	   http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
       //1. 허용경로
+
       http.authorizeHttpRequests(auth -> auth.requestMatchers(
 						    		    "/api/members/signup",
 						    	        "/api/members/login",
@@ -71,6 +72,7 @@ public class SecurityConfig {
                                     		"/meetup/write/**",
                                     		"/meetup/detail/**", 
                                     		"/mypage/**").authenticated()
+
                                     // 관리자 영역(추후 활성화 예정)
                                     //.requestMatchers("/admin/**")
                                     //.hasRole("ADMIN")
@@ -110,6 +112,7 @@ public class SecurityConfig {
                                           userinfo.userService(oauthUserService))
                           );
                           //4. csrf 예외처리                          
+
                           http.csrf(csrf -> csrf
                                 .ignoringRequestMatchers(
                                 		"/user/member/join", 
@@ -118,6 +121,7 @@ public class SecurityConfig {
                                 		"/questions/deleteSelected", 
                                 		"/api/meetup/**",
                                 		"/api/members/**")
+
                                 // Spring Security는 POST, PUT, DELETE 등의 요청에 CSRF 토큰이 있는지 검사
                                 // Thymeleaf + Spring Security + <form> → CSRF 토큰이 자동으로 추가
                                 // 왜추가했지..???

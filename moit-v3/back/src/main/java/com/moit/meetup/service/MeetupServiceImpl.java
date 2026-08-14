@@ -1,5 +1,7 @@
 package com.moit.meetup.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -9,9 +11,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.moit.common.Sigungu;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moit.common.dto.SigunguDto;
+import com.moit.common.entity.Sigungu;
 import com.moit.exception.ResourceNotFoundException;
+import com.moit.meetup.client.OpenAiApiClient;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicantResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationResponseDto;
@@ -21,6 +25,11 @@ import com.moit.meetup.dto.MeetupCategoryDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
+import com.moit.meetup.dto.MeetupLikeCountDto;
+import com.moit.meetup.dto.MeetupLikeDto;
+import com.moit.meetup.dto.MeetupParticipantCountDto;
+import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
+import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.meetup.entity.Meetup;
 import com.moit.meetup.entity.MeetupApplication;
 import com.moit.meetup.entity.MeetupCategory;
@@ -32,6 +41,7 @@ import com.moit.meetup.repository.MeetupLikesRepository;
 import com.moit.meetup.repository.MeetupRepository;
 import com.moit.meetup.repository.MeetupSigunguRepository;
 import com.moit.member.entity.Member;
+import com.moit.member.entity.MemberInfo;
 import com.moit.member.repository.MemberRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -48,10 +58,12 @@ public class MeetupServiceImpl implements MeetupService{
 	private final MeetupCategoryRepository meetupCategoryRepository;
 	private final MeetupSigunguRepository meetupSigunguRepository;
 	
+	private final OpenAiApiClient openAiApiClient;
+		
 	//모임리스트조회
 	@Override
-	public MeetupListResponseDto search(Pageable pageable) {
-		Page<Meetup> page = meetupRepository.findAll(pageable);
+	public MeetupListResponseDto search(Pageable pageable, Long memberId) {
+		Page<Meetup> page = meetupRepository.findByDeleteYnFalse(pageable);
 //		page.getTotalPages(); // 전체페이지수 100개라면 10개
 //		page.getNumberOfElements(); // 전체갯수 100개
 //		page.getContent(); // 0번째 페이지의 10개가 들어있음
@@ -66,6 +78,52 @@ public class MeetupServiceImpl implements MeetupService{
 			Meetup meetup = contents.get(i);			
 			list.add(MeetupResponseDto.listFrom(meetup));
 		}
+		
+		//list에서 id꺼내기
+		List<Long> ids = list.stream().map(item -> item.getId()).toList();
+		
+		//쿼리통해서 ids에 해당하는 total_participants 를 구함
+		List<MeetupParticipantCountDto> result = meetupApplicationRepository.countByMeetup_IdInAndApplyStatusAndDeleteYn(ids, ApplyStatus.APPROVED, 'N');
+		
+		// 모임 신청 인원 추출
+		list.forEach(item->{
+			
+			result.forEach(cnt->{
+				
+				if(item.getId().equals(cnt.getMeetupId())) {
+					item.setTotalParticipants(cnt.getTotalParticipants());
+					return;
+				}
+			});
+			
+		});
+		
+		//쿼리통해서 ids에 해당하는 like 를 구함
+		List<MeetupLikeDto> likeResult =
+		        meetupLikesRepository.findLikedMeetups(ids, memberId);
+			
+		//내가 좋아요 눌렀는지 추출
+		list.forEach(meetup ->{
+			likeResult.forEach(like->{
+				if(like.getMeetupId().equals(meetup.getId())) {
+					meetup.setHasLike(true);
+				}
+			});
+		});
+		
+		
+		List<MeetupLikeCountDto> likeCount =
+		        meetupLikesRepository.countByMeetup_Id(ids);	
+		
+		//조회된 모임의 좋아요 수
+		list.forEach(meetup ->{
+			likeCount.forEach(cnt->{
+				if(cnt.getMeetupId().equals(meetup.getId())) {
+					meetup.setLikeCount(cnt.getLikeCount());
+				}
+			});
+		});	
+
 		listResponse.setMeetups(list);
 		return listResponse;
 
@@ -73,22 +131,15 @@ public class MeetupServiceImpl implements MeetupService{
 	
 	//상세조회
 	@Override
-	public MeetupResponseDto detail(Long meetupId, Long memberId) {		
+	public MeetupResponseDto detail(Long meetupId) {		
 		Meetup meetup = meetupRepository.findById(meetupId)
 										.orElseThrow(()->new ResourceNotFoundException("존재하지 않는 게시글입니다. ID: "+ meetupId));
 		
-		MeetupApplication meetupApplication = meetupApplicationRepository.findByMeetup_IdAndMember_Id(meetupId, memberId).orElse(null);
-		
-
 		if(meetup.getDeleteYn() == 'Y') {
 			throw new IllegalArgumentException("삭제된 게시글 입니다.");
-		}
-		
+		}		
 		
 		MeetupResponseDto response = MeetupResponseDto.detailFrom(meetup);
-		if(meetupApplication != null) {
-			response.setApplyStatus(meetupApplication.getApplyStatus());
-		}
 		
 		return response;
 	}
@@ -100,13 +151,16 @@ public class MeetupServiceImpl implements MeetupService{
 		Member member = memberRepository.findById(memberId)
 										.orElseThrow(()-> new ResourceNotFoundException("존재하지 않는 회원입니다. MEMBERID" + memberId));
 		
+		Sigungu sigungu = meetupSigunguRepository.findById(meetupRequestDto.getSigunguId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 지역입니다. SigunguId" + meetupRequestDto.getSigunguId()));
+		MeetupCategory meetupCategory = meetupCategoryRepository.findById(meetupRequestDto.getCategoryId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 카테고리입니다. meetupCategory" + meetupRequestDto.getCategoryId()));
+		
 	    Meetup meetup = Meetup.builder()
 							  .title(meetupRequestDto.getTitle())
 							  .content(meetupRequestDto.getContent())
 							  .maxParticipants(meetupRequestDto.getMaxParticipants())
 							  .minParticipants(meetupRequestDto.getMinParticipants())
-							  .sigunguId(meetupRequestDto.getSigunguId())
-							  .categoryId(meetupRequestDto.getCategoryId())
+							  .sigungu(sigungu)
+							  .meetupCategory(meetupCategory)
 							  .address(meetupRequestDto.getAddress())
 							  .addressDetail(meetupRequestDto.getAddressDetail())
 							  .meetupAt(meetupRequestDto.getMeetupAt())
@@ -127,6 +181,11 @@ public class MeetupServiceImpl implements MeetupService{
 		Meetup meetup = meetupRepository.findById(meetupId)
 										.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 게시글입니다. MEETUPID" + meetupId));
 		
+		Sigungu sigungu = meetupSigunguRepository.findById(meetupRequestDto.getSigunguId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 지역입니다. SigunguId" + meetupRequestDto.getSigunguId()));
+		MeetupCategory meetupCategory = meetupCategoryRepository.findById(meetupRequestDto.getCategoryId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 카테고리입니다. meetupCategory" + meetupRequestDto.getCategoryId()));
+		
+		
+		
 		if(meetup.getDeleteYn() == 'Y') {
 			throw new ResourceNotFoundException("삭제된 게시글 입니다. MEETUPID" + meetupId);
 		}
@@ -136,8 +195,8 @@ public class MeetupServiceImpl implements MeetupService{
 		meetup.setContent(meetupRequestDto.getContent());
 		meetup.setMaxParticipants(meetupRequestDto.getMaxParticipants());
 		meetup.setMinParticipants(meetupRequestDto.getMinParticipants());
-		meetup.setSigunguId(meetupRequestDto.getSigunguId());
-		meetup.setCategoryId(meetupRequestDto.getCategoryId());
+		meetup.setSigungu(sigungu);
+		meetup.setMeetupCategory(meetupCategory);
 		meetup.setAddress(meetupRequestDto.getAddress());
 		meetup.setAddressDetail(meetupRequestDto.getAddressDetail());
 		meetup.setMeetupAt(meetupRequestDto.getMeetupAt());
@@ -167,36 +226,57 @@ public class MeetupServiceImpl implements MeetupService{
 		
 		Member member = memberRepository.findById(memberId)
 										.orElseThrow(()-> new ResourceNotFoundException("존재하지 않는 회원입니다.. MEMBERID" + memberId));
-		
-		
+			
 		Optional<MeetupApplication> apply = meetupApplicationRepository.findByMeetup_IdAndMember_Id(meetupId, memberId);
 		
 	    // 이미 신청했으면 → 신청 취소
 	    if (apply.isPresent()) {	    	
 	    	MeetupApplication meetupApplication = apply.get();
-	    	
-	    	System.out.println(meetupApplication.getApplyStatus() );
-	    	
+
 	        // 신청 중이면 → 취소
 	        if (meetupApplication.getApplyStatus() == ApplyStatus.PENDING) {
+	        	
+	        	//오늘 신청한 경우
+	        	if(meetupApplication.getCreatedAt().toLocalDate().isEqual(LocalDate.now())) {
+	        		
+		        	// 신청 1시간 이후 취소 시 신뢰도 점수 차감 - -5점
+		        	if(meetupApplication.getCreatedAt().plusHours(1).isBefore(LocalDateTime.now())) {
+		        	    changeTrustScore(member, -5);
+		        	}
+	        	}
+	        	
 	            meetupApplication.setApplyStatus(ApplyStatus.CANCELED);
 	            return;
 	        }
 
 	        // 취소된 상태면 → 다시 신청
-	        if (meetupApplication.getApplyStatus() == ApplyStatus.CANCELED) {
+	        if (meetupApplication.getApplyStatus() == ApplyStatus.CANCELED) {	 
+	            
+	        	// ⭐ 다시 신청할 때 정원 
+	            long applicantCount = meetupApplicationRepository.countByMeetupIdAndApplyStatus(meetupId, ApplyStatus.PENDING);
+
+	            if (applicantCount >= meetup.getMaxParticipants()) {
+	                throw new IllegalStateException( "모임 정원이 가득 찼습니다.");
+	            }
+	        	
 	            meetupApplication.setApplyStatus(ApplyStatus.PENDING);
 	            return;
 	        }
 	    }
-		
+	    
+	    // 신규 신청 → 정원 확인
+	    long applicantCount = meetupApplicationRepository.countByMeetupIdAndApplyStatus( meetupId, ApplyStatus.PENDING);
+
+	    if (applicantCount >= meetup.getMaxParticipants()) {
+	        throw new IllegalStateException("모임 정원이 가득 찼습니다.");
+	    }
+	    
 	    // 신청 내역 자체가 없으면 → 신규 신청
 		MeetupApplication meetupApplication = MeetupApplication.builder()
 															   .applyStatus(ApplyStatus.PENDING)
 															   .meetup(meetup)
 															   .member(member)
 															   .build();
-		//당일 모임 신청 시 1시간 이후 취소 시 신뢰도 점수 차감
 		
 		meetupApplicationRepository.save(meetupApplication);
 	}
@@ -312,6 +392,13 @@ public class MeetupServiceImpl implements MeetupService{
 													                            "존재하지 않는 신청입니다. APPLICATION ID : " 
 													                            + requestDto.getApplicationId()
 													                        ));
+		Member member = meetupApplication.getMember();
+		
+		//기존 상태
+		ApplyStatus beforeStatus = meetupApplication.getApplyStatus();
+		//받아온 상태
+		ApplyStatus afterStatus = requestDto.getApplyStatus();
+		
 		meetupApplication.setApplyStatus(requestDto.getApplyStatus());
 		
 		//거절일 경우 거절 사유 저장
@@ -321,7 +408,13 @@ public class MeetupServiceImpl implements MeetupService{
 			meetupApplication.setRejectReason(null);
 		}
 		
-		//노쇼일 경우 신뢰도 점수 차감
+		if(beforeStatus != ApplyStatus.NOSHOW && afterStatus == ApplyStatus.NOSHOW) {
+			//기존 상태가 NOSHOW가 아니고 → 새 상태가 NOSHOW일 때만 -5
+    		changeTrustScore(member, -5);
+		}else if(beforeStatus == ApplyStatus.NOSHOW && afterStatus != ApplyStatus.NOSHOW) {
+			//NOSHOW에서 다른 상태로 변경 (실수로 누른경우)
+			changeTrustScore(member, 5);
+		}		
 	}
 	
 	//카테고리 조회
@@ -361,5 +454,95 @@ public class MeetupServiceImpl implements MeetupService{
 		return sigungu.stream().map(SigunguDto::from).toList();
 	}
 	
-	//api - 날씨, 모임등록자동추천, ai 한줄평, 지도, 주소
+	// ################### open api ###################
+
+	//ai 제목/카테고리/컨텐츠 추가
+	@Override
+	public RecommendMeetupResponseDto meetupWriteAiRecommended(RecommendMeetupRequestDto request){
+		String keyword = request.getKeyword();
+		String aiPrompt = """
+				사용자가 입력한 키워드를 바탕으로 많이 모을수 있는, 재미있는, 사용자들이 클릭하고 싶은 모임 정보를 생성해.
+				category는 웬만해서 입력한 키워드로 해줘. 
+				
+				키워드: %s
+
+				아래 JSON 형식으로만 응답해.
+
+				{
+				  "title": "",
+				  "category": "",
+				  "content": ""
+				}
+
+				JSON 외의 다른 설명은 절대 하지 마.
+				""".formatted(keyword);
+	    try {
+	    	// 1. AI 호출
+			String result = openAiApiClient.getAIResponse(aiPrompt);
+			
+			// 2. AI 응답 JSON → DTO
+			ObjectMapper mapper = new ObjectMapper();
+			RecommendMeetupResponseDto dto =
+			        mapper.readValue(result, RecommendMeetupResponseDto.class);
+			
+			// 3. 카테고리 이름 → 카테고리 ID
+			Long categoryId = getCategory()
+								.stream()
+								.filter(category -> category.getCategoryName().equals(dto.getCategory()))
+								.map(MeetupCategoryDto::getId)
+								.findFirst()
+								.orElse(0L);
+			
+			dto.setId(categoryId == null ? 0 : categoryId);
+	
+	
+	        return dto;
+	
+	    } catch (Exception e) {
+	        throw new RuntimeException("AI 모임 추천 생성 중 오류가 발생했습니다.", e);
+	    }
+	}
+	
+	// 점수가 실제로 변경된 경우에만 AI 요약 갱신
+	private void changeTrustScore(Member member, int amount) {
+
+	    MemberInfo memberInfo = member.getMemberInfo();
+
+	    int currentScore = memberInfo.getTrustScore();
+
+	    int newScore = currentScore + amount;
+
+	    memberInfo.setTrustScore(newScore);
+
+	    // 점수가 실제로 변경된 경우에만 AI 요약 갱신
+	    if (currentScore != newScore) {
+	        updateAiSummary(member);
+	    }
+	}
+	
+	// 신뢰도 점수 AI 요약 갱신
+	private void updateAiSummary(Member member) {
+
+	    Integer trustScore = member.getMemberInfo().getTrustScore();
+
+	    String aiSummary;
+
+	    if (trustScore < 60) {
+
+	        String aiPrompt = "[대상 유저 이력 정보]\n"
+	                + "- 최근 3개월 내 무단 노쇼(NOSHOW), 당일 모임 신청 후 1시간 이내 취소 등의 이력을 종합\n"
+	                + "- 총 신뢰도 점수: " + trustScore + "점\n"
+	                + "- 신뢰도 점수가 60점 이하면 주의가 필요한 회원\n"
+	                + "위 이력을 바탕으로 모임 개설자가 주의할 수 있게 "
+	                + "20자 내외의 경고성 한 줄 요약문을 만들어줘.";
+
+	        aiSummary = openAiApiClient.getAIResponse(aiPrompt);
+
+	    } else {
+
+	        aiSummary = "신뢰도가 높은 회원입니다.";
+	    }
+
+	    member.getMemberInfo().setAiSummary(aiSummary);
+	}	
 }

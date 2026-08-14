@@ -2,7 +2,9 @@ package com.moit.meetup.dto;
 
 import java.util.List;
 
+import com.moit.common.entity.Sigungu;
 import com.moit.meetup.entity.Meetup;
+import com.moit.meetup.entity.MeetupLike;
 import com.moit.meetup.enums.ApplyStatus;
 import com.moit.meetup.enums.MeetupStatus;
 
@@ -16,13 +18,14 @@ public class MeetupDto {
 	@Getter
 	@NoArgsConstructor
 	public static class MeetupRequestDto{
+		private Long id;
 		private Long memberId;
 		private String title;
 		private String content;
 		private Integer maxParticipants;
 		private Integer minParticipants;
-		private Integer sigunguId;
-		private Integer categoryId;
+		private Long sigunguId;
+		private Long categoryId;
 		private String address;
 		private String meetupAt;
 		private MeetupStatus meetupStatus;
@@ -41,8 +44,7 @@ public class MeetupDto {
 		private String content;
 		private Integer maxParticipants;
 		private Integer minParticipants;
-		private Integer sigunguId;
-		private Integer categoryId;
+
 		private String address;
 		private String meetupAt;
 		private MeetupStatus meetupStatus;
@@ -53,12 +55,24 @@ public class MeetupDto {
 		private Integer ny;
 		private ApplyStatus applyStatus;
 		
+		private String nickname;
+		private String sigunguName;
+		private String sidoName;
+		
+		private Long totalParticipants = 0L;
+		private Boolean hasLike = false;
+		private Long likeCount = 0L;
+		
 		public static MeetupResponseDto listFrom(Meetup meetup) { // list에만 보여줄 MeetupResponse
 			MeetupResponseDto response = new MeetupResponseDto();
+			Sigungu sigungu = meetup.getSigungu();
+	
+			response.setId(meetup.getId());
 			response.setTitle(meetup.getTitle());
-			//좋아요
-			//지역
-			//등등...
+			response.setNickname(meetup.getMember().getNickname());
+			
+			response.setSidoName(sigungu.getSido().getName());
+			response.setSigunguName(sigungu.getName());
 			return response;
 		}
 		
@@ -70,8 +84,6 @@ public class MeetupDto {
 		    response.setContent(meetup.getContent());
 		    response.setMaxParticipants(meetup.getMaxParticipants());
 		    response.setMinParticipants(meetup.getMinParticipants());
-		    response.setSigunguId(meetup.getSigunguId());
-		    response.setCategoryId(meetup.getCategoryId());
 		    response.setAddress(meetup.getAddress());
 		    response.setMeetupAt(meetup.getMeetupAt());
 		    response.setMeetupStatus(meetup.getMeetupStatus());

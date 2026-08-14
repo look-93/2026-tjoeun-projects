@@ -8,8 +8,10 @@ import com.moit.reports.entity.MemberReportStatus;
 
 @Repository
 public interface MemberReportStatusRepository extends JpaRepository<MemberReportStatus, Long> {
-
-	Optional<MemberReportStatus> findByStatusCode( String statusCode );
 	
-	boolean existsByStatusCode(String statusCode);
+	// 상태 코드 조회		// 'ACTIVE' / 'WARNING' / 'SUSPENDED'
+	Optional<MemberReportStatus> findByStatusCode( String statusCode );
+
+	// 상태 이름 조회		// '정상'		/ '주의'		/ '정지'
+	Optional<MemberReportStatus> findByStatusName( String statusCode );
 }

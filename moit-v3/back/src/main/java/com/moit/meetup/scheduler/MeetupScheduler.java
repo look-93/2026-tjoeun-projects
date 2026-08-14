@@ -7,9 +7,9 @@ import java.util.List;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.moit.meetup.client.OpenApiService;
-import com.moit.meetup.dto.openapi.WeatherInfoRequest;
-import com.moit.meetup.dto.openapi.WeatherInfoResponse;
+import com.moit.common.dto.WeatherInfoRequest;
+import com.moit.common.dto.WeatherInfoResponse;
+import com.moit.common.service.OpenApiService;
 
 import lombok.RequiredArgsConstructor;
 

@@ -7,16 +7,16 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.moit.member.entity.Member;
+import com.moit.qna.entity.IsRead;
 import com.moit.qna.entity.QuestionNotification;
 
 public interface QuestionNotificationRepository extends JpaRepository<QuestionNotification, Long> {
 
     // 읽지 않은 알림 개수
-    long countByMember_IdAndIsRead(Long memberId, String isRead);
+    long countByMember_IdAndIsRead(Long memberId, IsRead isRead);
 
     // 읽지 않은 알림 조회
-    List<QuestionNotification> findByMember_IdAndIsRead(Long memberId, String isRead );
+    List<QuestionNotification> findByMember_IdAndIsRead(Long memberId, IsRead isRead );
 
     // 전체 알림 조회
     List<QuestionNotification> findByMember_Id(Long memberId );
@@ -29,5 +29,10 @@ public interface QuestionNotificationRepository extends JpaRepository<QuestionNo
             WHERE qn.notificationId = :notificationId
             """)
     void readNotification( @Param("notificationId") Long notificationId );
+    
+    // 오래된 알림부터 조회
+    List<QuestionNotification> findByMember_IdOrderByCreatedAtAsc(
+            Long memberId
+    );
 
 }
