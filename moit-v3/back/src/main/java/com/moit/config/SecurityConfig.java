@@ -118,8 +118,10 @@ public class SecurityConfig {
                                 		"/user/member/update", 
                                 		"/user/member/delete", 
                                 		"/questions/deleteSelected", 
-                                		"/api/meetup/**",
-                                		"/api/members/**")
+                                		"/api/meetups/**",
+                                		"/api/members/**",
+                                		"/api/reports/**",
+                                		"/api/reports")
                                 // Spring Security는 POST, PUT, DELETE 등의 요청에 CSRF 토큰이 있는지 검사
                                 // Thymeleaf + Spring Security + <form> → CSRF 토큰이 자동으로 추가
                                 // 왜추가했지..???

@@ -75,7 +75,7 @@ public class ReportsServiceImpl implements ReportsService {
 		report.setReasonCode( requestDto.getReasonCode());
 		report.setReasonDetail( requestDto.getReasonDetail() );
 		report.setStatus(ReportStatus.PENDING);
-		Report savedReport = reportRepository.save(report);
+		Report savedReport = reportRepository.saveAndFlush(report);
 		
 		return ReportResponseDto.from(savedReport);
 	}
