@@ -38,10 +38,10 @@ public class ReportController {
 
 	
 	// test button
-	@RequestMapping("/user/meetup/report/button")
-    public String reportButton() {
-        return "user/meetup/report/button";
-    }
+//	@RequestMapping("/user/meetup/report/button")
+//    public String reportButton() {
+//        return "user/meetup/report/button";
+//    }
 	
 	// 사용자 로그인 헬퍼
 //	private Long getLoginMemberId(Authentication authentication) {

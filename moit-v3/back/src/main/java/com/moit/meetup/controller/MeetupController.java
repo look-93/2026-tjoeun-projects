@@ -60,7 +60,7 @@ public class MeetupController {
 	@Operation(summary = "모임등록", description = "모임을 등록합니다.")
 	@PostMapping //  세션으로 수정
 	public ResponseEntity<Void> create(@RequestBody MeetupRequestDto meetupRequestDto){
-		Long memberId = 2L;  //세션으로 수정		
+		Long memberId = 1L;  //세션으로 수정		
 		meetupService.create(meetupRequestDto, memberId);
 		return ResponseEntity.status(HttpStatus.CREATED).build(); // 성공 응답 201
 	}
