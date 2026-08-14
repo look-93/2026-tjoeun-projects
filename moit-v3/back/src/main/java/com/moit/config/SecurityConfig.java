@@ -36,7 +36,7 @@ public class SecurityConfig {
                                     .requestMatchers("/user/member/mypage", "/user/member/update", "/user/member/delete","/user/advertisement/**"
                                                       ,"/meetup/write/**" ,"/meetup/detail/**", "/mypage/**","/api/questions/**").authenticated()
                                     // 관리자 영역(추후 활성화 예정)
-                                    //.requestMatchers("/admin/**")
+                                    //.requestMatchers("/admin/**", "/api/reports/admin/**")
                                     //.hasRole("ADMIN")
                                     // 제휴업체 광고 키워드로 ai 내용작성 
                                     .requestMatchers("/user/advertisement/aiAdvertise")
