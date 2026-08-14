@@ -45,7 +45,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 	// 관리자 신고 목록 조회 + 검색 + 페이징
 	@Query ("""
 		select r
-		from report r	join r.member m
+		from Report r	join r.member m
 		where	(:status IS NULL OR r.status = :status)
 			and (:deleteYn IS NULL OR r.deleteYn = :deleteYn)
 			and (:targetType IS NULL OR r.targetType = :targetType)
@@ -59,7 +59,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			@Param("deleteYn")		 Character deleteYn,
 			@Param("targetType")	 TargetType targetType,
 			@Param("memberNickname") String memberNickname,
-			@Param("reasonCode")	 ReasonCode reasonCode
+			@Param("reasonCode")	 ReasonCode reasonCode,
+			Pageable pageable
 	);
 	
 	

@@ -36,7 +36,7 @@ public class AdminReviewController {
 	private final ReviewService reviewService;
 	
 	@Operation(summary="관리자-전체 리뷰 목록 조회 및 검색",description="키워드로 전체 리뷰 목록을 조회합니다.")
-	@GetMapping("/admin")
+	@GetMapping
 	public ResponseEntity<ReviewListResponseDto>  getAdminReviewList(
 			@RequestParam(value="keyword",required=false)String keyword,
 			@PageableDefault(size=10,sort="id",direction=Sort.Direction.DESC)Pageable pageable){
@@ -45,14 +45,14 @@ public class AdminReviewController {
 	}
 	
 	@Operation(summary="관리자-전체 리뷰 공개 여부 변경",description="관리자가 리뷰의 공개/비공개 상태를 전환합니다.")
-	@PatchMapping("/admin/{reviewId}/visibility")
+	@PatchMapping("/{reviewId}/visibility")
 	public ResponseEntity<Void>changeReviewVisibility(@PathVariable("reviewId") Long reviewId){
 		  reviewService.changeReviewVisibility(reviewId);
 		  return ResponseEntity.ok().build();
 	}
 	
 	@Operation(summary = "관리자 - 리뷰 강제 삭제", description = "관리자가 리뷰를 강제 논리 삭제 처리합니다.")
-    @DeleteMapping("/admin/{reviewId}")
+    @DeleteMapping("/{reviewId}")
     public ResponseEntity<Void> adminDelete(@PathVariable("reviewId") Long reviewId) {
         reviewService.adminDelete(reviewId);
         return ResponseEntity.noContent().build();
