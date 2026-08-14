@@ -2,62 +2,69 @@ package com.moit.advertisement.controller;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
-import com.moit.advertisement.dto.AdvertisementExtensionRequestDto;
 import com.moit.advertisement.service.AdvertisementService;
-import com.moit.member.dto.UserDto;
-import com.moit.security.CustomUserDetails;
+//import com.moit.member.dto.UserDto;
+//import com.moit.security.CustomUserDetails;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+@RestController
 @RequiredArgsConstructor
-@Controller
-@RequestMapping("/user/advertisement")
+@RequestMapping("/api/advertisement")
+@Tag(
+    name = "Advertisement",
+    description = "광고주 광고 관리 API"
+)
 public class AdvertisementController {
 
     private final AdvertisementService advertisementService;
 
     private static final String UPLOAD_PATH = "C:/upload/ad/";
+    
+    private static final Long LOGIN_MEMBER_ID = 1L; // 로그인끼면 변경 (하드로 박는중)
+    
+    // 사용자 id
+//    private Long getLoginMemberId(Authentication authentication) {
+//
+//        CustomUserDetails user =
+//                (CustomUserDetails) authentication.getPrincipal();
+//
+//        return user.getUser().getMemberId();
+//    }
 
     // 내 광고 목록
-    @PreAuthorize("isAuthenticated()")
-    @GetMapping("/list")
-    public String list(
-            AdvertisementSearchDto dto,
-            HttpSession session,
-            Authentication authentication,
-            Model model) {
-    	
-		String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Long memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		} 
+    @Operation(
+	    summary = "내 광고 목록 조회",
+	    description = "로그인한 광고주의 광고 목록을 페이지 단위로 조회합니다."
+	)
+    public ResponseEntity<AdvertisementDto.AdvertisementPageResponseDto> list(
+            AdvertisementSearchDto dto) {
+
+        Long memberId = LOGIN_MEMBER_ID;
 
         dto.setAdvertiserId(memberId);
 
@@ -70,78 +77,45 @@ public class AdvertisementController {
         List<AdvertisementDto> list =
                 advertisementService.searchMyAdvertisement(dto);
 
-        System.out.println("광고 개수 = " + list.size());
-
-        for(AdvertisementDto ad : list){
-            System.out.println(
-                "adId=" + ad.getAdId()
-                + ", title=" + ad.getTitle()
-                + ", end=" + ad.getEndDatetime()
-                // + ", extension=" + ad.getExtensionStatus()
-            );
-        }
-
         int totalCnt =
                 advertisementService.selectMyAdvertisementTotalCnt(dto);
 
-        int totalPage =
-                (int)Math.ceil((double)totalCnt / size);
-        
-     // 데이터가 없어서 totalPage가 0이 나오더라도 최소 1페이지로 고정
-        if (totalPage == 0) { totalPage = 1; }
+        AdvertisementDto.AdvertisementPageResponseDto response =
+                new AdvertisementDto.AdvertisementPageResponseDto(
+                        list,
+                        totalCnt,
+                        page,
+                        size
+                );
 
-        model.addAttribute("list", list);
-        model.addAttribute("search", dto);
-        model.addAttribute("dto" , user); 
-        model.addAttribute("totalCnt", totalCnt);
-        model.addAttribute("totalPage", totalPage);
-        model.addAttribute("menu", "advertisement");
-
-        return "user/advertisement/adList";
-    }
-
-    // 등록 화면
-    @GetMapping("/write")
-    public String write(Model model) {
-
-        model.addAttribute("dto", new AdvertisementDto());
-        model.addAttribute("mode", "write");
-
-        return "user/advertisement/adForm";
+        return ResponseEntity.ok(response);
     }
 
     // 등록
-    @PostMapping("/write")
-    public String writeAction(
+    @Operation(
+	    summary = "광고 등록",
+	    description = "광고 정보를 등록하고 광고 이미지를 함께 업로드합니다."
+	)
+    @PostMapping( consumes = MediaType.MULTIPART_FORM_DATA_VALUE )
+	public AdvertisementDto writeAction(
 
-            AdvertisementDto dto,
+		@ModelAttribute("dto")
+	    AdvertisementDto.AdvertisementRequestDto dto,
 
-            @RequestParam(value = "imageFiles", required = false)
-            List<MultipartFile> imageFiles,
+	    @RequestPart( value = "imageFiles", required = false )
+	    List<MultipartFile> imageFiles,
 
-            @RequestParam(value = "imageTypes", required = false)
-            List<String> imageTypes,
-
-            Authentication authentication) {
+	    @RequestParam(value = "imageTypes", required = false)
+	    List<String> imageTypes	) {
 
         try {
 
-        	String loginId     = null, provider = null;
-    		UserDto user=null;
-    		Object principal = authentication.getPrincipal();
-    		Long memberId = null;
-    		//1. local
-    		if(   principal   instanceof CustomUserDetails ) {
-    			CustomUserDetails  users = (CustomUserDetails)principal;
-    			user=users.getUser();
-    			loginId    =  users.getUser().getLoginId();
-    			memberId = users.getUser().getMemberId();
-    		}
+        	Long memberId = LOGIN_MEMBER_ID;
 
-            dto.setAdvertiserId(memberId);
+            // 광고 등록
+            Long adId = advertisementService.insertAdvertisement(dto, memberId);
 
-            advertisementService.insertAdvertisement(dto);
-
+            // 이미지 등록
             if (imageFiles != null && imageTypes != null) {
 
                 File dir = new File(UPLOAD_PATH);
@@ -167,251 +141,167 @@ public class AdvertisementController {
 
                     AdvertisementImageDto imageDto =
                             new AdvertisementImageDto();
-
-                    imageDto.setAdId(dto.getAdId());
+                    
+                    imageDto.setAdId(adId);
                     imageDto.setImageType(imageTypes.get(i));
                     imageDto.setImageUrl("/upload/ad/" + saveName);
 
                     advertisementService.insertAdvertisementImage(imageDto);
                 }
             }
+            return advertisementService.selectAdvertisementOne(adId);
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        return "redirect:/user/advertisement/list";
     }
 
     // 상세
-    @GetMapping("/detail")
-    public String detail(
-            @RequestParam Long adId,
-            Authentication authentication,
-            Model model) {
+    @Operation(
+	    summary = "광고 상세 조회",
+	    description = "광고주의 광고 상세 정보를 조회합니다."
+	)
+	@GetMapping("/{adId}")
+	public ResponseEntity<AdvertisementDto> detail(
+			@PathVariable("adId") Long adId) {
 
-        AdvertisementDto dto =
-                advertisementService.selectAdvertisementOne(adId);
+	    AdvertisementDto dto =
+	            advertisementService.selectAdvertisementOne(adId);
 
-        String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Long memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		}
+	    if (dto == null) {
+	        throw new ResponseStatusException(
+	                HttpStatus.NOT_FOUND,
+	                "광고를 찾을 수 없습니다."
+	        );
+	    }
 
-        if (dto == null) {
-            return "redirect:/user/advertisement/list";
-        }
+	    if (!LOGIN_MEMBER_ID.equals(dto.getAdvertiserId())) {
+	        throw new ResponseStatusException(
+	                HttpStatus.FORBIDDEN,
+	                "본인의 광고만 조회할 수 있습니다."
+	        );
+	    }
 
-        if (!memberId.equals(dto.getAdvertiserId())) {
-            return "redirect:/user/advertisement/list";
-        }
-
-        model.addAttribute("dto", dto);
-
-        return "user/advertisement/adDetail";
-    }
-    
-    // 수정 화면
-    @GetMapping("/edit")
-    public String edit(
-            @RequestParam Long adId,
-            Authentication authentication,
-            Model model) {
-
-        AdvertisementDto dto =
-                advertisementService.selectAdvertisementOne(adId);
-
-        String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Long memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		}
-
-        if (dto == null) {
-            return "redirect:/user/advertisement/list";
-        }
-
-        if (!memberId.equals(dto.getAdvertiserId())) {
-            return "redirect:/user/advertisement/list";
-        }
-
-        model.addAttribute("dto", dto);
-        model.addAttribute("mode", "edit");
-        
-        setImageModel(dto, model);
-
-        return "user/advertisement/adForm";
-    }
+	    return ResponseEntity.ok(dto);
+	}
 
     // 수정
-    @PostMapping("/edit")
-    public String editAction(
+    @Operation(
+	    summary = "광고 수정",
+	    description = "광고 정보를 수정하고 필요한 경우 광고 이미지를 변경합니다."
+	)
+    @PutMapping(
+	    value = "/{adId}",
+	    consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+	)
+    public ResponseEntity<AdvertisementDto> editAction(
+    		
+    		@PathVariable("adId") Long adId,
+    		
+    		@ModelAttribute("dto")
+    		AdvertisementDto.AdvertisementUpdateRequestDto dto,
 
-            AdvertisementDto dto,
-
-            @RequestParam(value = "imageFiles", required = false)
+    	    @RequestPart( value = "imageFiles", required = false )
             List<MultipartFile> imageFiles,
 
             @RequestParam(value = "imageTypes", required = false)
-            List<String> imageTypes,
+            List<String> imageTypes
+        ) {
 
-            Authentication authentication) {
+    	Long memberId = LOGIN_MEMBER_ID;
 
-    	String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Long memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
+        AdvertisementDto origin = advertisementService.selectAdvertisementOne(adId);
+
+		if (origin == null) {
+		    throw new ResponseStatusException(
+		            HttpStatus.NOT_FOUND,
+		            "광고를 찾을 수 없습니다."
+		    );
 		}
 
-        AdvertisementDto origin =
-                advertisementService.selectAdvertisementOne(dto.getAdId());
+		// 광고주 본인 확인
+		if (!Objects.equals(memberId, origin.getAdvertiserId())) {
+		    throw new ResponseStatusException(
+		            HttpStatus.FORBIDDEN,
+		            "본인의 광고만 수정할 수 있습니다."
+		    );
+		}
 
-        if (origin == null) {
-            return "redirect:/user/advertisement/list";
-        }
+		advertisementService.updateAdvertisement(
+	            adId,
+	            memberId,
+	            dto,
+	            imageFiles,
+	            imageTypes
+	    );
 
-        if (!memberId.equals(dto.getAdvertiserId())) {
-            return "redirect:/user/advertisement/list";
-        }
 
-        dto.setAdvertiserId(memberId);
-
-        advertisementService.updateAdvertisement(
-                dto,
-                imageFiles,
-                imageTypes);
-
-        return "redirect:/user/advertisement/detail?adId=" + dto.getAdId();
+		return ResponseEntity.ok(
+	            advertisementService.selectAdvertisementOne(adId)
+	    );
     }
 
-    private void setImageModel(
-            AdvertisementDto dto,
-            Model model) {
-
-        String mainImage = "";
-        String bannerImage = "";
-        String listSidebarImage = "";
-        String detailSidebarImage = "";
-
-        if (dto.getImageList() != null) {
-
-            for (AdvertisementImageDto image : dto.getImageList()) {
-
-                switch (image.getImageType()) {
-
-                case "MAIN":
-                    mainImage = image.getImageUrl();
-                    break;
-
-                case "MEETUP_LIST_BANNER":
-                    bannerImage = image.getImageUrl();
-                    break;
-
-                case "MEETUP_LIST_SIDEBAR":
-                    listSidebarImage = image.getImageUrl();
-                    break;
-
-                case "MEETUP_DETAIL_SIDEBAR":
-                    detailSidebarImage = image.getImageUrl();
-                    break;
-                }
-            }
-        }
-
-        model.addAttribute("mainImage", mainImage);
-        model.addAttribute("bannerImage", bannerImage);
-        model.addAttribute("listSidebarImage", listSidebarImage);
-        model.addAttribute("detailSidebarImage", detailSidebarImage);
-    }
-    
- // 삭제
-    @PostMapping("/delete")
-    public String delete(
-            @RequestParam Long adId,
-            Authentication authentication) {
+    // 삭제
+    @Operation(
+	    summary = "광고 삭제",
+	    description = "광고와 연결된 이미지 정보를 삭제합니다."
+	)
+    @DeleteMapping("/{adId}")
+    public ResponseEntity<Void> delete(
+    		@PathVariable("adId") Long adId
+        ) {
 
         AdvertisementDto dto =
                 advertisementService.selectAdvertisementOne(adId);
 
-        	String loginId     = null, provider = null;
-    		UserDto user=null;
-    		Object principal = authentication.getPrincipal();
-    		Long memberId = null;
-    		//1. local
-    		if(   principal   instanceof CustomUserDetails ) {
-    			CustomUserDetails  users = (CustomUserDetails)principal;
-    			user=users.getUser();
-    			loginId    =  users.getUser().getLoginId();
-    			memberId = users.getUser().getMemberId();
-    		}
-
         // 권한 체크
         if (dto == null) {
-            return "redirect:/user/advertisement/list";
+            return ResponseEntity.notFound().build();
         }
 
-        if (!memberId.equals(dto.getAdvertiserId())) {
-            return "redirect:/user/advertisement/list";
+        if (!LOGIN_MEMBER_ID.equals(dto.getAdvertiserId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         // 서비스에서 파일 + 이미지DB + 광고 삭제 모두 처리
         advertisementService.deleteAdvertisement(adId);
 
-        return "redirect:/user/advertisement/list";
+        return ResponseEntity.noContent().build();
     }
 
 
-    // 광고 클릭
-    @GetMapping("/click")
-    public String click(
-            @RequestParam Long adId,
-            @RequestParam String position,
-            HttpServletRequest request,
-            HttpSession session) {
-
-
-    	// 클릭 로그 확인 (1시간에 한번만 +1 인정)
-    	boolean counted = advertisementService.insertClickLog(
-    	        adId,
-    	        position,
-    	        request,
-    	        session
-    	);
-    	// 한시간 내에 기록 x면 증가
-    	if (counted) {
-    	    advertisementService.updateAdvertisementClick(adId);
-    	}
-
-        AdvertisementDto dto =
-                advertisementService.selectAdvertisementOne(adId);
-
-
-        if(dto == null || dto.getLandingUrl() == null){
-            return "redirect:/";
-        }
-
-
-        return "redirect:" + dto.getLandingUrl();
-    }
+//    // 광고 클릭
+//    @GetMapping("/click")
+//    public String click(
+//            @RequestParam Long adId,
+//            @RequestParam String position,
+//            HttpServletRequest request,
+//            HttpSession session) {
+//
+//
+//    	// 클릭 로그 확인 (1시간에 한번만 +1 인정)
+//    	boolean counted = advertisementService.insertClickLog(
+//    	        adId,
+//    	        position,
+//    	        request,
+//    	        session
+//    	);
+//    	// 한시간 내에 기록 x면 증가
+//    	if (counted) {
+//    	    advertisementService.updateAdvertisementClick(adId);
+//    	}
+//
+//        AdvertisementDto dto =
+//                advertisementService.selectAdvertisementOne(adId);
+//
+//
+//        if(dto == null || dto.getLandingUrl() == null){
+//            return "redirect:/";
+//        }
+//
+//
+//        return "redirect:" + dto.getLandingUrl();
+//    }
     
     // 광고 기간 연장 신청
 //    @PostMapping("/extensionRequest")
@@ -420,10 +310,7 @@ public class AdvertisementController {
 //            @RequestBody AdvertisementExtensionRequestDto dto,
 //            Authentication authentication) {
 //
-//        CustomUserDetails user =
-//                (CustomUserDetails) authentication.getPrincipal();
-//
-//        Long memberId = user.getUser().getMemberId();
+//        Long memberId = getLoginMemberId(authentication);
 //			
 //			advertisementService.requestExtension(
 //			    dto,

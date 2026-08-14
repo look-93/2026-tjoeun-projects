@@ -1,6 +1,6 @@
 package com.moit.reports.enums;
 
-public enum Status {
+public enum ReportStatus {
 	PENDING,
 	APPROVED,
 	REJECTED

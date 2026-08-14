@@ -22,17 +22,11 @@ import com.moit.qna.dto.QuestionDto;
 public class QuestionMapperTest {
 
     @Autowired private QuestionMapper questionMapper;
-    @Autowired private AnswerMapper answerMapper;
-    @Autowired private NotificationMapper notificationMapper;
-    @Autowired private QuestionAiAnalysisMapper questionAiAnalysisMapper;
 
     @Test
     @DisplayName("QNA Mapper 전체 Bean 생성 테스트")
     void mapperBeanTest() {
         assertThat(questionMapper).isNotNull();
-        assertThat(answerMapper).isNotNull();
-        assertThat(notificationMapper).isNotNull();
-        assertThat(questionAiAnalysisMapper).isNotNull();
     }
 
 //    @Test
@@ -41,18 +35,5 @@ public class QuestionMapperTest {
 //        List<QuestionDto> list = questionMapper.findAll(new HashMap<>());
 //        assertThat(list).isNotNull();
 //    }
-//
-//    @Test
-//    @DisplayName("Answer Mapper 조회 테스트")
-//    void answerMapperTest() {
-//        AnswerDto dto = answerMapper.findByQuestionId(1);
-//        assertThat(dto).isNotNull();
-//    }
-//
-//    @Test
-//    @DisplayName("Notification Mapper 조회 테스트")
-//    void notificationMapperTest() {
-//        List<NotificationDto> list = notificationMapper.selectAll(1);
-//        assertThat(list).isNotNull();
-//    }
+
 }

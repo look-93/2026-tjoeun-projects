@@ -12,11 +12,30 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.moit.advertisement.entity.Advertisement;
+import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.AdStatus;
 import com.moit.advertisement.enums.ApprovalStatus;
 
 public interface AdvertisementRepository
         extends JpaRepository<Advertisement, Long> {
+	
+	@Query("""
+	    select distinct a
+	    from Advertisement a
+	    join AdvertisementImage ai
+	        on ai.advertisement = a
+	    where a.deleteYn = 'N'
+	      and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED
+	      and a.status = com.moit.advertisement.enums.AdStatus.OPEN
+	      and a.startDatetime <= CURRENT_TIMESTAMP
+	      and a.endDatetime >= CURRENT_TIMESTAMP
+	      and ai.imageType = :position
+	    order by a.priorityScore desc, a.adId desc
+	""")
+	List<Advertisement> findAvailableAdvertisements(
+	        @Param("position") AdPosition position,
+	        Pageable pageable
+	);
 	
     
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
@@ -35,15 +54,16 @@ public interface AdvertisementRepository
 	""")
 	int increaseClicks(@Param("adId") Long adId);
 	
-	Page<Advertisement> findByDeleteYnAndApprovalStatus(
-	    String deleteYn,
-	    ApprovalStatus approvalStatus,
-	    Pageable pageable
+	List<Advertisement> findByDeleteYnAndApprovalStatus(
+	        Character deleteYn,
+	        ApprovalStatus approvalStatus
 	);
+	
+	List<Advertisement> findByDeleteYn(Character deleteYn);
 	
 	Optional<Advertisement> findByAdIdAndDeleteYn(
 	    Long adId,
-	    String deleteYn
+	    Character deleteYn
 	);
 	
 	Page<Advertisement> findAll(
@@ -51,11 +71,22 @@ public interface AdvertisementRepository
 	    Pageable pageable
 	);
 	
+	
 	List<Advertisement> findByAdvertiser_Id(Long id);
+	
+	long countByAdvertiser_Id(Long id);
+	long countByApprovalStatus(ApprovalStatus status);
+	
+	long countByDeleteYn(Character deleteYn);
+
+	long countByDeleteYnAndApprovalStatus(
+	        Character deleteYn,
+	        ApprovalStatus approvalStatus
+	);
 
 	List<Advertisement> findByApprovalStatus(ApprovalStatus approvalStatus);
 
-	List<Advertisement> findByStatus(AdStatus status);
+	long countByStatus(AdStatus status);
 
 	List<Advertisement> findByAdvertiser_IdAndApprovalStatus(
 	        Long id,

@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.moit.member.entity.Member;
 import com.moit.reports.enums.ReasonCode;
-import com.moit.reports.enums.Status;
+import com.moit.reports.enums.ReportStatus;
 import com.moit.reports.enums.TargetType;
 import com.moit.util.BaseEntity;
 
@@ -61,7 +61,7 @@ public class Report extends BaseEntity {
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "STATUS", length = 20, nullable = false)
-	private Status status;
+	private ReportStatus status;
 	
 	// 
 	public Report(TargetType targetType, Long targetId, Member member, ReasonCode reasonCode, String reasonDetail) {
@@ -70,7 +70,7 @@ public class Report extends BaseEntity {
 		this.member = member;
 		this.reasonCode = reasonCode;
 		this.reasonDetail = reasonDetail;
-		this.status = Status.PENDING;
+		this.status = ReportStatus.PENDING;
 	}
 	
 	// 신고 사유 코드 및 내용 수정
@@ -80,7 +80,7 @@ public class Report extends BaseEntity {
     }
 	
 	// 상태 변경
-    public void changeStatus(Status status) { this.status = status; }
+    public void changeStatus(ReportStatus status) { this.status = status; }
     
     @OneToMany( mappedBy = "report")
 	private List<ReportAuditLog> reportAuditLogs = new ArrayList<>();

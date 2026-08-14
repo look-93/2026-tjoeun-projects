@@ -17,6 +17,7 @@ import com.moit.member.dao.UserMapper;
 import com.moit.member.dto.AuthUserDto;
 import com.moit.member.dto.InterestDto;
 import com.moit.member.dto.UserDto;
+import com.moit.member.dto.UserUpdateRequestDto;
 import com.moit.member.enums.PasswordChangeResultEnum;
 import com.moit.security.PasswordLeakService;
 
@@ -59,9 +60,9 @@ public class UserServiceImpl  implements UserService{
 		dto.setPassword(pwencoder.encode(dto.getPassword()));
 		
 		// 회원 분류
-		if(dto.getMemberTypeId()==1) { dto.setStatusId(1); } // 일반
-		else if(dto.getMemberTypeId()==2) { dto.setStatusId(2); } // 제휴업체
-		else if(dto.getMemberTypeId()==3) { dto.setStatusId(2); } // 관리자
+		if(dto.getMemberTypeId()==1) { dto.setStatusId(1L); } // 일반
+		else if(dto.getMemberTypeId()==2) { dto.setStatusId(2L); } // 제휴업체
+		else if(dto.getMemberTypeId()==3) { dto.setStatusId(2L); } // 관리자
 		
 		if(dto.getProfileUrl() == null) {
 		    dto.setProfileUrl("/images/moit.png");
@@ -197,8 +198,8 @@ public class UserServiceImpl  implements UserService{
 		
 		dto.setLoginId(dto.getProvider() + "-" + dto.getProviderId());
 		
-		dto.setMemberTypeId(1);
-		dto.setStatusId(1);
+		dto.setMemberTypeId(1L);
+		dto.setStatusId(1L);
 		
 		dao.insertSocial(dto);
 		dao.insertSocialInfo(dto);
@@ -296,7 +297,7 @@ public class UserServiceImpl  implements UserService{
 	@Override
 	public boolean existsByEmail(String email) {
 		Map<String,Object> map = new HashMap<>();
-		map.put("email", map);
+		map.put("email", email);
 		
 		return dao.findUser(map) != null;
 	}
@@ -304,7 +305,7 @@ public class UserServiceImpl  implements UserService{
 	@Override
 	public boolean existsByNickname(String nickname) {
 		Map<String,Object> map = new HashMap<>();
-		map.put("nickname", map);
+		map.put("nickname", nickname);
 		
 		return dao.findUser(map) != null;
 	}
@@ -312,7 +313,7 @@ public class UserServiceImpl  implements UserService{
 	@Override
 	public boolean existsByLoginId(String loginId) {
 		Map<String,Object> map = new HashMap<>();
-		map.put("loginId", map);
+		map.put("loginId", loginId);
 		
 		return dao.findUser(map) != null;
 	}
@@ -320,9 +321,55 @@ public class UserServiceImpl  implements UserService{
 	@Override
 	public boolean existsByMobile(String mobile) {
 		Map<String,Object> map = new HashMap<>();
-		map.put("mobile", map);
+		map.put("mobile", mobile);
 		
 		return dao.findUser(map) != null;
+	}
+	
+	@Transactional
+	@Override
+	public UserDto updateMember(Long memberId, UserUpdateRequestDto request) {
+		
+		UserDto user = dao.findByMemberId(memberId);
+		
+		if(user == null) { return null; }
+		
+		// 닉네임 변경 중복확인
+		if(!user.getNickname().equals(request.getNickname())) {
+			Map<String,Object> map = new HashMap<>();
+			map.put("nickname", request.getNickname());
+			
+			UserDto duplicate = dao.findUser(map);
+			
+			if(duplicate != null && !duplicate.getMemberId().equals(memberId)) {
+				throw new IllegalArgumentException("이미 사용중인 닉네임입니다.");
+			}
+		}
+		
+		UserDto dto = new UserDto();
+		
+		dto.setMemberId(memberId);
+		dto.setLoginId(user.getLoginId());
+		dto.setNickname(request.getNickname());
+		dto.setEmail(request.getEmail());
+		dto.setMobile(request.getMobile());
+		
+		int result = dao.updateUser(dto);
+		
+		if(result==0) {
+			throw new IllegalStateException("회원정보 수정에 실패했습니다.");
+		}
+		
+		updateInterest(memberId, request.getInterestIds());
+		
+		// 수정된 회원정보
+		UserDto updated = dao.findByMemberId(memberId);
+		
+		//수정된 관심사
+		updated.setInterestIds(getInterestIds(memberId));
+		
+		
+		return updated;
 	}
 
 	

@@ -1,5 +1,8 @@
 package com.moit.member.entity;
 
+import java.io.Serializable;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -11,9 +14,11 @@ import lombok.Setter;
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @EqualsAndHashCode
-public class MemberInterestId {
+public class MemberInterestId implements Serializable{
 	
-	private Long id;
+	@Column(name = "member_id")
+	private Long memberId;
 	
+	@Column(name = "interest_id")
 	private Long interestId;
 }

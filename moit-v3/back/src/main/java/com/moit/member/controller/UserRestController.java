@@ -7,14 +7,20 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.moit.member.dto.PasswordChangeRequestDto;
 import com.moit.member.dto.UserDto;
 import com.moit.member.dto.UserRequestDto;
 import com.moit.member.dto.UserResponseDto;
+import com.moit.member.dto.UserUpdateRequestDto;
+import com.moit.member.enums.PasswordChangeResultEnum;
 import com.moit.member.service.UserService;
+import com.moit.security.CustomUserDetails;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -98,6 +104,55 @@ public class UserRestController {
 		
 		return ResponseEntity.ok(UserResponseDto.from(user));
 	}
+	
+	// 회원정보 수정
+	@Operation(summary = "회원정보 수정", description = "로그인한 사용자의 회원정보와 관심사를 수정합니다.")
+	@PutMapping("/me")
+	public ResponseEntity<UserResponseDto> updateMember(
+			Authentication authentication,
+			@RequestBody UserUpdateRequestDto request
+			){
+		// 현재 로그인한 사용자
+		String loginId = authentication.getName();
+		
+		// 회원조회
+		UserDto user = new UserDto();
+		
+		user.setLoginId(loginId);
+		
+		
+		UserDto loginUser = service.findByLoginId(user);
+		
+		if(loginUser == null){
+			return ResponseEntity.notFound().build();
+		}
+		
+		// 수정된 정보 다시 조회
+		UserDto updated = service.updateMember(loginUser.getMemberId(), request);
+		
+		return ResponseEntity.ok(UserResponseDto.from(updated));			
+	}
+	
+	// 비밀번호 변경
+	@Operation(summary = "비밀번호 변경", description = "로그인한 사용자의 비밀번호를 변경합니다.")
+	@GetMapping("/me/password")
+	public ResponseEntity<Void> changePassword(
+			Authentication authentication,
+			@RequestBody PasswordChangeRequestDto request
+			){
+		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+		
+		PasswordChangeResultEnum result = service.changePassword(user.getAppUserId(), request.getCurrentPassword(), request.getNewPassword());
+		
+		switch(result) {
+			case SUCCESS: return ResponseEntity.ok().build();
+			case WRONG_PASSWORD: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+			case LEAKED_PASSWORD: return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+			case API_ERROR: return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+			default: return ResponseEntity.badRequest().build();
+		}
+	}
+	
 	
 	
 }
