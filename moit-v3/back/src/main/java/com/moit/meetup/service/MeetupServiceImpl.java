@@ -22,10 +22,12 @@ import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplyMemberListResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MyApplicationListResponseDto;
 import com.moit.meetup.dto.MeetupCategoryDto;
-import com.moit.meetup.dto.MeetupParticipantCountDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
+import com.moit.meetup.dto.MeetupLikeCountDto;
+import com.moit.meetup.dto.MeetupLikeDto;
+import com.moit.meetup.dto.MeetupParticipantCountDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.meetup.entity.Meetup;
@@ -60,8 +62,8 @@ public class MeetupServiceImpl implements MeetupService{
 		
 	//모임리스트조회
 	@Override
-	public MeetupListResponseDto search(Pageable pageable) {
-		Page<Meetup> page = meetupRepository.findAll(pageable);
+	public MeetupListResponseDto search(Pageable pageable, Long memberId) {
+		Page<Meetup> page = meetupRepository.findByDeleteYnFalse(pageable);
 //		page.getTotalPages(); // 전체페이지수 100개라면 10개
 //		page.getNumberOfElements(); // 전체갯수 100개
 //		page.getContent(); // 0번째 페이지의 10개가 들어있음
@@ -79,9 +81,11 @@ public class MeetupServiceImpl implements MeetupService{
 		
 		//list에서 id꺼내기
 		List<Long> ids = list.stream().map(item -> item.getId()).toList();
-		//쿼리통해서 ids에 해당하는 total_participants 를 구함
-		List<MeetupParticipantCountDto> result = meetupApplicationRepository.countByMeetup_IdInAndApplyStatusAndDeleteYn(ids, ApplyStatus.APPROVED, false);
 		
+		//쿼리통해서 ids에 해당하는 total_participants 를 구함
+		List<MeetupParticipantCountDto> result = meetupApplicationRepository.countByMeetup_IdInAndApplyStatusAndDeleteYn(ids, ApplyStatus.APPROVED, 'N');
+		
+		// 모임 신청 인원 추출
 		list.forEach(item->{
 			
 			result.forEach(cnt->{
@@ -94,17 +98,32 @@ public class MeetupServiceImpl implements MeetupService{
 			
 		});
 		
-		//내가 눌렀는지 
-//        LEFT JOIN meetup_likes H
-//            ON H.meetup_id = A.meetup_id
-//           AND H.member_id = :memberId
-		//전체 카운트
-//        LEFT JOIN (
-//                SELECT meetup_id, COUNT(*) AS like_cnt
-//                FROM meetup_likes
-//                GROUP BY meetup_id
-//            ) I ON I.meetup_id = A.meetup_id		
+		//쿼리통해서 ids에 해당하는 like 를 구함
+		List<MeetupLikeDto> likeResult =
+		        meetupLikesRepository.findLikedMeetups(ids, memberId);
+			
+		//내가 좋아요 눌렀는지 추출
+		list.forEach(meetup ->{
+			likeResult.forEach(like->{
+				if(like.getMeetupId().equals(meetup.getId())) {
+					meetup.setHasLike(true);
+				}
+			});
+		});
 		
+		
+		List<MeetupLikeCountDto> likeCount =
+		        meetupLikesRepository.countByMeetup_Id(ids);	
+		
+		//조회된 모임의 좋아요 수
+		list.forEach(meetup ->{
+			likeCount.forEach(cnt->{
+				if(cnt.getMeetupId().equals(meetup.getId())) {
+					meetup.setLikeCount(cnt.getLikeCount());
+				}
+			});
+		});	
+
 		listResponse.setMeetups(list);
 		return listResponse;
 

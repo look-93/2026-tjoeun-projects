@@ -3,7 +3,8 @@ package com.moit.reports.entity;
 import java.time.LocalDateTime;
 
 import com.moit.member.entity.Member;
-import com.moit.reports.enums.Status;
+import com.moit.reports.enums.ReportAuditAction;
+import com.moit.reports.enums.ReportStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -48,15 +49,20 @@ public class ReportAuditLog {
 //	@OneToMany(mappedBy = "adminMember")
 //	private List<ReportAuditLog> reportAuditLogs = new ArrayList<>();
     
+    // 액션 타입 (StatusChanged or Deleted)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ACTION_TYPE", nullable = false, length = 30)
+    private ReportAuditAction actionType;
+    
     // 변경 전 상태
     @Enumerated(EnumType.STRING)
     @Column(name = "PREVIOUS_STATUS", nullable = false, length = 20)
-    private Status previousStatus;
+    private ReportStatus previousStatus;
     
     // 변경 후 상태
     @Enumerated(EnumType.STRING)
-    @Column(name = "CHANGED_STATUS", nullable = false, length = 20)
-    private Status changedStatus;
+    @Column(name = "CHANGED_STATUS", length = 20)
+    private ReportStatus changedStatus;
 
     // 관리자가 입력한 처리 사유
     @Column(name = "PROCESS_REASON", nullable = false, length = 1000)
@@ -75,13 +81,43 @@ public class ReportAuditLog {
     @Column(name = "TRUST_SCORE_CHANGE", nullable = false)
     private Integer trustScoreChange;
 
-    // 관리자 처리 이력 로그
-	public ReportAuditLog(Report report, Member adminMember, Status previousStatus, Status changedStatus, String processReason, Integer trustScoreChange) {
-		this.report = report;
-		this.adminMember = adminMember;
-		this.previousStatus = previousStatus;
-		this.changedStatus = changedStatus;
-		this.processReason = processReason;
-		this.trustScoreChange = trustScoreChange;
+	
+	// 승인/반려 감사 로그
+	public static ReportAuditLog statusChanged (
+	        Report report,
+	        Member adminMember,
+	        ReportStatus previousStatus,
+	        ReportStatus changedStatus,
+	        String processReason,
+	        Integer trustScoreChange ) {
+		
+	    ReportAuditLog log = new ReportAuditLog();
+	    log.report = report;
+	    log.adminMember = adminMember;
+	    log.actionType = ReportAuditAction.STATUS_CHANGED;
+	    log.previousStatus = previousStatus;
+	    log.changedStatus = changedStatus;
+	    log.processReason = processReason;
+	    log.trustScoreChange = trustScoreChange;
+
+	    return log;
+	}
+	
+	// 논리삭제 감사 로그
+	public static ReportAuditLog deleted (
+	        Report report,
+	        Member adminMember,
+	        String processReason ) {
+		
+	    ReportAuditLog log = new ReportAuditLog();
+	    log.report = report;
+	    log.adminMember = adminMember;
+	    log.actionType = ReportAuditAction.DELETED;
+	    log.previousStatus = report.getStatus();	// 삭제 전 신고의 처리 상태는 보존
+	    log.changedStatus = null;					// 삭제는 상태변경이 아니므로 null
+	    log.processReason = processReason;
+	    log.trustScoreChange = 0;
+
+	    return log;
 	}
 }

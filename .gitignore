@@ -47,12 +47,15 @@ application-oauth.yml
 # React (frontend)
 # =========================
 
+**/.next/
+
 node_modules/
 front/node_modules/
 front/dist/
 front/build/
 
 # 환경변수
+.env.txt
 .env
 front/.env
 front/.env.local

@@ -1,5 +1,8 @@
 package com.moit.advertisement.dto;
 
+import com.moit.advertisement.enums.AdStatus;
+import com.moit.advertisement.enums.ApprovalStatus;
+
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
@@ -10,8 +13,8 @@ public class AdvertisementSearchDto {
     // 검색 조건
     private String searchText;   // 제목 검색
 
-    private String status;        // OPEN / PENDING / CLOSED
-    private String approvalStatus; // WAITING / APPROVED / REJECTED
+    private AdStatus status;          // OPEN / PENDING / CLOSED
+    private ApprovalStatus approvalStatus;  // WAITING / APPROVED / REJECTED
     
     // 광고주
     private Long advertiserId;
@@ -32,7 +35,4 @@ public class AdvertisementSearchDto {
     public int getOffset() {
         return (page - 1) * size;
     }
-    
-    // 정렬용
-    private String sort;
 }

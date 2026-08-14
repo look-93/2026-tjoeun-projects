@@ -269,4 +269,63 @@ public class Advertisement extends BaseEntity{
         this.approvedAt = LocalDateTime.now();
         this.rejectReason = null;
     }
+    
+    public void updateAdvertisement(
+            String title,
+            String content,
+            String landingUrl,
+            Integer targetAgeMin,
+            Integer targetAgeMax,
+            TargetGender targetGender,
+            LocalDateTime startDatetime,
+            LocalDateTime endDatetime,
+            BigDecimal totalBudget) {
+
+        this.title = title;
+        this.content = content;
+        this.landingUrl = landingUrl;
+
+        this.targetAgeMin = targetAgeMin;
+        this.targetAgeMax = targetAgeMax;
+        this.targetGender = targetGender;
+
+        this.startDatetime = startDatetime;
+        this.endDatetime = endDatetime;
+
+        this.totalBudget = totalBudget;
+    }
+
+
+    public void changeStatus(AdStatus status) {
+        this.status = status;
+    }
+
+
+    public void changeGrade(AdGrade adGrade) {
+        this.adGrade = adGrade;
+    }
+
+
+    public void changePeriod(
+            LocalDateTime start,
+            LocalDateTime end) {
+
+        this.startDatetime = start;
+        this.endDatetime = end;
+    }
+
+
+    public void reject(String rejectReason) {
+
+        this.approvalStatus =
+                ApprovalStatus.REJECTED;
+
+        this.rejectReason =
+                rejectReason;
+    }
+    
+    public void delete() {
+        this.setDeleteYn('Y');
+    }
+
 }

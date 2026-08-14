@@ -100,4 +100,7 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	@ManyToOne
 	@JoinColumn(name="sigungu_id", nullable = false)
 	private Sigungu sigungu;
+	
+	@OneToMany(mappedBy = "meetup", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<MeetupLike> meetupLike;
 }

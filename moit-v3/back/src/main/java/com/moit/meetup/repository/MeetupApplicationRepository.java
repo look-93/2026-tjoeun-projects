@@ -42,6 +42,6 @@ public interface MeetupApplicationRepository extends JpaRepository<MeetupApplica
 		List<MeetupParticipantCountDto > countByMeetup_IdInAndApplyStatusAndDeleteYn(
 		        @Param("meetupList") List<Long> meetupList,
 		        @Param("applyStatus") ApplyStatus applyStatus,
-		        @Param("deleteYn") Boolean deleteYn
+		        @Param("deleteYn") Character deleteYn
 		);
 }

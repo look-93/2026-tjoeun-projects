@@ -1,16 +1,11 @@
 package com.moit.member.dto;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Data
 public class UserDto {
@@ -23,12 +18,13 @@ public class UserDto {
 	private String  email;
 	private String  password;
 	private String  profileUrl;
-	private String gender;
-    private String birth;
+	private String gender;   
     private String joinIp;
+    
+    private LocalDate birth;
 	
-	private int memberTypeId;
-	private int statusId;
+	private Long memberTypeId;
+	private Long statusId;
 	
 	private String createdAt;
 	private String updatedAt;

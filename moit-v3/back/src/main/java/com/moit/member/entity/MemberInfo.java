@@ -2,6 +2,8 @@ package com.moit.member.entity;
 
 import java.time.LocalDate;
 
+import com.moit.reports.entity.MemberReportStatus;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,7 +17,7 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import com.moit.reports.entity.MemberReportStatus;
+//import com.moit.reports.entity.MemberReportStatus;
 
 @Entity
 @Table(name = "member_info")

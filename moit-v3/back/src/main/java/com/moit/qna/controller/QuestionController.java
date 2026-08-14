@@ -2,330 +2,272 @@ package com.moit.qna.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.moit.meetup.dto.MeetupDto;
-import com.moit.meetup.service.MeetupService;
 import com.moit.member.dto.UserDto;
-import com.moit.qna.dto.AnswerDto;
-import com.moit.qna.dto.QuestionDto;
+import com.moit.qna.dto.AnswerDto.AnswerRequestDto;
+import com.moit.qna.dto.AnswerDto.SatisfactionRequestDto;
+import com.moit.qna.dto.QuestionDto.QuestionAdminResponseDto;
+import com.moit.qna.dto.QuestionDto.QuestionMyResponseDto;
+import com.moit.qna.dto.QuestionDto.QuestionRequestDto;
+import com.moit.qna.dto.QuestionDto.QuestionResponseDto;
 import com.moit.qna.service.AnswerService;
 import com.moit.qna.service.QuestionAiAnalysisService;
 import com.moit.qna.service.QuestionService;
 import com.moit.security.CustomUserDetails;
 
-import jakarta.servlet.http.HttpSession;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 /**
 문의 화면 요청 처리 Controller
 */
-@Controller
-@RequestMapping("/questions")
+@Tag(name = "Question Api", description = "문의글 관련 API")
+@RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/questions")
 public class QuestionController {
-
     private final QuestionService questionService;
     private final AnswerService answerService;
-    private final MeetupService meetupService;
-    //private final MeetupServiceImpl1 meetupService;
     private final QuestionAiAnalysisService questionAiAnalysisService;
     
+    // 답변 만족도 평가
+    @Operation(summary = "답변 만족도 평가", description = "답변에 대한 만족도 점수와 의견을 등록합니다.")
+    @PatchMapping("/answer/{answerId}/satisfaction")
+    public ResponseEntity<Void> updateSatisfaction(
+            @PathVariable Long answerId,
+            @Valid @RequestBody SatisfactionRequestDto dto,
+            Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long memberId = userDetails.getUser().getMemberId();
+        dto.setAnswerId(answerId);
+        answerService.updateSatisfaction(dto, memberId);
+        return ResponseEntity.noContent().build();
+    }
+    
     //관리자용 선택 삭제
-    @PostMapping("/deleteSelected")
-    @ResponseBody
-    public void deleteSelected(@RequestBody List<Long> ids){
+    @Operation(summary = "관리자용 선택 삭제", description = "관리자가 글을 삭제합니다.")
+    @DeleteMapping("/deleteSelected")
+    public ResponseEntity<Void> deleteSelected(@RequestBody List<Long> ids){
         questionService.deleteSelected(ids);
+        return ResponseEntity.noContent().build();
     }
     
     // AI 필터 정상 처리
-    @PostMapping("/ai/normal")
-    @ResponseBody
-    public void changeAiNormal(@RequestBody List<Integer> ids){
+    @Operation(summary = "AI 필터 정상 처리", description = "AI 필터 검토 -> 정상 처리")
+    @PatchMapping("/ai/normal")
+    public ResponseEntity<Void> changeToNormal(@RequestBody List<Long> ids){
         questionAiAnalysisService.changeToNormal(ids);
+        return ResponseEntity.noContent().build();
     }
     
     // 내 문의 목록
+    @Operation(summary = "내 문의 목록 조회", description = "로그인한 사용자의 문의 목록을 조회합니다.")
     @GetMapping("/myQuestion")
-    public String myQuestion(@RequestParam(defaultValue="1") int page,
+    public ResponseEntity<QuestionMyResponseDto> myQuestion(
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String keyword,
-            HttpSession session,Model model, Authentication authentication) {
-    	//MemberDto loginUser = (MemberDto)session.getAttribute("loginUser");
-               
-		String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		} 
-    	
-        //int memberId = 1; // 임시 나중에 삭제
-        int pageSize = 10;
-        int start = (page - 1) * pageSize;
-        List<QuestionDto> list = questionService.getMyQuestions(
-        		memberId, start, pageSize, type, keyword);
-        int totalCnt = questionService.getMyQuestionCnt(
-        		memberId, type, keyword);
-        int totalPage = (int)Math.ceil((double)totalCnt / pageSize);
-
-        int pageBlock = 10;   // 한 번에 보여줄 페이지 번호 개수
-        int startPage = ((page - 1) / pageBlock) * pageBlock + 1;
-        int endPage = startPage + pageBlock - 1;
-        if (endPage > totalPage) { endPage = totalPage; }
-        
-        model.addAttribute("dto" , user); 
-        model.addAttribute("list", list);
-        model.addAttribute("page", page);
-        model.addAttribute("totalPage", totalPage);
-        model.addAttribute("totalCnt", totalCnt);
-        
-        model.addAttribute("startPage", startPage);
-        model.addAttribute("endPage", endPage);
-        
-        model.addAttribute("type", type);
-        model.addAttribute("keyword", keyword);
-
-        return "user/qna/questionList";
-    }
-    // 관리자가 보는 전체 문의 목록
-    @GetMapping("/admin")
-    public String admin(
-            @RequestParam(defaultValue="1") int page,
-            @RequestParam(required=false) String type,
-            @RequestParam(required=false) String keyword,
-            @RequestParam(required=false) String status,
-            @RequestParam(required=false) String startDate,
-            @RequestParam(required=false) String endDate,
-            Model model,
             Authentication authentication) {
-    	
-        UserDto user = null;
-        if (authentication != null &&
-            authentication.getPrincipal() instanceof CustomUserDetails users) {
-            user = users.getUser();
-        }
-        model.addAttribute("dto", user);
-    	
+        CustomUserDetails users = (CustomUserDetails) authentication.getPrincipal();
+        Long memberId = users.getUser().getMemberId();
+
         int pageSize = 10;
         int start = (page - 1) * pageSize;
-        List<QuestionDto> list = questionService.getList(start, pageSize, type, keyword, status, startDate, endDate );
-
-        int totalCnt = questionService.getSearchCnt(type, keyword, status, startDate, endDate);
-        int totalPage = (int)Math.ceil((double)totalCnt / pageSize);
-
+        List<QuestionResponseDto> list =
+                questionService.getMyQuestions(
+                        memberId,
+                        start,
+                        pageSize,
+                        type,
+                        keyword
+                );
+        int totalCnt = questionService.getMyQuestionCnt( memberId, type, keyword );
+        int totalPage = (int) Math.ceil((double) totalCnt / pageSize);
         int pageBlock = 10;
         int startPage = ((page - 1) / pageBlock) * pageBlock + 1;
         int endPage = startPage + pageBlock - 1;
+        if (endPage > totalPage) { endPage = totalPage; }
 
-        if(endPage > totalPage){
-            endPage = totalPage;
-        }
-        
-        model.addAttribute("list", list);
-        model.addAttribute("page", page);
-        model.addAttribute("totalPage", totalPage);
-        model.addAttribute("startPage", startPage);
-        model.addAttribute("endPage", endPage);
-        model.addAttribute("totalCnt", totalCnt);
-        
-        model.addAttribute("type", type);
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("status", status);
-        model.addAttribute("startDate", startDate);
-        model.addAttribute("endDate", endDate);
+        QuestionMyResponseDto response = new QuestionMyResponseDto();
 
-        model.addAttribute("searchCnt", totalCnt);
-        
-        // 전체 문의 수
-        model.addAttribute("allCnt", questionService.getAllCnt());
-        // 답변 대기 문의 수
-        model.addAttribute("pendingCnt", questionService.getPendingCnt());
-        // 답변 완료 문의 수
-        model.addAttribute("answeredCnt", questionService.getAnsweredCnt());
-        // 오늘 등록된 문의 수
-        model.addAttribute("todayCnt", questionService.getTodayCnt());
-        return "admin/qna/adminQuestionList";
+        response.setList(list);
+        response.setPage(page);
+        response.setTotalPage(totalPage);
+        response.setTotalCnt(totalCnt);
+        response.setStartPage(startPage);
+        response.setEndPage(endPage);
+        response.setType(type);
+        response.setKeyword(keyword);
+
+        return ResponseEntity.ok(response);
     }
     
-    // 모임글 문의 등록
-    @GetMapping("/write")
-    public String write(
-    		@RequestParam(required = false) Integer meetupId,
-            @RequestParam(defaultValue = "MEETUP") String category,
-            Model model) {
-        model.addAttribute("category", category);
-        if(meetupId != null){
-            model.addAttribute("meetupId", meetupId);
-        }
-        return "user/qna/questionWrite";
+    // 관리자가 보는 전체 문의 목록
+    @Operation(summary = "관리자 문의 목록 조회", description = "관리자가 전체 문의 목록을 조회합니다.")
+    @GetMapping("/admin")
+    public ResponseEntity<QuestionAdminResponseDto> admin(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        int pageSize = 10;
+        int start = (page - 1) * pageSize;
+
+        List<QuestionResponseDto> list = questionService.getList( start, pageSize, type, keyword, status, startDate, endDate );
+        int totalCnt = questionService.getSearchCnt( type, keyword, status, startDate, endDate );
+        int totalPage = (int) Math.ceil((double) totalCnt / pageSize);
+        int pageBlock = 10;
+        int startPage = ((page - 1) / pageBlock) * pageBlock + 1;
+        int endPage = startPage + pageBlock - 1;
+        if (endPage > totalPage) { endPage = totalPage; }
+        int allCnt = questionService.getAllCnt();
+        int pendingCnt = questionService.getPendingCnt();
+        int answeredCnt = questionService.getAnsweredCnt();
+        int todayCnt = questionService.getTodayCnt();
+
+        QuestionAdminResponseDto response = new QuestionAdminResponseDto();
+
+        response.setList(list);
+        response.setPage(page);
+        response.setPageSize(pageSize);
+        response.setTotalCnt(totalCnt);
+        response.setTotalPage(totalPage);
+        response.setStartPage(startPage);
+        response.setEndPage(endPage);
+
+        response.setType(type);
+        response.setKeyword(keyword);
+        response.setStatus(status);
+        response.setStartDate(startDate);
+        response.setEndDate(endDate);
+
+        response.setAllCnt(allCnt);
+        response.setPendingCnt(pendingCnt);
+        response.setAnsweredCnt(answeredCnt);
+        response.setTodayCnt(todayCnt);
+
+        return ResponseEntity.ok(response);
     }
-   
-    @PostMapping("/write")
-    public String writePost(QuestionDto dto, RedirectAttributes rttr, Authentication authentication) {
-		String loginId     = null, provider = null;
-		UserDto user=null;
-		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
-		//1. local
-		if(   principal   instanceof CustomUserDetails ) {
-			CustomUserDetails  users = (CustomUserDetails)principal;
-			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
-			memberId = users.getUser().getMemberId();
-		} 
-		dto.setMemberId(memberId);
-		// 관리자 문의일 경우 parentId = 0
-		if(dto.getParentId() == null){
-		    dto.setParentId(0);
-		}
+    
+    // 모임글 문의 등록   
+    @Operation(summary = "문의 등록", description = "문의를 등록합니다.")
+    @PostMapping
+    public ResponseEntity<Void> create(@RequestBody QuestionRequestDto dto, Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long memberId = userDetails.getUser().getMemberId();
+        dto.setMemberId(memberId);
+        // 관리자 문의일 경우 parentId = 0
+        if (dto.getParentId() == null) { dto.setParentId(0L); }
         questionService.register(dto);
-        rttr.addFlashAttribute("msg", "문의가 등록되었습니다.");
-        return "redirect:/questions/" + dto.getQuestionId();
+        return ResponseEntity.status(HttpStatus.CREATED).build(); // 성공 응답 201
     }
     
     // 문의 상세 화면 + 답변 조회 + 버튼 권한
-    @GetMapping("/{id}")
-    public String detail(@PathVariable int id, HttpSession session, Model model,  RedirectAttributes rttr, Authentication authentication) {
-        QuestionDto data = questionService.getDetail(id);
-
-        boolean canAnswer = canAnswer(data, session, authentication);
-
-        model.addAttribute("data", data);
-        model.addAttribute("canAnswer", canAnswer);
-
-        return "user/qna/questionDetail";
+    @Operation(summary = "문의 상세 조회", description = "문의 상세 정보를 조회합니다.")
+    @GetMapping("/{questionId}")
+    public ResponseEntity<QuestionResponseDto> detail( @PathVariable Long questionId) {
+    	QuestionResponseDto data = questionService.getDetail(questionId);
+        return ResponseEntity.ok(data); // 성공 응답 200
     }
 
     // 문의 수정 화면 이동
-    @GetMapping("/edit/{id}")
-    public String editForm(@PathVariable int id, HttpSession session, Model model, RedirectAttributes rttr, Authentication authentication) {
-        QuestionDto question = questionService.getDetail(id);
-        //System.out.println(question);
-        if(!canEdit(question, session, authentication)){
-            rttr.addFlashAttribute("msg", "작성자 또는 관리자만 수정할 수 있습니다.");
-            return "redirect:/questions/" + id;
+    @Operation(summary = "문의 수정", description = "문의를 수정합니다.")
+    @PutMapping("/{questionId}")
+    public ResponseEntity<Void> edit(@PathVariable Long questionId, @RequestBody QuestionRequestDto dto, Authentication authentication) {
+        QuestionResponseDto question = questionService.getDetail(questionId);
+        // 작성자 또는 관리자 권한 확인
+        if (!canEdit(question, authentication)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        model.addAttribute("data", question);
-        return "user/qna/questionEdit";
-    }
-
-    @PostMapping("/edit")
-    public String edit(QuestionDto dto, HttpSession session, RedirectAttributes rttr, Authentication authentication) {
-        QuestionDto question = questionService.getDetail(dto.getQuestionId());
-
-        if(!canEdit(question, session,authentication)){
-            rttr.addFlashAttribute("msg", "작성자 또는 관리자만 수정할 수 있습니다.");
-            return "redirect:/questions/" + dto.getQuestionId();
-        }
+        dto.setQuestionId(questionId);
         questionService.updateQuestion(dto);
-        return "redirect:/questions/" + dto.getQuestionId();
+        return ResponseEntity.noContent().build(); // 성공 응답 204
     }
 
     // 문의 삭제 처리
-    @GetMapping("/delete/{id}")
-    public String delete(@PathVariable int id, HttpSession session, RedirectAttributes rttr, Authentication authentication) {
-	    QuestionDto question =questionService.getDetail(id);
-	    
-	    if(!canEdit(question, session, authentication)){
-	        rttr.addFlashAttribute("msg", "작성자 또는 관리자만 삭제할 수 있습니다.");
-	        return "redirect:/questions/" + id;
+	@Operation(summary = "문의 삭제", description = "문의를 삭제합니다.")
+    @DeleteMapping("/delete/{questionId}")
+    public ResponseEntity<Void> delete(@PathVariable Long questionId, Authentication authentication) {
+		QuestionResponseDto question = questionService.getDetail(questionId);
+		// 작성자 또는 관리자 권한 확인
+		if (!canEdit(question, authentication)) {
+	        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 	    }
-	    questionService.deleteQuestion(id);
-	    return "redirect:/questions/myQuestion";
+		questionService.deleteQuestion(questionId);
+	    return ResponseEntity.noContent().build(); // 성공 응답 204 
 	}
 
-    // 답변 등록 + 문의 상태 변경 (관리자 전용)
+    // 답변 등록 + 문의 상태 변경
+	@Operation(summary = "답변 등록", description = "답변을 등록합니다.")
     @PostMapping("/answer")
-    public String answerWrite(AnswerDto dto, HttpSession session, RedirectAttributes rttr, Authentication authentication) {
-        QuestionDto question = questionService.getDetail(dto.getQuestionId());
-        
-        if(!canAnswer(question, session, authentication)){
-            rttr.addFlashAttribute("msg", "모임장 또는 관리자만 답변할 수 있습니다.");
-            return "redirect:/questions/" + dto.getQuestionId();
+    public ResponseEntity<Void> answerWrite(@RequestBody AnswerRequestDto dto,  Authentication authentication) {
+        QuestionResponseDto question = questionService.getDetail(dto.getQuestionId());
+        // 답변 작성 권한 확인
+        if(!canAnswer(question, authentication)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+        // 답변 등록 및 문의 상태 ANSWERED 변경
         answerService.register(dto);
-        return "redirect:/questions/" + dto.getQuestionId();
-    }
-    
-    // 답변 작성
-    @GetMapping("/answer/write/{id}")
-    public String answerForm(@PathVariable int id, HttpSession session, Model model,  RedirectAttributes rttr, Authentication authentication) {
-        QuestionDto question = questionService.getDetail(id);
-        if(!canAnswer(question, session, authentication)){
-            rttr.addFlashAttribute("msg", "모임장 또는 관리자만 답변할 수 있습니다.");
-            return "redirect:/questions/" + id;
-        }
-        model.addAttribute("data", question);
-        return "user/qna/answerWrite";
-    }
-    
-    // 답변 수정 화면
-    @GetMapping("/answer/edit/{questionId}")
-    public String answerEditForm(@PathVariable int questionId, HttpSession session, Model model, Authentication authentication) {
-        QuestionDto question = questionService.getDetail(questionId);
-        
-        if(!canAnswer(question, session, authentication)){
-            return "redirect:/questions/" + questionId;
-        }
-        model.addAttribute("data", question);
-        model.addAttribute("answer", answerService.getAnswer(questionId));
-        return "user/qna/answerEdit";
+        return ResponseEntity.status(HttpStatus.CREATED).build(); // 성공 응답 201
     }
 
     // 답변 수정 처리
-    @PostMapping("/answer/edit")
-    public String answerEdit(AnswerDto dto, HttpSession session, RedirectAttributes rttr, Authentication authentication) {
-        QuestionDto question = questionService.getDetail(dto.getQuestionId());
-        
-        if(!canAnswer(question, session, authentication)){
-        	rttr.addFlashAttribute("msg", "답변 수정 권한이 없습니다.");
-            return "redirect:/questions/" + dto.getQuestionId();
-        }
-        answerService.update(dto);
-        return "redirect:/questions/" + dto.getQuestionId();
-    }
+	@Operation(summary = "답변 수정", description = "답변을 수정합니다.")
+	@PutMapping("/answer/{answerId}")
+	public ResponseEntity<Void> answerEdit(@PathVariable Long answerId, @RequestBody AnswerRequestDto dto, Authentication authentication) {
+	    QuestionResponseDto question = questionService.getDetail(dto.getQuestionId());
+	    // 답변 수정 권한 확인
+	    if (!canAnswer(question, authentication)) {
+	        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+	    }
+	    dto.setAnswerId(answerId);
+	    answerService.update(dto);
+	    return ResponseEntity.noContent().build(); // 성공 응답 204
+	}
 
     // 답변 삭제
-    @GetMapping("/answer/delete/{answerId}/{questionId}")
-    public String answerDelete(@PathVariable int answerId,@PathVariable int questionId,
-    		HttpSession session, RedirectAttributes rttr, Authentication authentication) {
-        QuestionDto question = questionService.getDetail(questionId);
-        
-        if(!canAnswer(question, session, authentication)){
-            rttr.addFlashAttribute("msg", "답변 삭제 권한이 없습니다.");
-            return "redirect:/questions/" + questionId;
-        }
-        answerService.delete(answerId, questionId);
-        return "redirect:/questions/" + questionId;
-    }
+	@Operation(summary = "답변 삭제", description = "답변을 삭제합니다.")
+	@DeleteMapping("/{questionId}/answer/{answerId}")
+	public ResponseEntity<Void> answerDelete(
+	        @PathVariable Long answerId,
+	        @PathVariable Long questionId,
+	        Authentication authentication) {
+	    QuestionResponseDto question = questionService.getDetail(questionId);
+	    // 답변 삭제 권한 확인
+	    if (!canAnswer(question, authentication)) {
+	        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+	    }
+	    // 답변 삭제 및 문의 상태 PENDING 변경
+	    answerService.delete(answerId, questionId);
+	    return ResponseEntity.noContent().build(); // 성공 응답 204
+	}
 
     // 답변 권한 확인 메서드
-    private boolean canAnswer(QuestionDto question, HttpSession session, Authentication authentication){ // <- HttpSession session로 수정
-		String loginId     = null, provider = null;
+    private boolean canAnswer(QuestionResponseDto question, Authentication authentication){
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
+		Long memberId = null;
 		//1. local
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
 			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
 			memberId = users.getUser().getMemberId();
 		} 
 		if(user == null){
@@ -346,22 +288,20 @@ public class QuestionController {
     }
     
     // 문의 수정/삭제 권한 확인
-    private boolean canEdit(QuestionDto question, HttpSession session, Authentication authentication){
-		String loginId     = null, provider = null;
+    private boolean canEdit(QuestionResponseDto question, Authentication authentication){
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
-		Integer memberId = null;
+		Long memberId = null;
 		//1. local
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
 			user=users.getUser();
-			loginId    =  users.getUser().getLoginId();
 			memberId = users.getUser().getMemberId();
 		} 
 		if(user == null){
 		    return false;
 		}
-		if(question.getMemberId() == memberId){
+		if(question.getMemberId().equals(memberId)){
 		    return true;
 		}
 		if(user.getMemberTypeId() == 3 || user.getMemberTypeId() == 4){
@@ -370,3 +310,9 @@ public class QuestionController {
 		return false;
     }
 }
+
+//성공 응답
+//조회(GET)	200 OK
+//생성(POST)	201 Created
+//수정(PUT/PATCH)	200 OK 또는 204 No Content(응답데이터없을때)
+//삭제(DELETE)	204 No Content
