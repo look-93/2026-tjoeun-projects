@@ -3,5 +3,5 @@ import axios from 'axios';
 import {} from '../reducers/authReducer';
 
 export default function* authSaga(){
-    yield all();
+    // yield all();
 }
