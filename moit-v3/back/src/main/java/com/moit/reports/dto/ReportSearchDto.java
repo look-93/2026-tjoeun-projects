@@ -11,14 +11,15 @@ import lombok.Setter;
 
 @Getter @Setter
 public class ReportSearchDto {
-	private ReportStatus status;	// 상태
-	private Character deleteYn;		// 상태 (논리삭제)
+	private ReportStatus status;		// 상태
+//	private Character deleteYn;			// 상태 (논리삭제)
+    private Character deleteYn = 'N';	// 삭제되지 않은 신고 조회
 	
-	private TargetType targetType;	// 대상
+	private TargetType targetType;		// 대상
 	
-	private Long memberId;			// 작성자
-	private ReasonCode reasonCode;	// 신고사유
-	private LocalDate createdAt;	// 날짜
+	private String memberNickname;		// 작성자(닉네임)
+	private ReasonCode reasonCode;		// 신고사유
+	private LocalDate createdAt;		// 날짜
 }
 
 // 관리자 검색 기능
