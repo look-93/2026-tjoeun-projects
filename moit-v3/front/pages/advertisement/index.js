@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import Header from '../../components/layout/Header';
-import Footer from '../../components/layout/Footer';
+import Header from '../../components/layout/UserHeader';
+import Footer from '../../components/layout/UserFooter';
 import AdvertisePageHeader from '../../components/layout/AdvertisePageHeader';
 
 import {

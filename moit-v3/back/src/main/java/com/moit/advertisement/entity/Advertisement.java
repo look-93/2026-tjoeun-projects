@@ -7,6 +7,7 @@ import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.AdStatus;
 import com.moit.advertisement.enums.ApprovalStatus;
 import com.moit.advertisement.enums.PaymentStatus;
+import com.moit.advertisement.enums.PaymentType;
 import com.moit.advertisement.enums.TargetGender;
 import com.moit.member.entity.Member;
 import com.moit.util.BaseEntity;
@@ -110,7 +111,6 @@ public class Advertisement extends BaseEntity{
     @Column(name = "APPROVAL_STATUS", length = 20, nullable = false)
     private ApprovalStatus approvalStatus;
 
-
     // 승인한 관리자 회원 PK
     // Member Entity 완성 후 @ManyToOne으로 변경
     @ManyToOne(fetch = FetchType.LAZY)
@@ -193,6 +193,13 @@ public class Advertisement extends BaseEntity{
     @Column(name = "PAYMENT_STATUS", length = 20, nullable = false)
     private PaymentStatus paymentStatus;
 
+	 // 현재 대기 중인 결제 유형
+	 // INITIAL = 최초 결제 대기
+	 // EXTENSION = 연장 결제 대기
+	 @Enumerated(EnumType.STRING)
+	 @Column(name = "PENDING_PAYMENT_TYPE", length = 20)
+	 private PaymentType pendingPaymentType;
+    
 
     // 광고 등급
     // GENERAL / PREMIUM
@@ -218,6 +225,11 @@ public class Advertisement extends BaseEntity{
         // 결제 상태 기본값
         if (this.paymentStatus == null) {
             this.paymentStatus = PaymentStatus.NONE;
+        }
+        
+        // 광고 타입 기본값
+        if (this.pendingPaymentType == null) {
+            this.pendingPaymentType = null;
         }
 
         // 광고 등급 기본값
@@ -313,8 +325,49 @@ public class Advertisement extends BaseEntity{
         this.startDatetime = start;
         this.endDatetime = end;
     }
+    
+    public void extendPeriod(int periodDays) {
 
+        if (periodDays <= 0) {
+            throw new IllegalArgumentException("연장 기간은 1일 이상이어야 합니다.");
+        }
 
+        this.endDatetime =
+                this.endDatetime.plusDays(periodDays);
+
+        this.paymentStatus = PaymentStatus.PAID;
+        this.status = AdStatus.OPEN;
+    }
+    
+    // 등록 결제 대기
+    public void waitForInitialPayment() {
+        this.paymentStatus = PaymentStatus.WAITING;
+        this.pendingPaymentType = PaymentType.INITIAL;
+    }
+
+    // 등록 결제 완료
+    public void completeInitialPayment() {
+        this.paymentStatus = PaymentStatus.PAID;
+        this.pendingPaymentType = null;
+    }
+    
+    // 연장 결제 대기
+    public void waitForExtensionPayment() {
+        this.paymentStatus = PaymentStatus.WAITING;
+        this.pendingPaymentType = PaymentType.EXTENSION;
+    }
+    
+    // 연장 결제 완료
+    public void completeExtensionPayment() {
+        this.paymentStatus = PaymentStatus.PAID;
+        this.pendingPaymentType = null;
+    }
+    
+    // 기간 연장
+    public void extendEndDatetime(int periodDays) {
+        this.endDatetime = this.endDatetime.plusDays(periodDays);
+    }
+    
     public void reject(String rejectReason) {
 
         this.approvalStatus =
