@@ -11,7 +11,7 @@ import lombok.Setter;
 
 @Getter @Setter
 public class ReportSearchDto {
-	private ReportStatus status;			// 상태
+	private ReportStatus status;	// 상태
 	private Character deleteYn;		// 상태 (논리삭제)
 	
 	private TargetType targetType;	// 대상

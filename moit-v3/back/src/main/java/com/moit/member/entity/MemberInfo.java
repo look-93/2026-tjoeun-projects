@@ -2,6 +2,8 @@ package com.moit.member.entity;
 
 import java.time.LocalDate;
 
+import com.moit.reports.entity.MemberReportStatus;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -62,8 +64,8 @@ public class MemberInfo {
 	        trustScore = 100;
 	}
 	
-//	@ManyToOne(fetch = FetchType.LAZY)
-//	@JoinColumn(name = "report_status_id", nullable = false)
-//	private MemberReportStatus reportStatus;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "report_status_id", nullable = false)
+	private MemberReportStatus reportStatus;
 	
 }

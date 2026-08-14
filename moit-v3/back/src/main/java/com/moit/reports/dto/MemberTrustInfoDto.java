@@ -14,7 +14,6 @@ public class MemberTrustInfoDto {	// 회원 신고 신뢰도/뱃지 조회 DTO
 	
 	// MEMBER_REPORT_STATUS
 	private Long reportStatusId;	//	1		/	2		/	3
-	private String statusCode;		// 'ACTIVE' / 'WARNING' / 'SUSPENDED'
-	private String statusName;		// '정상'		/ '주의'		/ '정지'
-									// 클린한 유저 / 선 넘은 어그로 유저 / 진실의 방으로...
+	private String statusCode;		// 'ACTIVE' / 'WARNING' / 'DANGER'
+	private String statusName;		// '정상'		/ '주의'		/ '위험'
 }

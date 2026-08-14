@@ -39,6 +39,7 @@ public class JwtTokenProvider {
 		return Jwts.builder()
 				.setSubject(String.valueOf(memberId))
 				.claim("loginId", loginId)
+				.claim("type", "ACCESS")
 				.setIssuedAt(now)
 				.setExpiration(expiry)
 				.signWith(secretKey)
@@ -55,6 +56,7 @@ public class JwtTokenProvider {
 		
 		return Jwts.builder()
 				.setSubject(String.valueOf(memberId))
+				.claim("type", "REFRESH")
 				.setIssuedAt(now)
 				.setExpiration(expiry)
 				.signWith(secretKey)
@@ -74,6 +76,17 @@ public class JwtTokenProvider {
 		return Long.valueOf(subject);
 	}
 	
+	// JWT 타입 확인
+	public String getTokenType(String token) {
+
+	    return Jwts.parserBuilder()
+	            .setSigningKey(secretKey)
+	            .build()
+	            .parseClaimsJws(token)
+	            .getBody()
+	            .get("type", String.class);
+	}
+	
 	// JWT 검증
 	public boolean validateToken(String token) {
 		
@@ -88,6 +101,11 @@ public class JwtTokenProvider {
 			return false;
 		}
 		
+	}
+	
+	// Refresh Token 만료시간 반환
+	public long getRefreshTokenExpiration() {
+	    return refreshTokenExpSeconds * 1000;
 	}
 	
 	
