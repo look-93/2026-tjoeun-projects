@@ -26,7 +26,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.moit.member.dto.UserDto;
 import com.moit.member.repository.ReportStatusRepository;
-import com.moit.reports.api.ApiEmail;
 import com.moit.reports.api.ApiOpenAi;
 import com.moit.reports.dto.ReportsDto;
 import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
@@ -63,6 +62,10 @@ public class ReportController {
     }
 	
 	// 사용자 로그인 헬퍼
+//	private Long getLoginMemberId(Authentication authentication) {
+//		Integer id = (Integer) session.getAttribute("loginMemberId");
+//		return (id != null) ? id : 1; // 일반회원 테스트용
+//	}
 //	private Integer getLoginMemberId(HttpSession session) {
 //		Integer id = (Integer) session.getAttribute("loginMemberId");
 //		return (id != null) ? id : 1; // 일반회원 테스트용
@@ -87,8 +90,6 @@ public class ReportController {
 		// 로그인한 memberId 꺼내오기
 //		Long memberId = authUserJwtService.getCurrentMemberId(authentication);
 		
-		// 중복 검사 코드 추가
-		
 		return ResponseEntity.ok( reportsService.createUserReport(memberId, requestDto));
 	};
 	
@@ -106,7 +107,9 @@ public class ReportController {
 		// 로그인한 memberId 꺼내오기
 //		Long memberId =  authUserJwtService.getCurrentMemberId(authentication);
 		
-		return ResponseEntity.ok( reportsService.updateUserReport(reportId, memberId, requestDto));
+		ReportResponseDto response = reportsService.updateUserReport(reportId, memberId, requestDto);
+		
+		return ResponseEntity.ok(response);
 	};
 	
 	// 신고 삭제
@@ -161,10 +164,10 @@ public class ReportController {
 	// 관리자 신고 수정
 	@Operation(summary = "관리자 신고 처리 (승인/반려)", description = "")
 	@PatchMapping(value = "/{reportId}")
-	public ResponseEntity<ReportResponseDto> updateAdminReport(
+	public ResponseEntity<Long> updateAdminReport(
 			Authentication authentication,
 			@Parameter(description = "처리할 신고글 ID") @PathVariable(name = "reportId") Long reportId,
-			@RequestBody ReportProcessDto processDto ) {
+			@RequestParam ReportProcessDto processDto ) {
 		
 		// 관리자 로그인 하드코딩
 		Long MemberId = 99L;
@@ -172,7 +175,9 @@ public class ReportController {
 		// 로그인한 adminMemberId 꺼내오기
 //		Long adminMemberId =  authUserJwtService.getCurrentMemberId(authentication);
 		
-		return ResponseEntity.ok( reportsService.updateProcessReport(reportId, MemberId, processDto));
+		reportsService.updateAdminReport(reportId, MemberId, processDto);
+		
+		return ResponseEntity.ok(reportId);
 	};
 	
 	// 신고 삭제
@@ -180,7 +185,8 @@ public class ReportController {
 	@DeleteMapping("/{reportId}")
 	public ResponseEntity<Long> deleteAdminReport(
 			Authentication	authentication,
-			@PathVariable("reportId") Long reportId ) {
+			@PathVariable("reportId") Long reportId,
+			@RequestParam("processReason") String processReason ) {
 		
 		// 로그인 하드코딩
 		Long adminMemberId = 99L;
@@ -188,7 +194,7 @@ public class ReportController {
 		// 로그인한 adminMemberId 꺼내오기
 //		Long adminMemberId = authUserJwtService.getCurrentMemberId(authentication);
 		
-		reportsService.deleteAdminReport(reportId);
+		reportsService.deleteAdminReport(reportId, adminMemberId, processReason);
 		return ResponseEntity.ok(reportId);
 	}
 	

@@ -14,7 +14,4 @@ public interface MemberReportStatusRepository extends JpaRepository<MemberReport
 
 	// 상태 이름 조회		// '정상'		/ '주의'		/ '정지'
 	Optional<MemberReportStatus> findByStatusName( String statusCode );
-	
-	// 상태 코드 존재 여부 확인
-//	boolean existsByStatusCode(String statusCode);
 }
