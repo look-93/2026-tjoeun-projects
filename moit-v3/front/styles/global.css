@@ -45,7 +45,7 @@ a {
 .moit-logo {
   font-size: 28px;
   font-weight: 800;
-  color: #4a7dff;;
+  color: #4a7dff;
   letter-spacing: -1px;
   text-decoration: none;
   cursor: pointer;
@@ -185,7 +185,6 @@ a {
 }
 /* UserLayout */
 
-
 /* =========================
    관리자 Layout
 ========================= */
@@ -273,7 +272,7 @@ a {
    관리자 통계 카드
 ========================= */
 
-.admin-stat-card { 
+.admin-stat-card {
   background: #fff;
 
   border: none;
@@ -296,7 +295,7 @@ a {
   background: #4a7dff;
   color: #fff;
   font-size: 13px;
-  cursor: pointer;  
+  cursor: pointer;
 }
 
 .admin-list-button:hover {
@@ -329,7 +328,7 @@ a {
   border-radius: 6px !important;
 }
 
-.admin-search-input { 
+.admin-search-input {
   border: 1px solid #ddd;
   border-radius: 6px;
   outline: none;
@@ -338,7 +337,6 @@ a {
 .admin-search-input:focus {
   border-color: #4a7dff;
 }
-
 
 .admin-search-button {
   border-radius: 6px;
@@ -362,5 +360,84 @@ a {
 
   background: #fff;
   border-radius: 8px;
+  box-sizing: border-box;
+}
+
+/* =========================
+   MY PAGE LAYOUT
+========================= */
+
+.mypage-body {
+  padding: 20px 60px 40px;
+  gap: 20px;
+  background: #f5f5f5;
+}
+
+/* =========================
+   MY PAGE SIDEBAR
+========================= */
+
+.mypage-sidebar {
+  flex: 0 0 220px !important;
+  max-width: 220px !important;
+  min-width: 220px !important;
+  width: 220px !important;
+
+  background: #fff !important;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+/* =========================
+   MY PAGE MENU
+========================= */
+
+.mypage-sidebar .ant-menu {
+  border-inline-end: none !important;
+  padding: 10px 0;
+}
+
+.mypage-sidebar .ant-menu-item {
+  height: 44px;
+  line-height: 44px;
+
+  margin: 4px 10px;
+  width: calc(100% - 20px);
+
+  border-radius: 8px;
+
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.mypage-sidebar .ant-menu-item-selected {
+  font-weight: 600;
+}
+
+/* =========================
+   MY PAGE CONTENT
+========================= */
+
+.mypage-body .moit-content {
+  min-height: 600px;
+  padding: 30px;
+
+  background: #fff;
+  border-radius: 15px;
+
+  box-sizing: border-box;
+}
+
+/* =========================
+   MY PAGE PROFILE HEADER
+========================= */
+
+.mypage-profile-card {
+  margin: 20px 60px 0;
+  padding: 20px 30px;
+
+  background: #fff;
+  border-radius: 15px;
+
   box-sizing: border-box;
 }
