@@ -21,6 +21,9 @@ import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
 import com.moit.reports.dto.ReportsDto.ReportProcessDto;
 import com.moit.reports.dto.ReportsDto.ReportRequestDto;
 import com.moit.reports.dto.ReportsDto.ReportResponseDto;
+import com.moit.reports.enums.ReasonCode;
+import com.moit.reports.enums.ReportStatus;
+import com.moit.reports.enums.TargetType;
 import com.moit.reports.service.ReportsService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -152,7 +155,7 @@ public class ReportController {
 	public ResponseEntity<Long> updateAdminReport(
 			Authentication authentication,
 			@Parameter(description = "처리할 신고글 ID") @PathVariable(name = "reportId") Long reportId,
-			@RequestParam ReportProcessDto processDto ) {
+			@ModelAttribute ReportProcessDto processDto ) {
 		
 		// 관리자 로그인 하드코딩
 		Long MemberId = 99L;
@@ -196,29 +199,51 @@ public class ReportController {
 		// 로그인한 adminMemberId 꺼내오기
 //		Long adminMemberId = authUserJwtService.getCurrentMemberId(authentication);
 		
+		searchDto.setTargetType(null);
+		searchDto.setStatus(null);
+		searchDto.setDeleteYn(null);
+		searchDto.setMemberNickname(null);
+		searchDto.setReasonCode(null);
 		
-		// 검색 기능 추가 ReportSearchDto
+		// 필터(버튼) 기능
+		String filter = searchDto.getFilter();
+		// 서치(키워드) 기능
+		String search = searchDto.getSearch();
+		String keyword = searchDto.getKeyword();
+		
+		// 전체
+		if ("ALL".equals(filter) || filter == null || filter.isEmpty() || filter.isBlank()) {
+			searchDto.setDeleteYn('N');
+		}
 		// 신고 상태
-		if (searchDto.getStatus() != null) {
-			
+		if ("MEETUP".equals(filter)) {
+			searchDto.setTargetType(TargetType.MEETUP);
+			searchDto.setDeleteYn('N');
+		}
+		if ("REVIEW".equals(filter)) {
+			searchDto.setTargetType(TargetType.REVIEW);
+			searchDto.setDeleteYn('N');
+		}
+		// 처리 상태
+		if ("PENDING".equals(filter)) {
+			searchDto.setStatus(ReportStatus.PENDING);
+			searchDto.setDeleteYn('N');
 		}
 		// 삭제 여부
-		if (searchDto.getDeleteYn() != null) {
-			
+		if ("DELETE".equals(filter)) {
+			searchDto.setDeleteYn('Y');
 		}
-		// 대상 유형
-		if (searchDto.getTargetType() != null) {
-			
+
+		if (keyword != null && !keyword.isBlank()) {
+			// 작성자(닉네임)
+			if ("MEMBER_NICKNAME".equals(search) ) {
+				searchDto.setMemberNickname(keyword.trim());
+			}
+			// 신고 사유
+			if ("REASONCODE".equals(search) ) {
+				searchDto.setReasonCode( ReasonCode.valueOf(keyword.trim().toUpperCase()) );
+			}
 		}
-		// 작성자(닉네임)
-		if (searchDto.getMemberNickname() != null) {
-			
-		}
-		// 신고 사유
-		if (searchDto.getReasonCode() != null) {
-			
-		}
-		
 		ReportListResponseDto response = reportsService.getAdminReports(searchDto, pageable);
 		return ResponseEntity.ok(response);
 	}

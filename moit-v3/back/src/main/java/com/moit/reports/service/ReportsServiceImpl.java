@@ -316,6 +316,8 @@ public class ReportsServiceImpl implements ReportsService {
 	// 관리자 신고 목록 조회 + 검색 + 페이징
 	@Override
 	public ReportListResponseDto getAdminReports(ReportSearchDto searchDto, Pageable pageable) {
+		Pageable pageRequest = PageRequest.of( pageable.getPageNumber(), pageable.getPageSize() );
+		
 //		@Param(value="status") ReportStatus status,
 //		@Param(value="deleteYn") Character deleteYn,
 //		@Param(value="targetType") TargetType targetType,
@@ -327,17 +329,17 @@ public class ReportsServiceImpl implements ReportsService {
 				searchDto.getTargetType(),
 				searchDto.getMemberNickname(),
 				searchDto.getReasonCode(),
-				pageable
+				pageRequest
 		);
 		
 		// 조회된 신고 Entity 목록을 ResponseDto 목록으로 변환
-		List<ReportResponseDto> response = page.getContent()
+		List<ReportResponseDto> report = page.getContent()
 				.stream()
 				.map(ReportResponseDto::from)
 				.toList();
 		
 		ReportListResponseDto responseDto = new ReportListResponseDto();
-		responseDto.setReports(response);	// 신고 목록
+		responseDto.setReports(report);	// 신고 목록
 		responseDto.setTotalCount(page.getTotalElements());		// 전체 신고 개수
 		responseDto.setTotalPage((long) page.getTotalPages());	// 전체 페이지 수 (20/10 = 2...)
 		
