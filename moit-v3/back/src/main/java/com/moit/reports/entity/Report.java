@@ -73,13 +73,13 @@ public class Report extends BaseEntity {
 		this.status = ReportStatus.PENDING;
 	}
 	
-	// 신고 사유 코드 및 내용 수정
+	// 사용자 신고 사유 코드 및 내용 수정
 	public void updateReason(ReasonCode reasonCode, String reasonDetail) {
         this.reasonCode = reasonCode;
         this.reasonDetail = reasonDetail;
     }
 	
-	// 상태 변경
+	// 관리자 (승인/반려) 처리 상태 변경
     public void changeStatus(ReportStatus status) { this.status = status; }
     
     @OneToMany( mappedBy = "report")
