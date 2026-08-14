@@ -34,7 +34,7 @@ a {
 .moit-header {
   height: 80px;
   padding: 0 60px;
-  background: #fff;
+  background: #fafafa;
   border-bottom: 1px solid #eee;
 }
 
@@ -45,8 +45,9 @@ a {
 .moit-logo {
   font-size: 28px;
   font-weight: 800;
-  color: #222;
+  color: #4a7dff;;
   letter-spacing: -1px;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -183,3 +184,110 @@ a {
   font-size: 13px;
 }
 /* UserLayout */
+
+
+/* =========================
+   관리자 Layout
+========================= */
+
+.admin-layout {
+  min-height: 100vh;
+  background: #f4f7fc;
+}
+
+
+/* =========================
+   관리자 Header
+========================= */
+
+.admin-header {
+  margin: 20px;
+  border-radius: 15px;
+  background: #fff;
+}
+
+.admin-header .ant-card-body {
+  padding: 20px;
+}
+
+.admin-header-title {
+  margin: 0 !important;
+  font-size: 22px !important;
+  font-weight: 700;
+  color: #222;
+}
+
+.admin-header-user {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+}
+
+/* =========================
+   관리자 Sidebar
+========================= */
+
+.admin-sidebar {
+  min-height: 100vh;
+  background: #fff !important;
+  border-right: 1px solid #ddd;
+}
+
+.admin-logo {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 26px;
+  font-weight: 800;
+  color: #4a7dff;
+
+  border-bottom: 1px solid #eee;
+}
+
+.admin-menu {
+  border-right: none !important;
+  padding-top: 10px;
+}
+
+/* 메뉴 */
+
+.admin-menu .ant-menu-item {
+  height: 48px;
+  line-height: 48px;
+  margin: 4px 10px;
+  width: calc(100% - 20px);
+
+  border-radius: 8px;
+
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* 선택된 메뉴 */
+
+.admin-menu .ant-menu-item-selected {
+  background: #4a7dff !important;
+  color: #fff !important;
+}
+
+.admin-menu .ant-menu-item-selected::after {
+  display: none;
+}
+
+.admin-menu .ant-menu-item-selected .anticon {
+  color: #fff;
+}
+
+/* hover */
+
+.admin-menu .ant-menu-item:hover {
+  color: #4a7dff;
+  background: #edf3ff;
+}
+
+.admin-menu .ant-menu-item-selected:hover {
+  color: #fff !important;
+  background: #4a7dff !important;
+}
