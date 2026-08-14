@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -238,15 +239,16 @@ public class ReportsServiceImpl implements ReportsService {
 	    		.findById(memberId)
 				.orElseThrow(()-> new IllegalArgumentException("관리자 조회 오류! MemberId: " + memberId));
 	    
-		// 관리자 처리 감사 로그 저장
-		ReportAuditLog reportAuditLog = new ReportAuditLog(
-			report,
-			adminMember,
-			previousStatus,
-			changedStatus,
-			processDto.getProcessReason(),
-			trustScoreChange
+		// 관리자 처리 감사 로그 (상태) 저장
+		ReportAuditLog reportAuditLog = ReportAuditLog.statusChanged (
+				report,
+				adminMember,
+				previousStatus,
+				changedStatus,
+				processDto.getProcessReason(),
+				trustScoreChange
 		);
+		
 		reportAuditLogRepository.save(reportAuditLog);
 			
 		// 이메일 조회 및 전송
@@ -276,11 +278,6 @@ public class ReportsServiceImpl implements ReportsService {
 	    Report report = reportRepository
 	    		.findById(reportId)
 	            .orElseThrow(()-> new IllegalArgumentException("삭제할 신고를 조회할 수 없습니다.") );
-
-	    // 삭제 관리자 조회
-	    Member member = memberRepository
-	    		.findById(memberId)
-	    		.orElseThrow(()-> new IllegalArgumentException("관리자를 조회할 수 없습니다.") );
 	    
 	    if (processReason == null || processReason.isEmpty()) {
 	    	throw new IllegalArgumentException("삭제 사유를 입력해주세요.");
@@ -296,15 +293,13 @@ public class ReportsServiceImpl implements ReportsService {
 	    		.findById(memberId)
 				.orElseThrow(()-> new IllegalArgumentException("관리자 조회 오류! MemberId: " + memberId));
 	    
-		// 관리자 처리 감사 로그 저장
-//		ReportAuditLog reportAuditLog = new ReportAuditLog(
-//			report,
-//			adminMember,
-//			previousStatus,
-//			processReason,
-//			0
-//		);
-//		reportAuditLogRepository.save(reportAuditLog);
+		// 관리자 처리 감사 로그 (삭제) 저장
+		ReportAuditLog reportAuditLog = ReportAuditLog.deleted(
+				report,
+				adminMember,
+				processReason
+		);
+		reportAuditLogRepository.save(reportAuditLog);
 		
 		// 신고 작성자 이메일 조회 (신고 작성자 회원 = Report.member)
 	    String email = report.getMember().getEmail();
@@ -321,7 +316,18 @@ public class ReportsServiceImpl implements ReportsService {
 	// 관리자 신고 목록 조회 + 검색 + 페이징
 	@Override
 	public ReportListResponseDto getAdminReports(ReportSearchDto searchDto, Pageable pageable) {
-		Page<Report> page = reportRepository.findByAdminSearch('N', pageable);
+//		@Param(value="status") ReportStatus status,
+//		@Param(value="deleteYn") Character deleteYn,
+//		@Param(value="targetType") TargetType targetType,
+//		@Param(value="memberNickname") String memberNickname,
+//		@Param(value="reasonCode") ReasonCode reasonCode
+		Page<Report> page = reportRepository.findAdminReports(
+				searchDto.getStatus(),
+				searchDto.getDeleteYn(),
+				searchDto.getTargetType(),
+				searchDto.getMemberNickname(),
+				searchDto.getReasonCode()
+		);
 		
 		// 조회된 신고 Entity 목록을 ResponseDto 목록으로 변환
 		List<ReportResponseDto> response = page.getContent()
@@ -330,12 +336,9 @@ public class ReportsServiceImpl implements ReportsService {
 				.toList();
 		
 		ReportListResponseDto responseDto = new ReportListResponseDto();
-		// 신고 목록
-		responseDto.setReports(response);
-		// 전체 신고 개수					- long
-		responseDto.setTotalCount(page.getTotalElements());
-		// 전체 페이지 수 (20/10 = 2...)	- int
-		responseDto.setTotalPage((long) page.getTotalPages());
+		responseDto.setReports(response);	// 신고 목록
+		responseDto.setTotalCount(page.getTotalElements());		// 전체 신고 개수
+		responseDto.setTotalPage((long) page.getTotalPages());	// 전체 페이지 수 (20/10 = 2...)
 		
 		return responseDto;
 	}

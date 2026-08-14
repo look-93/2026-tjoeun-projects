@@ -10,13 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.moit.qna.dao.AnswerMapper;
-import com.moit.qna.dao.NotificationMapper;
-import com.moit.qna.dao.QuestionAiAnalysisMapper;
 import com.moit.qna.dao.QuestionMapper;
-import com.moit.qna.dto.AnswerDto;
-import com.moit.qna.dto.NotificationDto;
-import com.moit.qna.dto.QuestionDto;
+import com.moit.qna.dto.QuestionDto.QuestionResponseDto;
 
 @SpringBootTest
 public class QuestionMapperTest {
@@ -29,11 +24,11 @@ public class QuestionMapperTest {
         assertThat(questionMapper).isNotNull();
     }
 
-//    @Test
-//    @DisplayName("Question Mapper 조회 테스트")
-//    void questionMapperTest() {
-//        List<QuestionDto> list = questionMapper.findAll(new HashMap<>());
-//        assertThat(list).isNotNull();
-//    }
+    @Test
+    @DisplayName("Question Mapper 조회 테스트")
+    void questionMapperTest() {
+        List<QuestionResponseDto> list = questionMapper.findAll(new HashMap<>());
+        assertThat(list).isNotNull();
+    }
 
 }
