@@ -195,13 +195,18 @@ a {
   background: #f4f7fc;
 }
 
+/* 관리자 콘텐츠 */
+
+.admin-content {
+  padding: 20px;
+}
 
 /* =========================
    관리자 Header
 ========================= */
 
 .admin-header {
-  margin: 20px;
+  margin: 0 0 20px 0;
   border-radius: 15px;
   background: #fff;
 }
@@ -264,30 +269,98 @@ a {
   font-size: 15px;
   font-weight: 500;
 }
+/* =========================
+   관리자 통계 카드
+========================= */
 
-/* 선택된 메뉴 */
+.admin-stat-card { 
+  background: #fff;
 
-.admin-menu .ant-menu-item-selected {
-  background: #4a7dff !important;
-  color: #fff !important;
+  border: none;
+  border-radius: 15px;
+
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
 
-.admin-menu .ant-menu-item-selected::after {
-  display: none;
+/* =========================
+   관리자 목록 버튼
+========================= */
+.admin-list-tabs {
+  margin-top: 24px;
+  display: flex;
+  gap: 8px;
 }
 
-.admin-menu .ant-menu-item-selected .anticon {
+.admin-list-button {
+  border-radius: 8px;
+  background: #4a7dff;
   color: #fff;
+  font-size: 13px;
+  cursor: pointer;  
 }
 
-/* hover */
-
-.admin-menu .ant-menu-item:hover {
-  color: #4a7dff;
-  background: #edf3ff;
+.admin-list-button:hover {
+  background: #f7f9ff;
 }
 
-.admin-menu .ant-menu-item-selected:hover {
-  color: #fff !important;
-  background: #4a7dff !important;
+/* =========================
+   관리자 검색 영역
+========================= */
+
+.admin-search-box {
+  width: 100%;
+  margin-top: 16px;
+  padding: 20px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  background: #fff;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.admin-search-condition {
+  width: 100%;
+}
+
+.admin-search-condition .ant-select-selector {
+  border-radius: 6px !important;
+}
+
+.admin-search-input { 
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  outline: none;
+}
+
+.admin-search-input:focus {
+  border-color: #4a7dff;
+}
+
+
+.admin-search-button {
+  border-radius: 6px;
+  background: #4a7dff;
+  color: #fff;
+  cursor: pointer;
+}
+
+.admin-search-button:hover {
+  background: #f7f9ff;
+}
+
+/* =========================
+   관리자 테이블
+========================= */
+
+.admin-table-box {
+  width: 100%;
+  margin-top: 16px;
+  padding: 20px;
+
+  background: #fff;
+  border-radius: 8px;
+  box-sizing: border-box;
 }

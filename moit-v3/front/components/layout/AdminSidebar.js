@@ -20,34 +20,34 @@ function AdminSidebar() {
     {
       key: '/admin/member',
       icon: <UserOutlined />,
-      label: <Link href="/admin/member">회원관리</Link>,
+      label: <Link href="/admin/member"><a style={{textDecoration:'none'}}>회원관리</a></Link>,
     },
     {
       key: '/admin/meetup',
       icon: <TeamOutlined />,
-      label: <Link href="/admin/meetup/list">모임관리</Link>,
+      label: <Link href="/admin/meetup"><a style={{textDecoration:'none'}}>모임관리</a></Link>,
     },
     {
-      key: '/questions/admin',
+      key: '/admin/questions',
       icon: <MessageOutlined />,
-      label: <Link href="/questions/admin">문의관리</Link>,
+      label: <Link href="/admin/questions"><a style={{textDecoration:'none'}}>문의관리</a></Link>,
     },
     {
       key: '/admin/review',
       icon: <StarOutlined />,
-      label: <Link href="/admin/review/list">후기관리</Link>,
+      label: <Link href="/admin/review"><a style={{textDecoration:'none'}}>후기관리</a></Link>,
     },
     {
       key: '/admin/report',
       icon: <WarningOutlined />,
-      label: <Link href="/admin/report/adminList">신고관리</Link>,
+      label: <Link href="/admin/report"><a style={{textDecoration:'none'}}>신고관리</a></Link>,
     },
     {
       key: '/admin/advertisement',
       icon: <NotificationOutlined />,
       label: (
-        <Link href="/admin/advertisement/manageList">
-          광고관리
+        <Link href="/admin/advertisement">
+          <a style={{textDecoration:'none'}}>광고관리</a>
         </Link>
       ),
     },
