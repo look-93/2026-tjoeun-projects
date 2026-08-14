@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.moit.qna.ai.OpenAiService;
 import com.moit.qna.ai.ProfanityFilter;
 import com.moit.qna.ai.dto.AiAnalysisResult;
-import com.moit.qna.dao.QuestionAiAnalysisMapper;
+import com.moit.qna.dao.QuestionMapper;
 import com.moit.qna.dto.QuestionAiAnalysisDto;
 
 import lombok.RequiredArgsConstructor;
@@ -16,25 +16,24 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class QuestionAiAnalysisService {
-
     private final OpenAiService openAiService;
-    private final QuestionAiAnalysisMapper questionAiAnalysisMapper;
+    private final QuestionMapper questionMapper;
     private final ProfanityFilter profanityFilter;
 
     @Transactional
     public void analyzeAndSave(Long questionId, String text) {
         QuestionAiAnalysisDto dto = new QuestionAiAnalysisDto();
         dto.setQuestionId(questionId);
-
-        // 1차 방어
+        
+        // 1차 필터
         if (profanityFilter.containsBadWord(text)) {
             dto.setAnalysisStatus("PENDING_REVIEW");
             dto.setAggressionScore(99);
-            questionAiAnalysisMapper.insert(dto);
+            questionMapper.insertAiAnalysis(dto);
             return;
         }
-
-        // 2차 방어
+        
+        // 2차 AI 분석
         try {
             AiAnalysisResult result = openAiService.analyze(text);
             dto.setAnalysisStatus(result.getAnalysis());
@@ -43,12 +42,12 @@ public class QuestionAiAnalysisService {
             dto.setAnalysisStatus("PENDING_REVIEW");
             dto.setAggressionScore(0);
         }
-        questionAiAnalysisMapper.insert(dto);
+        questionMapper.insertAiAnalysis(dto);
     }
-    //검토 상태변경
-    public void changeToNormal(List<Integer> ids){
-        for(Integer id : ids){
-            questionAiAnalysisMapper.changeToNormal(id);
+
+    // 검토 완료 처리
+    public void changeToNormal(List<Long> ids) {
+        for (Long id : ids) { questionMapper.changeToNormal(id);
         }
-    } 
+    }
 }

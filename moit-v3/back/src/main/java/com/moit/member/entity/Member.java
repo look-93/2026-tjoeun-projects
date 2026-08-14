@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.moit.qna.entity.Question;
-import com.moit.reports.entity.Report;
-import com.moit.reports.entity.ReportAuditLog;
+//import com.moit.reports.entity.Report;
+//import com.moit.reports.entity.ReportAuditLog;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -76,11 +76,11 @@ public class Member extends BaseEntity{
 	private List<Question> questions = new ArrayList<>();
 	
 	// 내가 작성한 신고
-    @OneToMany(mappedBy = "member")
-    private List<Report> reports = new ArrayList<>();
+//    @OneToMany(mappedBy = "member")
+//    private List<Report> reports = new ArrayList<>();
    
     // 관리자가 처리한 신고 이력 로그
-    @OneToMany(mappedBy = "adminMember")
-    private List<ReportAuditLog> reportAuditLogs = new ArrayList<>();
+//    @OneToMany(mappedBy = "admin")
+//    private List<ReportAuditLog> reportAuditLogs = new ArrayList<>();
 	
 }

@@ -8,18 +8,18 @@ public class AdvertisementChartDto {
 	private int totalAd;
 	private int totalImp;
 	private int totalClick;
-	private double avgCtr;
+	private Double avgCtr;
 	// 증감률 
-	private double impChange;
-	private double clickChange;
-	private double ctrChange;
+	private Double impChange;
+	private Double clickChange;
+	private Double ctrChange;
 	 // 일별 차트
 	private String statDate;
 	private int impressions;
 	private int clicks;
 	 // CTR TOP5
 	private String title;
-    private double ctr;
+    private Double ctr;
     //등급 비율
     private String adGrade;
     private int count;

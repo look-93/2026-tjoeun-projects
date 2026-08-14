@@ -1,35 +1,77 @@
 package com.moit.reports.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import com.moit.reports.dto.ReportsDto.ReportResponseDto;
+import com.moit.reports.entity.Report;
 import com.moit.reports.enums.ReasonCode;
-import com.moit.reports.enums.Status;
+import com.moit.reports.enums.ReportStatus;
 import com.moit.reports.enums.TargetType;
 
 import lombok.Getter;
 import lombok.Setter;
 
 public class ReportsDto {
-	
-	// 신고 작성 요청 Dto
-	@Setter @Getter
+
+	// 신고 작성/수정 요청 RequestDto
+	@Getter @Setter
 	public static class ReportRequestDto {
-		private Long reportId;
 		private TargetType targetType;
 		private Long targetId;
-		private Long memberId;
 		private ReasonCode reasonCode;
 		private String reasonDetail;
-		private Status status;
-		private String deleteYn;
-		private LocalDateTime createdAt;
-		private LocalDateTime updatedAt;
 	}
 
-	// 신고 작성 응답 Dto
-	@Getter
+	// 신고 응답 ResponseDto
+	@Getter @Setter
 	public static class ReportResponseDto {
+		private Long reportId;
+		private TargetType targetType;	// MEETUP/REVIEW
+		private Long targetId;			// 모임글번호/리뷰글번호
+		private Long memberId;
+		private String memberNickname;
+		private ReasonCode reasonCode;
+		private String reasonDetail;
+		private ReportStatus status;
+		private Character deleteYn;
+		private LocalDateTime createdAt;
+		private LocalDateTime updatedAt;
 		
+		// Report Entity -> ReportResponseDto 변환
+	    public static ReportResponseDto from(Report report) {
+	        ReportResponseDto dto = new ReportResponseDto();
+	        dto.setReportId(report.getReportId());
+	        dto.setTargetType(report.getTargetType());
+	        dto.setTargetId(report.getTargetId());
+
+	        if (report.getMember() != null) {
+	            dto.setMemberId(report.getMember().getId());
+	            dto.setMemberNickname(report.getMember().getNickname());
+	        }
+	        dto.setReasonCode(report.getReasonCode());
+	        dto.setReasonDetail(report.getReasonDetail());
+	        dto.setStatus(report.getStatus());
+	        dto.setDeleteYn(report.getDeleteYn());
+	        dto.setCreatedAt(report.getCreatedAt());
+	        dto.setUpdatedAt(report.getUpdatedAt());
+	        return dto;
+	    }
+	}
+
+	// 관리자 신고 처리 (승인/반려)
+	@Getter @Setter
+	public static class ReportProcessDto {
+		private ReportStatus status; // 상태변경
+		private String processReason; // 처리사유
+	}
+
+	// 신고 목록 + 페이징 정보 응답 (사용자/관리자)
+	@Getter @Setter
+	public static class ReportListResponseDto {
+		private List<ReportResponseDto> reports;
+		private Long totalCount;
+		private Long totalPage;
 	}
 }
 
