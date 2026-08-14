@@ -326,7 +326,8 @@ public class ReportsServiceImpl implements ReportsService {
 				searchDto.getDeleteYn(),
 				searchDto.getTargetType(),
 				searchDto.getMemberNickname(),
-				searchDto.getReasonCode()
+				searchDto.getReasonCode(),
+				pageable
 		);
 		
 		// 조회된 신고 Entity 목록을 ResponseDto 목록으로 변환
