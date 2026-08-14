@@ -74,7 +74,7 @@ public class SecurityConfig {
                                     		"/mypage/**").authenticated()
 
                                     // 관리자 영역(추후 활성화 예정)
-                                    //.requestMatchers("/admin/**")
+                                    //.requestMatchers("/admin/**", "/api/reports/admin/**")
                                     //.hasRole("ADMIN")
                                     // 제휴업체 광고 키워드로 ai 내용작성 
                                     .requestMatchers("/user/advertisement/aiAdvertise")
