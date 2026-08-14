@@ -49,7 +49,7 @@ public class QuestionController {
     @Operation(summary = "답변 만족도 평가", description = "답변에 대한 만족도 점수와 의견을 등록합니다.")
     @PatchMapping("/answer/{answerId}/satisfaction")
     public ResponseEntity<Void> updateSatisfaction(
-            @PathVariable Long answerId,
+            @PathVariable("answerId") Long answerId,
             @Valid @RequestBody SatisfactionRequestDto dto,
             Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -79,9 +79,9 @@ public class QuestionController {
     @Operation(summary = "내 문의 목록 조회", description = "로그인한 사용자의 문의 목록을 조회합니다.")
     @GetMapping("/myQuestion")
     public ResponseEntity<QuestionMyResponseDto> myQuestion(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String keyword,
+            @RequestParam(value = "page",    defaultValue = "1") int page,
+            @RequestParam(value = "type",    required = false) String type,
+            @RequestParam(value = "keyword", required = false) String keyword,
             Authentication authentication) {
         CustomUserDetails users = (CustomUserDetails) authentication.getPrincipal();
         Long memberId = users.getUser().getMemberId();
@@ -121,12 +121,12 @@ public class QuestionController {
     @Operation(summary = "관리자 문의 목록 조회", description = "관리자가 전체 문의 목록을 조회합니다.")
     @GetMapping("/admin")
     public ResponseEntity<QuestionAdminResponseDto> admin(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate) {
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "type", required = false) String type,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "startDate", required = false) String startDate,
+            @RequestParam(value = "endDate", required = false) String endDate) {
         int pageSize = 10;
         int start = (page - 1) * pageSize;
 
@@ -182,7 +182,7 @@ public class QuestionController {
     // 문의 상세 화면 + 답변 조회 + 버튼 권한
     @Operation(summary = "문의 상세 조회", description = "문의 상세 정보를 조회합니다.")
     @GetMapping("/{questionId}")
-    public ResponseEntity<QuestionResponseDto> detail( @PathVariable Long questionId) {
+    public ResponseEntity<QuestionResponseDto> detail(@PathVariable("questionId") Long questionId) {
     	QuestionResponseDto data = questionService.getDetail(questionId);
         return ResponseEntity.ok(data); // 성공 응답 200
     }
@@ -190,7 +190,7 @@ public class QuestionController {
     // 문의 수정 화면 이동
     @Operation(summary = "문의 수정", description = "문의를 수정합니다.")
     @PutMapping("/{questionId}")
-    public ResponseEntity<Void> edit(@PathVariable Long questionId, @RequestBody QuestionRequestDto dto, Authentication authentication) {
+    public ResponseEntity<Void> edit(@PathVariable("questionId") Long questionId, @RequestBody QuestionRequestDto dto, Authentication authentication) {
         QuestionResponseDto question = questionService.getDetail(questionId);
         // 작성자 또는 관리자 권한 확인
         if (!canEdit(question, authentication)) {
@@ -204,7 +204,7 @@ public class QuestionController {
     // 문의 삭제 처리
 	@Operation(summary = "문의 삭제", description = "문의를 삭제합니다.")
     @DeleteMapping("/delete/{questionId}")
-    public ResponseEntity<Void> delete(@PathVariable Long questionId, Authentication authentication) {
+    public ResponseEntity<Void> delete(@PathVariable("questionId") Long questionId, Authentication authentication) {
 		QuestionResponseDto question = questionService.getDetail(questionId);
 		// 작성자 또는 관리자 권한 확인
 		if (!canEdit(question, authentication)) {
@@ -223,15 +223,18 @@ public class QuestionController {
         if(!canAnswer(question, authentication)){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+        // 로그인한 사용자 ID
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long memberId = userDetails.getUser().getMemberId();
         // 답변 등록 및 문의 상태 ANSWERED 변경
-        answerService.register(dto);
+        answerService.register(dto, memberId);
         return ResponseEntity.status(HttpStatus.CREATED).build(); // 성공 응답 201
     }
 
     // 답변 수정 처리
 	@Operation(summary = "답변 수정", description = "답변을 수정합니다.")
 	@PutMapping("/answer/{answerId}")
-	public ResponseEntity<Void> answerEdit(@PathVariable Long answerId, @RequestBody AnswerRequestDto dto, Authentication authentication) {
+	public ResponseEntity<Void> answerEdit(@PathVariable("answerId") Long answerId, @RequestBody AnswerRequestDto dto, Authentication authentication) {
 	    QuestionResponseDto question = questionService.getDetail(dto.getQuestionId());
 	    // 답변 수정 권한 확인
 	    if (!canAnswer(question, authentication)) {
@@ -246,8 +249,8 @@ public class QuestionController {
 	@Operation(summary = "답변 삭제", description = "답변을 삭제합니다.")
 	@DeleteMapping("/{questionId}/answer/{answerId}")
 	public ResponseEntity<Void> answerDelete(
-	        @PathVariable Long answerId,
-	        @PathVariable Long questionId,
+	        @PathVariable("answerId") Long answerId,
+	        @PathVariable("questionId") Long questionId,
 	        Authentication authentication) {
 	    QuestionResponseDto question = questionService.getDetail(questionId);
 	    // 답변 삭제 권한 확인

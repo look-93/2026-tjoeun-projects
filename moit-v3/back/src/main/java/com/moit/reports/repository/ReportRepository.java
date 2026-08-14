@@ -53,5 +53,5 @@ public interface ReportRepository extends JpaRepository<Report, Long>, JpaSpecif
 	// 사유
 	Page<Report> findByReasonCodeAdminSearch(ReasonCode reasonCode, Character deleteYn, Pageable pageable);
 	// 날짜
-//	Page<Report> findByCreatedAtAdminSearch(LocalDate createdAt, Character deleteYn, Pageable pageable);
+	Page<Report> findByCreatedAtAdminSearch(LocalDate createdAt, Character deleteYn, Pageable pageable);
 }

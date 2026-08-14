@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.moit.member.dto.UserDto;
-import com.moit.member.repository.ReportStatusRepository;
+//import com.moit.member.repository.ReportStatusRepository;
 import com.moit.reports.api.ApiOpenAi;
 import com.moit.reports.dto.ReportsDto;
 import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
@@ -269,28 +269,28 @@ public class ReportController {
 	
 	//////////////////////////////////////////////////////////
 	// open ai
-	
-	@GetMapping("/report/api/openai")
-	public String openai_get() {
-		return "";
-	}
-	
-	@PostMapping(value = "/report/api/openai",
-				produces = "text/plain; charset=UTF-8")
-//				produces = MediaType.APPLICATION_JSON_VALUE)
-	@ResponseBody
-	public String openai_post( @RequestBody String keywords ) {
-		
-		System.out.println("AI Controller 도착");
-	    System.out.println("전달받은 값: " + keywords);
-
-	    String result = apiOpenAi.getAIResponse(keywords);
-
-	    System.out.println("AI 결과: " + result);
-	    
-		return apiOpenAi.getAIResponse(keywords);
-	}
-	
+//	
+//	@GetMapping("/report/api/openai")
+//	public String openai_get() {
+//		return "";
+//	}
+//	
+//	@PostMapping(value = "/report/api/openai",
+//				produces = "text/plain; charset=UTF-8")
+////				produces = MediaType.APPLICATION_JSON_VALUE)
+//	@ResponseBody
+//	public String openai_post( @RequestBody String keywords ) {
+//		
+//		System.out.println("AI Controller 도착");
+//	    System.out.println("전달받은 값: " + keywords);
+//
+//	    String result = apiOpenAi.getAIResponse(keywords);
+//
+//	    System.out.println("AI 결과: " + result);
+//	    
+//		return apiOpenAi.getAIResponse(keywords);
+//	}
+//	
 	
 }
 
