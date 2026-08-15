@@ -51,15 +51,23 @@ function UserHeader() {
               <Row align="middle" gutter={24} wrap={false}>
                 {/* 모집찾기 */}
                 <Col flex="none">
-                  <Link href="/meetup/list">
-                    <a className="moit-header-link">모집찾기</a>
+                  <Link href="/user/meetup">
+                    <a
+                      className="moit-header-link"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      모집찾기
+                    </a>
                   </Link>
                 </Col>
 
                 {/* 관리자 문의 */}
                 <Col flex="none">
-                  <Link href="/questions/write">
-                    <a className="moit-header-link moit-inquiry">
+                  <Link href="/user/qna/write?type=ADMIN">
+                    <a
+                      className="moit-header-link moit-inquiry"
+                      style={{ textDecoration: 'none' }}
+                    >
                       <MessageOutlined />
                       &nbsp;관리자 1:1 문의
                     </a>

@@ -119,7 +119,7 @@ public class SecurityConfig {
                                 		"/user/member/update", 
                                 		"/user/member/delete", 
                                 		"/questions/deleteSelected", 
-                                		"/api/meetup/**",
+                                		"/api/meetups/**",
                                 		"/api/members/**")
 
                                 // Spring Security는 POST, PUT, DELETE 등의 요청에 CSRF 토큰이 있는지 검사
