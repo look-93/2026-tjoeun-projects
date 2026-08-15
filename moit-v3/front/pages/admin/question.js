@@ -3,17 +3,9 @@ import AdminStatCard from '../../components/AdminStatCard';
 import AdminSearchBox from '../../components/AdminSearchBox';
 import AdminListTabs from '../../components/AdminListTabs';
 import { useState } from 'react';
-// http://localhost:3000/admin/sample
+// http://localhost:3000/admin/question
 
-//필독!!!!
-/*
-1. 필요한 UI는 Ant Design으로 구현
-2. 샘플페이지의 전체 폭을 그대로 맞출 것
-3. 디자인이 필요한 부분은 요청하면 만들어줄 수 있음
-*/
-// https://ant.design/components/overview/
-
-function AdminSamplePage() {
+function AdminQuestionPage() {
   //테스트용 테이터
   const serverData = { allcnt: 1200, running: 1000, close: 1200 };
   const stats = [
@@ -246,4 +238,4 @@ function AdminSamplePage() {
     </>
   );
 }
-export default AdminSamplePage;
+export default AdminQuestionPage;

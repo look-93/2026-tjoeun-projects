@@ -1,5 +1,7 @@
 import { Row, Col, Button, Input, Select, Table } from 'antd';
 import AdminStatCard from '../../components/AdminStatCard';
+import AdminSearchBox from '../../components/AdminSearchBox';
+import AdminListTabs from '../../components/AdminListTabs';
 import { useState } from 'react';
 // http://localhost:3000/admin/meetup
 
@@ -84,8 +86,61 @@ function AdminMeetupPage() {
       status: '정상',
     },
   ];
-  const [listType, setListType] = useState('admin');
-
+  const userColumns = [
+    {
+      title: '번호',
+      dataIndex: 'id',
+      key: 'id',
+      width: 80,
+      align: 'center',
+    },
+    {
+      title: '아이디',
+      dataIndex: 'loginId',
+      key: 'loginId',
+    },
+    {
+      title: '닉네임',
+      dataIndex: 'nickname',
+      key: 'nickname',
+    },
+    {
+      title: '이름',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: '이메일',
+      dataIndex: 'email',
+      key: 'email',
+    },
+    {
+      title: '가입일',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+    },
+  ];
+  const userData = [
+    {
+      key: 1,
+      id: 1,
+      loginId: 'user01',
+      nickname: '보라',
+      name: '김보라',
+      email: 'bora@moit.com',
+      createdAt: '2026-08-01',
+    },
+    {
+      key: 2,
+      id: 2,
+      loginId: 'user02',
+      nickname: '철수',
+      name: '김철수',
+      email: 'chulsoo@moit.com',
+      createdAt: '2026-08-03',
+    },
+  ];
+  // 체크박스
   const [checkStrictly, setCheckStrictly] = useState(false);
 
   const rowSelection = {
@@ -96,8 +151,22 @@ function AdminMeetupPage() {
     },
   };
 
+  const [listType, setListType] = useState('admin');
+
+  // 목록 전환
+  const listTabs = [
+    {
+      key: 'admin',
+      label: '관리자목록',
+    },
+    {
+      key: 'user',
+      label: '사용자목록',
+    },
+  ];
   return (
     <>
+      {/* 통계 */}
       <Row gutter={[16, 16]}>
         {stats.map((stat) => (
           <Col xs={24} sm={12} md={12} lg={6} key={stat.title}>
@@ -107,57 +176,50 @@ function AdminMeetupPage() {
       </Row>
 
       {/* 목록 탭 */}
-      <div className="admin-list-tabs">
-        <Button
-          type="button"
-          className={`admin-list-button ${
-            listType === 'admin' ? 'active' : ''
-          }`}
-          onClick={() => setListType('admin')}
-        >
-          관리자목록
-        </Button>
+      {/* 목록 탭 */}
+      <AdminListTabs
+        tabs={listTabs}
+        activeTab={listType}
+        onChange={setListType}
+      />
 
-        <Button
-          type="button"
-          className={`admin-list-button ${listType === 'user' ? 'active' : ''}`}
-          onClick={() => setListType('user')}
-        >
-          사용자목록
-        </Button>
-      </div>
+      {/* 검색 영역 조건1개*/}
+      {/* <AdminSearchBox
+        conditions={[
+          {
+            key: 'searchType',
+            defaultValue: 'title',
+            options: [
+              { value: 'title', label: '제목' },
+              { value: 'content', label: '내용' },
+            ],
+          },
+        ]}
+      /> */}
 
-      {/* 검색 영역 */}
-      <div className="admin-search-box">
-        <Row gutter={[16, 16]} style={{ width: '100%' }}>
-          <Col flex="120px">
-            <Select
-              className="admin-search-condition"
-              defaultValue="lucy"
-              style={{ width: '100%' }}
-              options={[
-                { value: 'lucy', label: '11' },
-                { value: '22', label: '22' },
-              ]}
-            />
-          </Col>
-
-          <Col flex="none">
-            <Input
-              type="text"
-              size="medium"
-              className="admin-search-input"
-              placeholder="검색어를 입력하세요"
-            />
-          </Col>
-
-          <Col>
-            <Button className="admin-search-button" type="button">
-              검색
-            </Button>
-          </Col>
-        </Row>
-      </div>
+      {/* 검색 영역 조건2개*/}
+      <AdminSearchBox
+        conditions={[
+          {
+            key: 'category',
+            defaultValue: 'all',
+            options: [
+              { value: 'all', label: '전체' },
+              { value: 'exercise', label: '운동' },
+              { value: 'study', label: '스터디' },
+            ],
+          },
+          {
+            key: 'status',
+            defaultValue: 'all',
+            options: [
+              { value: 'all', label: '전체 상태' },
+              { value: 'recruiting', label: '모집중' },
+              { value: 'closed', label: '마감' },
+            ],
+          },
+        ]}
+      />
 
       {/* 모임 목록 */}
       <div className="admin-table-box">

@@ -36,10 +36,10 @@ function AdminSidebar() {
       ),
     },
     {
-      key: '/admin/questions',
+      key: '/admin/question',
       icon: <MessageOutlined />,
       label: (
-        <Link href="/admin/questions">
+        <Link href="/admin/question">
           <a style={{ textDecoration: 'none' }}>문의관리</a>
         </Link>
       ),
@@ -63,10 +63,10 @@ function AdminSidebar() {
       ),
     },
     {
-      key: '/admin/advertisement',
+      key: '/admin/advertise',
       icon: <NotificationOutlined />,
       label: (
-        <Link href="/admin/advertisement">
+        <Link href="/admin/advertise">
           <a style={{ textDecoration: 'none' }}>광고관리</a>
         </Link>
       ),

@@ -51,7 +51,7 @@ function UserHeader() {
               <Row align="middle" gutter={24} wrap={false}>
                 {/* 모집찾기 */}
                 <Col flex="none">
-                  <Link href="/meetup/list">
+                  <Link href="/user/meetup">
                     <a
                       className="moit-header-link"
                       style={{ textDecoration: 'none' }}
@@ -63,7 +63,7 @@ function UserHeader() {
 
                 {/* 관리자 문의 */}
                 <Col flex="none">
-                  <Link href="/questions/write">
+                  <Link href="/user/qna/write?type=ADMIN">
                     <a
                       className="moit-header-link moit-inquiry"
                       style={{ textDecoration: 'none' }}
