@@ -2,6 +2,8 @@ package com.moit.qna.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -16,8 +18,9 @@ public class QuestionAiAnalysis {
     @Column(name = "QUESTION_ID")
     private Long questionId;
 
-    @Column(name = "ANALYSIS_STATUS")
-    private String analysisStatus;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "ANALYSIS_STATUS", length = 20, nullable = false)
+    private AnalysisStatus analysisStatus;
 
     @Column(name = "AGGRESSION_SCORE")
     private Double aggressionScore;

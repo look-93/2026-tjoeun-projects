@@ -1,0 +1,80 @@
+import React from 'react';
+import { Card, Space, Tag, Button } from 'antd';
+
+function MeetupCard({ meetup, onClick, onToggleLike }) {
+  const isRecruiting = meetup.status === 'RECRUITING';
+
+  return (
+    <Card
+      hoverable
+      className="meetup-card"
+      onClick={() => onClick?.(meetup.meetupId ?? meetup.id)}
+      cover={
+        <div className="meetup-image">
+          {meetup.imagePath ? (
+            <img
+              src={`/upload/meetup/${meetup.imagePath}`}
+              alt={meetup.title}
+            />
+          ) : (
+            <div className="meetup-no-image">
+              <span className="icon">🖼️</span>
+              <span>등록된 이미지가 없습니다.</span>
+            </div>
+          )}
+        </div>
+      }
+    >
+      <div className="meetup-card-body">
+        {/* 상태 */}
+        {meetup.status && (
+          <Tag color={isRecruiting ? 'green' : 'default'}>
+            {isRecruiting ? '모집중' : '종료'}
+          </Tag>
+        )}
+
+        {/* 제목 */}
+        <div className="meetup-card-title">{meetup.title}</div>
+
+        {/* 카테고리 */}
+        {meetup.categoryName && (
+          <div className="meetup-card-info">🏃 {meetup.categoryName}</div>
+        )}
+
+        {/* 지역 */}
+        {meetup.location || meetup.sigunguName ? (
+          <div className="meetup-card-info">
+            📍 {meetup.location ?? meetup.sigunguName}
+          </div>
+        ) : null}
+
+        {/* 인원 */}
+        {meetup.totalParticipants !== undefined && (
+          <div className="meetup-card-info">
+            👥 {meetup.totalParticipants} / {meetup.maxParticipants}
+          </div>
+        )}
+
+        {/* 하단 */}
+        <div className="meetup-card-footer">
+          {meetup.formattedMeetupAt && <span>{meetup.formattedMeetupAt}</span>}
+
+          {meetup.likeCnt !== undefined && (
+            <Button
+              type="text"
+              className="meetup-like-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleLike?.(meetup.meetupId ?? meetup.id);
+              }}
+            >
+              {meetup.hasLike ? '❤️' : '🤍'} {meetup.likeCnt}
+            </Button>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+export default MeetupCard;

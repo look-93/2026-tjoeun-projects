@@ -1,5 +1,7 @@
 package com.moit.advertisement.dto;
 
+import java.time.LocalDateTime;
+
 import lombok.Data;
 
 @Data
@@ -32,7 +34,7 @@ public class DashboardAiDto {
 	 // AI가 생성한 요약
     private String summary;
     // 생성 시각
-    private String createdAt;
+    private LocalDateTime createdAt;
     // 요약 id
     private Integer summaryId;
 }

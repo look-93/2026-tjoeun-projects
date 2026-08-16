@@ -1,5 +1,6 @@
 package com.moit.member.dto;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -19,9 +20,9 @@ public class UserResponseDto {
 	private String mobile;
 	private String profileUrl;
 	private String gender;
-	private String birth;
-	private Integer memberTypeId;
-	private Integer statusId;
+	private LocalDate birth;
+	private Long memberTypeId;
+	private Long statusId;
 	private String provider;
 	private List<Integer> interestIds;
 	

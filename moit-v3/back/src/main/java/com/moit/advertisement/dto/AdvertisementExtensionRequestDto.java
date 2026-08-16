@@ -11,6 +11,8 @@ public class AdvertisementExtensionRequestDto {
 
     @NotNull
     private Integer periodDays;
+    
+    
 }
 
-// 연장 승인대기없어져서 없어질에정같음
+// 결제하면 바로 연장

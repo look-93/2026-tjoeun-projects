@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -37,14 +38,15 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/meetups")
+//@CrossOrigin(origins = "*")
 public class MeetupController {
 
 	private final MeetupService meetupService;
 	
 	@Operation(summary = "모임리스트조회", description = "모임리스트를 조회합니다.")
 	@GetMapping // 프론트에서 호출할때 /all?page=0&size=10 하면 pageable 에 저절로 들어감
-	public ResponseEntity<MeetupListResponseDto> search(Pageable pageable){
-		Long memberId = 2L; // jwt토큰
+	public ResponseEntity<MeetupListResponseDto> search(Pageable pageable, Authentication authentication){
+		Long memberId = 1L; // jwt토큰
 		MeetupListResponseDto listResponseDto = meetupService.search(pageable, memberId);		
 		return ResponseEntity.ok(listResponseDto); // 200 + data
 	}
@@ -59,7 +61,7 @@ public class MeetupController {
 	@Operation(summary = "모임등록", description = "모임을 등록합니다.")
 	@PostMapping //  세션으로 수정
 	public ResponseEntity<Void> create(@RequestBody MeetupRequestDto meetupRequestDto){
-		Long memberId = 2L;  //세션으로 수정		
+		Long memberId = 1L;  //세션으로 수정		
 		meetupService.create(meetupRequestDto, memberId);
 		return ResponseEntity.status(HttpStatus.CREATED).build(); // 성공 응답 201
 	}
@@ -81,7 +83,7 @@ public class MeetupController {
 	@Operation(summary = "모임신청", description = "모임을 신청합니다.")
 	@PostMapping("/{meetupId}/apply")
 	public ResponseEntity<Void> apply(@PathVariable("meetupId") Long meetupId){
-		Long memberId = 2L; //세션으로 수정		
+		Long memberId = 1L; //세션으로 수정		
 		meetupService.apply(memberId, meetupId);
 		return ResponseEntity.ok().build(); // 성공 응답 200
 	}
@@ -89,7 +91,7 @@ public class MeetupController {
 	@Operation(summary = "좋아요", description = "모임 좋아요.")
 	@PatchMapping("/{meetupId}/like")
 	public ResponseEntity<Void> meetupLike(@PathVariable("meetupId") Long meetupId){
-		Long memberId = 2L; //세션으로 수정
+		Long memberId = 1L; //세션으로 수정
 		meetupService.meetupLike(memberId, meetupId);
 		return ResponseEntity.ok().build(); // 성공 응답 200
 	}	
@@ -104,7 +106,7 @@ public class MeetupController {
 	@Operation(summary = "마이페이지 내 신청 조회", description = "내가 신청한 모집글 목록을 조회합니다.")
 	@GetMapping("/applications")
 	public ResponseEntity<MyApplicationListResponseDto> getMyApplications(Pageable pageable){
-		Long memberId = 2L; //세션으로 수정
+		Long memberId = 1L; //세션으로 수정
 		MyApplicationListResponseDto  response = meetupService.getMyApplications(memberId, pageable);
 		
 		return ResponseEntity.ok(response);
@@ -122,7 +124,7 @@ public class MeetupController {
 	@Operation(summary = "마이페이지 내 모집글 조회", description = "내가 모집한 모집글 목록을 조회합니다.")
 	@GetMapping("/my")
 	public ResponseEntity<MeetupListResponseDto> getMyMeetups(Pageable pageable){
-		Long memberId = 2L; //세션으로 수정
+		Long memberId = 1L; //세션으로 수정
 		MeetupListResponseDto  response = meetupService.getMyMeetups(memberId, pageable);
 		
 		return ResponseEntity.ok(response);
