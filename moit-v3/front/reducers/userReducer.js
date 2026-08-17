@@ -20,7 +20,7 @@ const initialState = {
 };
 
 //2. 상태변화
-const authReducer = createSlice({
+const userReducer = createSlice({
     name: "user",
     initialState,
     reducers: {
@@ -42,8 +42,8 @@ const authReducer = createSlice({
             state.refreshToken = action.payload.refreshToken;
 
             state.user = {
-                memberId = action.payload.memberId,
-                loginId = action.payload.loginId,
+                memberId : action.payload.memberId,
+                loginId : action.payload.loginId,
                 memberTypeId: action.payload.memberTypeId,
             };
         },
@@ -131,7 +131,7 @@ export const {
     emailSendRequest,emailSendSuccess,emailSendFailure,
     emailVerifyRequest,emailVerifySuccess,emailVerifyFailure,
     logout,
-} = authReducer.actions;
+} = userReducer.actions;
 
 //4. export
 export default userReducer.reducer;
