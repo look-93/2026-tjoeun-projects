@@ -3,48 +3,386 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
     meetups: [], // 전체 모임
     meetup: null, // 단건 모임
+
+    myApplications: [], // 내 신청 목록
+    myMeetups: [], // 내 모임글 목록
+    meetupApplicants: [], // 내 모임글 신청자 목록
+    categories: [], // 카테고리 목록
+    sigungus: [], // 시군구 목록
+
+    aiRecommendation: null, // ai 모임글 추천
+
     loading: false,
     error: null,
-    success: false,
+
+    createSuccess: false,
+    updateSuccess: false,
+    deleteSuccess: false,
+
+    applySuccess: false, // 모임신청 성공 여부
+    likeSuccess: false, // 좋아요 성공 여부
+    visibilitySuccess: false, // 공개/비공개 성공 여부
+    statusSuccess: false, // 신청자 신청 상태 변경 성공 여부
 };
 
 const meetupReducer = createSlice({
     name: 'meetup',
     initialState,
     reducers: {
-        // 전체 모임 조회 요청
-        fetchMeetupRequest: (state) => {
+        // --- 전체 모임 조회 ---
+        fetchMeetupsRequest: (state) => {
             state.loading = true;
             state.error = null;
-            state.success = false;
         },
-        // 전체 모임 조회 성공
+
         fetchMeetupsSuccess: (state, action) => {
             state.loading = false;
             state.meetups = action.payload;
-            state.success = true;
         },
 
-        // 전체 모임 조회 실패
         fetchMeetupsFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
-            state.success = false;
         },
 
-        //상태조기화
+        // --- 단건 모임 상세 조회 ---
+        fetchMeetupDetailRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        fetchMeetupDetailSuccess: (state, action) => {
+            state.loading = false;
+            state.meetup = action.payload;
+        },
+
+        fetchMeetupDetailFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // --- 모임 등록 ---
+        createMeetupRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.createSuccess = false;
+        },
+
+        createMeetupSuccess: (state) => {
+            state.loading = false;
+            //state.meetups.unshift(action.payload);
+            state.createSuccess = true;
+        },
+
+        createMeetupFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.createSuccess = false;
+        },
+
+        // --- 모임 수정 ---
+        updateMeetupRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.updateSuccess = false;
+        },
+
+        updateMeetupSuccess: (state, action) => {
+            state.loading = false;
+            // state.meetups = state.meetups.map((meetup) =>
+            //     meetup.id === action.payload.id ? action.payload : meetup,
+            // );
+            // state.meetup = action.payload;
+            state.updateSuccess = true;
+        },
+        updateMeetupFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.updateSuccess = false;
+        },
+
+        // --- 모임 삭제 ---
+        deleteMeetupRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.deleteSuccess = false;
+        },
+
+        deleteMeetupSuccess: (state) => {
+            state.loading = false;
+            // state.meetups = state.meetups.filter(
+            //     (meetup) => meetup.id !== action.payload,
+            // );
+            state.deleteSuccess = true;
+        },
+
+        deleteMeetupFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.deleteSuccess = false;
+        },
+
+        // --- 모임신청 ---
+        applyMeetupRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.applySuccess = false;
+        },
+
+        applyMeetupSuccess: (state) => {
+            state.loading = false;
+            state.applySuccess = true;
+        },
+
+        applyMeetupFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.applySuccess = false;
+        },
+
+        // --- 좋아요 ---
+        meetupLikeRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.likeSuccess = false;
+        },
+
+        meetupLikeSuccess: (state) => {
+            state.loading = false;
+            state.likeSuccess = true;
+        },
+
+        meetupLikeFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.likeSuccess = false;
+        },
+
+        // --- 모임 공개/비공개 전환 ---
+        changeMeetupVisibilityRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.visibilitySuccess = false;
+        },
+
+        changeMeetupVisibilitySuccess: (state) => {
+            state.loading = false;
+            state.visibilitySuccess = true;
+        },
+
+        changeMeetupVisibilityFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.visibilitySuccess = false;
+        },
+
+        // --- 마이페이지 내 신청 목록 조회 ---
+        fetchMyApplicationsRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        fetchMyApplicationsSuccess: (state, action) => {
+            state.loading = false;
+            state.myApplications = action.payload;
+        },
+
+        fetchMyApplicationsFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // --- 마이페이지 모임글 신청자 목록 조회 ---
+        fetchMeetupApplicantsRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        fetchMeetupApplicantsSuccess: (state, action) => {
+            state.loading = false;
+            state.meetupApplicants = action.payload;
+        },
+
+        fetchMeetupApplicantsFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // --- 내 모임글 조회 ---
+        fetchMyMeetupsRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        fetchMyMeetupsSuccess: (state, action) => {
+            state.loading = false;
+            state.myMeetups = action.payload;
+        },
+
+        fetchMyMeetupsFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // --- 신청 상태 변경 ---
+        updateApplicationStatusRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.statusSuccess = false;
+        },
+
+        updateApplicationStatusSuccess: (state) => {
+            state.loading = false;
+            state.statusSuccess = true;
+        },
+
+        updateApplicationStatusFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.statusSuccess = false;
+        },
+
+        // --- 카테고리 조회 ---
+        fetchCategoriesRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        fetchCategoriesSuccess: (state, action) => {
+            state.loading = false;
+            state.categories = action.payload;
+        },
+
+        fetchCategoriesFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // --- 시군구 조회 ---
+        fetchSigungusRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        fetchSigungusSuccess: (state, action) => {
+            state.loading = false;
+            state.sigungus = action.payload;
+        },
+
+        fetchSigungusFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // --- AI 모임 추천 ---
+        recommendMeetupRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        recommendMeetupSuccess: (state, action) => {
+            state.loading = false;
+            state.aiRecommendation = action.payload;
+        },
+
+        recommendMeetupFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // --- 상태조기화 ---
         resetMeetupState: (state) => {
             state.loading = false;
             state.error = null;
-            state.success = false;
+
+            state.createSuccess = null;
+            state.updateSuccess = null;
+            state.deleteSuccess = null;
+            state.applySuccess = false;
+            state.likeSuccess = false;
+            state.visibilitySuccess = false;
+            state.statusSuccess = false;
         },
     },
 });
 
 export const {
+    // 전체 모임
     fetchMeetupsRequest,
     fetchMeetupsSuccess,
     fetchMeetupsFailure,
+
+    // 모임 상세
+    fetchMeetupDetailRequest,
+    fetchMeetupDetailSuccess,
+    fetchMeetupDetailFailure,
+
+    // 모임 등록
+    createMeetupRequest,
+    createMeetupSuccess,
+    createMeetupFailure,
+
+    // 모임 수정
+    updateMeetupRequest,
+    updateMeetupSuccess,
+    updateMeetupFailure,
+
+    // 모임 삭제
+    deleteMeetupRequest,
+    deleteMeetupSuccess,
+    deleteMeetupFailure,
+
+    // 모임 신청
+    applyMeetupRequest,
+    applyMeetupSuccess,
+    applyMeetupFailure,
+
+    // 좋아요
+    meetupLikeRequest,
+    meetupLikeSuccess,
+    meetupLikeFailure,
+
+    // 공개/비공개
+    changeMeetupVisibilityRequest,
+    changeMeetupVisibilitySuccess,
+    changeMeetupVisibilityFailure,
+
+    // 내 신청 목록
+    fetchMyApplicationsRequest,
+    fetchMyApplicationsSuccess,
+    fetchMyApplicationsFailure,
+
+    // 신청자 목록
+    fetchMeetupApplicantsRequest,
+    fetchMeetupApplicantsSuccess,
+    fetchMeetupApplicantsFailure,
+
+    // 내 모집글
+    fetchMyMeetupsRequest,
+    fetchMyMeetupsSuccess,
+    fetchMyMeetupsFailure,
+
+    // 신청 상태 변경
+    updateApplicationStatusRequest,
+    updateApplicationStatusSuccess,
+    updateApplicationStatusFailure,
+
+    // 카테고리
+    fetchCategoriesRequest,
+    fetchCategoriesSuccess,
+    fetchCategoriesFailure,
+
+    // 시군구
+    fetchSigungusRequest,
+    fetchSigungusSuccess,
+    fetchSigungusFailure,
+
+    // AI 추천
+    recommendMeetupRequest,
+    recommendMeetupSuccess,
+    recommendMeetupFailure,
+
+    // 상태 초기화
     resetMeetupState,
 } = meetupReducer.actions;
 
