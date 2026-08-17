@@ -226,11 +226,6 @@ public class Advertisement extends BaseEntity{
         if (this.paymentStatus == null) {
             this.paymentStatus = PaymentStatus.NONE;
         }
-        
-        // 광고 타입 기본값
-        if (this.pendingPaymentType == null) {
-            this.pendingPaymentType = null;
-        }
 
         // 광고 등급 기본값
         if (this.adGrade == null) {
@@ -324,19 +319,6 @@ public class Advertisement extends BaseEntity{
 
         this.startDatetime = start;
         this.endDatetime = end;
-    }
-    
-    public void extendPeriod(int periodDays) {
-
-        if (periodDays <= 0) {
-            throw new IllegalArgumentException("연장 기간은 1일 이상이어야 합니다.");
-        }
-
-        this.endDatetime =
-                this.endDatetime.plusDays(periodDays);
-
-        this.paymentStatus = PaymentStatus.PAID;
-        this.status = AdStatus.OPEN;
     }
     
     // 등록 결제 대기
