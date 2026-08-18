@@ -1,5 +1,5 @@
-import { all, call, put, takeLatest } from 'redux-saga/effects';
-import api from '../api/axios';
+import { all, call, put, takeLatest } from "redux-saga/effects";
+import api from "../api/axios";
 
 import {
     // 전체 모임
@@ -76,9 +76,9 @@ import {
     recommendMeetupRequest,
     recommendMeetupSuccess,
     recommendMeetupFailure,
-} from '../reducers/meetupReducer';
+} from "../reducers/meetupReducer";
 
-const MEETUP_API_BASE = '/api/meetups';
+const MEETUP_API_BASE = "/api/meetups";
 
 // ==================================================
 // 전체 모임 조회
@@ -90,7 +90,9 @@ export const fetchMeetupsAPI = (params) => api.get(MEETUP_API_BASE, { params });
 export function* fetchMeetups(action) {
     try {
         const result = yield call(fetchMeetupsAPI, action.payload);
-
+        // console.log("🔥 meetup API result:", result);
+        // console.log("🔥 meetup API data:", result.data);
+        // console.log("🔥 isArray:", Array.isArray(result.data));
         yield put(fetchMeetupsSuccess(result.data));
     } catch (err) {
         yield put(
@@ -130,8 +132,11 @@ export const createMeetupAPI = (data) => api.post(MEETUP_API_BASE, data);
 
 export function* createMeetup(action) {
     try {
+        console.log("createMeetup action:", action);
+        console.log("createMeetup payload:", action.payload);
         yield call(createMeetupAPI, action.payload.data ?? action.payload);
 
+        console.log("post data", data);
         yield put(createMeetupSuccess());
 
         // 등록 후 목록 조회

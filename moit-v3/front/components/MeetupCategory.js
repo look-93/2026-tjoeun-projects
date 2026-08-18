@@ -8,7 +8,7 @@ function MeetupCategory({ categories = [], selectedCategoryId, onChange }) {
       label: '전체',
     },
     ...categories.map((item) => ({
-      key: String(item.categoryId),
+      key: item.id,
       label: item.categoryName,
     })),
   ];

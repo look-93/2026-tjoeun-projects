@@ -15,6 +15,9 @@ const initialState = {
     loading: false,
     error: null,
 
+    totalCount: 0,
+    totalPage: 0,
+
     createSuccess: false,
     updateSuccess: false,
     deleteSuccess: false,
@@ -37,7 +40,9 @@ const meetupReducer = createSlice({
 
         fetchMeetupsSuccess: (state, action) => {
             state.loading = false;
-            state.meetups = action.payload;
+            state.meetups = action.payload.meetup;
+            state.totalCount = action.payload.totalCount;
+            state.totalPage = action.payload.totalPage;
         },
 
         fetchMeetupsFailure: (state, action) => {

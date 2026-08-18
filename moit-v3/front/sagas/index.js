@@ -1,9 +1,10 @@
-import { all, fork } from 'redux-saga/effects';
+import { all, fork } from "redux-saga/effects";
 
-import userSaga from './userSaga';
-import meetupSaga from './meetupSaga';
+import userSaga from "./userSaga";
+import meetupSaga from "./meetupSaga";
 ///// 추가되는 saga ////////
-import advertiseSaga from './advertiseSaga';
+import advertiseSaga from "./advertiseSaga";
+import commonSaga from "./commonSaga";
 
 export default function* rootSaga() {
     yield all([
@@ -11,5 +12,6 @@ export default function* rootSaga() {
         fork(meetupSaga),
         ///// 추가되는 saga ////////
         fork(advertiseSaga),
-    ])
+        fork(commonSaga),
+    ]);
 }
