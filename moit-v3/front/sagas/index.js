@@ -1,11 +1,11 @@
 import {all, fork} from 'redux-saga/effects';
 
 import userSaga from './userSaga';
-///// 추가되는 saga ////////
+import qnaSaga  from './qnaSaga';
 
 export default function* rootSaga(){
     yield all([
         fork(userSaga),
-        ///// 추가되는 saga ////////
+        fork(qnaSaga),
     ])
 } 

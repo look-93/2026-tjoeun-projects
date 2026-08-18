@@ -20,6 +20,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.HttpMethod;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 
 @Configuration
 //@EnableWebSecurity
@@ -39,12 +44,16 @@ public class SecurityConfig {
    @Bean
    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception  { 
 	   
+	   // CORS 설정
+	   http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+	   
 	   // JWT 인증필터 등록
 	   http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
       //1. 허용경로
 
-      http.authorizeHttpRequests(auth -> auth.requestMatchers(
+      http.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()// CORS preflight 요청 허용
+    		  					  .requestMatchers(
 						    		    "/api/members/signup",
 						    	        "/api/members/login",
 						    	        "/api/members/check-loginId",
@@ -72,7 +81,7 @@ public class SecurityConfig {
                                     		"/meetup/write/**",
                                     		"/meetup/detail/**", 
                                     		"/mypage/**").authenticated()
-                                    .requestMatchers("/api/questions/**").hasRole("ADMIN")
+                                    .requestMatchers("/api/questions/**").authenticated()
                                     // 관리자 영역(추후 활성화 예정)
                                     //.requestMatchers("/admin/**", "/api/reports/admin/**")
                                     //.hasRole("ADMIN")
@@ -157,6 +166,25 @@ public class SecurityConfig {
               public String getMemberTypeId() { return context.getParameter("memberTypeId"); }
           };
       }
+   }
+   
+   // CORS 설정
+   @Bean
+   public CorsConfigurationSource corsConfigurationSource() {
+
+       CorsConfiguration configuration = new CorsConfiguration();
+
+       configuration.addAllowedOrigin("http://localhost:3000");
+       configuration.addAllowedMethod("*");
+       configuration.addAllowedHeader("*");
+       configuration.setAllowCredentials(true);
+
+       UrlBasedCorsConfigurationSource source =
+               new UrlBasedCorsConfigurationSource();
+
+       source.registerCorsConfiguration("/**", configuration);
+
+       return source;
    }
    
 }

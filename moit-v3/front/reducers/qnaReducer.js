@@ -42,6 +42,21 @@ const qnaReducer=createSlice({
             state.loading = false;
             state.error = action.payload;
         },
+        // --- QnA 특정 모임 조회 ---
+        qnaMeetupListRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        qnaMeetupListSuccess: (state, action) => {
+            state.loading = false;
+            state.qnaList = action.payload;
+        },
+
+        qnaMeetupListFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
         // --- QnA 상세 조회 ---
         qnaDetailRequest: (state) => {
             state.loading = true;
@@ -66,9 +81,10 @@ const qnaReducer=createSlice({
 
 //3. action
 export const {qnaCreateRequest, qnaCreateSuccess, qnaCreateFailure,
-    qnaListRequest, qnaListSuccess, qnaListFailure,
-    qnaDetailRequest, qnaDetailSuccess, qnaDetailFailure,
-    qnaReset,
+              qnaListRequest, qnaListSuccess, qnaListFailure,
+              qnaMeetupListRequest, qnaMeetupListSuccess, qnaMeetupListFailure,
+              qnaDetailRequest, qnaDetailSuccess, qnaDetailFailure,
+              qnaReset,
 } = qnaReducer.actions;
 
 //4. export

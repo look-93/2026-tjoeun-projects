@@ -51,7 +51,7 @@ function MeetupTabs({ activeTab, setActiveTab, meetup, reviews, qnaLists }) {
     {
       key: 'qna',
       label: 'Q&A',
-      children: <QnaSection qnaLists={qnaLists} />,
+      children: <QnaSection qnaLists={qnaLists} meetupId={meetup.meetupId} />,
     },
   ];
 

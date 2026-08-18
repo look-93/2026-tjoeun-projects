@@ -45,6 +45,15 @@ public class QuestionController {
     private final AnswerService answerService;
     private final QuestionAiAnalysisService questionAiAnalysisService;
     
+    // 특정 모임의 Q&A 목록
+    @Operation(summary = "특정 모임 Q&A 목록 조회", description = "특정 모임에 등록된 문의 목록을 조회합니다.")
+    @GetMapping("/meetup/{meetupId}")
+    public ResponseEntity<List<QuestionResponseDto>> meetupQuestions(
+            @PathVariable("meetupId") Long meetupId) {
+        List<QuestionResponseDto> list = questionService.selectByParentId(meetupId);
+        return ResponseEntity.ok(list);
+    }
+    
     // 답변 만족도 평가
     @Operation(summary = "답변 만족도 평가", description = "답변에 대한 만족도 점수와 의견을 등록합니다.")
     @PatchMapping("/answer/{answerId}/satisfaction")
@@ -59,7 +68,7 @@ public class QuestionController {
         return ResponseEntity.noContent().build();
     }
     
-    //관리자용 선택 삭제
+    // 관리자용 선택 삭제
     @Operation(summary = "관리자용 선택 삭제", description = "관리자가 글을 삭제합니다.")
     @DeleteMapping("/deleteSelected")
     public ResponseEntity<Void> deleteSelected(@RequestBody List<Long> ids){
