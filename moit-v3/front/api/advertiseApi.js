@@ -5,7 +5,7 @@ const API_URL = 'http://localhost:8080/api/advertisement';
 
 
 // 내 광고 목록 조회
-export const getAdvertiseList = (params) => {
+export const getMyAdvertiseList = (params) => {
     return axios.get(API_URL, {
         params,
     });

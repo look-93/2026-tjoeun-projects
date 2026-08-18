@@ -75,6 +75,11 @@ public class SecurityConfig {
                                     		"/meetup/detail/**", 
                                     		"/mypage/**").authenticated()
                                     .requestMatchers("/api/questions/**").hasRole("ADMIN")
+                                    // 로그인 jwt되면 제거
+                                    // 관리자 광고 API - 테스트용
+                                    .requestMatchers("/api/admin/advertisement/**").permitAll()
+                                    // 제휴업체 광고 API
+                                    .requestMatchers("/user/mypage/advertiseWrite").permitAll()
                                     // 관리자 영역(추후 활성화 예정)
                                     //.requestMatchers("/admin/**", "/api/reports/admin/**")
                                     //.hasRole("ADMIN")

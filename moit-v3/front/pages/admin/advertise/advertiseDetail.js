@@ -221,7 +221,52 @@ function AdvertiseDetailPage() {
         </Button>
 
       </div>
+    
+      {/* 통계 */}
+      <Card
+        title="광고 통계"
+        style={{
+          marginBottom: 20,
+        }}
+      >
 
+        <Row gutter={16}>
+
+          <Col span={8}>
+            <Card>
+              노출수
+              <h2>
+                {advertise.impressions ?? 0}
+              </h2>
+            </Card>
+          </Col>
+
+
+          <Col span={8}>
+            <Card>
+              클릭수
+              <h2>
+                {advertise.clicks ?? 0}
+              </h2>
+            </Card>
+          </Col>
+
+
+          <Col span={8}>
+            <Card>
+              CTR
+              <h2>
+                {calculateCtr(
+                  advertise.impressions,
+                  advertise.clicks
+                )}
+              </h2>
+            </Card>
+          </Col>
+
+        </Row>
+
+      </Card>
 
       {/* 기본 정보 */}
 
@@ -555,54 +600,6 @@ function AdvertiseDetailPage() {
           </Descriptions.Item>
 
         </Descriptions>
-
-      </Card>
-
-
-      {/* 통계 */}
-
-      <Card
-        title="광고 통계"
-        style={{
-          marginBottom: 20,
-        }}
-      >
-
-        <Row gutter={16}>
-
-          <Col span={8}>
-            <Card>
-              노출수
-              <h2>
-                {advertise.impressions ?? 0}
-              </h2>
-            </Card>
-          </Col>
-
-
-          <Col span={8}>
-            <Card>
-              클릭수
-              <h2>
-                {advertise.clicks ?? 0}
-              </h2>
-            </Card>
-          </Col>
-
-
-          <Col span={8}>
-            <Card>
-              CTR
-              <h2>
-                {calculateCtr(
-                  advertise.impressions,
-                  advertise.clicks
-                )}
-              </h2>
-            </Card>
-          </Col>
-
-        </Row>
 
       </Card>
 

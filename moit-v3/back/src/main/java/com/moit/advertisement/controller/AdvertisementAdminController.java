@@ -84,7 +84,7 @@ public class AdvertisementAdminController {
 	)
     @GetMapping
     public ResponseEntity<List<AdvertisementDto>> manageList(
-            @RequestParam(required = false, defaultValue = "approval")
+            @RequestParam(name = "tab", required = false, defaultValue = "approval")
             String tab,
 
             AdvertisementSearchDto dto) {
@@ -121,7 +121,7 @@ public class AdvertisementAdminController {
 	)
     @GetMapping("/count")
     public ResponseEntity<Long> manageCount(
-            @RequestParam(required = false, defaultValue = "approval")
+            @RequestParam(name = "tab", required = false, defaultValue = "approval")
             String tab,
 
             AdvertisementSearchDto dto) {
@@ -155,7 +155,7 @@ public class AdvertisementAdminController {
 	)
     @GetMapping("/{adId}")
     public ResponseEntity<AdvertisementDto> detail(
-            @PathVariable Long adId) {
+            @PathVariable("adId") Long adId) {
 
         AdvertisementDto dto =
                 advertisementService.selectAdvertisementOne(adId);
@@ -177,7 +177,7 @@ public class AdvertisementAdminController {
 	)
 	@PatchMapping("/{adId}/approve")
 	public ResponseEntity<Void> approve(
-	        @PathVariable Long adId) {
+	        @PathVariable("adId") Long adId) {
 
 	    AdvertisementDto.AdvertisementAdminUpdateDto dto =
 	            new AdvertisementDto.AdvertisementAdminUpdateDto();
@@ -203,8 +203,8 @@ public class AdvertisementAdminController {
 	)
     @PatchMapping("/{adId}/reject")
     public ResponseEntity<Void> reject(
-            @PathVariable Long adId,
-            @RequestParam String rejectReason) {
+            @PathVariable("adId") Long adId,
+            @RequestParam(name = "rejectReason") String rejectReason) {
 
         AdvertisementDto.AdvertisementAdminUpdateDto dto =
                 new AdvertisementDto.AdvertisementAdminUpdateDto();
@@ -231,8 +231,8 @@ public class AdvertisementAdminController {
 	)
     @PatchMapping("/{adId}/status")
     public ResponseEntity<Void> status(
-            @PathVariable Long adId,
-            @RequestParam String status) {
+            @PathVariable("adId") Long adId,
+            @RequestParam(name = "status") String status) {
 
         AdvertisementDto.AdvertisementAdminUpdateDto dto =
                 new AdvertisementDto.AdvertisementAdminUpdateDto();
@@ -258,8 +258,8 @@ public class AdvertisementAdminController {
 	)
     @PatchMapping("/{adId}/grade")
     public ResponseEntity<Void> updateGrade(
-            @PathVariable Long adId,
-            @RequestParam String adGrade) {
+            @PathVariable("adId") Long adId,
+            @RequestParam(name = "adGrade") String adGrade) {
 
         advertisementService.updateAdGrade(
                 adId,
@@ -279,13 +279,13 @@ public class AdvertisementAdminController {
 	)
     @PatchMapping("/{adId}/period")
     public ResponseEntity<Void> updatePeriod(
-            @PathVariable Long adId,
+            @PathVariable("adId") Long adId,
 
-            @RequestParam
+            @RequestParam(name = "start")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate start,
 
-            @RequestParam
+            @RequestParam(name = "end")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate end) {
 

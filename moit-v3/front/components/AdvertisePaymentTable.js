@@ -27,8 +27,19 @@ function AdvertisePaymentTable({
     },
     {
       title: '결제 유형',
-      dataIndex: 'paymentType',
-      key: 'paymentType',
+      dataIndex: 'pendingPaymentType',
+      key: 'pendingPaymentType',
+      render: (value) => {
+        if (value === 'INITIAL') {
+          return '신규 결제';
+        }
+
+        if (value === 'EXTENSION') {
+          return '연장 결제';
+        }
+
+        return '-';
+      },
     },
     {
       title: '광고 등급',
@@ -49,6 +60,21 @@ function AdvertisePaymentTable({
       dataIndex: 'paymentStatus',
       key: 'paymentStatus',
       align: 'center',
+      render: (value) => {
+        if (value === 'PAID') {
+          return '결제 완료';
+        }
+
+        if (value === 'WAITING') {
+          return '결제 대기';
+        }
+
+        if (value === 'CANCELLED') {
+          return '결제 취소';
+        }
+
+        return value || '-';
+      },
     },
     {
       title: '관리',
