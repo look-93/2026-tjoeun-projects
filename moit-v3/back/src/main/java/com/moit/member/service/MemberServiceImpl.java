@@ -18,6 +18,7 @@ import com.moit.member.repository.MemberInterestRepository;
 import com.moit.member.repository.MemberRepository;
 import com.moit.member.repository.MemberStatusRepository;
 import com.moit.member.repository.MemberTypeRepository;
+import com.moit.security.PasswordLeakService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +34,7 @@ public class MemberServiceImpl implements MemberService{
 	private final PasswordEncoder passwordEncoder;
 	private final MemberInterestRepository memberInterestRepository;
 	private final InterestRepository interestRepository;
+	private final PasswordLeakService passwordLeakService;
 	
 	// 중복검사
 	@Override
@@ -91,8 +93,25 @@ public class MemberServiceImpl implements MemberService{
 		member.setMobile(dto.getMobile());
 		member.setNickname(dto.getNickname());
 		member.setEmail(dto.getEmail());
+		
+		// 비밀번호 유출 여부 확인
+		int leakCount = passwordLeakService.getLeakCount(dto.getPassword());
+
+		if (leakCount > 0) {
+		    throw new IllegalArgumentException(
+		        "사용하려는 비밀번호가 과거 데이터 유출에 포함된 적이 있습니다. 다른 비밀번호를 사용해주세요."
+		    );
+		}
+
+		if (leakCount == -1) {
+		    throw new IllegalArgumentException(
+		        "비밀번호 보안 검증에 실패했습니다. 잠시 후 다시 시도해주세요."
+		    );
+		}
+		
 		// 비밀번호 암호화
 		member.setPassword(passwordEncoder.encode(dto.getPassword()));
+		
 		// 프로필 이미지(기본 or 설정 이미지)
 		if(dto.getProfileUrl() == null || dto.getProfileUrl().isBlank()) {
 			member.setProfileUrl("/images/moit.png");
@@ -254,6 +273,81 @@ public class MemberServiceImpl implements MemberService{
 		member.setMemberStatus(deletedStatus);
 		
 		member.setDeleteYn('Y');
+	}
+	@Override
+	public UserDto socialSignup(UserDto dto) {
+		
+		// 이미 가입된 이메일인지 확인
+		if(memberRepository.existsByEmail(dto.getEmail())){
+			throw new IllegalArgumentException("이미 가입된 이메일입니다.");
+		}
+		
+		// 회원유형 조회
+		MemberType memberType = memberTypeRepository.findById(1L)
+									.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원 유형입니다."));
+		
+		// 일반회원 상태 조회
+		MemberStatus memberStatus = memberStatusRepository.findById(1L)
+										.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원 상태입니다."));
+		
+		// 회원 생성
+		Member member = new Member();
+		
+		member.setLoginId(dto.getLoginId());
+		member.setEmail(dto.getEmail());
+		member.setNickname(dto.getNickname());
+		member.setMobile(dto.getMobile());
+		member.setProvider(dto.getProvider());
+		member.setProviderId(dto.getProviderId());
+		
+		member.setPassword(passwordEncoder.encode( dto.getProvider() + "_" + dto.getProviderId() ));
+		
+		// 프로필 이미지
+		if(dto.getProfileUrl() == null || dto.getProfileUrl().isBlank()) {
+			member.setProfileUrl("/images/moit.png");
+		}else {
+			member.setProfileUrl(dto.getProfileUrl());
+		}
+		
+		member.setMemberType(memberType);
+		member.setMemberStatus(memberStatus);
+		
+		memberRepository.save(member);
+		
+		// 회원 상세정보 저장
+		MemberInfo memberInfo = new MemberInfo();
+		
+		memberInfo.setMember(member);
+		memberInfo.setGender(dto.getGender());
+		memberInfo.setBirth(dto.getBirth());
+		
+		memberInfoRepository.save(memberInfo);
+		
+		// 회원 관심사 저장
+		if(dto.getInterestIds() != null) {
+			for(Integer interestId : dto.getInterestIds()) {
+				Interest interest = interestRepository.findById(interestId.longValue())
+						.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 관심사입니다."));
+				
+				MemberInterest memberInterest = new MemberInterest();
+				
+				MemberInterestId id = new MemberInterestId(member.getId(), interest.getInterestId());
+				
+				memberInterest.setId(id);
+				memberInterest.setMember(member);
+				memberInterest.setInterest(interest);
+				
+				memberInterestRepository.save(memberInterest);
+			}
+		}
+		
+		// DTO에 반영
+		dto.setMemberId(member.getId());
+		dto.setMemberTypeId(member.getMemberType().getMemberTypeId());
+		dto.setStatusId(member.getMemberStatus().getStatusId());
+		dto.setProfileUrl(member.getProfileUrl());
+		
+		return dto;
 	}
 	
 	

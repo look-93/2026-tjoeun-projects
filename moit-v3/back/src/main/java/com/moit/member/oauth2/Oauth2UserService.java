@@ -86,7 +86,7 @@ public class Oauth2UserService extends DefaultOAuth2UserService{
 		
 		CustomUserDetails customUser;
 		
-		if(user.getMemberId() == 0) {
+		if(user.getMemberId() == 0L) {
 
 		    Map<String,Object> attributes = new HashMap<>();
 

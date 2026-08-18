@@ -41,7 +41,7 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
     public Collection<? extends GrantedAuthority> getAuthorities() {
 		
 		// 소셜 로그인 대기
-		if(user.getMemberId() != null && user.getMemberId() == 0){
+		if(Long.valueOf(0L).equals(user.getMemberId())){
 	        return List.of(
 	            new SimpleGrantedAuthority("ROLE_SOCIAL")
 	        );

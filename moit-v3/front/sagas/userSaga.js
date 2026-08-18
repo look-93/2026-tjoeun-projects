@@ -1,5 +1,5 @@
 import {all, call, put, takeLatest} from 'redux-saga/effects';
-import api from 'axios';
+import axios from 'axios';
 import {
     loginRequest,loginSuccess,loginFailure,
     signupRequest,signupSuccess,signupFailure,
@@ -9,8 +9,14 @@ import {
     checkEmailRequest,checkEmailSuccess,checkEmailFailure,
     checkNicknameRequest,checkNicknameSuccess,checkNicknameFailure,
     checkMobileRequest,checkMobileSuccess,checkMobileFailure,
-    logout,
+    logout, resetDuplicateCheck,resetEmailVerification,
+    checkPasswordLeakRequest,checkPasswordLeakSuccess,checkPasswordLeakFailure,
+    resetPasswordLeak
 } from '../reducers/userReducer';
+
+const api = axios.create({
+    baseURL: "http://localhost:8080",
+});
 
 // =========================
 // 로그인 API
@@ -68,6 +74,12 @@ function checkMobileApi(mobile){
     return api.get("/api/members/check-mobile",{params: {mobile: mobile}});
 }
 
+// =========================
+// 비밀번호 유출 검사 API
+// =========================
+function checkPasswordLeakApi(password){
+    return api.post("/api/members/check-password", {password: password});
+}
 
 ////////////////////////////////////////////////////
 
@@ -98,6 +110,12 @@ function* login(action){
             message = "아이디 또는 비밀번호가 올바르지 않습니다.";
         }
 
+        // 회원 유형 오류
+        if(err.response?.status === 403){
+            message =
+                err.response?.data?.message ||
+                "회원유형이 맞지 않습니다.";
+        }
 
         yield put(loginFailure(message));
     }
@@ -115,22 +133,7 @@ function* signup(action){
         yield put(signupSuccess(response.data));
     }catch(err){
         console.error("회원가입 실패:",err);
-
-        let message = "회원가입에 실패했습니다.";
-
-        if(err.response?.status == 400){
-            message = err.response.data?.message ||
-                      err.response.data || "입력한 회원가입 정보를 확인해주세요.";
-        }
-
-        if (err.response?.status === 400 &&
-            typeof err.response.data === "string" &&
-            err.response.data.includes("이메일 인증")) {
-
-            message = "이메일 인증을 완료해주세요.";
-        }
-
-        yield put(signupFailure(message));
+        yield put(signupFailure(err.response?.data?.message || err.message));
     }
 }
 
@@ -145,16 +148,7 @@ function* emailSend(action){
 
         yield put(emailSendSuccess());
     }catch(err){
-        console.error("이메일 인증번호 발송실패:",err);
-
-        let message = "인증번호 발송 실패했습니다.";
-
-        if(err.response?.status === 400){
-            message = err.response.data?.message ||
-                      err.response.data || "올바른 이메일 주소를 입력해주세요.";
-        }
-
-        yield put(emailSendFailure(message));
+        yield put(emailSendFailure(err.response?.data?.message || err.message));
     }
 }
 
@@ -165,23 +159,15 @@ function* emailVerify(action){
     try{
         const {email,code} = action.payload;
 
-        const response = yield call(emailverifyApi,action.payload.email,
-            action.payload.code);
+        const response = yield call(emailverifyApi,
+                                    email,
+                                    code);
 
         console.log("이메일 인증 성공:",response.data);
 
         yield put(emailVerifySuccess());
-    }catch(err){
-        console.error("이메일 인증실패:",err);
-
-        let message = "이메일 인증에 실패했습니다.";
-
-        if(err.response?.status === 400){
-            message = err.response.data?.message ||
-                      err.response.data || "인증번호가 일치하지 않거나 만료되었습니다.";
-        }
-
-        yield put(emailVerifyFailure(message));
+    }catch(err){       
+        yield put(emailVerifyFailure(err.response?.data?.message || err.message));
     }
 }
 
@@ -198,7 +184,23 @@ function* checkLoginId(action){
     }catch(err){
         console.error("아이디 중복검사 실패:",err);
 
-        yield put(checkLoginIdFailure(err.response?.data || "아이디 중복검사에 실패했습니다."));
+        yield put(checkLoginIdFailure(err.response?.data?.message || err.message));
+    }
+}
+
+// =========================
+// 비밀번호 유출 검사
+// =========================
+function* checkPasswordLeak(action){
+    try{
+        const response = yield call(checkPasswordLeakApi,action.payload);
+
+        console.log("비밀번호 유출 검사:", response.data);
+
+        yield put( checkPasswordLeakSuccess(response.data));
+    }catch(err){
+        console.error("비밀번호 유출 검사 실패:", err);
+        yield put(checkPasswordLeakFailure(err.response?.data?.message || err.message));
     }
 }
 
@@ -215,8 +217,7 @@ function* checkEmail(action){
     }catch(err){
         console.error("이메일 중복검사 실패:",err);
 
-        yield put(checkEmailFailure(err.response.data?.message ||
-                                    err.response.data || "이메일 중복검사에 실패했습니다."));
+        yield put(checkEmailFailure(err.response?.data?.message || err.message));
     }
 }
 
@@ -233,8 +234,7 @@ function* checkNickname(action){
     }catch(err){
         console.error("닉네임 중복검사 실패:",err);
 
-        yield put(checkNicknameFailure(err.response.data?.message ||
-                                       err.response.data || "닉네임 중복검사에 실패했습니다."));
+        yield put(checkNicknameFailure(err.response?.data?.message || err.message));
     }
 }
 
@@ -251,8 +251,7 @@ function* checkMobile(action){
     }catch(err){
         console.error("전화번호 중복검사 실패:",err);
 
-        yield put(checkMobileFailure(err.response.data?.message ||
-                                     err.response.data || "전화번호 중복검사에 실패했습니다."));
+        yield put(checkMobileFailure(err.response?.data?.message || err.message));
     }
 }
 
@@ -267,5 +266,6 @@ export default function* userSaga(){
         takeLatest(checkEmailRequest.type, checkEmail),
         takeLatest(checkNicknameRequest.type, checkNickname),
         takeLatest(checkMobileRequest.type, checkMobile),
+        takeLatest(checkPasswordLeakRequest.type, checkPasswordLeak),
     ]);
 }

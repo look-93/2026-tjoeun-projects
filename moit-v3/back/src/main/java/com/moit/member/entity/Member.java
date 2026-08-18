@@ -59,6 +59,12 @@ public class Member extends BaseEntity{
 	@JoinColumn(name = "member_type_id", nullable = false)
 	private MemberType memberType;
 	
+	@Column(name = "provider")
+	private String provider;
+
+	@Column(name = "provider_id")
+	private String providerId;
+	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "status_id", nullable = false)
 	private MemberStatus memberStatus;

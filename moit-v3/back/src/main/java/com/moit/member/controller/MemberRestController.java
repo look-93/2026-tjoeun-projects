@@ -1,6 +1,9 @@
 package com.moit.member.controller;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -24,6 +27,7 @@ import com.moit.member.dto.UserResponseDto;
 import com.moit.member.service.MemberService;
 import com.moit.security.CustomUserDetails;
 import com.moit.security.JwtTokenProvider;
+import com.moit.security.PasswordLeakService;
 import com.moit.security.RefreshTokenService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,6 +43,7 @@ public class MemberRestController {
 	private final JwtTokenProvider jwtTokenProvider;
 	private final PasswordEncoder passwordEncoder;
 	private final RefreshTokenService refreshTokenService;
+	private final PasswordLeakService passwordLeakService;
 	
 	//회원가입
 	@Operation( summary = "회원가입", description = "새로운 회원을 등록합니다." )
@@ -54,7 +59,101 @@ public class MemberRestController {
 	    		.status(HttpStatus.CREATED)
 	    		.body(UserResponseDto.from(result));
     }
+	// 소셜 로그인 추가정보 조회
+	@Operation( summary = "소셜 회원 추가정보 조회", description = "OAuth2 로그인 후 세션에 저장된 소셜 회원정보를 조회합니다." )
+	@GetMapping("/social-info")
+	public ResponseEntity<?> getSocialInfo(HttpSession session) {
+
+	    UserDto socialUser = (UserDto) session.getAttribute("socialUser");
+
+	    if (socialUser == null) {
+	        return ResponseEntity
+	                .status(HttpStatus.UNAUTHORIZED)
+	                .body(Map.of(
+	                        "message",
+	                        "소셜 회원가입 정보가 없습니다."
+	                ));
+	    }
+
+	    return ResponseEntity.ok(
+	            Map.of(
+	            		"email", socialUser.getEmail(),
+	                    "nickname", socialUser.getNickname(),
+	                    "provider", socialUser.getProvider(),
+	                    "profileUrl",
+	                    socialUser.getProfileUrl() == null
+	                            ? ""
+	                            : socialUser.getProfileUrl()
+	            )
+	    );
+	}
 	
+	// 소셜 회원가입 추가정보 저장
+	@Operation( summary = "소셜 회원가입 완료", description = "OAuth2 로그인 후 추가정보를 입력받아 회원가입을 완료하고 JWT를 발급합니다." )
+	@PostMapping("/social-info")
+	public ResponseEntity<?> socialSignup(
+	        @RequestBody UserRequestDto request,
+	        HttpSession session) {
+
+	    // 1. 세션에서 OAuth2 회원정보 가져오기
+	    UserDto socialUser = (UserDto) session.getAttribute("socialUser");
+
+	    if (socialUser == null) {
+	        return ResponseEntity
+	                .status(HttpStatus.UNAUTHORIZED)
+	                .body(Map.of(
+	                        "message",
+	                        "소셜 회원가입 정보가 만료되었거나 존재하지 않습니다."
+	                ));
+	    }
+
+	    // 2. 프론트에서 입력한 추가정보
+	    UserDto dto = request.toUserDto();
+
+	    // 3. OAuth2 로그인 정보 세팅
+	    dto.setEmail(socialUser.getEmail());
+	    dto.setProvider(socialUser.getProvider());
+	    dto.setProviderId(socialUser.getProviderId());
+	    dto.setProfileUrl(socialUser.getProfileUrl());
+
+	    // 4. 소셜 회원가입
+	    UserDto result = service.socialSignup(dto);
+
+	    // 5. 실제 회원 ID
+	    Long memberId = result.getMemberId();
+
+	    // 6. Access Token 발급
+	    String accessToken =
+	            jwtTokenProvider.createAccessToken(
+	                    memberId,
+	                    result.getLoginId()
+	            );
+
+	    // 7. Refresh Token 발급
+	    String refreshToken = jwtTokenProvider.createRefreshToken(memberId);
+
+	    // 8. Redis에 Refresh Token 저장
+	    refreshTokenService.saveRefreshToken(
+	            memberId,
+	            refreshToken,
+	            jwtTokenProvider.getRefreshTokenExpiration()
+	    );
+
+	    // 9. 소셜 회원가입용 세션 삭제
+	    session.removeAttribute("socialUser");
+
+	    // 10. 응답
+	    return ResponseEntity.ok(
+	            new LoginResponseDto(
+	                    accessToken,
+	                    refreshToken,
+	                    result.getMemberId(),
+	                    result.getLoginId(),
+	                    result.getMemberTypeId()
+	            )
+	    );
+	}
+		
 	// 아이디 중복검사
     @Operation( summary = "아이디 중복검사", description = "사용 중인 아이디인지 확인합니다." )
     @GetMapping("/check-loginId")
@@ -63,6 +162,32 @@ public class MemberRestController {
             @RequestParam("loginId") String loginId) {
 
         return ResponseEntity.ok( service.existsByLoginId(loginId) );
+    }
+    
+    // 비밀번호 유출 여부 확인
+    @Operation( summary = "비밀번호 유출 여부 확인", description = "HIBP API를 이용하여 비밀번호 유출 여부를 확인합니다." )
+    @PostMapping("/check-password")
+    public ResponseEntity<Map<String, Object>> checkPassword(
+            @RequestBody Map<String, String> request) {
+
+        String password = request.get("password");
+
+        if (password == null || password.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "비밀번호를 입력해주세요."));
+        }
+
+        int leakCount = passwordLeakService.getLeakCount(password);
+
+        if (leakCount == -1) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "비밀번호 보안 검증에 실패했습니다."));
+        }
+
+        return ResponseEntity.ok(
+                Map.of("leaked", leakCount > 0,
+                       "count", leakCount)
+        );
     }
 
     // 이메일 중복검사
@@ -95,52 +220,91 @@ public class MemberRestController {
         return ResponseEntity.ok( service.existsByMobile(mobile) );
     }
     
-    // 로그인
-    @Operation( summary = "로그인", description = "아이디와 비밀번호를 확인하고 JWT 발급" )
+ // 로그인
+    @Operation(
+            summary = "로그인",
+            description = "아이디, 비밀번호, 회원유형을 확인하고 JWT 발급"
+    )
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login( @RequestBody LoginRequestDto request) {
-    	
-    	//1. 아이디로 회원조회
-    	UserDto user = service.findByLoginId(request.getLoginId());
-    	
-    	//2. 회원이 존재하지 않는 경우
-    	if(user == null) {
-    		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    	}
-    	
-    	// 회원 탈퇴/정지 상태 확인
-    	if (user.getStatusId() == null || !user.getStatusId().equals(1L)) {
-    	    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    	}
-    	
-    	//3. 비밀번호 확인
-    	boolean passwordMatch = passwordEncoder.matches(request.getPassword(), user.getPassword());
-    	
-    	//4. 비밀번호 틀린경우
-    	if(!passwordMatch) {
-    		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    	}
-    	
-    	//5. Access Token 생성
-    	String accessToken = jwtTokenProvider.createAccessToken(user.getMemberId(), user.getLoginId());
-    	
-    	//6. refresh Token 생성
-    	String refreshToken = jwtTokenProvider.createRefreshToken(user.getMemberId());
-    	
-    	// Refresh Token Redis 저장
-    	refreshTokenService.saveRefreshToken(
-    	        user.getMemberId(),
-    	        refreshToken,
-    	        jwtTokenProvider.getRefreshTokenExpiration());
-    	
-    	//7. 로그인 응답
-    	LoginResponseDto response = new LoginResponseDto(accessToken,
-    													refreshToken,
-    													user.getMemberId(),
-    													user.getLoginId(),
-    													user.getMemberTypeId());
-    	
-    	return ResponseEntity.ok(response);  
+    public ResponseEntity<?> login(
+            @RequestBody LoginRequestDto request) {
+
+        // 1. 아이디로 회원조회
+        UserDto user = service.findByLoginId(request.getLoginId());
+
+        // 2. 회원이 존재하지 않는 경우
+        if (user == null) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
+        // 3. 회원 탈퇴/정지 상태 확인
+        if (user.getStatusId() == null ||
+                !user.getStatusId().equals(1L)) {
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
+        // 4. 비밀번호 확인
+        boolean passwordMatch =
+                passwordEncoder.matches(
+                        request.getPassword(),
+                        user.getPassword()
+                );
+
+        // 5. 비밀번호 틀린 경우
+        if (!passwordMatch) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
+        // 6. 회원 유형 확인
+        if (user.getMemberTypeId() == null ||
+                !user.getMemberTypeId().equals(request.getMemberTypeId())) {
+
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(Map.of(
+                            "message",
+                            "회원유형이 맞지 않습니다."
+                    ));
+        }
+
+        // 7. Access Token 생성
+        String accessToken =
+                jwtTokenProvider.createAccessToken(
+                        user.getMemberId(),
+                        user.getLoginId()
+                );
+
+        // 8. Refresh Token 생성
+        String refreshToken =
+                jwtTokenProvider.createRefreshToken(
+                        user.getMemberId()
+                );
+
+        // 9. Refresh Token Redis 저장
+        refreshTokenService.saveRefreshToken(
+                user.getMemberId(),
+                refreshToken,
+                jwtTokenProvider.getRefreshTokenExpiration()
+        );
+
+        // 10. 로그인 응답
+        LoginResponseDto response =
+                new LoginResponseDto(
+                        accessToken,
+                        refreshToken,
+                        user.getMemberId(),
+                        user.getLoginId(),
+                        user.getMemberTypeId()
+                );
+
+        return ResponseEntity.ok(response);
     }
     
     // Access Token 재발급

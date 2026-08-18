@@ -53,8 +53,12 @@ public class SecurityConfig {
 						    	        "/api/members/check-mobile",
 						    	        "/api/members/refresh",
 						    	        "/api/members/email/send",
-						    	        "/api/members/email/verify"
+						    	        "/api/members/email/verify",
+						    	        "/api/members/check-password"
 						    	        ).permitAll()
+					    			// 소셜 회원 추가정보 입력
+					    		  .requestMatchers("/api/members/social-info")
+					    		  .hasAuthority("ROLE_SOCIAL")
 					    		  .requestMatchers(
 					    				    "/user/member/join",
 					    			        "/user/member/login",
@@ -81,8 +85,6 @@ public class SecurityConfig {
                                     // 제휴업체 광고 키워드로 ai 내용작성 
                                     .requestMatchers("/user/advertisement/aiAdvertise")
                                     .hasRole("PARTNER")
-                                    .requestMatchers( "/user/member/socialInfo" )                              
-                                    .hasAuthority("ROLE_SOCIAL")
                                     .anyRequest()
                                     .permitAll()         
                           );

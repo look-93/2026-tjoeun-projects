@@ -17,6 +17,9 @@ public interface MemberService {
     
     // 회원 탈퇴
     void deleteMember(Long memberId);
+    
+    // 소셜 회원가입
+    UserDto socialSignup(UserDto dto);
 
     // 중복 확인
     boolean existsByLoginId(String loginId);
