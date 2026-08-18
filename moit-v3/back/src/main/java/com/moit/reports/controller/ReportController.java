@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.moit.member.dto.UserDto;
-import com.moit.member.repository.ReportStatusRepository;
 import com.moit.reports.api.ApiOpenAi;
 import com.moit.reports.dto.ReportsDto;
 import com.moit.reports.dto.ReportSearchDto;

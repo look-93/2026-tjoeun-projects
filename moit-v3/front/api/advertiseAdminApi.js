@@ -7,27 +7,27 @@ const PRICE_API_URL = `${API_URL}/price`;
 
 // 관리자 광고 가격 목록
 export const getAdvertiseAdminPriceList = () => {
-    return axios.get(`${API_URL}/price`);
+    return axios.get(`${PRICE_API_URL}`);
 };
 
 // 관리자 광고 가격 상세
 export const getAdvertiseAdminPrice = (priceId) => {
-    return axios.get(`${PRICE_API_URL}/price/${priceId}`);
+    return axios.get(`${PRICE_API_URL}/${priceId}`);
 };
 
 // 관리자 광고 가격 등록
 export const createAdvertiseAdminPrice = (data) => {
-    return axios.post(`${PRICE_API_URL}/price`, data);
+    return axios.post(`${PRICE_API_URL}`, data);
 };
 
 // 관리자 광고 가격 수정
 export const updateAdvertiseAdminPrice = (priceId, data) => {
-    return axios.put(`${PRICE_API_URL}/price/${priceId}`, data);
+    return axios.put(`${PRICE_API_URL}/${priceId}`, data);
 };
 
 // 관리자 광고 가격 삭제
 export const deleteAdvertiseAdminPrice = (priceId) => {
-    return axios.delete(`${PRICE_API_URL}/price/${priceId}`);
+    return axios.delete(`${PRICE_API_URL}/${priceId}`);
 };
 
 ////////////////////////////////////////////
