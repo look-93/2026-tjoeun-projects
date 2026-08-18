@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -156,7 +155,7 @@ public class ReportsServiceImpl implements ReportsService {
 	// 관리자 처리 상태 (승인/반려/신뢰도점수/감사로그) 변경
 	@Override
 	@Transactional
-	public void updateAdminReport(Long reportId, Long memberId, ReportProcessDto processDto) {
+	public ReportResponseDto updateAdminReport(Long reportId, Long memberId, ReportProcessDto processDto) {
 		Report report = reportRepository
 				.findByReportIdAndStatus(reportId, ReportStatus.PENDING)
 				.orElseThrow(()-> new IllegalArgumentException("관리자 신고 처리 조회 오류! reportId: " + reportId));
@@ -268,6 +267,8 @@ public class ReportsServiceImpl implements ReportsService {
 		// 메일 전송 test
 //	    if (email != null && !email.isBlank()) { apiEmail.sendMail(subject, content, email); }
 //	    else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
+		
+		return ReportResponseDto.from(report);
 	}
 
 	// 관리자 신고 삭제 (물리삭제 -> 논리삭제 변경 + 감사 로그 processReason 포함)

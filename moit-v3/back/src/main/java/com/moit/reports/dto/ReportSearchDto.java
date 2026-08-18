@@ -1,7 +1,5 @@
 package com.moit.reports.dto;
 
-import java.time.LocalDate;
-
 import com.moit.reports.enums.ReasonCode;
 import com.moit.reports.enums.ReportStatus;
 import com.moit.reports.enums.TargetType;
