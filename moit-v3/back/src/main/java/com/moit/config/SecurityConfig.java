@@ -72,7 +72,7 @@ public class SecurityConfig {
                                     		"/meetup/write/**",
                                     		"/meetup/detail/**", 
                                     		"/mypage/**").authenticated()
-
+                                    .requestMatchers("/api/questions/**").hasRole("ADMIN")
                                     // 관리자 영역(추후 활성화 예정)
                                     //.requestMatchers("/admin/**", "/api/reports/admin/**")
                                     //.hasRole("ADMIN")
@@ -121,6 +121,7 @@ public class SecurityConfig {
                                 		"/questions/deleteSelected", 
                                 		"/api/meetups/**",
                                 		"/api/members/**",
+                                    "/api/questions/**",
                                 		"/api/reports/**",
                                 		"/api/reports")
 

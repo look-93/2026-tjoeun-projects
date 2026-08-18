@@ -15,8 +15,8 @@
 	        <if test="type=='content' and keyword!=null and keyword!=''">
 	            AND q.content LIKE '%' || #{keyword} || '%'
 	        </if>
-	        <if test="status != null and status != ''">
-	            AND q.status=#{status}
+	        <if test="qnaStatus != null and qnaStatus != ''">
+    			AND q.qna_status=#{qnaStatus}
 	        </if>
 	        <if test="startDate != null and startDate != ''">
 	            AND q.created_at >= TO_DATE(#{startDate},'YYYY-MM-DD')
@@ -49,8 +49,8 @@
 	        <if test="type=='content' and keyword!=null and keyword!=''">
 	            AND content LIKE '%' || #{keyword} || '%'
 	        </if>
-	        <if test="status!=null and status!=''">
-	            AND status=#{status}
+	        <if test="qnaStatus != null and qnaStatus != ''">
+   				AND qna_status=#{qnaStatus}
 	        </if>
 	        <if test="startDate!=null and startDate!=''">
 	            AND created_at >= TO_DATE(#{startDate},'YYYY-MM-DD')
@@ -81,7 +81,7 @@
 	<select id="findPendingCnt" resultType="int">
 	    SELECT COUNT(*)
 	    FROM questions
-	    WHERE status = 'PENDING'
+	    WHERE qna_status = 'PENDING'
 	      AND delete_yn = 'N'
 	</select>
 	
@@ -89,7 +89,7 @@
 	<select id="findAnsweredCnt" resultType="int">
 	    SELECT COUNT(*)
 	    FROM questions
-	    WHERE status = 'ANSWERED'
+	    WHERE qna_status = 'ANSWERED'
 	      AND delete_yn = 'N'
 	</select>
 	
@@ -112,7 +112,7 @@
 	<!-- 제목, 내용, 등록일 검색 (관리자용)-->
 	<select id="findBySearch" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto">
 		SELECT
-		question_id, parent_id, member_id, category, title, content, status,
+		question_id, parent_id, member_id, category, title, content, qna_status,
 		is_public, delete_yn, created_at, updated_at
 		FROM questions
 		<where>
@@ -158,18 +158,18 @@
         SELECT question_seq.NEXTVAL FROM dual
     </selectKey>
     INSERT INTO questions
-    (question_id, parent_id, member_id, category, title, content,
-     is_public, delete_yn)
+    (question_id, parent_id, member_id, category, title, content, qna_status,
+     is_public, created_at, updated_at)
     VALUES
     (#{questionId}, #{parentId,jdbcType=BIGINT}, #{memberId}, #{category},
-     #{title}, #{content},
-     #{isPublic}, #{deleteYn})
+     #{title}, #{content}, 'PENDING',
+     #{isPublic}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	</insert>
 
 	<!-- 답변 달리면 상태 변경 -->
 	<update id="updateStatusAnswered">
 		UPDATE questions
-		SET status = 'ANSWERED'
+		SET qna_status = 'ANSWERED'
 		WHERE question_id = #{questionId}
 	</update>
 
@@ -193,7 +193,7 @@
 	<!-- 답변 삭제 시 문의 상태를 답변 대기로 변경 -->
 	<update id="updateStatusPending">
 	    UPDATE questions
-	    SET status = 'PENDING'
+	    SET qna_status = 'PENDING'
 	    WHERE question_id = #{questionId}
 	</update>
 	
@@ -225,7 +225,7 @@
 	
 	<!-- 답변이 등록된 문의 수정 불가 -->
 	<select id="findStatusByQuestionId" parameterType="long" resultType="string">
-	    SELECT status
+	    SELECT qna_status
 	    FROM questions
 	    WHERE question_id = #{questionId}
 	      AND delete_yn = 'N'
@@ -237,7 +237,7 @@
 	    FROM questions
 	    WHERE member_id = #{memberId}
 	      AND title = #{title}
-	      AND content = #{content}
+	      AND DBMS_LOB.SUBSTR(content, 4000, 1) = #{content}
 	      AND delete_yn = 'N'
 	</select>
 	
@@ -252,9 +252,9 @@
 	<!-- 답변 등록 -->
 	<insert id="insertAnswer" parameterType="com.moit.qna.dto.AnswerDto$AnswerRequestDto">
 		insert into answers
-		( answer_id, question_id, member_id, content, delete_yn )
+		( answer_id, question_id, member_id, content, is_public, delete_yn, created_at, updated_at )
 		values
-		( answer_seq.NEXTVAL, #{questionId}, #{memberId}, #{content}, 'N' )
+		( answer_seq.NEXTVAL, #{questionId}, #{memberId}, #{content}, #{isPublic}, 'N', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP )
 	</insert>
 
 	<!-- 답변 수정 -->
@@ -311,15 +311,16 @@
 	<!-- 답변 알림(비동기) -->
 	<!-- 답변 알림(비동기) -->
 
+	<!-- 알림 등록 -->
 	<insert id="insertNotification" parameterType="NotificationDto">
 	    <selectKey keyProperty="notificationId" resultType="long" order="BEFORE">
 	        SELECT notification_seq.NEXTVAL
 	        FROM dual
 	    </selectKey>
 		    INSERT INTO notifications
-		    ( notification_id, question_id, member_id, type, message )
+		    ( notification_id, question_id, member_id, type, message, created_at )
 		    VALUES
-		    ( #{notificationId}, #{questionId}, #{memberId}, #{type}, #{message} )
+		    ( #{notificationId}, #{questionId}, #{memberId}, #{type}, #{message}, CURRENT_TIMESTAMP )
 	</insert>
 	
 	<select id="selectUnread" parameterType="long" resultType="com.moit.qna.dto.NotificationDto">
@@ -356,9 +357,9 @@
 
     <insert id="insertAiAnalysis" parameterType="QuestionAiAnalysisDto">
         INSERT INTO question_ai_analysis
-        ( question_id, analysis_status, aggression_score )
+        ( question_id, analysis_status, aggression_score, ai_category )
         VALUES
-        ( #{questionId}, #{analysisStatus}, #{aggressionScore} )
+        ( #{questionId}, #{analysisStatus}, #{aggressionScore}, #{aiCategory})
     </insert>
 
 	<update id="changeToNormal">
