@@ -9,6 +9,7 @@ import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.AdStatus;
 import com.moit.advertisement.enums.ApprovalStatus;
 import com.moit.advertisement.enums.PaymentStatus;
+import com.moit.advertisement.enums.PaymentType;
 import com.moit.advertisement.enums.TargetGender;
 
 import lombok.AllArgsConstructor;
@@ -42,6 +43,7 @@ public class AdvertisementDto {
     private ApprovalStatus approvalStatus;
     private PaymentStatus paymentStatus;
     private AdGrade adGrade;
+    private PaymentType pendingPaymentType;
 
     private Long impressions;
     private Long clicks;
@@ -161,6 +163,7 @@ public class AdvertisementDto {
 
         private AdStatus status;
         private ApprovalStatus approvalStatus;
+        private PaymentType pendingPaymentType;
         private PaymentStatus paymentStatus;
         private AdGrade adGrade;
 
@@ -204,6 +207,7 @@ public class AdvertisementDto {
                     .status(ad.getStatus())
                     .approvalStatus(ad.getApprovalStatus())
                     .paymentStatus(ad.getPaymentStatus())
+                    .pendingPaymentType(ad.getPendingPaymentType())
                     .adGrade(ad.getAdGrade())
 
                     .advertiserId(

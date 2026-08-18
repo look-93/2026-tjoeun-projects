@@ -46,7 +46,7 @@ public interface ReportsService {
 	// =============
 	// 관리자 처리 상태 (승인/반려/신뢰도점수/감사로그) 변경
 	// findByReportIdAndStatus
-	void updateAdminReport(Long reportId, Long memberId, ReportProcessDto processDto);
+	ReportResponseDto updateAdminReport(Long reportId, Long memberId, ReportProcessDto processDto);
 	
 	// 관리자 신고 삭제 (물리삭제 -> 논리삭제 변경 + 감사 로그 processReason 포함)
 	void deleteAdminReport(Long reportId, Long memberId, String processReason);

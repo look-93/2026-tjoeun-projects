@@ -29,6 +29,7 @@ public class QuestionAiAnalysisService {
         if (profanityFilter.containsBadWord(text)) {
             dto.setAnalysisStatus("PENDING_REVIEW");
             dto.setAggressionScore(99);
+            dto.setAiCategory("OTHER");
             questionMapper.insertAiAnalysis(dto);
             return;
         }
@@ -38,9 +39,11 @@ public class QuestionAiAnalysisService {
             AiAnalysisResult result = openAiService.analyze(text);
             dto.setAnalysisStatus(result.getAnalysis());
             dto.setAggressionScore(result.getScore());
+            dto.setAiCategory(result.getAiCategory());
         } catch (Exception e) {
             dto.setAnalysisStatus("PENDING_REVIEW");
             dto.setAggressionScore(0);
+            dto.setAiCategory("OTHER");
         }
         questionMapper.insertAiAnalysis(dto);
     }

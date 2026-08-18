@@ -6,5 +6,6 @@ import lombok.Data;
 	private Long questionId; 
 	private String analysisStatus; 
 	private int aggressionScore; 
+    private String aiCategory;
 	
 }
