@@ -15,6 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.moit.member.dto.UserDto;
+import com.moit.member.repository.ReportStatusRepository;
+import com.moit.reports.api.ApiOpenAi;
+import com.moit.reports.dto.ReportsDto;
 import com.moit.reports.dto.ReportSearchDto;
 import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
 import com.moit.reports.dto.ReportsDto.ReportProcessDto;
@@ -266,6 +270,7 @@ public class ReportController {
 //		return "";
 //	}
 //	
+
 //	@PostMapping(value = "/report/api/openai", produces = "text/plain; charset=UTF-8")
 //	@ResponseBody
 //	public String openai_post( @RequestBody String keywords ) {
@@ -279,5 +284,5 @@ public class ReportController {
 //	    
 //		return apiOpenAi.getAIResponse(keywords);
 //	}
-	
+
 }
