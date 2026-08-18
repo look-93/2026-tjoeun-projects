@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
     Button,
     Card,
@@ -8,12 +8,12 @@ import {
     InputNumber,
     Select,
     Typography,
-} from "antd";
-import { EnvironmentOutlined } from "@ant-design/icons";
+} from 'antd';
+import { EnvironmentOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
 
-function MeetupRecruitSettings({ isEdit, onAddressClick }) {
+function MeetupRecruitSettings({ isEdit, onAddressClick, sigungus = [] }) {
     return (
         <Card className="mypage-user-info">
             <Title level={4}>모집 정보</Title>
@@ -24,14 +24,14 @@ function MeetupRecruitSettings({ isEdit, onAddressClick }) {
                 rules={[
                     {
                         required: true,
-                        message: "최소 인원을 입력해주세요.",
+                        message: '최소 인원을 입력해주세요.',
                     },
                 ]}
             >
                 <InputNumber
                     min={1}
                     max={100}
-                    style={{ width: "100%" }}
+                    style={{ width: '100%' }}
                     size="large"
                     addonAfter="명"
                 />
@@ -43,14 +43,14 @@ function MeetupRecruitSettings({ isEdit, onAddressClick }) {
                 rules={[
                     {
                         required: true,
-                        message: "최대 인원을 입력해주세요.",
+                        message: '최대 인원을 입력해주세요.',
                     },
                 ]}
             >
                 <InputNumber
                     min={1}
                     max={100}
-                    style={{ width: "100%" }}
+                    style={{ width: '100%' }}
                     size="large"
                     addonAfter="명"
                 />
@@ -62,7 +62,7 @@ function MeetupRecruitSettings({ isEdit, onAddressClick }) {
                 rules={[
                     {
                         required: true,
-                        message: "모임 장소를 선택해주세요.",
+                        message: '모임 장소를 선택해주세요.',
                     },
                 ]}
             >
@@ -79,8 +79,25 @@ function MeetupRecruitSettings({ isEdit, onAddressClick }) {
                 <Input size="large" placeholder="상세주소를 입력하세요." />
             </Form.Item>
 
-            <Form.Item name="sigunguId" hidden>
-                <Input />
+            {/* 시군구 */}
+            <Form.Item
+                label="시군구"
+                name="sigunguId"
+                rules={[
+                    {
+                        required: true,
+                        message: '시군구를 선택해주세요.',
+                    },
+                ]}
+            >
+                <Select
+                    size="large"
+                    placeholder="시군구를 선택하세요."
+                    options={(sigungus || []).map((sigungu) => ({
+                        value: sigungu.sigunguId,
+                        label: `${sigungu.sido.name} ${sigungu.name}`,
+                    }))}
+                />
             </Form.Item>
 
             <Form.Item name="nx" hidden>
@@ -105,14 +122,14 @@ function MeetupRecruitSettings({ isEdit, onAddressClick }) {
                 rules={[
                     {
                         required: true,
-                        message: "모임 날짜와 시간을 선택해주세요.",
+                        message: '모임 날짜와 시간을 선택해주세요.',
                     },
                 ]}
             >
                 <DatePicker
                     showTime
                     format="YYYY-MM-DD HH:mm"
-                    style={{ width: "100%" }}
+                    style={{ width: '100%' }}
                     size="large"
                     placeholder="모임 날짜와 시간을 선택하세요."
                 />
@@ -123,23 +140,23 @@ function MeetupRecruitSettings({ isEdit, onAddressClick }) {
                     size="large"
                     options={[
                         {
-                            value: "RECRUITING",
-                            label: "모집중",
+                            value: 'RECRUITING',
+                            label: '모집중',
                         },
                         {
-                            value: "CLOSED",
-                            label: "종료됨",
+                            value: 'CLOSED',
+                            label: '종료됨',
                         },
                         {
-                            value: "WEATHER_CANCELED",
-                            label: "기상 악화로 인한 취소",
+                            value: 'WEATHER_CANCELED',
+                            label: '기상 악화로 인한 취소',
                         },
                     ]}
                 />
             </Form.Item>
 
             <Button type="primary" htmlType="submit" size="large" block>
-                {isEdit ? "모임 수정하기" : "모임 등록하기"}
+                {isEdit ? '모임 수정하기' : '모임 등록하기'}
             </Button>
         </Card>
     );
