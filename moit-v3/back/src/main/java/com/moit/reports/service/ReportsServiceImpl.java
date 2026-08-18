@@ -416,5 +416,5 @@ public class ReportsServiceImpl implements ReportsService {
 //	        } else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
 //	    }
 	}
-}
+} 
 
