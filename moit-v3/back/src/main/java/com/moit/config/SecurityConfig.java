@@ -60,7 +60,9 @@ public class SecurityConfig {
 						    	        "/api/members/check-email",
 						    	        "/api/members/check-nickname",
 						    	        "/api/members/check-mobile",
-						    	        "/api/members/refresh"
+						    	        "/api/members/refresh",
+						    	        "/api/members/email/send",
+						    	        "/api/members/email/verify"
 						    	        ).permitAll()
 					    		  .requestMatchers(
 					    				    "/user/member/join",
