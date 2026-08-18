@@ -111,6 +111,71 @@ const userReducer = createSlice({
         },
 
         // =========================
+        // 아이디 중복검사
+        // =========================
+        checkLoginIdRequest: (state)=>{
+            state.loading = true;
+            state.error = null;
+        },
+        checkLoginIdSuccess: (state)=>{
+            state.loading = false;
+            state.error = null;
+        },
+        checkLoginIdFailure: (state,action)=>{
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // =========================
+        // 이메일 중복검사
+        // =========================
+        checkEmailRequest: (state)=>{
+            state.loading = true;
+            state.error = null;
+        },
+        checkEmailSuccess: (state)=>{
+            state.loading = false;
+            state.error = null;
+        },
+        checkEmailFailure: (state,action)=>{
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // =========================
+        // 닉네임 중복검사
+        // =========================
+        checkNicknameRequest: (state)=>{
+            state.loading = true;
+            state.error = null;
+        },
+        checkNicknameSuccess: (state)=>{
+            state.loading = false;
+            state.error = null;
+        },
+        checkNicknameFailure: (state,action)=>{
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // =========================
+        // 전화번호 중복검사
+        // =========================
+        checkMobileRequest: (state)=>{
+            state.loading = true;
+            state.error = null;
+        },
+        checkMobileSuccess: (state)=>{
+            state.loading = false;
+            state.error = null;
+        },
+        checkMobileFailure: (state,action)=>{
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+
+        // =========================
         // 로그아웃
         // =========================
         logout: (state)=>{
@@ -130,6 +195,10 @@ export const {
     signupRequest,signupSuccess,signupFailure,
     emailSendRequest,emailSendSuccess,emailSendFailure,
     emailVerifyRequest,emailVerifySuccess,emailVerifyFailure,
+    checkLoginIdRequest,checkLoginIdSuccess,checkLoginIdFailure,
+    checkEmailRequest,checkEmailSuccess,checkEmailFailure,
+    checkNicknameRequest,checkNicknameSuccess,checkNicknameFailure,
+    checkMobileRequest,checkMobileSuccess,checkMobileFailure,
     logout,
 } = userReducer.actions;
 
