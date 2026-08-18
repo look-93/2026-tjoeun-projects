@@ -18,6 +18,8 @@ import com.moit.member.repository.MemberInterestRepository;
 import com.moit.member.repository.MemberRepository;
 import com.moit.member.repository.MemberStatusRepository;
 import com.moit.member.repository.MemberTypeRepository;
+import com.moit.reports.entity.MemberReportStatus;
+import com.moit.reports.repository.MemberReportStatusRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +35,10 @@ public class MemberServiceImpl implements MemberService{
 	private final PasswordEncoder passwordEncoder;
 	private final MemberInterestRepository memberInterestRepository;
 	private final InterestRepository interestRepository;
+	
+	// 신고 뱃지 조회
+	private final MemberReportStatusRepository memberReportStatusRepository;
+	
 	
 	// 중복검사
 	@Override
@@ -83,6 +89,9 @@ public class MemberServiceImpl implements MemberService{
 		// 회원 상태 조회
 		MemberStatus memberStatus = memberStatusRepository.findById(statusId)
 							.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원 상태입니다."));
+		// 신고 회원 상태 조회 (default = "ACTIVE")
+		MemberReportStatus defaultReportStatus = memberReportStatusRepository.findByStatusCode("ACTIVE")
+							.orElseThrow(()-> new IllegalArgumentException("기본 신고 회원 상태 ACTIVE가 등록되지 않았습니다."));
 		
 		// 회원 생성
 		Member member = new Member();
@@ -91,6 +100,7 @@ public class MemberServiceImpl implements MemberService{
 		member.setMobile(dto.getMobile());
 		member.setNickname(dto.getNickname());
 		member.setEmail(dto.getEmail());
+		
 		// 비밀번호 암호화
 		member.setPassword(passwordEncoder.encode(dto.getPassword()));
 		// 프로필 이미지(기본 or 설정 이미지)
@@ -113,6 +123,8 @@ public class MemberServiceImpl implements MemberService{
 		memberInfo.setMember(member);
 		memberInfo.setGender(dto.getGender());
 		memberInfo.setBirth(dto.getBirth());
+		// 회원 상세정보 (신고 뱃지) 저장
+		memberInfo.setMemberReportStatus(defaultReportStatus);
 		
 		memberInfoRepository.save(memberInfo);
 		

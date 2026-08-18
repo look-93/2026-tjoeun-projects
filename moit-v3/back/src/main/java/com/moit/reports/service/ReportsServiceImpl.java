@@ -3,8 +3,8 @@ package com.moit.reports.service;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,7 +75,7 @@ public class ReportsServiceImpl implements ReportsService {
 		report.setReasonCode( requestDto.getReasonCode());
 		report.setReasonDetail( requestDto.getReasonDetail() );
 		report.setStatus(ReportStatus.PENDING);
-		Report savedReport = reportRepository.save(report);
+		Report savedReport = reportRepository.saveAndFlush(report);
 		
 		return ReportResponseDto.from(savedReport);
 	}
@@ -111,8 +111,10 @@ public class ReportsServiceImpl implements ReportsService {
 	// 사용자 신고 목록 조회 + 페이징
 	@Override
 	public ReportListResponseDto getUserReports(Long memberId, Pageable pageable) {
+		Pageable pageRequest = PageRequest.of( pageable.getPageNumber(), pageable.getPageSize() );
+		
 		Page<Report> page = reportRepository
-				.findByMember_IdAndDeleteYnOrderByReportIdDesc(memberId, 'N', pageable);
+				.findByMember_IdAndDeleteYnOrderByReportIdDesc(memberId, 'N', pageRequest);
 		
 		// 조회된 신고 Entity 목록을 ResponseDto 목록으로 변환
 		List<ReportResponseDto> response = page.getContent()
@@ -121,12 +123,9 @@ public class ReportsServiceImpl implements ReportsService {
 				.toList();
 		
 		ReportListResponseDto responseDto = new ReportListResponseDto();
-		// 신고 목록
-		responseDto.setReports(response);
-		// 전체 신고 개수					- long
-		responseDto.setTotalCount(page.getTotalElements());
-		// 전체 페이지 수 (20/10 = 2...)	- int
-		responseDto.setTotalPage((long) page.getTotalPages());
+		responseDto.setReports(response);	// 신고 목록
+		responseDto.setTotalCount(page.getTotalElements());		// 전체 신고 개수
+		responseDto.setTotalPage((long) page.getTotalPages());	// 전체 페이지 수 (20/10 = 2...)
 		
 		return responseDto;
 	}
@@ -156,7 +155,7 @@ public class ReportsServiceImpl implements ReportsService {
 	// 관리자 처리 상태 (승인/반려/신뢰도점수/감사로그) 변경
 	@Override
 	@Transactional
-	public void updateAdminReport(Long reportId, Long memberId, ReportProcessDto processDto) {
+	public ReportResponseDto updateAdminReport(Long reportId, Long memberId, ReportProcessDto processDto) {
 		Report report = reportRepository
 				.findByReportIdAndStatus(reportId, ReportStatus.PENDING)
 				.orElseThrow(()-> new IllegalArgumentException("관리자 신고 처리 조회 오류! reportId: " + reportId));
@@ -231,7 +230,7 @@ public class ReportsServiceImpl implements ReportsService {
 					.findByStatusCode(statusCode)
 					.orElseThrow(()-> new IllegalArgumentException("회원 신고 상태 조회 불가!"));
 			
-			memberInfo.setReportStatus(memberReportStatus);
+			memberInfo.setMemberReportStatus(memberReportStatus);
 		}
 		
 		// 관리자 Member 조회
@@ -268,6 +267,8 @@ public class ReportsServiceImpl implements ReportsService {
 		// 메일 전송 test
 //	    if (email != null && !email.isBlank()) { apiEmail.sendMail(subject, content, email); }
 //	    else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
+		
+		return ReportResponseDto.from(report);
 	}
 
 	// 관리자 신고 삭제 (물리삭제 -> 논리삭제 변경 + 감사 로그 processReason 포함)
@@ -316,6 +317,8 @@ public class ReportsServiceImpl implements ReportsService {
 	// 관리자 신고 목록 조회 + 검색 + 페이징
 	@Override
 	public ReportListResponseDto getAdminReports(ReportSearchDto searchDto, Pageable pageable) {
+		Pageable pageRequest = PageRequest.of( pageable.getPageNumber(), pageable.getPageSize() );
+		
 //		@Param(value="status") ReportStatus status,
 //		@Param(value="deleteYn") Character deleteYn,
 //		@Param(value="targetType") TargetType targetType,
@@ -327,17 +330,17 @@ public class ReportsServiceImpl implements ReportsService {
 				searchDto.getTargetType(),
 				searchDto.getMemberNickname(),
 				searchDto.getReasonCode(),
-				pageable
+				pageRequest
 		);
 		
 		// 조회된 신고 Entity 목록을 ResponseDto 목록으로 변환
-		List<ReportResponseDto> response = page.getContent()
+		List<ReportResponseDto> report = page.getContent()
 				.stream()
 				.map(ReportResponseDto::from)
 				.toList();
 		
 		ReportListResponseDto responseDto = new ReportListResponseDto();
-		responseDto.setReports(response);	// 신고 목록
+		responseDto.setReports(report);	// 신고 목록
 		responseDto.setTotalCount(page.getTotalElements());		// 전체 신고 개수
 		responseDto.setTotalPage((long) page.getTotalPages());	// 전체 페이지 수 (20/10 = 2...)
 		
@@ -384,8 +387,8 @@ public class ReportsServiceImpl implements ReportsService {
 		
 		memberInfoDto.setTrustScore(memberInfo.getTrustScore());	// 신뢰도 점수
 		
-		if (memberInfo.getReportStatus() != null) {					// 뱃지 정보
-			MemberReportStatus reportStatus = memberInfo.getReportStatus();
+		if (memberInfo.getMemberReportStatus() != null) {					// 뱃지 정보
+			MemberReportStatus reportStatus = memberInfo.getMemberReportStatus();
 			memberInfoDto.setReportStatusId( reportStatus.getReportStatusId() );
 			memberInfoDto.setStatusCode( reportStatus.getStatusCode());
 			memberInfoDto.setStatusName( reportStatus.getStatusName());
@@ -405,13 +408,3 @@ public class ReportsServiceImpl implements ReportsService {
 //				String content = "Moit 문의 처리 결과는 어떠셨나요?"
 //								+ "마음에 드셨다면 만족도 참여에 동참해주세요!"
 //								+ "링크첨부...";
-//
-//				//메일 전송 test
-//				try { apiEmail.sendMail(subject, content, email); }
-//				catch (Exception e) { e.printStackTrace(); }
-//
-//	        } else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
-//	    }
-	}
-}
-
