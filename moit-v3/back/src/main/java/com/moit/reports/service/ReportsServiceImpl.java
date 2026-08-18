@@ -408,13 +408,3 @@ public class ReportsServiceImpl implements ReportsService {
 //				String content = "Moit 문의 처리 결과는 어떠셨나요?"
 //								+ "마음에 드셨다면 만족도 참여에 동참해주세요!"
 //								+ "링크첨부...";
-//
-//				//메일 전송 test
-//				try { apiEmail.sendMail(subject, content, email); }
-//				catch (Exception e) { e.printStackTrace(); }
-//
-//	        } else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
-//	    }
-	}
-}
-
