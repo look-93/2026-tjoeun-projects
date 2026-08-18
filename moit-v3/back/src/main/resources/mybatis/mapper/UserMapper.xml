@@ -111,15 +111,27 @@
   
   <!-- 방금 insert된 회원 번호에 info 추가 -->
   <insert id="insertInfo" parameterType="UserDto">
-  	insert into member_info(member_id,gender,birth,join_ip) 
-  	values(members_seq.currval,NVL(#{gender, jdbcType=VARCHAR}, 'N'),#{birth, jdbcType=DATE},NVL(#{joinIp, jdbcType=VARCHAR}, '0.0.0.0'))
+  	insert into member_info(
+		member_id,
+		gender,
+		birth,
+		join_ip,
+		report_status_id
+	) 
+  	values(
+		members_seq.currval,
+		NVL(#{gender, jdbcType=VARCHAR}, 'N'),
+		#{birth, jdbcType=DATE},
+		NVL(#{joinIp, jdbcType=VARCHAR}, '0.0.0.0'),
+		1
+	)
   </insert>
   
   <insert id="insertSocialInfo">
 		INSERT INTO member_info
-		( member_id )
+		( member_id, report_status_id )
 		VALUES
-		( members_seq.currval )
+		( members_seq.currval, 1 )
   </insert>
   
   <!-- 회원 관심사 저장 -->

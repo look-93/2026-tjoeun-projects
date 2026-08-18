@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.moit.qna.dao.QuestionMapper;
 import com.moit.qna.dto.AnswerDto.AnswerResponseDto;
@@ -62,6 +63,7 @@ public class QuestionService {
     }
 
     // 문의 등록
+    @Transactional
     public void register(QuestionRequestDto dto) {
     	// 동일 사용자 + 동일 제목 + 동일 내용의 문의가 있는지 확인
         int duplicateCount = questionMapper.countDuplicateQuestion(
@@ -74,7 +76,7 @@ public class QuestionService {
         }
     	// questions 테이블 저장
         questionMapper.insertQuestion(dto);
-        // AI 분석
+        // AI 분석 + QUESTION_AI_ANALYSIS 저장
         String text = dto.getTitle() + "\n" + dto.getContent();
         questionAiAnalysisService.analyzeAndSave( dto.getQuestionId(), text );
     }

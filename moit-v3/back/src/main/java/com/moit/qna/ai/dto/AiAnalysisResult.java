@@ -7,5 +7,6 @@ public class AiAnalysisResult {
 
     private String analysis;
     private int score;
+    private String aiCategory;
 
 }
