@@ -74,7 +74,7 @@ public class SecurityConfig {
                                     		"/mypage/**").authenticated()
                                     .requestMatchers("/api/questions/**").hasRole("ADMIN")
                                     // 관리자 영역(추후 활성화 예정)
-                                    //.requestMatchers("/admin/**")
+                                    //.requestMatchers("/admin/**", "/api/reports/admin/**")
                                     //.hasRole("ADMIN")
                                     // 제휴업체 광고 키워드로 ai 내용작성 
                                     .requestMatchers("/user/advertisement/aiAdvertise")
@@ -122,6 +122,7 @@ public class SecurityConfig {
                                 		"/api/meetup/**",
                                 		"/api/members/**",
                                 		"/api/questions/**")
+
 
                                 // Spring Security는 POST, PUT, DELETE 등의 요청에 CSRF 토큰이 있는지 검사
                                 // Thymeleaf + Spring Security + <form> → CSRF 토큰이 자동으로 추가
