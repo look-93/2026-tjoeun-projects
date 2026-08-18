@@ -24,4 +24,7 @@ public class QuestionAiAnalysis {
 
     @Column(name = "AGGRESSION_SCORE")
     private Double aggressionScore;
+
+    @Column(name = "AI_CATEGORY")
+    private String aiCategory;
 }

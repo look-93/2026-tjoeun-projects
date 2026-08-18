@@ -51,7 +51,9 @@ public class SecurityConfig {
 						    	        "/api/members/check-email",
 						    	        "/api/members/check-nickname",
 						    	        "/api/members/check-mobile",
-						    	        "/api/members/refresh"
+						    	        "/api/members/refresh",
+						    	        "/api/members/email/send",
+						    	        "/api/members/email/verify"
 						    	        ).permitAll()
 					    		  .requestMatchers(
 					    				    "/user/member/join",
@@ -72,7 +74,7 @@ public class SecurityConfig {
                                     		"/meetup/write/**",
                                     		"/meetup/detail/**", 
                                     		"/mypage/**").authenticated()
-
+                                    .requestMatchers("/api/questions/**").hasRole("ADMIN")
                                     // 관리자 영역(추후 활성화 예정)
                                     //.requestMatchers("/admin/**", "/api/reports/admin/**")
                                     //.hasRole("ADMIN")
@@ -120,7 +122,10 @@ public class SecurityConfig {
                                 		"/user/member/delete", 
                                 		"/questions/deleteSelected", 
                                 		"/api/meetups/**",
-                                		"/api/members/**")
+                                		"/api/members/**",
+                                    "/api/questions/**",
+                                		"/api/reports/**",
+                                		"/api/reports")
 
                                 // Spring Security는 POST, PUT, DELETE 등의 요청에 CSRF 토큰이 있는지 검사
                                 // Thymeleaf + Spring Security + <form> → CSRF 토큰이 자동으로 추가
