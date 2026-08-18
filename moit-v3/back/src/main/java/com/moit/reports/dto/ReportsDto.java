@@ -3,7 +3,6 @@ package com.moit.reports.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.moit.reports.dto.ReportsDto.ReportResponseDto;
 import com.moit.reports.entity.Report;
 import com.moit.reports.enums.ReasonCode;
 import com.moit.reports.enums.ReportStatus;

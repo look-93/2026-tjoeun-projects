@@ -14,6 +14,8 @@ const initialState= {
     auditLogs: [],
     trustInfo: null,
 
+    aiReportDetail: null,
+
     totalCount: 0,
     totalPage: 0,
 };
@@ -129,6 +131,7 @@ const reportReducer = createSlice({
             state.loading = true;
             state.success = false;
             state.error = null;
+            state.checkDoubleReport = null;     // Request 요청 오면 null 초기화
         },
         checkDoubleReportSuccess: (state, action) => {
             state.loading = false;
@@ -238,22 +241,43 @@ const reportReducer = createSlice({
         },
 
         // --- 신고당한 회원 (신뢰도점수/뱃지) 조회 -
-        fetchReportTrustScoreRequest: (state)=> {
+        fetchMemberReportTrustInfoRequest: (state)=> {
             state.loading = true;
             state.success = false;
             state.error = null;
         },
-        fetchReportTrustScoreSuccess: (state, action)=> {
+        fetchMemberReportTrustInfoSuccess: (state, action)=> {
             state.loading = false;
             state.success = true;
             state.trustInfo = action.payload;   // 신뢰도점수
         },
-        fetchReportTrustScoreFailure: (state, action)=> {
+        fetchMemberReportTrustInfoFailure: (state, action)=> {
+            state.loading = false;
+            state.success = false;
+            state.error = action.payload;
+        },
+
+        // openAi 기능
+        createAIReportDetailRequest: (state) => {
+            state.loading = true;
+            state.success = false;
+            state.error = null;
+        },
+        
+        createAIReportDetailSuccess: (state, action) => {
+            state.loading = false;
+            state.success = true;
+            state.error = null;
+            state.aiReportDetail = action.payload;
+        },
+        
+        createAIReportDetailFailure: (state, action) => {
             state.loading = false;
             state.success = false;
             state.error = action.payload;
         },
     }
+
 });
 
 export const {
@@ -268,8 +292,11 @@ export const {
     deleteAdminReportRequest, deleteAdminReportSuccess, deleteAdminReportFailure,
     fetchAdminReportsRequest, fetchAdminReportsSuccess, fetchAdminReportsFailure,
     fetchAdminReportsDetailRequest, fetchAdminReportsDetailSuccess, fetchAdminReportsDetailFailure,
+    
     fetchAdminReportAuditLogsRequest, fetchAdminReportAuditLogsSuccess, fetchAdminReportAuditLogsFailure,
-    fetchReportTrustScoreRequest, fetchReportTrustScoreSuccess, fetchReportTrustScoreFailure
+    fetchMemberReportTrustInfoRequest, fetchMemberReportTrustInfoSuccess, fetchMemberReportTrustInfoFailure,
+    
+    createAIReportDetailRequest, createAIReportDetailSuccess, createAIReportDetailFailure
 } = reportReducer.actions;
 
 export default reportReducer.reducer;

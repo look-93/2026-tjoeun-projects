@@ -1,5 +1,11 @@
-import React, { useState } from 'react';
+// pages/user/meetup/report/write.js
+// 사용자 신고 작성 페이지
+// 모임 또는 리뷰를 신고할 때 신고 사유와 상세 내용을 입력
+
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
+import { createReportRequest } from '../../../../reducers/reportReducer';
 import { Card, Radio, Input, Button, Typography, Space, Divider } from 'antd';
 
 const { Title, Text } = Typography;
@@ -7,15 +13,25 @@ const { TextArea } = Input;
 
 function ReportWritePage() {
   const router = useRouter();
+  const dispatch = useDispatch();
+  
+  const { targetType, targetId } = router.query;
+  const { aiReportDetail } = useSelector((state)=> state.report);
+  // 로그인
+  // const { user } = useSelector();
 
-  const { type, targetId } = router.query;
-
+  // 검색 기능
   const [reasonCode, setReasonCode] = useState(null);
   const [keywords, setKeywords] = useState('');
   const [reasonDetail, setReasonDetail] = useState('');
 
-  const isMeetup = type === 'MEETUP';
+  useEffect(()=> {
+    if (aiReportDetail) {
+        setReasonDetail(aiReportDetail);
+    }
+  }, [aiReportDetail]);
 
+  const isMeetup = targetType === 'MEETUP';
   const title = isMeetup ? '모임 신고하기' : '후기 신고하기';
 
   const reasons = [
@@ -23,9 +39,30 @@ function ReportWritePage() {
     { value: 'SPAM', label: '도배/스팸' },
     { value: 'FAKE_INFO', label: '허위 정보' },
     { value: 'AD', label: '광고성 게시물' },
-    { value: 'NOSHOW', label: '노쇼' },
+    ...(isMeetup
+      ? [{ value: 'NOSHOW', label: '노쇼' }]
+      : []
+    ),
     { value: 'ETC', label: '기타' },
   ];
+
+  const handleSubmit = () => {
+    if (!reasonCode) {
+      message.warning('신고 사유를 선택해주세요.');
+      return;
+    }
+    dispatch(
+      createReportRequest({
+        memberId: 2,  // 로그인 하드코딩
+        dto: {
+          targetType: targetType,
+          targetId: Number(targetId),
+          reasonCode: reasonCode,
+          reasonDetail: reasonDetail
+        }
+      })
+    );
+  };
 
   return (
     <div className="report-write-page">
@@ -96,8 +133,7 @@ function ReportWritePage() {
         <div className="report-write-actions">
           <Space>
             <Button onClick={() => router.back()}>취소</Button>
-
-            <Button type="primary">신고 등록</Button>
+            <Button type="primary" onClick={handleSubmit}>신고 등록</Button>
           </Space>
         </div>
       </Card>

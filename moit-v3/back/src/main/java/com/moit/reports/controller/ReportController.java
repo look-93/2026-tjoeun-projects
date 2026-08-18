@@ -1,5 +1,8 @@
 package com.moit.reports.controller;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.moit.member.dto.UserDto;
-import com.moit.member.repository.ReportStatusRepository;
 import com.moit.reports.api.ApiOpenAi;
-import com.moit.reports.dto.ReportsDto;
+import com.moit.reports.dto.AiReportsDto;
+import com.moit.reports.dto.MemberTrustInfoDto;
+import com.moit.reports.dto.ReportAuditLogDto;
 import com.moit.reports.dto.ReportSearchDto;
 import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
 import com.moit.reports.dto.ReportsDto.ReportProcessDto;
@@ -41,7 +44,9 @@ import lombok.RequiredArgsConstructor;
 public class ReportController {
 	
 	private final ReportsService reportsService;
-
+	private final ApiOpenAi apiOpenAi;
+	
+	
 	
 	// test button
 //	@RequestMapping("/user/meetup/report/button")
@@ -66,7 +71,17 @@ public class ReportController {
 //		return (id != null) ? id : 22; // 관리자 테스트용
 //	}
 	
-
+	//	@PathVariable
+	//	→ URL 경로 중간에 있는 값
+	//
+	//	@RequestParam
+	//	→ URL 뒤 ?key=value 값
+	//
+	//	@RequestBody
+	//	→ body의 JSON 데이터
+	//
+	//	@ModelAttribute
+	//	→ 여러 파라미터를 DTO로 묶어서 받기
 	
 	// 신고 작성
 	@Operation(summary = "사용자 신고 작성", description = "")
@@ -149,16 +164,28 @@ public class ReportController {
 		return ResponseEntity.ok(report);
 	}
 	
+	// 중복 신고 확인 (true = 중복 신고, false = 신고 가능)
+	@Operation(summary = "사용자 중복 신고 확인", description = "같은 사용자가 같은 모임/리뷰를 이미 신고했는지 확인합니다.")
+	@GetMapping("/checkDoubleReport")
+	public ResponseEntity<Boolean> checkDoubleReport (
+	        @RequestParam("memberId") Long memberId,
+	        @RequestParam("targetType") TargetType targetType,
+	        @RequestParam("targetId") Long targetId ) {
+
+	    boolean response = reportsService.checkDoubleReport(memberId, targetType, targetId);
+	    return ResponseEntity.ok(response);
+	}
+	
 	
 	
 	////////////////////////////////////////////////////////////////
 	// 관리자 신고 수정
 	@Operation(summary = "관리자 신고 처리 (승인/반려)", description = "")
 	@PatchMapping(value = "/admin/{reportId}")
-	public ResponseEntity<Long> updateAdminReport(
+	public ResponseEntity<ReportResponseDto> updateAdminReport(
 			Authentication authentication,
 			@Parameter(description = "처리할 신고글 ID") @PathVariable(name = "reportId") Long reportId,
-			@ModelAttribute ReportProcessDto processDto ) {
+			@RequestBody ReportProcessDto processDto ) {
 		
 		// 관리자 로그인 하드코딩
 		Long MemberId = 99L;
@@ -166,8 +193,8 @@ public class ReportController {
 		// 로그인한 adminMemberId 꺼내오기
 //		Long adminMemberId =  authUserJwtService.getCurrentMemberId(authentication);
 		
-		reportsService.updateAdminReport(reportId, MemberId, processDto);
-		return ResponseEntity.ok(reportId);
+		ReportResponseDto response = reportsService.updateAdminReport(reportId, MemberId, processDto);
+		return ResponseEntity.ok(response);
 	};
 	
 	// 관리자 신고 삭제
@@ -260,29 +287,51 @@ public class ReportController {
 		ReportResponseDto report = reportsService.getAdminReportDetail(reportId);
 		return ResponseEntity.ok(report);
 	}
+
 	
 	
 	//////////////////////////////////////////////////////////
-	// open ai
-//	
-//	@GetMapping("/report/api/openai")
-//	public String openai_get() {
-//		return "";
-//	}
-//	
+	// 관리자 신고 처리 로그 조회
+	@Operation(summary = "관리자 신고 처리 로그 조회", description = "신고별 관리자 처리 이력을 조회합니다.")
+	@GetMapping("/admin/{reportId}/auditLogs")
+	public ResponseEntity<List<ReportAuditLogDto>> getReportAuditLogs (
+	        @PathVariable("reportId") Long reportId ) {
 
-//	@PostMapping(value = "/report/api/openai", produces = "text/plain; charset=UTF-8")
-//	@ResponseBody
-//	public String openai_post( @RequestBody String keywords ) {
+	    List<ReportAuditLogDto> response = reportsService.getReportAuditLogs(reportId);
+	    return ResponseEntity.ok(response);
+	}
+	
+	// 신고당한 회원 신뢰도 점수 / 뱃지 조회
+	@Operation(summary = "신고 대상 회원 신뢰도 정보 조회", description = "신고 대상 회원의 신뢰도 점수와 신고 상태 뱃지를 조회합니다.")
+	@GetMapping("/admin/member/{targetMemberId}/trustInfo")
+	public ResponseEntity<MemberTrustInfoDto> getMemberTrustInfo (
+	        @PathVariable("targetMemberId") Long targetMemberId ) {
+
+	    MemberTrustInfoDto response =reportsService.getMemberTrustInfo(targetMemberId);
+	    return ResponseEntity.ok(response);
+	}
+	
+	
+	//////////////////////////////////////////////////////////
+	// ApiOpenAi
+	@Operation(summary = "AI 신고 내용 작성", description = "키워드, 사유, 타겟타입 기반으로 AI가 신고 내용을 작성합니다.")
+	@PostMapping("/openai")
+	public ResponseEntity<String> createReportApiOpenAi (
+			@RequestBody AiReportsDto dto ) {
+		
+		String keywords = dto.getKeywords();
+		String response = apiOpenAi.getAIResponse(keywords);
+		return ResponseEntity.ok(response);
+	}
+
+	//////////////////////////////////////////////////////////
+	// ApiEmail
+//	@Operation(summary = "AI 신고 내용 작성", description = "사용자가 입력한 키워드를 기반으로 AI가 신고 내용을 작성합니다.")
+//	@PostMapping("/openai")
+//	public ResponseEntity<String> createReportApiOpenAi (
+//			@RequestBody Map<String, String> request ) {
 //		
-//		System.out.println("AI Controller 도착");
-//	    System.out.println("전달받은 값: " + keywords);
-//
-//	    String result = apiOpenAi.getAIResponse(keywords);
-//
-//	    System.out.println("AI 결과: " + result);
-//	    
-//		return apiOpenAi.getAIResponse(keywords);
+//		String keywords = request.get("keywords");
+//		return ResponseEntity.ok(apiOpenAi.getAIResponse(keywords));
 //	}
-
 }
