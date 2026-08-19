@@ -7,6 +7,7 @@ import advertiseSaga from './advertiseSaga';
 import reportSaga from './reportSaga';
 import commonSaga from "./commonSaga";
 import qnaSaga  from './qnaSaga';
+import reviewSaga from './reviewSaga';
 
 export default function* rootSaga() {
     yield all([
@@ -16,6 +17,7 @@ export default function* rootSaga() {
         fork(advertiseSaga),
         fork(commonSaga),
         fork(reportSaga),
+        fork(reviewSaga),
         fork(qnaSaga),
     ]);
 }

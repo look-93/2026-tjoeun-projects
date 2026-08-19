@@ -17,9 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.moit.reports.api.ApiOpenAi;
-import com.moit.reports.dto.AiReportsDto;
-
 import com.moit.reports.dto.MemberTrustInfoDto;
 import com.moit.reports.dto.ReportAuditLogDto;
 import com.moit.reports.dto.ReportSearchDto;
@@ -42,12 +39,9 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor
 public class ReportController {
-
+   
    private final ReportsService reportsService;
-   private final ApiOpenAi apiOpenAi;
-//   private final ApiEmail apiEmail;
-   
-   
+
    
    // test button
 //   @RequestMapping("/user/meetup/report/button")
@@ -314,24 +308,25 @@ public class ReportController {
    
    
    //////////////////////////////////////////////////////////
-   // ApiOpenAi
-   @Operation(summary = "AI 신고 내용 작성", description = "키워드, 사유, 타겟타입 기반으로 AI가 신고 내용을 작성합니다.")
-   @PostMapping("/openai")
-   public ResponseEntity<String> createReportApiOpenAi (
-         @RequestBody AiReportsDto dto ) {
-      
-      String response = apiOpenAi.getAIResponse(dto);
-      return ResponseEntity.ok(response);
-   }
-
-   //////////////////////////////////////////////////////////
-   // ApiEmail
-//   @Operation(summary = "AI 신고 내용 작성", description = "사용자가 입력한 키워드를 기반으로 AI가 신고 내용을 작성합니다.")
-//   @PostMapping("/openai")
-//   public ResponseEntity<String> createReportApiOpenAi (
-//         @RequestBody Map<String, String> request ) {
-//      
-//      String keywords = request.get("keywords");
-//      return ResponseEntity.ok(apiOpenAi.getAIResponse(keywords));
+   // open ai
+//   
+//   @GetMapping("/report/api/openai")
+//   public String openai_get() {
+//      return "";
 //   }
+//   
+//   @PostMapping(value = "/report/api/openai", produces = "text/plain; charset=UTF-8")
+//   @ResponseBody
+//   public String openai_post( @RequestBody String keywords ) {
+//      
+//      System.out.println("AI Controller 도착");
+//       System.out.println("전달받은 값: " + keywords);
+//
+//       String result = apiOpenAi.getAIResponse(keywords);
+//
+//       System.out.println("AI 결과: " + result);
+//       
+//      return apiOpenAi.getAIResponse(keywords);
+//   }
+   
 }
