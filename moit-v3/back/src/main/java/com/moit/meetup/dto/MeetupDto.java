@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.moit.common.entity.Sigungu;
 import com.moit.meetup.entity.Meetup;
-import com.moit.meetup.entity.MeetupLike;
 import com.moit.meetup.enums.ApplyStatus;
 import com.moit.meetup.enums.MeetupStatus;
 
@@ -40,6 +39,7 @@ public class MeetupDto {
 	@Setter
 	public static class MeetupResponseDto{
 		private Long id;
+	    private Long memberId;
 		private String title;
 		private String content;
 		private Integer maxParticipants;
@@ -107,6 +107,7 @@ public class MeetupDto {
 		    MeetupResponseDto response = new MeetupResponseDto();
 
 		    response.setId(meetup.getId());
+		    response.setMemberId(meetup.getMember().getId());
 		    response.setTitle(meetup.getTitle());
 		    response.setContent(meetup.getContent());
 		    response.setMaxParticipants(meetup.getMaxParticipants());

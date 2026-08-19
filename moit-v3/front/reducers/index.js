@@ -11,7 +11,7 @@ const rootReducer = combineReducers({
     meetup: meetupReducer,
     report: reportReducer,
     advertise: advertiseReducer,
-    qna: qnaReducer, //state.qna
+    qna: qnaReducer,
     common: commonReducer,
 });
 

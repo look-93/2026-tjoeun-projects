@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
+import com.moit.meetup.service.MeetupService;
 import com.moit.member.dto.UserDto;
 import com.moit.qna.dto.AnswerDto.AnswerRequestDto;
 import com.moit.qna.dto.AnswerDto.SatisfactionRequestDto;
@@ -44,6 +46,16 @@ public class QuestionController {
     private final QuestionService questionService;
     private final AnswerService answerService;
     private final QuestionAiAnalysisService questionAiAnalysisService;
+    private final MeetupService meetupService;
+    
+    // 특정 모임의 Q&A 목록
+    @Operation(summary = "특정 모임 Q&A 목록 조회", description = "특정 모임에 등록된 문의 목록을 조회합니다.")
+    @GetMapping("/meetup/{meetupId}")
+    public ResponseEntity<List<QuestionResponseDto>> meetupQuestions(
+            @PathVariable("meetupId") Long meetupId) {
+        List<QuestionResponseDto> list = questionService.selectByParentId(meetupId);
+        return ResponseEntity.ok(list);
+    }
     
     // 답변 만족도 평가
     @Operation(summary = "답변 만족도 평가", description = "답변에 대한 만족도 점수와 의견을 등록합니다.")
@@ -59,7 +71,7 @@ public class QuestionController {
         return ResponseEntity.noContent().build();
     }
     
-    //관리자용 선택 삭제
+    // 관리자용 선택 삭제
     @Operation(summary = "관리자용 선택 삭제", description = "관리자가 글을 삭제합니다.")
     @DeleteMapping("/deleteSelected")
     public ResponseEntity<Void> deleteSelected(@RequestBody List<Long> ids){
@@ -169,14 +181,14 @@ public class QuestionController {
     // 모임글 문의 등록   
     @Operation(summary = "문의 등록", description = "문의를 등록합니다.")
     @PostMapping
-    public ResponseEntity<Void> create(@RequestBody QuestionRequestDto dto, Authentication authentication) {
+    public ResponseEntity<QuestionResponseDto> create(@RequestBody QuestionRequestDto dto, Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Long memberId = userDetails.getUser().getMemberId();
         dto.setMemberId(memberId);
         // 관리자 문의일 경우 parentId = 0
         if (dto.getParentId() == null) { dto.setParentId(0L); }
-        questionService.register(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).build(); // 성공 응답 201
+        QuestionResponseDto result = questionService.register(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
     
     // 문의 상세 화면 + 답변 조회 + 버튼 권한
@@ -267,7 +279,7 @@ public class QuestionController {
 		UserDto user=null;
 		Object principal = authentication.getPrincipal();
 		Long memberId = null;
-		//1. local
+		// 로그인 사용자 확인
 		if(   principal   instanceof CustomUserDetails ) {
 			CustomUserDetails  users = (CustomUserDetails)principal;
 			user=users.getUser();
@@ -276,18 +288,19 @@ public class QuestionController {
 		if(user == null){
 		    return false;
 		}
-    	// 관리자 문의
-		if ("ADMIN".equals(question.getCategory())) {
-		    return user.getMemberTypeId() == 3 ||
-		           user.getMemberTypeId() == 4;
-		}
-        // 모임 문의
-		if(user.getMemberTypeId() == 3 || user.getMemberTypeId() == 4){
-		    return true;
-			}
-//			MeetupDto meetup = meetupService.getDetail(question.getParentId());
-//			return meetup != null && meetup.getMemberId() == memberId;
-		return true; // <- 임시
+		// 관리자 / 슈퍼관리자는 모든 문의에 답변 가능
+	    if(user.getMemberTypeId() == 3 ||
+	       user.getMemberTypeId() == 4){
+	        return true;
+	    }
+		// 일반 회원인 경우 해당 모임의 모임장인지 확인
+	    if(user.getMemberTypeId() == 1){
+	        MeetupResponseDto meetup =meetupService.detail(question.getParentId());
+	        return meetup != null && meetup.getMemberId() != null &&
+	               meetup.getMemberId().equals(memberId);
+	    }
+	    // 제휴업체 등 그 외 권한은 답변 불가
+	    return false;
     }
     
     // 문의 수정/삭제 권한 확인
