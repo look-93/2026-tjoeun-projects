@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -22,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.moit.advertisement.dto.AdvertisementDto;
+import com.moit.advertisement.dto.AdvertisementExtensionRequestDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.service.AdvertisementService;
@@ -61,6 +63,7 @@ public class AdvertisementController {
 	    summary = "내 광고 목록 조회",
 	    description = "로그인한 광고주의 광고 목록을 페이지 단위로 조회합니다."
 	)
+    @GetMapping
     public ResponseEntity<AdvertisementDto.AdvertisementPageResponseDto> list(
             AdvertisementSearchDto dto) {
 
@@ -303,19 +306,17 @@ public class AdvertisementController {
 //        return "redirect:" + dto.getLandingUrl();
 //    }
     
-    // 광고 기간 연장 신청
+//    // 광고 기간 연장 요청
 //    @PostMapping("/extensionRequest")
-//    @ResponseBody
 //    public ResponseEntity<?> extensionRequest(
-//            @RequestBody AdvertisementExtensionRequestDto dto,
-//            Authentication authentication) {
+//            @RequestBody AdvertisementExtensionRequestDto dto) {
 //
-//        Long memberId = getLoginMemberId(authentication);
-//			
-//			advertisementService.requestExtension(
-//			    dto,
-//			    memberId
-//			);
+//        Long memberId = LOGIN_MEMBER_ID;
+//
+//        advertisementService.requestExtension(
+//                dto,
+//                memberId
+//        );
 //
 //        return ResponseEntity.ok().build();
 //    }

@@ -4,14 +4,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
-import com.moit.qna.dto.QuestionDto.QuestionRequestDto;
-import com.moit.qna.dto.QuestionDto.QuestionResponseDto;
-import com.moit.qna.dto.NotificationDto;
-import com.moit.qna.dto.QuestionAiAnalysisDto;
-import com.moit.qna.dto.QuestionSearchDto;
 import com.moit.qna.dto.AnswerDto.AnswerRequestDto;
 import com.moit.qna.dto.AnswerDto.AnswerResponseDto;
+import com.moit.qna.dto.NotificationDto;
+import com.moit.qna.dto.QuestionAiAnalysisDto;
+import com.moit.qna.dto.QuestionDto.QuestionRequestDto;
+import com.moit.qna.dto.QuestionDto.QuestionResponseDto;
+import com.moit.qna.dto.QuestionSearchDto;
 
 @Mapper
 public interface QuestionMapper {
@@ -71,7 +72,11 @@ public interface QuestionMapper {
     String findStatusByQuestionId(Long questionId);
     
     // 중복 문의 방지
-    int countDuplicateQuestion(Long memberId, String title, String content);
+    int countDuplicateQuestion(
+            @Param("memberId") Long memberId,
+            @Param("title") String title,
+            @Param("content") String content
+    );
     
     // =====  답변  =====
     // 질문에 대한 답변 조회
@@ -100,7 +105,10 @@ public interface QuestionMapper {
     // =====  답변 알림(비동기)  =====
     int unreadCount(Long memberId);
     void insertNotification(NotificationDto dto);
-    void readNotification(Long notificationId, Long memberId);
+    void readNotification(
+    	    @Param("notificationId") Long notificationId,
+    	    @Param("memberId") Long memberId
+    	);
     void deleteOldestNotification(Long memberId);
     int countNotifications(Long memberId);
     List<NotificationDto> selectUnread(Long memberId);

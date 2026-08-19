@@ -1,6 +1,5 @@
 package com.moit.reports.controller;
 
-import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +15,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.moit.member.dto.UserDto;
+import com.moit.reports.api.ApiOpenAi;
+import com.moit.reports.dto.ReportsDto;
 import com.moit.reports.dto.ReportSearchDto;
 import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
 import com.moit.reports.dto.ReportsDto.ReportProcessDto;
 import com.moit.reports.dto.ReportsDto.ReportRequestDto;
 import com.moit.reports.dto.ReportsDto.ReportResponseDto;
+import com.moit.reports.enums.ReasonCode;
+import com.moit.reports.enums.ReportStatus;
+import com.moit.reports.enums.TargetType;
 import com.moit.reports.service.ReportsService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,10 +43,10 @@ public class ReportController {
 
 	
 	// test button
-	@RequestMapping("/user/meetup/report/button")
-    public String reportButton() {
-        return "user/meetup/report/button";
-    }
+//	@RequestMapping("/user/meetup/report/button")
+//    public String reportButton() {
+//        return "user/meetup/report/button";
+//    }
 	
 	// 사용자 로그인 헬퍼
 //	private Long getLoginMemberId(Authentication authentication) {
@@ -85,7 +90,7 @@ public class ReportController {
 			@RequestBody ReportRequestDto requestDto ) {
 		
 		// 로그인 하드코딩
-		Long memberId = 1L;
+		Long memberId = 2L;
 		
 		// 로그인한 memberId 꺼내오기
 //		Long memberId =  authUserJwtService.getCurrentMemberId(authentication);
@@ -103,7 +108,7 @@ public class ReportController {
 			@PathVariable("reportId") Long reportId ) {
 		
 		// 로그인 하드코딩
-		Long memberId = 1L;
+		Long memberId = 2L;
 		
 		// 로그인한 memberId 꺼내오기
 //		Long memberId = authUserJwtService.getCurrentMemberId(authentication);
@@ -118,11 +123,7 @@ public class ReportController {
 	public ResponseEntity<ReportListResponseDto> getReportsMylist (
 			Authentication authentication, 
 			@Parameter(description = "작성자 ID") @RequestParam("memberId") Long memberId,
-			@PageableDefault(
-		            size = 10,							// 한 페이지에 10개
-		            sort = "reportId",					// reportId
-		            direction = Sort.Direction.DESC		// 내림차순 조회
-		        ) Pageable pageable ) {
+			@PageableDefault(size = 10) Pageable pageable ) {
 		
 		// 로그인한 memberId 꺼내오기
 //		Long memberId = authUserJwtService.getCurrentMemberId(authentication);
@@ -138,7 +139,7 @@ public class ReportController {
 			@PathVariable("reportId") Long reportId) {
 		
 		// 로그인 하드코딩
-		Long memberId = 1L;
+		Long memberId = 2L;
 		
 		// 로그인한 memberId 꺼내오기
 //		Long memberId = authUserJwtService.getCurrentMemberId(authentication);
@@ -156,7 +157,7 @@ public class ReportController {
 	public ResponseEntity<Long> updateAdminReport(
 			Authentication authentication,
 			@Parameter(description = "처리할 신고글 ID") @PathVariable(name = "reportId") Long reportId,
-			@RequestParam ReportProcessDto processDto ) {
+			@ModelAttribute ReportProcessDto processDto ) {
 		
 		// 관리자 로그인 하드코딩
 		Long MemberId = 99L;
@@ -187,27 +188,64 @@ public class ReportController {
 	}
 	
 	// 관리자 신고 목록 조회 + 검색 + 페이징
-	@Operation(summary = "관리자 신고 목록 조회", description = "신고 상태, 삭제 여부, 대상 유형, 작성자(닉네임), 신고 사유로 검색합니다.")
+	@Operation(summary = "관리자 신고 목록 조회", description = "필터(버튼)이랑 서치(키워드)를 혼합하여 검색합니다.")
 	@GetMapping("/admin/adminReportsList")
 	public ResponseEntity<ReportListResponseDto> getReportsAdmin (
 			Authentication	authentication,
 			@ModelAttribute ReportSearchDto searchDto,	// 검색조건
-			@PageableDefault(							// 페이지 정보
-					size = 10,
-					sort = "reportId",
-					direction = Sort.Direction.DESC ) Pageable pageable ) {
+			@PageableDefault(size = 10) Pageable pageable ) {
 		
-		// 검색 기능 추가 ReportSearchDto
-		// 신고 상태
-		if (searchDto.getStatus() != null) {
-			
+		// 로그인 하드코딩
+		Long adminMemberId = 99L;
+		
+		// 로그인한 adminMemberId 꺼내오기
+//		Long adminMemberId = authUserJwtService.getCurrentMemberId(authentication);
+		
+		searchDto.setTargetType(null);
+		searchDto.setStatus(null);
+		searchDto.setDeleteYn(null);
+		searchDto.setMemberNickname(null);
+		searchDto.setReasonCode(null);
+		
+		// 필터(버튼) 기능
+		String filter = searchDto.getFilter();
+		// 서치(키워드) 기능
+		String search = searchDto.getSearch();
+		String keyword = searchDto.getKeyword();
+		
+		// 전체
+		if ("ALL".equals(filter) || filter == null || filter.isEmpty() || filter.isBlank()) {
+			searchDto.setDeleteYn('N');
 		}
-			
+		// 신고 상태
+		if ("MEETUP".equals(filter)) {
+			searchDto.setTargetType(TargetType.MEETUP);
+			searchDto.setDeleteYn('N');
+		}
+		if ("REVIEW".equals(filter)) {
+			searchDto.setTargetType(TargetType.REVIEW);
+			searchDto.setDeleteYn('N');
+		}
+		// 처리 상태
+		if ("PENDING".equals(filter)) {
+			searchDto.setStatus(ReportStatus.PENDING);
+			searchDto.setDeleteYn('N');
+		}
 		// 삭제 여부
-		// 대상 유형
-		// 작성자(닉네임)
-		// 신고 사유
-		
+		if ("DELETE".equals(filter)) {
+			searchDto.setDeleteYn('Y');
+		}
+
+		if (keyword != null && !keyword.isBlank()) {
+			// 작성자(닉네임)
+			if ("MEMBER_NICKNAME".equals(search) ) {
+				searchDto.setMemberNickname(keyword.trim());
+			}
+			// 신고 사유
+			if ("REASONCODE".equals(search) ) {
+				searchDto.setReasonCode( ReasonCode.valueOf(keyword.trim().toUpperCase()) );
+			}
+		}
 		ReportListResponseDto response = reportsService.getAdminReports(searchDto, pageable);
 		return ResponseEntity.ok(response);
 	}
@@ -231,6 +269,7 @@ public class ReportController {
 //		return "";
 //	}
 //	
+
 //	@PostMapping(value = "/report/api/openai", produces = "text/plain; charset=UTF-8")
 //	@ResponseBody
 //	public String openai_post( @RequestBody String keywords ) {
@@ -244,5 +283,5 @@ public class ReportController {
 //	    
 //		return apiOpenAi.getAIResponse(keywords);
 //	}
-	
+
 }
