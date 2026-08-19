@@ -1,21 +1,64 @@
-import React from 'react';
-import { Avatar, Tag } from 'antd';
+import React from "react";
+import { Avatar, Tag } from "antd";
 
-function MypageHeader() {
-  return (
-    <div className="mypage-profile-card">
-      <Avatar size={64} src={'#'}>
-        손예진
-      </Avatar>
+function MypageHeader({ user }) {
 
-      <div className="mypage-profile-info">
-        <h6>예진이짱</h6>
-        <p>예진@예진</p>
+    console.log("===== MYPAGE HEADER USER =====");
+    console.log(user);
 
-        <Tag>예진이</Tag>
-      </div>
-    </div>
-  );
+    const getMemberType = (memberTypeId) => {
+        switch (Number(memberTypeId)) {
+            case 1:
+                return "일반회원";
+
+            case 2:
+                return "제휴업체";
+
+            case 3:
+                return "관리자";
+
+            case 4:
+                return "최고관리자";
+
+            default:
+                return "-";
+        }
+    };
+
+    return (
+        <div className="mypage-profile-card">
+
+            {/* 프로필 이미지 */}
+            <Avatar
+                size={64}
+                src={user?.profileUrl || "/images/moit.png"}
+            >
+                {!user?.profileUrl &&
+                    user?.nickname?.charAt(0)}
+            </Avatar>
+
+            {/* 회원 정보 */}
+            <div className="mypage-profile-info">
+
+                {/* 닉네임 */}
+                <h6>
+                    {user?.nickname || "-"}
+                </h6>
+
+                {/* 이메일 */}
+                <p>
+                    {user?.email || "-"}
+                </p>
+
+                {/* 회원 유형 */}
+                <Tag>
+                    {getMemberType(user?.memberTypeId)}
+                </Tag>
+
+            </div>
+
+        </div>
+    );
 }
 
 export default MypageHeader;

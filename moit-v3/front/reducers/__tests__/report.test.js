@@ -13,7 +13,7 @@ import reportReducer, {
     fetchAdminReportsRequest, fetchAdminReportsSuccess, fetchAdminReportsFailure,
     fetchAdminReportsDetailRequest, fetchAdminReportsDetailSuccess, fetchAdminReportsDetailFailure,
     fetchAdminReportAuditLogsRequest, fetchAdminReportAuditLogsSuccess, fetchAdminReportAuditLogsFailure,
-    fetchReportTrustScoreRequest, fetchReportTrustScoreSuccess, fetchReportTrustScoreFailure
+    fetchMemberReportTrustInfoRequest, fetchMemberReportTrustInfoSuccess, fetchMemberReportTrustInfoFailure
 } from '../reportReducer';
 
 describe('reportReducer', ()=> {
@@ -602,11 +602,11 @@ describe('reportReducer', ()=> {
     // =====================================================
     // 신고 대상 회원 신뢰도 조회
     // =====================================================
-    it('fetchReportTrustScoreRequest & fetchReportTrustScoreSuccess', () => {
+    it('fetchMemberReportTrustInfoRequest & fetchMemberReportTrustInfoSuccess', () => {
 
         let state = reportReducer(
             initialState,
-            fetchReportTrustScoreRequest()
+            fetchMemberReportTrustInfoRequest()
         );
 
         expect(state.loading).toBe(true);
@@ -624,7 +624,7 @@ describe('reportReducer', ()=> {
 
         state = reportReducer(
             initialState,
-            fetchReportTrustScoreSuccess(trustInfo)
+            fetchMemberReportTrustInfoSuccess(trustInfo)
         );
 
         expect(state.loading).toBe(false);
@@ -635,10 +635,10 @@ describe('reportReducer', ()=> {
     });
 
 
-    it('fetchReportTrustScoreFailure', () => {
+    it('fetchMemberReportTrustInfoFailure', () => {
         const state = reportReducer(
             initialState,
-            fetchReportTrustScoreFailure(
+            fetchMemberReportTrustInfoFailure(
                 '신뢰도 점수 조회 실패'
             )
         );

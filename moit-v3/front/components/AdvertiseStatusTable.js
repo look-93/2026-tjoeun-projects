@@ -7,6 +7,8 @@ function AdvertiseStatusTable({
   onDetail,
   onStatusChange,
 }) {
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+
   const columns = [
     {
       title: '번호',
@@ -28,7 +30,7 @@ function AdvertiseStatusTable({
 
         return (
           <img
-            src={record.imageList[0].imageUrl}
+            src={`${BASE_URL}${record.imageList[0].imageUrl}`}
             alt={record.title}
             style={{
               width: 70,

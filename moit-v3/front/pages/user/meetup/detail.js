@@ -27,6 +27,7 @@ function MeetupDetailPage() {
   // 모임 데이터
   // =========================
   const meetup = {
+    meetupId: 25, // 테스트용 추가함
     title: '주말 한강 러닝 같이 하실 분!',
     status: '모집중',
     participants: 8,
@@ -168,7 +169,8 @@ function MeetupDetailPage() {
                   danger
                   onClick={() =>
                     router.push(
-                      `/user/meetup/report/write?type=MEETUP&targetId=${meetup.meetupId}`,
+                      // `/user/meetup/report/write?targetType=MEETUP&targetId=${meetup.meetupId}`,
+                      `/user/meetup/report/write?targetType=MEETUP&targetId=2`,
                     )
                   }
                 >

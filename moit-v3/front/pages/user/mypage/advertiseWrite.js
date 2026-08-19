@@ -176,14 +176,14 @@ function AdvertiseWritePage() {
       formData.append(
         'startDatetime',
         values.period[0].format(
-          'YYYY-MM-DDTHH:mm:ss'
+          'YYYY-MM-DD HH:mm:ss'
         )
       );
 
       formData.append(
         'endDatetime',
         values.period[1].format(
-          'YYYY-MM-DDTHH:mm:ss'
+          'YYYY-MM-DD HH:mm:ss'
         )
       );
 
@@ -819,17 +819,21 @@ function AdvertiseWritePage() {
                     adGrade
                 );
 
-                const positionExtra =
-                selectedPositions.reduce(
-                    (sum, position) => {
-                    const item =
-                        POSITION_PRICES.find(
-                        (p) => p.key === position
-                        );
+                // 🌟 1. imageFiles 상태를 뒤져서 '실제로 이미지가 업로드된 위치'들만 뽑아냅니다.
+                const activePositions = Object.keys(imageFiles).filter(
+                  (key) => imageFiles[key] && imageFiles[key].length > 0
+                );
+
+                // 🌟 2. 이미지가 들어있는 위치의 가격만 찾아서 합산합니다.
+                const positionExtra = activePositions.reduce(
+                  (sum, position) => {
+                    const item = POSITION_PRICES.find(
+                      (p) => p.key === position
+                    );
 
                     return sum + (item?.price || 0);
-                    },
-                    0
+                  },
+                  0
                 );
 
                 const finalPrice =
