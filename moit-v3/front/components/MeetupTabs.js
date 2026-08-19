@@ -6,7 +6,7 @@ import QnaSection from './QnaSection';
 
 const { Title, Text, Paragraph } = Typography;
 
-function MeetupTabs({ activeTab, setActiveTab, meetup, reviews, qnaLists }) {
+function MeetupTabs({ activeTab, setActiveTab, meetup, reviews, qnaLists,meetupId,onWriteReview,onLikeReview,onSortChange,onSearch,}) {//추가 meetupId,onWriteReview,onLikeReview
   const items = [
     {
       key: 'detail',
@@ -45,7 +45,16 @@ function MeetupTabs({ activeTab, setActiveTab, meetup, reviews, qnaLists }) {
     {
       key: 'review',
       label: '후기',
-      children: <ReviewSection reviews={reviews} />,
+      children: (
+        <ReviewSection 
+          reviews={reviews} 
+          meetupId={meetupId || meetup?.meetupId} 
+          onWriteReview={onWriteReview}
+          onLikeReview={onLikeReview}
+          onSortChange={onSortChange}   
+          onSearch={onSearch}
+        />
+      ),
     },
 
     {

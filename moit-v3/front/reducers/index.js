@@ -4,12 +4,14 @@ import userReducer from './userReducer';
 import reportReducer from './reportReducer';
 import advertiseReducer from './advertiseReducer';
 import qnaReducer  from './qnaReducer';
+import reviewReducer from "./reviewReducer";
   
 const rootReducer = combineReducers({
     user: userReducer, //state.user
     report: reportReducer,
     advertise: advertiseReducer,
     qna:  qnaReducer,  //state.qna
+    review:reviewReducer,
 })
 
 export default rootReducer;
