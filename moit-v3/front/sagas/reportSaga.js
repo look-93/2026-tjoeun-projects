@@ -13,10 +13,12 @@ import  {
     deleteAdminReportRequest, deleteAdminReportSuccess, deleteAdminReportFailure,
     fetchAdminReportsRequest, fetchAdminReportsSuccess, fetchAdminReportsFailure,
     fetchAdminReportsDetailRequest, fetchAdminReportsDetailSuccess, fetchAdminReportsDetailFailure,
+
     fetchAdminReportAuditLogsRequest, fetchAdminReportAuditLogsSuccess, fetchAdminReportAuditLogsFailure,
-    fetchMemberReportTrustInfoRequest, fetchMemberReportTrustInfoSuccess, fetchMemberReportTrustInfoFailure
+    fetchMemberReportTrustInfoRequest, fetchMemberReportTrustInfoSuccess, fetchMemberReportTrustInfoFailure,
+
+    createAIReportDetailRequest, createAIReportDetailSuccess, createAIReportDetailFailure
 } from '../reducers/reportReducer';
-import { Form } from 'antd';
 import api from '../api/axios';
 
 
@@ -41,6 +43,11 @@ export function* createReport(action) {
         yield put(createReportSuccess(result.data));
         
     } catch(err) {
+        console.log("신고 등록 실패");
+        console.log("status:", err.response?.status);
+        console.log("data:", err.response?.data);
+        console.log("message:", err.message);
+
         yield put(createReportFailure(err.response?.data?.message || err.message));
     }
 }
@@ -292,6 +299,28 @@ export function* fetchMemberReportTrustInfo(action) {
     }
 }
 
+// AI 신고 내용 작성
+export const createAIReportDetailAPI = (dto) => {
+    // @RequestBody AiReportsDto { keywords, reasonCode, targetType }
+    return api.post(
+        `${POST_API_BASE}/openai`, dto
+    );
+};
+export function* createAIReportDetail(action) {
+    try {
+        const result = yield call(createAIReportDetailAPI, action.payload);
+        yield put( createAIReportDetailSuccess(result.data));
+
+    } catch (err) {
+        yield put(createAIReportDetailFailure( err.response?.data?.message || err.message ));
+    }
+}
+
+
+
+
+
+
 
 // --- watch saga들 ---     ■ takeLatest : 여러 번 요청와도 1번만
 function* watchCreateReport() { yield takeLatest( createReportRequest.type, createReport ); }
@@ -305,9 +334,11 @@ function* watchUpdateAdminReport() { yield takeLatest( updateAdminReportRequest.
 function* watchdDeleteAdminReport() { yield takeLatest( deleteAdminReportRequest.type, deleteAdminReport ); }
 function* watchFetchAdminReports() { yield takeLatest( fetchAdminReportsRequest.type, fetchAdminReports ); }
 function* watchFetchAdminReportsDetail() { yield takeLatest( fetchAdminReportsDetailRequest.type, fetchAdminReportsDetail ); }
+
 function* watchFetchAdminReportAuditLogs() { yield takeLatest( fetchAdminReportAuditLogsRequest.type, fetchAdminReportAuditLogs ); }
 function* watchFetchMemberReportTrustInfo() { yield takeLatest( fetchMemberReportTrustInfoRequest.type, fetchMemberReportTrustInfo ); }
 
+function* watchCreateAIReportDetail() { yield takeLatest( createAIReportDetailRequest.type, createAIReportDetail ); }
 
 
 export default function* reportSaga() {
@@ -323,7 +354,10 @@ export default function* reportSaga() {
         call(watchdDeleteAdminReport),
         call(watchFetchAdminReports),           // --- 관리자 신고 목록 조회 + 검색 + 페이징 ---
         call(watchFetchAdminReportsDetail),     // --- 관리자 신고 상세 조회 ---
+        
         call(watchFetchAdminReportAuditLogs),
         call(watchFetchMemberReportTrustInfo),
+        
+        call(watchCreateAIReportDetail),
     ]);
 }
