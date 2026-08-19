@@ -48,7 +48,7 @@ public class SecurityConfig {
 	   http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 	   
 	   // JWT 인증필터 등록
-	   http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+//	   http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
       //1. 허용경로
 
@@ -84,6 +84,11 @@ public class SecurityConfig {
                                     		"/meetup/detail/**", 
                                     		"/mypage/**").authenticated()
                                     .requestMatchers("/api/questions/**").authenticated()
+                                    // 로그인 jwt되면 제거
+                                    // 관리자 광고 API - 테스트용
+                                    .requestMatchers("/api/admin/advertisement/**").permitAll()
+                                    // 제휴업체 광고 API
+                                    .requestMatchers("/user/mypage/advertiseWrite").permitAll()
                                     // 관리자 영역(추후 활성화 예정)
                                     //.requestMatchers("/admin/**", "/api/reports/admin/**")
                                     //.hasRole("ADMIN")
@@ -134,7 +139,9 @@ public class SecurityConfig {
                                 		"/api/members/**",
                                 		"/api/questions/**",
                                 		"/api/reports/**",
-                                		"/api/reports")
+                                		"/api/reports",
+                                        "/api/admin/advertisement/**",
+                                        "/api/advertisement/**")
 
                                 // Spring Security는 POST, PUT, DELETE 등의 요청에 CSRF 토큰이 있는지 검사
                                 // Thymeleaf + Spring Security + <form> → CSRF 토큰이 자동으로 추가
@@ -147,7 +154,8 @@ public class SecurityConfig {
                                   (request, response, authException) -> {
                                       response.sendError(
                                           HttpServletResponse.SC_UNAUTHORIZED,
-                                          "JWT 인증이 필요합니다."
+                                          //"JWT 인증이 필요합니다."
+                                          "로그인이 필요합니다."
                                       );
                                   },
                                   request -> request.getRequestURI().startsWith("/api/")

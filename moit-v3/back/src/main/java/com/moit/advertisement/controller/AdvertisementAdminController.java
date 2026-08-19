@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
+import com.moit.advertisement.dto.AdvertisementPaymentDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 //import com.moit.advertisement.dto.DashboardAiDto;
 import com.moit.advertisement.enums.ApprovalStatus;
@@ -39,75 +40,98 @@ public class AdvertisementAdminController {
     private static final Long LOGIN_ADMIN_ID = 1L;
     
     // =========================================================
-    // 승인 대기 목록
-    // GET /api/admin/advertisement/approval
+    // 승인 관리 탭 API (승인 대기 + 승인 완료되었으나 결제 대기인 광고 포함)
     // =========================================================
     @Operation(
 	    summary = "광고 승인 대기 목록 조회",
-	    description = "관리자가 승인 대기 중인 광고 목록을 조회합니다."
+	    description = "승인 대기 중이거나 승인 완료 후 결제 대기 중인 광고 목록을 조회합니다."
 	)
-    @GetMapping("/approval")
-    public ResponseEntity<AdvertisementDto.AdvertisementPageResponseDto> approvalList(
-            AdvertisementSearchDto dto) {
-
+    @GetMapping("/approval-tab")
+    public ResponseEntity<AdvertisementDto.AdvertisementPageResponseDto> approvalTabList(
+    		AdvertisementSearchDto dto) 
+    {
         dto.setPage(dto.getPage() <= 0 ? 1 : dto.getPage());
         dto.setSize(dto.getSize() <= 0 ? 10 : dto.getSize());
 
-        dto.setApprovalStatus(ApprovalStatus.WAITING);
-
-        List<AdvertisementDto> list =
-                advertisementService.searchWaitingList(dto);
-
-        int totalCnt =
-                advertisementService.selectWaitingTotalCnt(dto);
+        List<AdvertisementDto> list = advertisementService.searchApprovalTabList(dto);
+        long totalCnt = advertisementService.selectApprovalTabTotalCnt(dto);
 
         return ResponseEntity.ok(
                 new AdvertisementDto.AdvertisementPageResponseDto(
-                        list,
-                        totalCnt,
-                        dto.getPage(),
-                        dto.getSize()
-                )
+                		list, (int) totalCnt, dto.getPage(), dto.getSize())
         );
     }
 
+    @Operation(summary = "승인 관리 탭 개수 조회")
+    @GetMapping("/approval-tab/count")
+    public ResponseEntity<Long> approvalTabCount(AdvertisementSearchDto dto) {
+        return ResponseEntity.ok(advertisementService.selectApprovalTabTotalCnt(dto));
+    }
+    
+
+	 // =========================================================
+	 // 결제 확인 탭 API
+	 // =========================================================
+	 @Operation(
+	     summary = "결제 확인 탭 목록 조회",
+	     description = "광고의 결제 이력을 조회합니다."
+	 )
+	 @GetMapping("/payment-tab")
+	 public ResponseEntity<AdvertisementDto.AdvertisementPaymentPageResponseDto> paymentTabList(
+	         AdvertisementSearchDto dto) {
+	
+	     dto.setPage(dto.getPage() <= 0 ? 1 : dto.getPage());
+	     dto.setSize(dto.getSize() <= 0 ? 10 : dto.getSize());
+	
+	     List<AdvertisementPaymentDto> list =
+	             advertisementService.searchPaymentHistory(dto);
+	
+	     long totalCnt =
+	             advertisementService.selectPaymentTabTotalCnt(dto);
+	
+	     return ResponseEntity.ok(
+	             new AdvertisementDto.AdvertisementPaymentPageResponseDto(
+	                     list,
+	                     (int) totalCnt,
+	                     dto.getPage(),
+	                     dto.getSize()
+	             )
+	     );
+	 }
+
+    @Operation(summary = "결제 확인 탭 개수 조회")
+    @GetMapping("/payment-tab/count")
+    public ResponseEntity<Long> paymentTabCount(AdvertisementSearchDto dto) {
+        return ResponseEntity.ok(advertisementService.selectPaymentTabTotalCnt(dto));
+    }
+
     // =========================================================
-    // 광고 관리 목록
-    // GET /api/admin/advertisement
-    //
-    // tab = approval
-    // tab = manage
+    // 광고 운영 관리 목록
     // =========================================================
     @Operation(
-	    summary = "광고 관리 목록 조회",
-	    description = "관리자가 승인 대기 또는 승인 완료된 광고 목록을 조회합니다."
-	)
-    @GetMapping
-    public ResponseEntity<List<AdvertisementDto>> manageList(
-            @RequestParam(required = false, defaultValue = "approval")
-            String tab,
-
-            AdvertisementSearchDto dto) {
-
+        summary = "운영 관리 탭 목록 조회",
+        description = "승인 및 결제가 모두 완료되어 운영 중인 광고 목록을 조회합니다."
+    )
+    @GetMapping("/status-tab")
+    public ResponseEntity<AdvertisementDto.AdvertisementPageResponseDto> statusTabList(
+    		AdvertisementSearchDto dto) 
+    {
         dto.setPage(dto.getPage() <= 0 ? 1 : dto.getPage());
         dto.setSize(dto.getSize() <= 0 ? 10 : dto.getSize());
 
-        List<AdvertisementDto> list;
+        List<AdvertisementDto> list = advertisementService.searchStatusTabList(dto);
+        long totalCnt = advertisementService.selectStatusTabTotalCnt(dto);
 
-        if ("approval".equals(tab)) {
+        return ResponseEntity.ok(
+                new AdvertisementDto.AdvertisementPageResponseDto(
+                		list, (int) totalCnt, dto.getPage(), dto.getSize())
+        );
+    }
 
-            dto.setApprovalStatus(ApprovalStatus.WAITING);
-
-            list = advertisementService.searchWaitingList(dto);
-
-        } else {
-
-            dto.setApprovalStatus(ApprovalStatus.APPROVED);
-
-            list = advertisementService.searchByAdmin(dto);
-        }
-
-        return ResponseEntity.ok(list);
+    @Operation(summary = "운영 관리 탭 개수 조회")
+    @GetMapping("/status-tab/count")
+    public ResponseEntity<Long> statusTabCount(AdvertisementSearchDto dto) {
+        return ResponseEntity.ok(advertisementService.selectStatusTabTotalCnt(dto));
     }
 
 
@@ -121,7 +145,7 @@ public class AdvertisementAdminController {
 	)
     @GetMapping("/count")
     public ResponseEntity<Long> manageCount(
-            @RequestParam(required = false, defaultValue = "approval")
+            @RequestParam(name = "tab", required = false, defaultValue = "approval")
             String tab,
 
             AdvertisementSearchDto dto) {
@@ -147,7 +171,6 @@ public class AdvertisementAdminController {
     
     // =========================================================
     // 광고 상세
-    // GET /api/admin/advertisement/{adId}
     // =========================================================
     @Operation(
 	    summary = "광고 상세 조회",
@@ -155,10 +178,9 @@ public class AdvertisementAdminController {
 	)
     @GetMapping("/{adId}")
     public ResponseEntity<AdvertisementDto> detail(
-            @PathVariable Long adId) {
+            @PathVariable("adId") Long adId) {
 
-        AdvertisementDto dto =
-                advertisementService.selectAdvertisementOne(adId);
+        AdvertisementDto dto = advertisementService.selectAdvertisementOne(adId);
 
         if (dto == null) {
             return ResponseEntity.notFound().build();
@@ -169,7 +191,6 @@ public class AdvertisementAdminController {
 
     // =========================================================
     // 광고 승인
-    // PATCH /api/admin/advertisement/{adId}/approve
     // =========================================================
     @Operation(
 	    summary = "광고 승인",
@@ -177,7 +198,7 @@ public class AdvertisementAdminController {
 	)
 	@PatchMapping("/{adId}/approve")
 	public ResponseEntity<Void> approve(
-	        @PathVariable Long adId) {
+	        @PathVariable("adId") Long adId) {
 
 	    AdvertisementDto.AdvertisementAdminUpdateDto dto =
 	            new AdvertisementDto.AdvertisementAdminUpdateDto();
@@ -203,8 +224,8 @@ public class AdvertisementAdminController {
 	)
     @PatchMapping("/{adId}/reject")
     public ResponseEntity<Void> reject(
-            @PathVariable Long adId,
-            @RequestParam String rejectReason) {
+            @PathVariable("adId") Long adId,
+            @RequestParam(name = "rejectReason") String rejectReason) {
 
         AdvertisementDto.AdvertisementAdminUpdateDto dto =
                 new AdvertisementDto.AdvertisementAdminUpdateDto();
@@ -231,8 +252,8 @@ public class AdvertisementAdminController {
 	)
     @PatchMapping("/{adId}/status")
     public ResponseEntity<Void> status(
-            @PathVariable Long adId,
-            @RequestParam String status) {
+            @PathVariable("adId") Long adId,
+            @RequestParam(name = "status") String status) {
 
         AdvertisementDto.AdvertisementAdminUpdateDto dto =
                 new AdvertisementDto.AdvertisementAdminUpdateDto();
@@ -250,7 +271,6 @@ public class AdvertisementAdminController {
     
     // =========================================================
     // 광고 등급 변경
-    // PATCH /api/admin/advertisement/{adId}/grade
     // =========================================================
     @Operation(
 	    summary = "광고 등급 변경",
@@ -258,8 +278,8 @@ public class AdvertisementAdminController {
 	)
     @PatchMapping("/{adId}/grade")
     public ResponseEntity<Void> updateGrade(
-            @PathVariable Long adId,
-            @RequestParam String adGrade) {
+            @PathVariable("adId") Long adId,
+            @RequestParam(name = "adGrade") String adGrade) {
 
         advertisementService.updateAdGrade(
                 adId,
@@ -279,13 +299,13 @@ public class AdvertisementAdminController {
 	)
     @PatchMapping("/{adId}/period")
     public ResponseEntity<Void> updatePeriod(
-            @PathVariable Long adId,
+            @PathVariable("adId") Long adId,
 
-            @RequestParam
+            @RequestParam(name = "start")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate start,
 
-            @RequestParam
+            @RequestParam(name = "end")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate end) {
 
@@ -307,147 +327,72 @@ public class AdvertisementAdminController {
 
         return ResponseEntity.ok(
                 new Object() {
-
-                    public final long totalAdCnt =
-                            advertisementService
-                                    .selectTotalAdvertisementCnt();
-
-                    public final long openCnt =
-                            advertisementService
-                                    .selectOpenAdvertisementCnt();
-
-                    public final long pendingCnt =
-                            advertisementService
-                                    .selectPendingAdvertisementCnt();
-
-                    public final long closedCnt =
-                            advertisementService
-                                    .selectClosedAdvertisementCnt();
+                	public final long totalAdCnt = advertisementService.selectTotalAdvertisementCnt();
+                    public final long openCnt = advertisementService.selectOpenAdvertisementCnt();
+                    public final long pendingCnt = advertisementService.selectPendingAdvertisementCnt();
+                    public final long closedCnt = advertisementService.selectClosedAdvertisementCnt();
                 }
         );
     }
     // =========================================================
     // 총 통계
-    // GET /api/admin/advertisement/statistics/summary
     // =========================================================
-    @Operation(
-	    summary = "광고 통계 요약 조회",
-	    description = "광고 전체 노출수, 클릭수 등의 요약 통계를 조회합니다."
-	)
     @GetMapping("/statistics/summary")
     public ResponseEntity<AdvertisementChartDto> summary() {
-
-        return ResponseEntity.ok(
-                advertisementService.selectSummary()
-        );
+        return ResponseEntity.ok(advertisementService.selectSummary());
     }
-
 
     // =========================================================
     // 일일 통계
-    // GET /api/admin/advertisement/statistics/daily
     // =========================================================
-    @Operation(
-	    summary = "광고 일일 통계 조회",
-	    description = "날짜별 광고 노출 및 클릭 통계를 조회합니다."
-	)
     @GetMapping("/statistics/daily")
     public ResponseEntity<List<AdvertisementChartDto>> dailyChart() {
-
-        return ResponseEntity.ok(
-                advertisementService.selectDailyChart()
-        );
+        return ResponseEntity.ok(advertisementService.selectDailyChart());
     }
-
 
     // =========================================================
     // CTR TOP 5
-    // GET /api/admin/advertisement/statistics/ctr
     // =========================================================
-    @Operation(
-	    summary = "광고 CTR TOP 5 조회",
-	    description = "CTR이 높은 광고 상위 5개를 조회합니다."
-	)
     @GetMapping("/statistics/ctr")
     public ResponseEntity<List<AdvertisementChartDto>> ctrChart() {
-
-        return ResponseEntity.ok(
-                advertisementService.selectTopCtrChart()
-        );
+        return ResponseEntity.ok(advertisementService.selectTopCtrChart());
     }
-
 
     // =========================================================
     // 광고 등급 비율
-    // GET /api/admin/advertisement/statistics/grade
     // =========================================================
-    @Operation(
-	    summary = "광고 등급별 비율 조회",
-	    description = "전체 광고의 일반(GENERAL) 및 프리미엄(PREMIUM) 등급별 비율을 조회합니다."
-	)
     @GetMapping("/statistics/grade")
     public ResponseEntity<List<AdvertisementChartDto>> gradeChart() {
-
-        return ResponseEntity.ok(
-                advertisementService.selectGradeChart()
-        );
+        return ResponseEntity.ok(advertisementService.selectGradeChart());
     }
-
 
     // =========================================================
     // 위치별 노출
-    // GET /api/admin/advertisement/statistics/position
     // =========================================================
-    @Operation(
-	    summary = "광고 위치별 노출 통계 조회",
-	    description = "광고가 노출된 위치별 노출 통계 데이터를 조회합니다."
-	)
     @GetMapping("/statistics/position")
     public ResponseEntity<List<AdvertisementChartDto>> positionChart() {
-
-        return ResponseEntity.ok(
-                advertisementService.selectPositionChart()
-        );
+        return ResponseEntity.ok(advertisementService.selectPositionChart());
     }
-
 
     // =========================================================
     // 연장률
-    // GET /api/admin/advertisement/statistics/extension-rate
     // =========================================================
-    @Operation(
-	    summary = "광고 연장률 조회",
-	    description = "전체 광고의 기간 연장 비율을 조회합니다."
-	)
     @GetMapping("/statistics/extension-rate")
     public ResponseEntity<Double> extensionRate() {
-
-        return ResponseEntity.ok(
-                advertisementService.selectExtensionRate()
-        );
+        return ResponseEntity.ok(advertisementService.selectExtensionRate());
     }
-
 
     // =========================================================
     // 위치별 CTR
-    // GET /api/admin/advertisement/statistics/position-ctr
     // =========================================================
-    @Operation(
-	    summary = "광고 위치별 CTR 조회",
-	    description = "광고 노출 위치별 클릭률(CTR) 통계를 조회합니다."
-	)
     @GetMapping("/statistics/position-ctr")
     public ResponseEntity<List<AdvertisementChartDto>> positionCtrChart() {
-
-        return ResponseEntity.ok(
-                advertisementService.selectPositionCtrChart()
-        );
+        return ResponseEntity.ok(advertisementService.selectPositionCtrChart());
     }
 
 
 //    // =========================================================
 //    // AI 통계 요약
-//    // GET /api/admin/advertisement/statistics/ai-summary
 //    // =========================================================
 //
 //    @GetMapping("/statistics/ai-summary")

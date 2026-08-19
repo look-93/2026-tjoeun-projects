@@ -1,5 +1,6 @@
 package com.moit.reports.repository;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -56,7 +57,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 //	Page<Report> findByReasonCodeAdminSearch(ReasonCode reasonCode, Character deleteYn, Pageable pageable);
 //	// 날짜
 //	Page<Report> findByCreatedAtAdminSearch(LocalDate createdAt, Character deleteYn, Pageable pageable);
-//	// 관리자 신고 목록 조회 + 검색 + 페이징
+	// 관리자 신고 목록 조회 + 검색 + 페이징
 	@Query ("""
 		select r
 		from Report r	join r.member m
