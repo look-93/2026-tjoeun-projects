@@ -1,7 +1,6 @@
 package com.moit.reports.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -45,6 +44,7 @@ public class ReportController {
 	
 	private final ReportsService reportsService;
 	private final ApiOpenAi apiOpenAi;
+//	private final ApiEmail apiEmail;
 	
 	
 	
@@ -319,8 +319,7 @@ public class ReportController {
 	public ResponseEntity<String> createReportApiOpenAi (
 			@RequestBody AiReportsDto dto ) {
 		
-		String keywords = dto.getKeywords();
-		String response = apiOpenAi.getAIResponse(keywords);
+		String response = apiOpenAi.getAIResponse(dto);
 		return ResponseEntity.ok(response);
 	}
 

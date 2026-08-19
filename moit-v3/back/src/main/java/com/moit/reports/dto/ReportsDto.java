@@ -30,6 +30,9 @@ public class ReportsDto {
 		private Long targetId;			// 모임글번호/리뷰글번호
 		private Long memberId;
 		private String memberNickname;
+		private Integer trustScore;		// 신뢰도 점수
+		private String statusCode;		// 뱃지 statusCode (영)
+		private String statusName;		// 뱃지 statusName (한)
 		private ReasonCode reasonCode;
 		private String reasonDetail;
 		private ReportStatus status;
@@ -43,10 +46,17 @@ public class ReportsDto {
 	        dto.setReportId(report.getReportId());
 	        dto.setTargetType(report.getTargetType());
 	        dto.setTargetId(report.getTargetId());
-
+	        // memberId, memberNickname, trustScore, statusCode, statusName
 	        if (report.getMember() != null) {
 	            dto.setMemberId(report.getMember().getId());
 	            dto.setMemberNickname(report.getMember().getNickname());
+	            if (report.getMember().getMemberInfo() != null) {
+	                dto.setTrustScore(report.getMember().getMemberInfo().getTrustScore());
+		            if (report.getMember().getMemberInfo().getMemberReportStatus() != null) {
+			            dto.setStatusCode(report.getMember().getMemberInfo().getMemberReportStatus().getStatusCode());
+			            dto.setStatusName(report.getMember().getMemberInfo().getMemberReportStatus().getStatusName());
+		            }
+	            }
 	        }
 	        dto.setReasonCode(report.getReasonCode());
 	        dto.setReasonDetail(report.getReasonDetail());
@@ -98,6 +108,6 @@ public class ReportsDto {
 //	
 //	//뱃지 표현
 //	private int reportStatusId;		//	1		/	2		/	3
-//	private String statusCode;		// 'ACTIVE' / 'WARNING' / 'SUSPENDED'
-//	private String statusName;		// '정상'		/ '주의'		/ '정지'
+//	private String statusCode;		// 'ACTIVE' / 'WARNING' / 'DANGER'
+//	private String statusName;		// '정상'		/ '주의'		/ '위험'
 //									// 클린한 유저 / 선 넘은 어그로 유저 / 진실의 방으로...

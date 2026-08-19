@@ -5,8 +5,8 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
-import { createReportRequest } from '../../../../reducers/reportReducer';
-import { Card, Radio, Input, Button, Typography, Space, Divider } from 'antd';
+import { createReportRequest, createAIReportDetailRequest, resetReportState } from '../../../../reducers/reportReducer';
+import { Card, Radio, Input, Button, Typography, Space, Divider, message } from 'antd';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -15,21 +15,44 @@ function ReportWritePage() {
   const router = useRouter();
   const dispatch = useDispatch();
   
-  const { targetType, targetId } = router.query;
-  const { aiReportDetail } = useSelector((state)=> state.report);
   // 로그인
   // const { user } = useSelector();
+  const { targetType, targetId } = router.query;
+  const { aiReportDetail, create } = useSelector((state)=> state.report);
+
+  // 신고 작성 페이지를 나갈 때 신고 성공 상태 초기화
+  useEffect(() => {
+    return () => {
+      dispatch(resetReportState());
+    };
+  }, [dispatch]);
+
+  // AI 신고 내용 생성 성공
+  useEffect(()=> {
+    if (aiReportDetail) {
+      setReasonDetail(aiReportDetail);
+    }
+  }, [aiReportDetail]);
+  
+  // 신고 등록 성공
+  useEffect(() => {
+    if (create.success) {
+      message.success('신고가 등록되었습니다.');
+      router.push('/user/meetup/report');
+    }
+  }, [create.success]);
+  
+  // 신고 등록 실패
+  useEffect(() => {
+      if (create.error) {
+          message.error(create.error);
+      }
+  }, [create.error]);
 
   // 검색 기능
   const [reasonCode, setReasonCode] = useState(null);
   const [keywords, setKeywords] = useState('');
   const [reasonDetail, setReasonDetail] = useState('');
-
-  useEffect(()=> {
-    if (aiReportDetail) {
-        setReasonDetail(aiReportDetail);
-    }
-  }, [aiReportDetail]);
 
   const isMeetup = targetType === 'MEETUP';
   const title = isMeetup ? '모임 신고하기' : '후기 신고하기';
@@ -46,7 +69,31 @@ function ReportWritePage() {
     { value: 'ETC', label: '기타' },
   ];
 
+  // 키워드 작성 버튼 클릭
+  const handleAICreate = () => {
+      if (!keywords.trim()) {
+          message.warning('키워드를 입력해주세요.');
+          return;
+      }
+      if (!reasonCode) {
+          message.warning('신고 사유를 선택해주세요.');
+          return;
+      }
+      dispatch(
+          createAIReportDetailRequest({
+              keywords: keywords,
+              reasonCode: reasonCode,
+              targetType: targetType
+          })
+      );
+  };
+
+  // 신고 등록 버튼 클릭
   const handleSubmit = () => {
+    if (!targetId) {
+        message.error('신고 대상 ID가 없습니다.');
+        return;
+    }
     if (!reasonCode) {
       message.warning('신고 사유를 선택해주세요.');
       return;
@@ -98,6 +145,7 @@ function ReportWritePage() {
           </Title>
 
           <TextArea
+            name="keywords"
             value={keywords}
             onChange={(e) => setKeywords(e.target.value)}
             maxLength={150}
@@ -110,6 +158,7 @@ function ReportWritePage() {
             type="primary"
             style={{ marginTop: 10 }}
             disabled={!reasonCode || !keywords.trim()}
+            onClick={handleAICreate}
           >
             키워드 작성
           </Button>
@@ -121,6 +170,7 @@ function ReportWritePage() {
           </Title>
 
           <TextArea
+            name="reasonDetail"
             value={reasonDetail}
             onChange={(e) => setReasonDetail(e.target.value)}
             maxLength={200}
@@ -133,7 +183,13 @@ function ReportWritePage() {
         <div className="report-write-actions">
           <Space>
             <Button onClick={() => router.back()}>취소</Button>
-            <Button type="primary" onClick={handleSubmit}>신고 등록</Button>
+            <Button
+              type="primary"
+              loading={create.loading}
+              onClick={handleSubmit}
+            >
+              신고 등록
+            </Button>
           </Space>
         </div>
       </Card>

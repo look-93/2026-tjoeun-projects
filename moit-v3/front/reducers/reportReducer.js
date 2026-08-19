@@ -7,17 +7,135 @@ const initialState= {
     reports: [],                // 전체신고글 목록
     currentReport: null,        // 단건 조회된 상세 신고글
     checkDoubleReport: null,    // 모임,리뷰 중복신고 더블체크
-    loading: false,
-    error: null,
-    success: false,
 
-    auditLogs: [],
-    trustInfo: null,
-
-    aiReportDetail: null,
+    auditLogs: [],               // 관리자 처리 로그
+    trustInfo: null,             // 신고 대상 회원 신뢰도
+    aiReportDetail: null,        // AI 신고 상세 내용
 
     totalCount: 0,
     totalPage: 0,
+
+    // =====================================================
+    // 사용자 신고 작성
+    // =====================================================
+    create: {
+        loading: false,
+        error: null,
+        success: false,
+    },
+
+
+    // =====================================================
+    // 사용자 신고 수정
+    // =====================================================
+    update: {
+        loading: false,
+        error: null,
+        success: false,
+    },
+
+
+    // =====================================================
+    // 사용자 신고 삭제
+    // =====================================================
+    delete: {
+        loading: false,
+        error: null,
+        success: false,
+    },
+
+
+    // =====================================================
+    // 사용자 신고 목록 조회
+    // =====================================================
+    fetch: {
+        loading: false,
+        error: null,
+    },
+
+
+    // =====================================================
+    // 사용자 신고 상세 조회
+    // =====================================================
+    fetchDetail: {
+        loading: false,
+        error: null,
+    },
+
+
+    // =====================================================
+    // 중복 신고 확인
+    // =====================================================
+    doubleCheck: {
+        loading: false,
+        error: null,
+    },
+
+
+    // =====================================================
+    // 관리자 신고 승인 / 반려
+    // =====================================================
+    adminUpdate: {
+        loading: false,
+        error: null,
+        success: false,
+    },
+
+
+    // =====================================================
+    // 관리자 신고 삭제
+    // =====================================================
+    adminDelete: {
+        loading: false,
+        error: null,
+        success: false,
+    },
+
+
+    // =====================================================
+    // 관리자 신고 목록 조회
+    // =====================================================
+    adminFetch: {
+        loading: false,
+        error: null,
+    },
+
+
+    // =====================================================
+    // 관리자 신고 상세 조회
+    // =====================================================
+    adminFetchDetail: {
+        loading: false,
+        error: null,
+    },
+
+
+    // =====================================================
+    // 관리자 감사로그 조회
+    // =====================================================
+    auditLogFetch: {
+        loading: false,
+        error: null,
+    },
+
+
+    // =====================================================
+    // 회원 신뢰도 조회
+    // =====================================================
+    trustInfoFetch: {
+        loading: false,
+        error: null,
+    },
+
+
+    // =====================================================
+    // AI 신고 상세내용 생성
+    // =====================================================
+    aiCreate: {
+        loading: false,
+        error: null,
+        success: false,
+    },
 };
 
 const reportReducer = createSlice({
@@ -25,256 +143,249 @@ const reportReducer = createSlice({
     initialState,
     reducers: {
 
-        // --- 상태 초기화 ---
-        resetReportState: (state)=> {
-            state.loading = false;
-            state.success = false;
-            state.error = null;
+        resetReportState: (state) => {
+            state.create.success = false;
+            state.create.error = null;
+
+            state.update.success = false;
+            state.update.error = null;
+
+            state.delete.success = false;
+            state.delete.error = null;
+
+            state.adminUpdate.success = false;
+            state.adminUpdate.error = null;
+
+            state.adminDelete.success = false;
+            state.adminDelete.error = null;
+
+            state.aiCreate.success = false;
+            state.aiCreate.error = null;
         },
 
         // --- 신고글 작성 ---
-        createReportRequest: (state)=> {
-            state.loading = true;
-            state.success = false;
-            state.error = null;
+        createReportRequest: (state) => {
+            state.create.loading = true;
+            state.create.error = null;
+            state.create.success = false;
         },
-        createReportSuccess: (state, action)=> {
-            state.loading = false;
-            state.success = true;
-            state.reports.unshift(action.payload);
+        createReportSuccess: (state, action) => {
+            state.create.loading = false;
+            state.create.success = true;
+            state.reports.unshift(action.payload);  // 작성된 신고 목록 맨 앞에 추가
         },
-        createReportFailure: (state, action)=> {
-            state.loading = false;
-            state.success = false;
-            state.error = action.payload;
+        createReportFailure: (state, action) => {
+            state.create.loading = false;
+            state.create.success = false;
+            state.create.error = action.payload;
         },
         
         // --- 신고글 수정 ---
-        updateReportRequest: (state)=> {
-            state.loading = true;
-            state.success = false;
-            state.error = null;
+        updateReportRequest: (state) => {
+            state.update.loading = true;
+            state.update.error = null;
+            state.update.success = false;
         },
-        updateReportSuccess: (state, action)=> {
-            state.loading = false;
-            state.success = true;
+        updateReportSuccess: (state, action) => {
+            state.update.loading = false;
+            state.update.success = true;
+            // 상세 조회 중인 신고글을 수정된 데이터로 변경
             state.currentReport = action.payload;
-            // 새 신고글을 목록상단추가
-            state.reports = state.reports.map( report =>
-                report.reportId === action.payload.reportId ? action.payload : report
+            // 신고 목록에서도 해당 신고글을 수정된 데이터로 변경
+            state.reports = state.reports.map((report) =>
+                report.reportId === action.payload.reportId
+                    ? action.payload
+                    : report
             );
         },
-        updateReportFailure: (state, action)=> {
-            state.loading = false;
-            state.success = false;
-            state.error = action.payload;
+        updateReportFailure: (state, action) => {
+            state.update.loading = false;
+            state.update.success = false;
+            state.update.error = action.payload;
         },
         
         // --- 신고글 삭제 ---
-        deleteReportRequest: (state)=> {
-            state.loading = true;
-            state.success = false;
-            state.error = null;
+        deleteReportRequest: (state) => {
+            state.delete.loading = true;
+            state.delete.error = null;
+            state.delete.success = false;
         },
-        deleteReportSuccess: (state, action)=> {
-            state.loading = false;
-            state.success = true;
-            // 삭제된 신고글의 reportId 받아서 목록에서 제외
-            state.reports = state.reports.filter( report =>
-                report.reportId !== action.payload
+        deleteReportSuccess: (state, action) => {
+            state.delete.loading = false;
+            state.delete.success = true;
+            // 삭제 신고글의 reportId 받아서 목록에서 제거
+            state.reports = state.reports.filter(
+                (report) => report.reportId !== action.payload
             );
         },
-        deleteReportFailure: (state, action)=> {
-            state.loading = false;
-            state.success = false;
-            state.error = action.payload;
+        deleteReportFailure: (state, action) => {
+            state.delete.loading = false;
+            state.delete.success = false;
+            state.delete.error = action.payload;
         },
 
         // --- 내 신고내역 조회 (사용자 신고 목록 조회 + 페이징) ---
-        fetchReportsRequest: (state)=> {
-            state.loading = true;
-            state.success = false;
-            state.error = null;
+        fetchReportsRequest: (state) => {
+            state.fetch.loading = true;
+            state.fetch.error = null;
         },
-        fetchReportsSuccess: (state, action)=> {
-            state.loading = false;
-            state.success = true;
-            state.reports = action.payload.reports;         // 전체신고글 목록 reports, totalCount, totalPage
-            state.totalCount = action.payload.totalCount;   // totalCount
-            state.totalPage = action.payload.totalPage;     // totalPage
+        fetchReportsSuccess: (state, action) => {
+            state.fetch.loading = false;
+            state.reports = action.payload.reports;
+            state.totalCount = action.payload.totalCount;
+            state.totalPage = action.payload.totalPage;
         },
-        fetchReportsFailure: (state, action)=> {
-            state.loading = false;
-            state.success = false;
-            state.error = action.payload;
+        fetchReportsFailure: (state, action) => {
+            state.fetch.loading = false;
+            state.fetch.error = action.payload;
         },
         
         // --- 사용자 신고 상세 조회 ---
-        fetchReportsDetailRequest: (state)=> {
-            state.loading = true;
-            state.success = false;
-            state.error = null;
+        fetchReportsDetailRequest: (state) => {
+            state.fetchDetail.loading = true;
+            state.fetchDetail.error = null;
         },
-        fetchReportsDetailSuccess: (state, action)=> {
-            state.loading = false;
-            state.success = true;
-            state.currentReport = action.payload;  // 단건 조회된 상세 신고글
+        fetchReportsDetailSuccess: (state, action) => {
+            state.fetchDetail.loading = false;
+            state.currentReport = action.payload;
         },
-        fetchReportsDetailFailure: (state, action)=> {
-            state.loading = false;
-            state.success = false;
-            state.error = action.payload;
+        fetchReportsDetailFailure: (state, action) => {
+            state.fetchDetail.loading = false;
+            state.fetchDetail.error = action.payload;
         },
         
         // --- 모임, 리뷰 신고 더블 체크 (화면용 중복 체크) ---
         checkDoubleReportRequest: (state) => {
-            state.loading = true;
-            state.success = false;
-            state.error = null;
-            state.checkDoubleReport = null;     // Request 요청 오면 null 초기화
+            state.doubleCheck.loading = true;
+            state.doubleCheck.error = null;
+            // 이전 중복체크 결과 초기화
+            state.checkDoubleReport = null;
         },
         checkDoubleReportSuccess: (state, action) => {
-            state.loading = false;
-            state.success = true;
+            state.doubleCheck.loading = false;
             state.checkDoubleReport = action.payload;
         },
         checkDoubleReportFailure: (state, action) => {
-            state.loading = false;
-            state.success = false;
-            state.error = action.payload;
+            state.doubleCheck.loading = false;
+            state.doubleCheck.error = action.payload;
         },
         
         ///////////////////////////////////////////////////////////////////
         // --- 관리자 처리 상태 (승인/반려/신뢰도점수/감사로그) 변경 ---
-        updateAdminReportRequest: (state)=> {
-            state.loading = true;
-            state.success = false;
-            state.error = null;
+        updateAdminReportRequest: (state) => {
+            state.adminUpdate.loading = true;
+            state.adminUpdate.error = null;
+            state.adminUpdate.success = false;
         },
-        updateAdminReportSuccess: (state, action)=> {
-            state.loading = false;
-            state.success = true;
+        updateAdminReportSuccess: (state, action) => {
+            state.adminUpdate.loading = false;
+            state.adminUpdate.success = true;
             state.currentReport = action.payload;
-            // 새 신고글을 목록상단추가
-            state.reports = state.reports.map( report =>
-                report.reportId === action.payload.reportId ? action.payload : report
+            state.reports = state.reports.map((report) =>
+                report.reportId === action.payload.reportId
+                    ? action.payload
+                    : report
             );
         },
-        updateAdminReportFailure: (state, action)=> {
-            state.loading = false;
-            state.success = false;
-            state.error = action.payload;
+        updateAdminReportFailure: (state, action) => {
+            state.adminUpdate.loading = false;
+            state.adminUpdate.success = false;
+            state.adminUpdate.error = action.payload;
         },
         
         // --- 관리자 신고 삭제 (물리삭제 -> 논리삭제 변경 + 감사 로그 processReason 포함) ---
-        deleteAdminReportRequest: (state)=> {
-            state.loading = true;
-            state.success = false;
-            state.error = null;
+        deleteAdminReportRequest: (state) => {
+            state.adminDelete.loading = true;
+            state.adminDelete.error = null;
+            state.adminDelete.success = false;
         },
-        deleteAdminReportSuccess: (state, action)=> {
-            state.loading = false;
-            state.success = true;
-            // 삭제된 신고글의 reportId 받아서 목록에서 제외
-            state.reports = state.reports.filter( report =>
-                report.reportId !== action.payload
+        deleteAdminReportSuccess: (state, action) => {
+            state.adminDelete.loading = false;
+            state.adminDelete.success = true;
+            state.reports = state.reports.filter(
+                (report) => report.reportId !== action.payload
             );
         },
-        deleteAdminReportFailure: (state, action)=> {
-            state.loading = false;
-            state.success = false;
-            state.error = action.payload;
+        deleteAdminReportFailure: (state, action) => {
+            state.adminDelete.loading = false;
+            state.adminDelete.success = false;
+            state.adminDelete.error = action.payload;
         },
 
         // --- 관리자 신고 목록 조회 + 검색 + 페이징 ---
-        fetchAdminReportsRequest: (state)=> {
-            state.loading = true;
-            state.success = false;
-            state.error = null;
+        fetchAdminReportsRequest: (state) => {
+            state.adminFetch.loading = true;
+            state.adminFetch.error = null;
         },
-        fetchAdminReportsSuccess: (state, action)=> {
-            state.loading = false;
-            state.success = true;
-            state.reports = action.payload.reports;         // 전체신고글 목록 reports, totalCount, totalPage
-            state.totalCount = action.payload.totalCount;   // totalCount
-            state.totalPage = action.payload.totalPage;     // totalPage
+        fetchAdminReportsSuccess: (state, action) => {
+            state.adminFetch.loading = false;
+            state.reports = action.payload.reports;
+            state.totalCount = action.payload.totalCount;
+            state.totalPage = action.payload.totalPage;
         },
-        fetchAdminReportsFailure: (state, action)=> {
-            state.loading = false;
-            state.success = false;
-            state.error = action.payload;
+        fetchAdminReportsFailure: (state, action) => {
+            state.adminFetch.loading = false;
+            state.adminFetch.error = action.payload;
         },
         
         // --- 관리자 신고 상세 조회 ---
-        fetchAdminReportsDetailRequest: (state)=> {
-            state.loading = true;
-            state.success = false;
-            state.error = null;
+        fetchAdminReportsDetailRequest: (state) => {
+            state.adminFetchDetail.loading = true;
+            state.adminFetchDetail.error = null;
         },
-        fetchAdminReportsDetailSuccess: (state, action)=> {
-            state.loading = false;
-            state.success = true;
-            state.currentReport = action.payload;  // 단건 조회된 상세 신고글
+        fetchAdminReportsDetailSuccess: (state, action) => {
+            state.adminFetchDetail.loading = false;
+            state.currentReport = action.payload;
         },
-        fetchAdminReportsDetailFailure: (state, action)=> {
-            state.loading = false;
-            state.success = false;
-            state.error = action.payload;
+        fetchAdminReportsDetailFailure: (state, action) => {
+            state.adminFetchDetail.loading = false;
+            state.adminFetchDetail.error = action.payload;
         },
         
         ///////////////////////////////////////////////////////
-        // --- 관리자 처리 로그 조회 ---
-        fetchAdminReportAuditLogsRequest: (state)=> {
-            state.loading = true;
-            state.success = false;
-            state.error = null;
+        // --- 관리자 처리 감사로그 조회 ---
+        fetchAdminReportAuditLogsRequest: (state) => {
+            state.auditLogFetch.loading = true;
+            state.auditLogFetch.error = null;
         },
-        fetchAdminReportAuditLogsSuccess: (state, action)=> {
-            state.loading = false;
-            state.success = true;
-            state.auditLogs = action.payload;   // 관리자 신고 처리 로그 이력
+        fetchAdminReportAuditLogsSuccess: (state, action) => {
+            state.auditLogFetch.loading = false;
+            state.auditLogs = action.payload;
         },
-        fetchAdminReportAuditLogsFailure: (state, action)=> {
-            state.loading = false;
-            state.success = false;
-            state.error = action.payload;
+        fetchAdminReportAuditLogsFailure: (state, action) => {
+            state.auditLogFetch.loading = false;
+            state.auditLogFetch.error = action.payload;
         },
 
         // --- 신고당한 회원 (신뢰도점수/뱃지) 조회 -
-        fetchMemberReportTrustInfoRequest: (state)=> {
-            state.loading = true;
-            state.success = false;
-            state.error = null;
+        fetchMemberReportTrustInfoRequest: (state) => {
+            state.trustInfoFetch.loading = true;
+            state.trustInfoFetch.error = null;
         },
-        fetchMemberReportTrustInfoSuccess: (state, action)=> {
-            state.loading = false;
-            state.success = true;
-            state.trustInfo = action.payload;   // 신뢰도점수
+        fetchMemberReportTrustInfoSuccess: (state, action) => {
+            state.trustInfoFetch.loading = false;
+            state.trustInfo = action.payload;
         },
-        fetchMemberReportTrustInfoFailure: (state, action)=> {
-            state.loading = false;
-            state.success = false;
-            state.error = action.payload;
+        fetchMemberReportTrustInfoFailure: (state, action) => {
+            state.trustInfoFetch.loading = false;
+            state.trustInfoFetch.error = action.payload;
         },
 
         // openAi 기능
         createAIReportDetailRequest: (state) => {
-            state.loading = true;
-            state.success = false;
-            state.error = null;
+            state.aiCreate.loading = true;
+            state.aiCreate.error = null;
+            state.aiCreate.success = false;
         },
-        
         createAIReportDetailSuccess: (state, action) => {
-            state.loading = false;
-            state.success = true;
-            state.error = null;
+            state.aiCreate.loading = false;
+            state.aiCreate.success = true;
             state.aiReportDetail = action.payload;
         },
-        
         createAIReportDetailFailure: (state, action) => {
-            state.loading = false;
-            state.success = false;
-            state.error = action.payload;
+            state.aiCreate.loading = false;
+            state.aiCreate.success = false;
+            state.aiCreate.error = action.payload;
         },
     }
 

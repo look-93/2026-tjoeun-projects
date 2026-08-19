@@ -19,7 +19,6 @@ import  {
 
     createAIReportDetailRequest, createAIReportDetailSuccess, createAIReportDetailFailure
 } from '../reducers/reportReducer';
-import { Form } from 'antd';
 import api from '../api/axios';
 
 
@@ -44,6 +43,11 @@ export function* createReport(action) {
         yield put(createReportSuccess(result.data));
         
     } catch(err) {
+        console.log("신고 등록 실패");
+        console.log("status:", err.response?.status);
+        console.log("data:", err.response?.data);
+        console.log("message:", err.message);
+
         yield put(createReportFailure(err.response?.data?.message || err.message));
     }
 }
@@ -296,9 +300,10 @@ export function* fetchMemberReportTrustInfo(action) {
 }
 
 // AI 신고 내용 작성
-export const createAIReportDetailAPI = (keywords) => {
+export const createAIReportDetailAPI = (dto) => {
+    // @RequestBody AiReportsDto { keywords, reasonCode, targetType }
     return api.post(
-        `${POST_API_BASE}/ai`, {keywords: keywords}
+        `${POST_API_BASE}/openai`, dto
     );
 };
 export function* createAIReportDetail(action) {
@@ -353,6 +358,6 @@ export default function* reportSaga() {
         call(watchFetchAdminReportAuditLogs),
         call(watchFetchMemberReportTrustInfo),
         
-        fork(watchCreateAIReportDetail),
+        call(watchCreateAIReportDetail),
     ]);
 }

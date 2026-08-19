@@ -11,5 +11,5 @@ public class AiReportsDto {
 	
 	private String keywords;		// 키워드
 	private ReasonCode reasonCode;	// 사유
-	private TargetType targetType;	// 타겟타입
+	private TargetType targetType;	// 타겟타입 
 }
