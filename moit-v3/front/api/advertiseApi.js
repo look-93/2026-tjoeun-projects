@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios from './axios';
 
 // 광고 API 기본 주소
-const API_URL = 'http://localhost:8080/api/advertisement';
+const API_URL = '/api/advertisement';
 
 
 // 내 광고 목록 조회

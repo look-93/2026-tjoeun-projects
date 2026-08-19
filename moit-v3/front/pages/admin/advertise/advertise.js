@@ -11,8 +11,16 @@ import AdvertiseStatusTable from '../../../components/AdvertiseStatusTable';
 import AdvertisePriceModal from '../../../components/AdvertisePriceModal';
 
 import {
-  getAdvertiseAdminList,
-  getAdvertiseAdminCount,
+  // 탭별 목록 API 추가
+  getAdvertiseApprovalTabList,
+  getAdvertisePaymentTabList,
+  getAdvertiseStatusTabList,
+  
+  // 탭별 개수 API 추가
+  getAdvertiseApprovalTabCount,
+  getAdvertisePaymentTabCount,
+  getAdvertiseStatusTabCount,
+
   approveAdvertise,
   rejectAdvertise,
   updateAdvertiseStatus,
@@ -45,53 +53,57 @@ function AdminAdvertisePage() {
 
   // 광고 목록 조회
   const loadAdvertiseList = async () => {
-
     try {
-
-      const response = await getAdvertiseAdminList({
-        tab,
+      const params = {
         searchText,
         status,
         sort,
         page,
         size,
-      });
+      };
 
-      setAdvertiseList(response.data || []);
+      let response;
 
+      // 탭에 따라 각각 다른 API 호출
+      if (tab === 'approval') {
+        response = await getAdvertiseApprovalTabList(params);
+      } else if (tab === 'payment') {
+        response = await getAdvertisePaymentTabList(params);
+      } else if (tab === 'status') {
+        response = await getAdvertiseStatusTabList(params);
+      }
+
+      console.log('API 응답 데이터:', response.data);
+      setAdvertiseList(response?.data?.list || []);
     } catch (error) {
-
-      console.error(
-        '광고 목록 조회 실패',
-        error
-      );
-
-      message.error(
-        '광고 목록을 불러오지 못했습니다.'
-      );
+      console.error('광고 목록 조회 실패', error);
+      message.error('광고 목록을 불러오지 못했습니다.');
     }
   };
 
 
   // 광고 개수 조회
   const loadCount = async () => {
-
     try {
-
-      const response = await getAdvertiseAdminCount({
-        tab,
+      const params = {
         searchText,
         status,
-      });
+      };
 
-      setTotalCount(response.data || 0);
+      let response;
 
+      // 탭에 따라 각각 다른 API 호출
+      if (tab === 'approval') {
+        response = await getAdvertiseApprovalTabCount(params);
+      } else if (tab === 'payment') {
+        response = await getAdvertisePaymentTabCount(params);
+      } else if (tab === 'status') {
+        response = await getAdvertiseStatusTabCount(params);
+      }
+
+      setTotalCount(response?.data || 0);
     } catch (error) {
-
-      console.error(
-        '광고 개수 조회 실패',
-        error
-      );
+      console.error('광고 개수 조회 실패', error);
     }
   };
 

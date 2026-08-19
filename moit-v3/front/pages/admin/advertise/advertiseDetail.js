@@ -29,6 +29,8 @@ function AdvertiseDetailPage() {
   const [advertise, setAdvertise] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // 이미지용
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 
   // 상세 조회
   const loadDetail = async () => {
@@ -506,7 +508,7 @@ function AdvertiseDetailPage() {
               >
 
                 <Image
-                  src={image.imageUrl}
+                  src={`${BASE_URL}${image.imageUrl}`}
                   alt={advertise.title}
                   style={{
                     width: '100%',

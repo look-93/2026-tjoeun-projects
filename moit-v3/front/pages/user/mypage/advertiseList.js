@@ -139,9 +139,12 @@ function AdvertiseListPage() {
           return '-';
         }
 
+        // 🌟 1. 백엔드 주소 정의 (환경변수가 없으면 localhost:8080 사용)
+        const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+
         return (
           <Image
-            src={image.imageUrl}
+            src={`${BASE_URL}${image.imageUrl}`}
             alt={record.title}
             width={80}
             height={50}
