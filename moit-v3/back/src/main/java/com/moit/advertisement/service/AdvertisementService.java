@@ -8,9 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
+import com.moit.advertisement.dto.AdvertisementPaymentDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
-import com.moit.advertisement.dto.AdvertisementStatisticsDto;
-import com.moit.advertisement.dto.DashboardAiDto;
 
 
 public interface AdvertisementService {
@@ -26,6 +25,19 @@ public interface AdvertisementService {
 
 	// 관리자 목록 개수
 	int selectAdminAdvertisementTotalCnt(AdvertisementSearchDto dto);
+	
+	// 관리자 탭별 전용 목록 및 카운트
+	List<AdvertisementDto> searchApprovalTabList(AdvertisementSearchDto dto);
+	Long selectApprovalTabTotalCnt(AdvertisementSearchDto dto);
+
+	List<AdvertisementPaymentDto> searchPaymentTabList(AdvertisementSearchDto dto);
+	long selectPaymentTabTotalCnt(AdvertisementSearchDto dto);
+
+	List<AdvertisementDto> searchStatusTabList(AdvertisementSearchDto dto);
+	long selectStatusTabTotalCnt(AdvertisementSearchDto dto);
+	
+    // 관리자 결제 내역
+    List<AdvertisementPaymentDto> searchPaymentHistory( AdvertisementSearchDto dto );
 
 	// 승인 목록
 	List<AdvertisementDto> searchWaitingList(AdvertisementSearchDto dto);

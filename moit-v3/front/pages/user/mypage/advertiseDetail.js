@@ -103,6 +103,8 @@ function AdvertiseDetailPage() {
     );
   }
 
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+
   return (
     <div style={{ padding: 24 }}>
 
@@ -275,7 +277,7 @@ function AdvertiseDetailPage() {
             {advertise.imageList.map((image) => (
               <Image
                 key={image.imageId}
-                src={image.imageUrl}
+                src={`${BASE_URL}${image.imageUrl}`} // 주소와 파일 경로를 합침
                 alt={advertise.title}
                 width={200}
                 height={120}

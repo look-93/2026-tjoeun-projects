@@ -62,7 +62,12 @@ public class SecurityConfig {
                 "/user/member/delete",
                 "/questions/deleteSelected",
                 "/api/meetups/**",
-                "/api/members/**"
+                "/api/members/**",
+                "/api/questions/**",
+                "/api/reports/**",
+                "/api/reports",
+                "/api/admin/advertisement/**",
+                "/api/advertisement/**"
             )
         );
 
