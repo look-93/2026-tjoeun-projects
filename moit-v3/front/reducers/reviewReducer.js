@@ -88,6 +88,7 @@ const reviewReducer = createSlice({
             state.reviews = state.reviews.filter(review => review.id !== deletedId);
             state.totalCount = Math.max(0, state.totalCount - 1);
         },
+
         deleteReviewFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
@@ -122,13 +123,16 @@ const reviewReducer = createSlice({
 
         // --리뷰 좋아요 토글--
         toggleReviewLikeRequest: (state) => {
+
             state.error = null;
         },
         toggleReviewLikeSuccess: (state, action) => {
             const targetId = action.payload; // reviewId
 
             // 1) 목록(reviews) 데이터 업데이트
+
             const review = state.reviews.find(r => r.id === targetId || r.reviewId === targetId);
+
             if (review) {
                 if (review.isLiked === undefined) review.isLiked = false;
                 
@@ -139,7 +143,9 @@ const reviewReducer = createSlice({
             }
 
             // 2) 상세화면(reviewDetail) 데이터 업데이트
+
             if (state.reviewDetail && (state.reviewDetail.id === targetId || state.reviewDetail.reviewId === targetId)) {
+
                 if (state.reviewDetail.isLiked === undefined) state.reviewDetail.isLiked = false;
                 
                 state.reviewDetail.likesCount = state.reviewDetail.isLiked 

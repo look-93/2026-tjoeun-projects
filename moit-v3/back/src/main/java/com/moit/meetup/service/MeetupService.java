@@ -3,6 +3,7 @@ package com.moit.meetup.service;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.common.dto.SigunguDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
@@ -12,7 +13,6 @@ import com.moit.meetup.dto.MeetupCategoryDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
-import com.moit.meetup.dto.MeetupSearchRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 
@@ -24,7 +24,7 @@ public interface MeetupService {
 	public MeetupResponseDto detail(Long meetupId);
 	
 	//저장
-	public void create(MeetupRequestDto meetupRequest, Long memberId);
+	public void create(MeetupRequestDto meetupRequest, Long memberId, List<MultipartFile> files);
 	
 	//수정
 	public void update(MeetupRequestDto meetupRequest, Long meetupId);

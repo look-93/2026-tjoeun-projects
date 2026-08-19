@@ -20,13 +20,36 @@ public class UtilUpload {
     }
     
     // 방식 B: 경로를 지정하면 해당 경로 사용 (핵심 로직은 여기서 처리)
-    public String fileUpload(MultipartFile file, String customPath) throws IOException {	
+    public String fileUpload(MultipartFile file, String subPath) throws IOException {
+
+        // C:/upload/meetup
+        File directory = new File(resourcePath, subPath);
+
+        // 폴더 없으면 생성
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+
+//            System.out.println("🔥 폴더 생성 결과 = " + created);
+        }
+
+//        System.out.println("🔥 resourcePath = " + resourcePath);
+//        System.out.println("🔥 저장 폴더 = " + directory.getAbsolutePath());
+
         UUID uid = UUID.randomUUID();
-        String save = uid.toString() + "_" + file.getOriginalFilename();
-        
-        File target = new File(customPath, save);
+
+        String save = uid + "_" + file.getOriginalFilename();
+
+        File target = new File(directory, save);
+
+//        System.out.println("🔥 최종 파일 경로 = " + target.getAbsolutePath());
+//        System.out.println("🔥 파일명 = " + file.getOriginalFilename());
+//        System.out.println("🔥 파일 크기 = " + file.getSize());
+
         FileCopyUtils.copy(file.getBytes(), target);
-        return save;		
+
+//        System.out.println("🔥 파일 존재 여부 = " + target.exists());
+
+        return save;
     }
     
 //	public String fileUpload(MultipartFile file) throws IOException {	

@@ -1,5 +1,6 @@
 package com.moit.meetup.service;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,10 +11,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moit.common.dto.SigunguDto;
+import com.moit.common.entity.Image;
 import com.moit.common.entity.Sigungu;
+import com.moit.common.repository.ImageRepository;
 import com.moit.exception.ResourceNotFoundException;
 import com.moit.meetup.client.OpenAiApiClient;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicantResponseDto;
@@ -33,16 +37,19 @@ import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.meetup.entity.Meetup;
 import com.moit.meetup.entity.MeetupApplication;
 import com.moit.meetup.entity.MeetupCategory;
+import com.moit.meetup.entity.MeetupImage;
 import com.moit.meetup.entity.MeetupLike;
 import com.moit.meetup.enums.ApplyStatus;
 import com.moit.meetup.repository.MeetupApplicationRepository;
 import com.moit.meetup.repository.MeetupCategoryRepository;
+import com.moit.meetup.repository.MeetupImageRepository;
 import com.moit.meetup.repository.MeetupLikesRepository;
 import com.moit.meetup.repository.MeetupRepository;
 import com.moit.meetup.repository.MeetupSigunguRepository;
 import com.moit.member.entity.Member;
 import com.moit.member.entity.MemberInfo;
 import com.moit.member.repository.MemberRepository;
+import com.moit.util.UtilUpload;
 
 import lombok.RequiredArgsConstructor;
 
@@ -57,13 +64,15 @@ public class MeetupServiceImpl implements MeetupService{
 	private final MemberRepository memberRepository; 
 	private final MeetupCategoryRepository meetupCategoryRepository;
 	private final MeetupSigunguRepository meetupSigunguRepository;
-	
+	private final UtilUpload utilUpload;
+	private final MeetupImageRepository meetupImageRepository;
+	private final ImageRepository imageRepository;
 	private final OpenAiApiClient openAiApiClient;
 		
 	//모임리스트조회
 	@Override
 	public MeetupListResponseDto search(Pageable pageable, Long memberId) {
-		Page<Meetup> page = meetupRepository.findByDeleteYnFalse(pageable);
+		Page<Meetup> page = meetupRepository.findByDeleteYn('N', pageable);
 //		page.getTotalPages(); // 전체페이지수 100개라면 10개
 //		page.getNumberOfElements(); // 전체갯수 100개
 //		page.getContent(); // 0번째 페이지의 10개가 들어있음
@@ -147,7 +156,7 @@ public class MeetupServiceImpl implements MeetupService{
 	//모임등록
 	@Transactional
 	@Override
-	public void create(MeetupRequestDto meetupRequestDto, Long memberId) {
+	public void create(MeetupRequestDto meetupRequestDto, Long memberId, List<MultipartFile> files){
 		Member member = memberRepository.findById(memberId)
 										.orElseThrow(()-> new ResourceNotFoundException("존재하지 않는 회원입니다. MEMBERID" + memberId));
 		
@@ -172,6 +181,26 @@ public class MeetupServiceImpl implements MeetupService{
 							  .member(member)
 							  .build();
 		meetupRepository.save(meetup);
+		try {
+			if(files != null && !files.isEmpty()) {
+				for(MultipartFile file : files) {
+					String savedFileName = utilUpload.fileUpload(file, "meetup");
+					
+					Image image = Image.builder()
+					        .imagePath(savedFileName)
+					        .build();
+					
+					MeetupImage meetupImage = MeetupImage.builder()
+					        .meetup(meetup)
+					        .image(image)
+					        .build();
+					imageRepository.save(image);
+					meetupImageRepository.save(meetupImage);
+				}
+			}
+		}catch(IOException e) {
+			throw new RuntimeException("이미지 업로드 중 오류가 발생했습니다.", e);
+		}		
 	}
 	
 	//모임수정

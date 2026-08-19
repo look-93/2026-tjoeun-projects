@@ -1,35 +1,88 @@
-import React from 'react';
-import { Card, Space, Row, Button, Typography } from 'antd';
-import { EnvironmentOutlined } from '@ant-design/icons';
+import React, { useEffect } from "react";
+import { Card, Space, Row, Button, Typography, message } from "antd";
+import { EnvironmentOutlined } from "@ant-design/icons";
+import { useDispatch, useSelector } from "react-redux";
+import {
+    applyMeetupRequest,
+    resetMeetupState,
+} from "../reducers/meetupReducer";
 
 const { Text } = Typography;
 
-function MeetupRecruitInfo({ meetup }) {
-  return (
-    <Card title="모집 정보" className="meetup-side-card">
-      <Space direction="vertical" size={16} style={{ width: '100%' }}>
-        <Row justify="space-between">
-          <Text type="secondary">인원</Text>
+function MeetupRecruitInfo({ meetup, isOwner }) {
+    const dispatch = useDispatch();
 
-          <Text strong>
-            {meetup.participants} / {meetup.maxParticipants}
-          </Text>
-        </Row>
+    const { applySuccess, error } = useSelector((state) => state.meetup);
 
-        <Row justify="space-between">
-          <Text type="secondary">지역</Text>
+    const handleApply = () => {
+        dispatch(applyMeetupRequest(meetup.id));
+    };
 
-          <Text strong>
-            <EnvironmentOutlined /> {meetup.location}
-          </Text>
-        </Row>
+    const handleEdit = () => {
+        // 수정 페이지로 이동
+        window.location.href = `/user/meetup/write/${meetup.id}`;
+    };
 
-        <Button type="primary" size="large" block>
-          신청하기
-        </Button>
-      </Space>
-    </Card>
-  );
+    const isApplied = meetup.applyStatus === "PENDING";
+
+    useEffect(() => {
+        if (applySuccess) {
+            if (meetup?.applyStatus === "PENDING") {
+                message.success("모임 신청이 완료되었습니다.");
+            } else {
+                message.success("모임 신청이 취소되었습니다.");
+            }
+
+            dispatch(resetMeetupState());
+        }
+
+        if (error) {
+            message.error(error);
+            dispatch(resetMeetupState());
+        }
+    }, [applySuccess, error, meetup, dispatch]);
+
+    return (
+        <Card title="모집 정보" className="meetup-side-card">
+            <Space direction="vertical" size={16} style={{ width: "100%" }}>
+                <Row justify="space-between">
+                    <Text type="secondary">인원(최소/최대)</Text>
+
+                    <Text strong>
+                        {meetup.minParticipants} / {meetup.maxParticipants}
+                    </Text>
+                </Row>
+
+                <Row justify="space-between">
+                    <Text type="secondary">지역</Text>
+
+                    <Text strong>
+                        <EnvironmentOutlined /> {meetup.address}
+                    </Text>
+                </Row>
+
+                {isOwner ? (
+                    <Button
+                        type="primary"
+                        size="large"
+                        block
+                        onClick={handleEdit}
+                    >
+                        수정하기
+                    </Button>
+                ) : (
+                    <Button
+                        type={isApplied ? "default" : "primary"}
+                        size="large"
+                        block
+                        onClick={handleApply}
+                    >
+                        {isApplied ? "신청취소" : "신청하기"}
+                    </Button>
+                )}
+            </Space>
+        </Card>
+    );
 }
 
 export default MeetupRecruitInfo;
