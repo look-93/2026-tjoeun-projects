@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Row, Col } from "antd";
 import { useRouter } from "next/router";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchMeetupsRequest, fetchCategoriesRequest, fetchSigungusRequest } from "../../../reducers/meetupReducer";
+import {
+    fetchMeetupsRequest,
+    fetchCategoriesRequest,
+    fetchSigungusRequest,
+    meetupLikeRequest,
+} from "../../../reducers/meetupReducer";
 
 import MeetupListAd from "../../../components/MeetupListAd";
 import MeetupSearchFilter from "../../../components/MeetupSearchFilter";
@@ -23,21 +28,31 @@ function MeetupListPage() {
     const [categoryId, setCategoryId] = useState(0);
 
     const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 9;
 
-    const { meetups, categories, sigungus } = useSelector((state) => state.meetup);
+    const { meetups, categories, sigungus, totalCount } = useSelector(
+        (state) => state.meetup,
+    );
 
+    // 최초 한 번만
     useEffect(() => {
-        dispatch(fetchMeetupsRequest());
         dispatch(fetchCategoriesRequest());
         dispatch(fetchSigungusRequest());
     }, [dispatch]);
 
+    // 페이지가 바뀔 때마다
+    useEffect(() => {
+        dispatch(
+            fetchMeetupsRequest({
+                page: currentPage - 1,
+                size: pageSize,
+            }),
+        );
+    }, [currentPage, pageSize, dispatch]);
+
     const sidoList = [
         ...new Map(
-            sigungus.map((sigungu) => [
-                sigungu.sido.sidoId,
-                sigungu.sido,
-            ])
+            sigungus.map((sigungu) => [sigungu.sido.sidoId, sigungu.sido]),
         ).values(),
     ];
 
@@ -72,7 +87,8 @@ function MeetupListPage() {
 
     // 좋아요
     const handleToggleLike = (meetupId) => {
-        console.log("좋아요:", meetupId);
+        //console.log(meetupId);
+        dispatch(meetupLikeRequest(meetupId));
     };
 
     // 모임등록
@@ -81,7 +97,7 @@ function MeetupListPage() {
     };
 
     // 페이지
-    const handlePageChange = (page) => {
+    const handlePageChange = (page, pageSize) => {
         setCurrentPage(page);
     };
 
@@ -118,8 +134,8 @@ function MeetupListPage() {
                     {/* 페이지 */}
                     <CommonPagination
                         current={currentPage}
-                        total={30}
-                        pageSize={10}
+                        total={totalCount}
+                        pageSize={pageSize}
                         onChange={handlePageChange}
                     />
                 </Col>
@@ -129,7 +145,9 @@ function MeetupListPage() {
         ====================== */}
                 <Col xs={24} lg={6}>
                     <MeetupCategory
-                        categories={categories.filter((cate)=>cate.parentId === null)}
+                        categories={categories.filter(
+                            (cate) => cate.parentId === null,
+                        )}
                         selectedCategoryId={categoryId}
                         onChange={handleCategoryChange}
                     />

@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import dayjs from "dayjs";
 import {
     Button,
     Card,
@@ -14,31 +16,35 @@ import {
     Table,
     Typography,
     message,
-} from 'antd';
-import { EnvironmentOutlined } from '@ant-design/icons';
-import MeetupImageUpload from '../../../components/MeetupImageUpload';
-import AddressSearchModal from '../../../components/AddressSearchModal';
-import MeetupRecruitSettings from '../../../components/MeetupRecruitSettings';
-import MeetupLocationCard from '../../../components/MeetupLocationCard';
-import MeetupInfoForm from '../../../components/MeetupInfoForm';
+} from "antd";
+import { EnvironmentOutlined } from "@ant-design/icons";
+import MeetupImageUpload from "../../../components/MeetupImageUpload";
+import AddressSearchModal from "../../../components/AddressSearchModal";
+import MeetupRecruitSettings from "../../../components/MeetupRecruitSettings";
+import MeetupLocationCard from "../../../components/MeetupLocationCard";
+import MeetupInfoForm from "../../../components/MeetupInfoForm";
 
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from "react-redux";
 import {
     fetchCategoriesRequest,
     fetchSigungusRequest,
     createMeetupRequest,
-} from '../../../reducers/meetupReducer';
-import { searchAddressRequest } from '../../../reducers/commonReducer';
+    updateMeetupRequest,
+    fetchMeetupDetailRequest,
+} from "../../../reducers/meetupReducer";
+import { searchAddressRequest } from "../../../reducers/commonReducer";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 function write() {
     const dispatch = useDispatch();
+    const router = useRouter();
+    const { meetupId } = router.query;
 
     const [form] = Form.useForm();
 
-    const [isEdit] = useState(false);
+    const isEdit = Boolean(meetupId);
 
     const [fileList, setFileList] = useState([]);
     const [previewImages, setPreviewImages] = useState([]);
@@ -46,7 +52,7 @@ function write() {
 
     //주소
     const [addressModalOpen, setAddressModalOpen] = useState(false);
-    const [addressKeyword, setAddressKeyword] = useState('');
+    const [addressKeyword, setAddressKeyword] = useState("");
     const [addressPage, setAddressPage] = useState(1);
 
     const [selectedAddress, setSelectedAddress] = useState(null);
@@ -55,7 +61,45 @@ function write() {
         (state) => state.common,
     );
 
-    const { categories, sigungus } = useSelector((state) => state.meetup);
+    const {
+        categories,
+        sigungus,
+        meetup,
+        createSuccess,
+        updateSuccess,
+        error,
+    } = useSelector((state) => state.meetup);
+
+    useEffect(() => {
+        if (!isEdit || !meetup) {
+            return;
+        }
+
+        form.setFieldsValue({
+            title: meetup.title,
+            content: meetup.content,
+            minParticipants: meetup.minParticipants,
+            maxParticipants: meetup.maxParticipants,
+            address: meetup.address,
+            addressDetail: meetup.addressDetail,
+            sigunguId: meetup.sigunguId,
+            nx: meetup.nx,
+            ny: meetup.ny,
+            latitude: meetup.latitude,
+            longitude: meetup.longitude,
+            meetupAt: meetup.meetupAt ? dayjs(meetup.meetupAt) : null,
+        });
+
+        setSelectedAddress({
+            address: meetup.address,
+            addressDetail: meetup.addressDetail,
+            sigunguId: meetup.sigunguId,
+            nx: meetup.nx,
+            ny: meetup.ny,
+            latitude: meetup.latitude,
+            longitude: meetup.longitude,
+        });
+    }, [isEdit, meetup, form]);
 
     //카테고리
     const categoriesOptions = categories
@@ -99,7 +143,11 @@ function write() {
     useEffect(() => {
         dispatch(fetchCategoriesRequest());
         dispatch(fetchSigungusRequest());
-    }, [dispatch]);
+
+        if (router.isReady && meetupId) {
+            dispatch(fetchMeetupDetailRequest(meetupId));
+        }
+    }, [router.isReady, meetupId, dispatch]);
 
     useEffect(() => {
         return () => {
@@ -109,7 +157,7 @@ function write() {
 
     const searchAddress = () => {
         if (addressKeyword.trim().length < 2) {
-            message.warning('주소를 두 글자 이상 입력해주세요.');
+            message.warning("주소를 두 글자 이상 입력해주세요.");
             return;
         }
 
@@ -150,42 +198,53 @@ function write() {
 
         setAddressModalOpen(false);
 
-        message.success('주소가 선택되었습니다.');
+        message.success("주소가 선택되었습니다.");
     };
 
-    const handleSubmit = async (values) => {
-        try {
-            if (isEdit) {
-                dispatch(
-                    updateMeetupRequest({
-                        ...values,
-                        meetupAt: values.meetupAt?.format(
-                            'YYYY-MM-DDTHH:mm:ss',
-                        ),
-                        images: fileList,
-                    }),
-                );
+    const handleSubmit = (values) => {
+        const data = {
+            ...values,
+            meetupAt: values.meetupAt?.format("YYYY-MM-DDTHH:mm:ss"),
+        };
 
-                message.success('모임이 수정되었습니다.');
-            } else {
-                dispatch(
-                    createMeetupRequest({
-                        ...values,
-                        meetupAt: values.meetupAt?.format(
-                            'YYYY-MM-DDTHH:mm:ss',
-                        ),
-                        images: fileList,
-                    }),
-                );
+        // 이미지 파일만 추출
+        const files = fileList
+            .map((file) => file.originFileObj)
+            .filter(Boolean);
 
-                message.success('모임이 등록되었습니다.');
-            }
-
-            router.push('/meetup');
-        } catch (error) {
-            message.error('저장 중 오류가 발생했습니다.');
+        if (isEdit) {
+            dispatch(
+                updateMeetupRequest({
+                    meetupId,
+                    data,
+                }),
+            );
+        } else {
+            dispatch(
+                createMeetupRequest({
+                    dto: data,
+                    files,
+                }),
+            );
         }
     };
+
+    useEffect(() => {
+        if (createSuccess) {
+            message.success("모임이 등록되었습니다.");
+            router.push("/user/meetup");
+            //dispatch(resetMeetupState());
+        }
+
+        if (updateSuccess) {
+            message.success("모임이 수정되었습니다.");
+            router.push("/user/meetup");
+        }
+
+        if (error) {
+            message.error("저장 중 오류가 발생했습니다.");
+        }
+    }, [createSuccess, updateSuccess, error]);
 
     return (
         <div className="mypage-main-content">
@@ -194,7 +253,7 @@ function write() {
                     <Col xs={24} lg={16}>
                         <Card className="mypage-user-info">
                             <Title level={3} className="member-edit-title">
-                                {isEdit ? '모임 수정하기' : '새 모임 등록'}
+                                {isEdit ? "모임 수정하기" : "새 모임 등록"}
                             </Title>
 
                             <MeetupImageUpload
@@ -208,7 +267,7 @@ function write() {
                             <Text
                                 type="secondary"
                                 style={{
-                                    display: 'block',
+                                    display: "block",
                                     marginTop: 8,
                                     fontSize: 12,
                                 }}

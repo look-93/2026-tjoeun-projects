@@ -95,7 +95,7 @@ function MeetupRecruitSettings({ isEdit, onAddressClick, sigungus = [] }) {
                     placeholder="시군구를 선택하세요."
                     options={(sigungus || []).map((sigungu) => ({
                         value: sigungu.sigunguId,
-                        label: `${sigungu.sido.name} ${sigungu.name}`,
+                        label: `${sigungu.name}`,
                     }))}
                 />
             </Form.Item>

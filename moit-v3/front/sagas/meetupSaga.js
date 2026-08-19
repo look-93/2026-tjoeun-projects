@@ -90,9 +90,8 @@ export const fetchMeetupsAPI = (params) => api.get(MEETUP_API_BASE, { params });
 export function* fetchMeetups(action) {
     try {
         const result = yield call(fetchMeetupsAPI, action.payload);
-        // console.log("🔥 meetup API result:", result);
-        // console.log("🔥 meetup API data:", result.data);
-        // console.log("🔥 isArray:", Array.isArray(result.data));
+        //console.log("🔥 서버 응답:", result);
+        //console.log("🔥 서버 응답 data:", result.data);
         yield put(fetchMeetupsSuccess(result.data));
     } catch (err) {
         yield put(
@@ -112,7 +111,7 @@ export const fetchMeetupDetailAPI = (meetupId) =>
 export function* fetchMeetupDetail(action) {
     try {
         const result = yield call(fetchMeetupDetailAPI, action.payload);
-
+        //console.log(result.data);
         yield put(fetchMeetupDetailSuccess(result.data));
     } catch (err) {
         yield put(
@@ -128,27 +127,50 @@ export function* fetchMeetupDetail(action) {
 // POST /api/meetups
 // ==================================================
 
-export const createMeetupAPI = (data) => api.post(MEETUP_API_BASE, data);
+export function createMeetupAPI(payload) {
+    const { dto, files } = payload;
+
+    const formData = new FormData();
+
+    Object.entries(dto || {}).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+            formData.append(key, value);
+        }
+    });
+
+    if (files && files.length > 0) {
+        files.forEach((file) => {
+            formData.append("files", file);
+        });
+    }
+
+    console.log("🔥 dto:", dto);
+    console.log("🔥 files:", files);
+
+    for (const [key, value] of formData.entries()) {
+        console.log(
+            "🔥 FormData:",
+            key,
+            value instanceof File ? value.name : value,
+        );
+    }
+
+    return api.post(MEETUP_API_BASE, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+}
 
 export function* createMeetup(action) {
     try {
-        console.log("createMeetup action:", action);
-        console.log("createMeetup payload:", action.payload);
-        yield call(createMeetupAPI, action.payload.data ?? action.payload);
+        //console.log("🔥 createMeetup payload:", action.payload);
 
-        console.log("post data", data);
+        yield call(createMeetupAPI, action.payload);
+
+        //console.log("🔥 모임 등록 성공");
+
         yield put(createMeetupSuccess());
-
-        // 등록 후 목록 조회
-        // page, size를 전달받았다면 해당 페이지 조회
-        if (action.payload.page !== undefined) {
-            yield put(
-                fetchMeetupsRequest({
-                    page: action.payload.page,
-                    size: action.payload.size,
-                }),
-            );
-        }
     } catch (err) {
         yield put(
             createMeetupFailure(err.response?.data?.message || err.message),
@@ -226,9 +248,15 @@ export const applyMeetupAPI = (meetupId) =>
 
 export function* applyMeetup(action) {
     try {
-        yield call(applyMeetupAPI, action.payload);
+        const result = yield call(applyMeetupAPI, action.payload);
 
-        yield put(applyMeetupSuccess());
+        if (result.status === 200) {
+            yield put(
+                applyMeetupSuccess({
+                    meetupId: action.payload,
+                }),
+            );
+        }
     } catch (err) {
         yield put(
             applyMeetupFailure(err.response?.data?.message || err.message),
@@ -246,9 +274,10 @@ export const meetupLikeAPI = (meetupId) =>
 
 export function* meetupLike(action) {
     try {
-        yield call(meetupLikeAPI, action.payload);
-
-        yield put(meetupLikeSuccess());
+        const result = yield call(meetupLikeAPI, action.payload);
+        if (result.status === 200) {
+            yield put(meetupLikeSuccess({ meetupId: action.payload }));
+        }
     } catch (err) {
         yield put(
             meetupLikeFailure(err.response?.data?.message || err.message),

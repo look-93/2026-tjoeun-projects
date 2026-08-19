@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     meetups: [], // 전체 모임
@@ -29,7 +29,7 @@ const initialState = {
 };
 
 const meetupReducer = createSlice({
-    name: 'meetup',
+    name: "meetup",
     initialState,
     reducers: {
         // --- 전체 모임 조회 ---
@@ -40,7 +40,7 @@ const meetupReducer = createSlice({
 
         fetchMeetupsSuccess: (state, action) => {
             state.loading = false;
-            state.meetups = action.payload.meetup;
+            state.meetups = action.payload.meetups;
             state.totalCount = action.payload.totalCount;
             state.totalPage = action.payload.totalPage;
         },
@@ -134,9 +134,37 @@ const meetupReducer = createSlice({
             state.applySuccess = false;
         },
 
-        applyMeetupSuccess: (state) => {
+        applyMeetupSuccess: (state, action) => {
             state.loading = false;
             state.applySuccess = true;
+
+            const meetupId = action.payload.meetupId;
+
+            // 상세 페이지
+            if (state.meetup && state.meetup.id === meetupId) {
+                state.meetup = {
+                    ...state.meetup,
+                    applyStatus:
+                        state.meetup.applyStatus === "PENDING"
+                            ? "CANCELED"
+                            : "PENDING",
+                };
+            }
+
+            // 목록에서도 상태를 사용한다면
+            state.meetups = state.meetups.map((meetup) => {
+                if (meetup.id === meetupId) {
+                    return {
+                        ...meetup,
+                        applyStatus:
+                            meetup.applyStatus === "PENDING"
+                                ? "CANCELED"
+                                : "PENDING",
+                    };
+                }
+
+                return meetup;
+            });
         },
 
         applyMeetupFailure: (state, action) => {
@@ -152,9 +180,24 @@ const meetupReducer = createSlice({
             state.likeSuccess = false;
         },
 
-        meetupLikeSuccess: (state) => {
+        meetupLikeSuccess: (state, action) => {
             state.loading = false;
             state.likeSuccess = true;
+
+            const meetupId = action.payload.meetupId;
+            state.meetups = state.meetups.map((meetup) => {
+                if (meetup.id === meetupId) {
+                    const hasLike = !meetup.hasLike;
+                    return {
+                        ...meetup,
+                        hasLike,
+                        likeCount: hasLike
+                            ? meetup.likeCount + 1
+                            : meetup.likeCount - 1,
+                    };
+                }
+                return meetup;
+            });
         },
 
         meetupLikeFailure: (state, action) => {
