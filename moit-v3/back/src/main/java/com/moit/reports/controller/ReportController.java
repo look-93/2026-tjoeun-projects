@@ -15,13 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-<<<<<<< HEAD
-=======
-import com.moit.member.dto.UserDto;
-import com.moit.member.repository.ReportStatusRepository;
-import com.moit.reports.api.ApiOpenAi;
-import com.moit.reports.dto.ReportsDto;
->>>>>>> 6c9ab1464af92f842a676433803142618c7484b5
 import com.moit.reports.dto.ReportSearchDto;
 import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
 import com.moit.reports.dto.ReportsDto.ReportProcessDto;
