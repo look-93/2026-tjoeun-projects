@@ -1,19 +1,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import {
-  Form,
-  Input,
-  Button,
-  Select,
-  DatePicker,
-  message,
-  Card,
-  Typography,
-  Checkbox,
-  Space,
+  Form, Input,Button,Select,DatePicker,message,
+  Card,Typography,Checkbox,
 } from "antd";
 
-import api from "../../../lib/api";
+import api from "../../../api/axios";
 
 const { Title, Text } = Typography;
 
@@ -36,9 +28,7 @@ export default function SocialInfo() {
   const [loading, setLoading] = useState(false);
   const [socialUser, setSocialUser] = useState(null);
 
-  useEffect(() => {
-    loadSocialUser();
-  }, []);
+  useEffect(() => {loadSocialUser();}, []);
 
   const loadSocialUser = async () => {
     try {
@@ -73,30 +63,12 @@ export default function SocialInfo() {
         interestIds: values.interestIds || [],
       };
 
-      const response = await api.post(
-        "/api/members/social-info",
-        requestData
-      );
+      const response = await api.post("/api/members/social-info",requestData);
+
+      localStorage.setItem("accessToken", response.data.accessToken);
+      localStorage.setItem("refreshToken",response.data.refreshToken);
 
       message.success("회원가입이 완료되었습니다.");
-
-      /*
-       * 백엔드에서 Access Token / Refresh Token을
-       * 반환하도록 구현되어 있다면 여기에서 저장
-       *
-       * 예:
-       *
-       * localStorage.setItem(
-       *   "accessToken",
-       *   response.data.accessToken
-       * );
-       *
-       * localStorage.setItem(
-       *   "refreshToken",
-       *   response.data.refreshToken
-       * );
-       */
-
       router.push("/");
     } catch (error) {
       console.error("소셜 회원가입 실패:", error);
@@ -104,16 +76,13 @@ export default function SocialInfo() {
       const errorMessage =
         error.response?.data?.message ||
         "소셜 회원가입에 실패했습니다.";
-
       message.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  if (!socialUser) {
-    return null;
-  }
+  if (!socialUser) {return null;}
 
   return (
     <div

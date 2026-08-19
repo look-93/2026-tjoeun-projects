@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -28,6 +29,18 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler{
 		
 		// 신규 소셜 회원
         if (user.getAppUserId() == 0L) {
+        	
+        	HttpSession session = request.getSession();
+
+            // 소셜 회원정보 세션 저장
+            session.setAttribute("socialUser", user.getUser());
+            
+            System.out.println("===== SOCIAL LOGIN =====");
+            System.out.println("신규 소셜 회원");
+            System.out.println("email : " + user.getEmail());
+            System.out.println("provider : " + user.getProvider());
+            System.out.println("providerId : " + user.getProviderId());
+            System.out.println("socialUser 세션 저장 완료");
         	
             response.sendRedirect( "http://localhost:3000/user/member/social-info" );
             return;

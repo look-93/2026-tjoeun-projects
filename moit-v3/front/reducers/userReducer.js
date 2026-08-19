@@ -3,18 +3,21 @@ import { createSlice } from "@reduxjs/toolkit";
 //1. 초기화 상태(공용)
 const initialState = {
     user: null,     //단건 조회된 사용자 정보
+    members: [],    // 전체 조회
     accessToken: null,
     refreshToken: null,
     loading:false,  //로딩상태
     error: null,    //에러메시지
     success:false,   //성공여부
+    membersLoading: false,
+    membersError: null,
 
     // 중복확인
     duplicateCheck: {
-        loginId: false,
-        email: false,
-        nickname: false,
-        mobile: false,
+        loginId: null,
+        email: null,
+        nickname: null,
+        mobile: null,
     },
 
     // 이메일 인증
@@ -67,6 +70,22 @@ const userReducer = createSlice({
         loginFailure: (state,action)=>{
             state.loading = false;
             state.success = false;
+            state.error = action.payload;
+        },
+        // =========================
+        // 내 정보 조회
+        // =========================
+        getMyInfoRequest: (state)=>{
+            state.loading = true;
+            state.error = null;
+        },
+        getMyInfoSuccess: (state,action)=>{
+            state.loading = false;
+            state.error = null;
+            state.user = action.payload;
+        },
+        getMyInfoFailure: (state,action)=>{
+            state.loading = false;
             state.error = action.payload;
         },
 
@@ -160,16 +179,17 @@ const userReducer = createSlice({
         checkLoginIdRequest: (state)=>{
             state.loading = true;
             state.error = null;
-            state.duplicateCheck.loginId = false;
+            state.duplicateCheck.loginId = null;
         },
-        checkLoginIdSuccess: (state)=>{
+        checkLoginIdSuccess: (state,action)=>{
             state.loading = false;
             state.error = null;
-            state.duplicateCheck.loginId = true;
+            state.duplicateCheck.loginId = action.payload;
         },
         checkLoginIdFailure: (state,action)=>{
             state.loading = false;
             state.error = action.payload;
+            state.duplicateCheck.loginId = null;
         },
 
         // =========================
@@ -178,16 +198,17 @@ const userReducer = createSlice({
         checkEmailRequest: (state)=>{
             state.loading = true;
             state.error = null;
-            state.duplicateCheck.email = false;
+            state.duplicateCheck.email = null;
         },
-        checkEmailSuccess: (state)=>{
+        checkEmailSuccess: (state,action)=>{
             state.loading = false;
             state.error = null;
-            state.duplicateCheck.email = true;
+            state.duplicateCheck.email = action.payload;
         },
         checkEmailFailure: (state,action)=>{
             state.loading = false;
             state.error = action.payload;
+            state.duplicateCheck.email = null;
         },
 
         // =========================
@@ -196,17 +217,18 @@ const userReducer = createSlice({
         checkNicknameRequest: (state)=>{
             state.loading = true;
             state.error = null;
-            state.duplicateCheck.nickname = false;
+            state.duplicateCheck.nickname = null;
         },
-        checkNicknameSuccess: (state)=>{
+        checkNicknameSuccess: (state,action)=>{
             state.loading = false;
             state.error = null;
-            state.duplicateCheck.nickname = true;
+            state.duplicateCheck.nickname = action.payload;
         },
         checkNicknameFailure: (state,action)=>{
             state.loading = false;
             state.error = action.payload;
             state.duplicateCheck.nickname = false;
+            state.duplicateCheck.nickname = null;
         },
 
         // =========================
@@ -215,18 +237,35 @@ const userReducer = createSlice({
         checkMobileRequest: (state)=>{
             state.loading = true;
             state.error = null;
-            state.duplicateCheck.mobile = false;
+            state.duplicateCheck.mobile = null;
         },
-        checkMobileSuccess: (state)=>{
+        checkMobileSuccess: (state,action)=>{
             state.loading = false;
             state.error = null;
-            state.duplicateCheck.mobile = true;
+            state.duplicateCheck.mobile = action.payload;
         },
         checkMobileFailure: (state,action)=>{
             state.loading = false;
             state.error = action.payload;
-            state.duplicateCheck.mobile = false;
+            state.duplicateCheck.mobile = null;
         },
+        // =========================
+        // 전체 회원 조회
+        // =========================
+        findMembersRequest: (state) => {
+            state.membersLoading = true;
+            state.membersError = null;
+        },
+        findMembersSuccess: (state, action) => {
+            state.membersLoading = false;
+            state.members = action.payload;
+            state.membersError = null;
+        },
+        findMembersFailure: (state, action) => {
+            state.membersLoading = false;
+            state.membersError = action.payload;
+        },
+
 
         // =================================================
         // 중복확인 상태 초기화
@@ -234,7 +273,7 @@ const userReducer = createSlice({
         resetDuplicateCheck: (state, action) => {
             const field = action.payload;
 
-            if (field in state.duplicateCheck) { state.duplicateCheck[field] = false;}
+            if (field in state.duplicateCheck) { state.duplicateCheck[field] = null;}
         },
 
         // =================================================
@@ -266,6 +305,9 @@ const userReducer = createSlice({
         // =========================
         // 로그아웃
         // =========================
+        logoutRequest: (state) => {
+            state.loading = true;
+        },
         logout: (state)=>{
             state.user = null;
             state.accessToken = null;
@@ -295,9 +337,10 @@ export const {
     checkEmailRequest,checkEmailSuccess,checkEmailFailure,
     checkNicknameRequest,checkNicknameSuccess,checkNicknameFailure,
     checkMobileRequest,checkMobileSuccess,checkMobileFailure,
-    logout, resetDuplicateCheck,resetEmailVerification,
+    logout, logoutRequest, resetDuplicateCheck,resetEmailVerification,
     checkPasswordLeakRequest,checkPasswordLeakSuccess,checkPasswordLeakFailure,
-    resetPasswordLeak,
+    resetPasswordLeak,findMembersRequest,findMembersSuccess,findMembersFailure,
+    getMyInfoRequest, getMyInfoSuccess, getMyInfoFailure,
 } = userReducer.actions;
 
 //4. export

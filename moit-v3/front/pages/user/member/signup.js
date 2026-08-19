@@ -425,10 +425,16 @@ return (
                         </Button>
                     </Space.Compact>
                 </Form.Item>
-                {duplicateCheck.loginId && (
+                {duplicateCheck.loginId === true && (
                     <Text type="success">
                         <CheckOutlined />
-                        {""}사용 가능한 아이디입니다.
+                        {" "}사용 가능한 아이디입니다.
+                    </Text>
+                )}
+
+                {duplicateCheck.loginId === false && (
+                    <Text type="danger">
+                        이미 사용 중인 아이디입니다.
                     </Text>
                 )}
 
@@ -570,10 +576,16 @@ return (
                            </Button>
                     </Space.Compact>
                 </Form.Item>
-                {duplicateCheck.nickname && (
+                {duplicateCheck.nickname === true && (
                     <Text type="success">
                         <CheckOutlined />
-                        사용 가능한 닉네임입니다.
+                        {" "}사용 가능한 닉네임입니다.
+                    </Text>
+                )}
+
+                {duplicateCheck.nickname === false && (
+                    <Text type="danger">
+                        이미 사용 중인 닉네임입니다.
                     </Text>
                 )}
 
@@ -607,10 +619,16 @@ return (
                            </Button>
                     </Space.Compact>
                 </Form.Item>
-                {duplicateCheck.email && (
+                {duplicateCheck.email === true && (
                     <Text type="success">
                         <CheckOutlined />
-                        이메일 사용 가능합니다.
+                        {" "}사용 가능한 이메일입니다.
+                    </Text>
+                )}
+
+                {duplicateCheck.email === false && (
+                    <Text type="danger">
+                        이미 사용 중인 이메일입니다.
                     </Text>
                 )}
 
@@ -685,10 +703,16 @@ return (
                            </Button>
                     </Space.Compact>
                 </Form.Item> 
-                {duplicateCheck.mobile && (
+                {duplicateCheck.mobile === true && (
                     <Text type="success">
                         <CheckOutlined />
-                        사용 가능한 전화번호입니다.
+                        {" "}사용 가능한 전화번호입니다.
+                    </Text>
+                )}
+
+                {duplicateCheck.mobile === false && (
+                    <Text type="danger">
+                        이미 사용 중인 전화번호입니다.
                     </Text>
                 )}
 

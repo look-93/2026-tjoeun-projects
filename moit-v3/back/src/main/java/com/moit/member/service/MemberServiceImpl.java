@@ -1,5 +1,7 @@
 package com.moit.member.service;
 
+import java.util.List;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,8 @@ import com.moit.member.repository.MemberInterestRepository;
 import com.moit.member.repository.MemberRepository;
 import com.moit.member.repository.MemberStatusRepository;
 import com.moit.member.repository.MemberTypeRepository;
+import com.moit.reports.entity.MemberReportStatus;
+import com.moit.reports.repository.MemberReportStatusRepository;
 import com.moit.security.PasswordLeakService;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +39,7 @@ public class MemberServiceImpl implements MemberService{
 	private final MemberInterestRepository memberInterestRepository;
 	private final InterestRepository interestRepository;
 	private final PasswordLeakService passwordLeakService;
+	private final MemberReportStatusRepository memberReportStatusRepository;
 	
 	// 중복검사
 	@Override
@@ -86,6 +91,10 @@ public class MemberServiceImpl implements MemberService{
 		MemberStatus memberStatus = memberStatusRepository.findById(statusId)
 							.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원 상태입니다."));
 		
+		// 신고 상태 조회
+		MemberReportStatus reportStatus = memberReportStatusRepository.findById(1L)
+	            	.orElseThrow(() -> new IllegalArgumentException("신고 상태가 존재하지 않습니다.") );
+		
 		// 회원 생성
 		Member member = new Member();
 		
@@ -132,6 +141,7 @@ public class MemberServiceImpl implements MemberService{
 		memberInfo.setMember(member);
 		memberInfo.setGender(dto.getGender());
 		memberInfo.setBirth(dto.getBirth());
+		memberInfo.setReportStatus(reportStatus);
 		
 		memberInfoRepository.save(memberInfo);
 		
@@ -274,26 +284,69 @@ public class MemberServiceImpl implements MemberService{
 		
 		member.setDeleteYn('Y');
 	}
+	
+	@Transactional
 	@Override
 	public UserDto socialSignup(UserDto dto) {
+		
+		System.out.println("===== SOCIAL SIGNUP START =====");
+
+	    System.out.println("email : " + dto.getEmail());
+	    System.out.println("provider : " + dto.getProvider());
+	    System.out.println("providerId : " + dto.getProviderId());
+	    System.out.println("nickname : " + dto.getNickname());
+	    System.out.println("mobile : " + dto.getMobile());
+	    System.out.println("gender : " + dto.getGender());
+	    System.out.println("birth : " + dto.getBirth());
+	    System.out.println("interestIds : " + dto.getInterestIds());
+
+	    // 1. 이메일 중복 확인
+	    System.out.println("===== 1. EMAIL CHECK =====");
 		
 		// 이미 가입된 이메일인지 확인
 		if(memberRepository.existsByEmail(dto.getEmail())){
 			throw new IllegalArgumentException("이미 가입된 이메일입니다.");
 		}
 		
+		System.out.println("이메일 중복 없음");
+		
+		System.out.println("===== 2. MEMBER TYPE =====");
+		
 		// 회원유형 조회
 		MemberType memberType = memberTypeRepository.findById(1L)
 									.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원 유형입니다."));
+		
+		System.out.println(
+	            "회원 유형 조회 성공 : "
+	            + memberType.getMemberTypeId()
+	    );
+		
+		System.out.println("===== 3. MEMBER STATUS =====");
 		
 		// 일반회원 상태 조회
 		MemberStatus memberStatus = memberStatusRepository.findById(1L)
 										.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원 상태입니다."));
 		
-		// 회원 생성
-		Member member = new Member();
 		
-		member.setLoginId(dto.getLoginId());
+		System.out.println(
+	            "회원 상태 조회 성공 : "
+	            + memberStatus.getStatusId()
+	    );
+		
+		// 신고 상태 조회
+	    MemberReportStatus reportStatus =
+	            memberReportStatusRepository.findById(1L)
+	            .orElseThrow(() ->
+	                new IllegalArgumentException("신고 상태가 존재하지 않습니다.")
+	            );
+		
+		System.out.println("===== 4. MEMBER CREATE =====");
+		
+		// 회원 생성
+		Member member = new Member();		
+		String socialLoginId = dto.getProvider() + "_" + dto.getProviderId();
+
+		member.setLoginId(socialLoginId);
 		member.setEmail(dto.getEmail());
 		member.setNickname(dto.getNickname());
 		member.setMobile(dto.getMobile());
@@ -312,7 +365,23 @@ public class MemberServiceImpl implements MemberService{
 		member.setMemberType(memberType);
 		member.setMemberStatus(memberStatus);
 		
+		System.out.println("loginId : " + member.getLoginId());
+	    System.out.println("email : " + member.getEmail());
+	    System.out.println("nickname : " + member.getNickname());
+	    System.out.println("mobile : " + member.getMobile());
+	    System.out.println("provider : " + member.getProvider());
+	    System.out.println("providerId : " + member.getProviderId());
+		
+	    System.out.println("===== 5. MEMBER SAVE =====");
+	    
 		memberRepository.save(member);
+		
+		System.out.println(
+	            "회원 저장 완료 / memberId : "
+	            + member.getId()
+	    );
+		
+		System.out.println("===== 6. MEMBER INFO SAVE =====");
 		
 		// 회원 상세정보 저장
 		MemberInfo memberInfo = new MemberInfo();
@@ -321,11 +390,22 @@ public class MemberServiceImpl implements MemberService{
 		memberInfo.setGender(dto.getGender());
 		memberInfo.setBirth(dto.getBirth());
 		
+		memberInfo.setReportStatus(reportStatus);
+		
 		memberInfoRepository.save(memberInfo);
+		
+		System.out.println("회원 상세정보 저장 완료");
+		
+		System.out.println("===== 7. INTEREST SAVE =====");
 		
 		// 회원 관심사 저장
 		if(dto.getInterestIds() != null) {
 			for(Integer interestId : dto.getInterestIds()) {
+				
+				System.out.println(
+	                    "관심사 ID : " + interestId
+	            );
+				
 				Interest interest = interestRepository.findById(interestId.longValue())
 						.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 관심사입니다."));
 				
@@ -338,16 +418,47 @@ public class MemberServiceImpl implements MemberService{
 				memberInterest.setInterest(interest);
 				
 				memberInterestRepository.save(memberInterest);
+				
+				System.out.println(
+	                    "관심사 저장 완료 : " + interest.getInterestName()
+	            );
 			}
 		}
 		
 		// DTO에 반영
+		System.out.println("===== 8. DTO SET =====");
+		
 		dto.setMemberId(member.getId());
+		dto.setLoginId(member.getLoginId());
 		dto.setMemberTypeId(member.getMemberType().getMemberTypeId());
 		dto.setStatusId(member.getMemberStatus().getStatusId());
 		dto.setProfileUrl(member.getProfileUrl());
 		
+		System.out.println("===== SOCIAL SIGNUP SUCCESS =====");
+		
 		return dto;
+	}
+	@Override
+	public List<UserDto> findAllMembers() {
+		
+		List<Member> members = memberRepository.findAll();
+		
+		return members.stream().map(member->{
+			UserDto dto = new UserDto();
+			
+			dto.setMemberId(member.getId());
+			dto.setLoginId(member.getLoginId());
+			dto.setEmail(member.getEmail());
+			dto.setNickname(member.getNickname());
+			dto.setMobile(member.getMobile());
+			dto.setProfileUrl(member.getProfileUrl());
+			dto.setMemberTypeId(member.getMemberType().getMemberTypeId());
+			dto.setStatusId(member.getMemberStatus().getStatusId());
+			dto.setProvider(member.getProvider());
+			dto.setProviderId(member.getProviderId());
+			
+			return dto;
+		}).toList();
 	}
 	
 	

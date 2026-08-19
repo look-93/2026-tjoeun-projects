@@ -418,52 +418,51 @@ function Login(){
                         또는 간편 로그인
                     </Divider>
 
-                    <Space.Compact
+                    <div
                         style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            gap: "10px",
                             width: "100%",
                         }}
                     >
-                        {/* 카카오 */}
-                        <Button
+                        {/* 카카오 로그인 */}
+                        <img
+                            src="/images/kakao.png"
+                            alt="Kakao Login"
                             onClick={handleKakaoLogin}
                             style={{
-                                width: "34%",
-                                background: "#FEE500",
-                                borderColor: "#FEE500",
-                                fontSize: "11px",
+                                width: "32%",
+                                maxWidth: "150px",
+                                cursor: "pointer",
                             }}
-                        >
-                            카카오 로그인
-                        </Button>
+                        />
 
-                        {/* 네이버 */}
-                        <Button
+                        {/* 네이버 로그인 */}
+                        <img
+                            src="/images/naver.png"
+                            alt="Naver Login"
                             onClick={handleNaverLogin}
                             style={{
                                 width: "32%",
-                                background: "#03C75A",
-                                borderColor: "#03C75A",
-                                color: "#fff",
-                                fontWeight: "bold",
+                                maxWidth: "150px",
+                                cursor: "pointer",
                             }}
-                        >
-                            N&nbsp;&nbsp;네이버 로그인
-                        </Button>
+                        />
 
-                        {/* Google */}
-                        <Button
+                        {/* 구글 로그인 */}
+                        <img
+                            src="/images/google.png"
+                            alt="Google Login"
                             onClick={handleGoogleLogin}
                             style={{
-                                width: "34%",
-                                background: "#fff",
-                                borderColor: "#ddd",
-                                color: "#4285F4",
-                                fontSize: "11px",
+                                width: "32%",
+                                maxWidth: "150px",
+                                cursor: "pointer",
                             }}
-                        >
-                            G&nbsp;&nbsp;Sign in with Google
-                        </Button>
-                    </Space.Compact>
+                        />
+                    </div>
 
                     {/* 아이디 / 비밀번호 찾기 */}
                     <div

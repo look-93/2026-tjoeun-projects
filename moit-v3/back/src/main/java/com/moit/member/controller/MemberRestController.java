@@ -1,9 +1,9 @@
 package com.moit.member.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -32,6 +32,7 @@ import com.moit.security.RefreshTokenService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -63,10 +64,14 @@ public class MemberRestController {
 	@Operation( summary = "소셜 회원 추가정보 조회", description = "OAuth2 로그인 후 세션에 저장된 소셜 회원정보를 조회합니다." )
 	@GetMapping("/social-info")
 	public ResponseEntity<?> getSocialInfo(HttpSession session) {
-
+		
+		System.out.println("===== SOCIAL INFO API =====");
+		
 	    UserDto socialUser = (UserDto) session.getAttribute("socialUser");
 
 	    if (socialUser == null) {
+	    	System.out.println("socialUser 없음");
+	    	
 	        return ResponseEntity
 	                .status(HttpStatus.UNAUTHORIZED)
 	                .body(Map.of(
@@ -74,6 +79,10 @@ public class MemberRestController {
 	                        "소셜 회원가입 정보가 없습니다."
 	                ));
 	    }
+	    
+	    System.out.println("socialUser 있음");
+	    System.out.println("email : " + socialUser.getEmail());
+	    System.out.println("provider : " + socialUser.getProvider());
 
 	    return ResponseEntity.ok(
 	            Map.of(
@@ -220,7 +229,7 @@ public class MemberRestController {
         return ResponseEntity.ok( service.existsByMobile(mobile) );
     }
     
- // 로그인
+    // 로그인
     @Operation(
             summary = "로그인",
             description = "아이디, 비밀번호, 회원유형을 확인하고 JWT 발급"
@@ -238,40 +247,40 @@ public class MemberRestController {
                     .status(HttpStatus.UNAUTHORIZED)
                     .build();
         }
+        
+        // 3. 비밀번호 확인
+        boolean passwordMatch = passwordEncoder.matches( request.getPassword(), user.getPassword() );
 
-        // 3. 회원 탈퇴/정지 상태 확인
-        if (user.getStatusId() == null ||
-                !user.getStatusId().equals(1L)) {
-
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .build();
-        }
-
-        // 4. 비밀번호 확인
-        boolean passwordMatch =
-                passwordEncoder.matches(
-                        request.getPassword(),
-                        user.getPassword()
-                );
-
-        // 5. 비밀번호 틀린 경우
+        // 4. 비밀번호 틀린 경우
         if (!passwordMatch) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .build();
         }
 
+	    // 5. 회원 상태 확인
+	    // 승인 대기
+	    if (user.getStatusId() != null && user.getStatusId().equals(2L)) {
+	
+	        return ResponseEntity
+	                 .status(HttpStatus.FORBIDDEN)
+	                 .body(Map.of( "message", "관리자 승인 대기중입니다." ));
+	    }
+	
+	    // 탈퇴 / 정지 / 기타 비활성 상태
+	    if (user.getStatusId() == null || !user.getStatusId().equals(1L)) {
+	
+	        return ResponseEntity
+	                 .status(HttpStatus.UNAUTHORIZED)
+	                 .body(Map.of( "message", "로그인할 수 없는 회원입니다." ));
+	    }
+       
         // 6. 회원 유형 확인
-        if (user.getMemberTypeId() == null ||
-                !user.getMemberTypeId().equals(request.getMemberTypeId())) {
+        if (user.getMemberTypeId() == null || !user.getMemberTypeId().equals(request.getMemberTypeId())) {
 
             return ResponseEntity
                     .status(HttpStatus.FORBIDDEN)
-                    .body(Map.of(
-                            "message",
-                            "회원유형이 맞지 않습니다."
-                    ));
+                    .body(Map.of( "message", "회원유형이 맞지 않습니다." ));
         }
 
         // 7. Access Token 생성
@@ -410,17 +419,38 @@ public class MemberRestController {
     	return ResponseEntity.ok().build();    	
     }
     
-    // 테스트
-    @GetMapping("/member-test")
-    @PreAuthorize("hasRole('MEMBER')")
-    public ResponseEntity<String> memberTest() {
-        return ResponseEntity.ok("일반 회원 접근 성공");
+    // 회원 전체 조회
+    @GetMapping
+    public ResponseEntity<List<UserResponseDto>> findAllMembers() {
+
+        List<UserDto> members = service.findAllMembers();
+
+        List<UserResponseDto> response = members.stream()
+                .map(UserResponseDto::from)
+                .toList();
+
+        return ResponseEntity.ok(response);
     }
     
-    @GetMapping("/partner-test")
-    @PreAuthorize("hasRole('PARTNER')")
-    public ResponseEntity<String> partnerTest() {
-        return ResponseEntity.ok("제휴 업체 접근 성공");
+ // 현재 로그인한 회원정보 조회
+    @Operation(
+        summary = "내 회원정보 조회",
+        description = "JWT 인증된 현재 로그인 회원의 정보를 조회합니다."
+    )
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDto> getMyInfo(
+            Authentication authentication) {
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        Long memberId = userDetails.getAppUserId();
+
+        UserDto user = service.findByMemberId(memberId);
+
+        if (user == null) {
+            return ResponseEntity .status(HttpStatus.UNAUTHORIZED) .build();
+        }
+        return ResponseEntity.ok( UserResponseDto.from(user) );
     }
     
     

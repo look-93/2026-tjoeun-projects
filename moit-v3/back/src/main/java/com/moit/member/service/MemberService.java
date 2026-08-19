@@ -1,5 +1,7 @@
 package com.moit.member.service;
 
+import java.util.List;
+
 import com.moit.member.dto.UserDto;
 
 public interface MemberService {
@@ -20,6 +22,9 @@ public interface MemberService {
     
     // 소셜 회원가입
     UserDto socialSignup(UserDto dto);
+    
+    // 전체 회원조회
+    List<UserDto> findAllMembers();
 
     // 중복 확인
     boolean existsByLoginId(String loginId);

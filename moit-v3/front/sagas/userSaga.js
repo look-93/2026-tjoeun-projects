@@ -1,5 +1,5 @@
 import {all, call, put, takeLatest} from 'redux-saga/effects';
-import axios from 'axios';
+import api from '../api/axios';
 import {
     loginRequest,loginSuccess,loginFailure,
     signupRequest,signupSuccess,signupFailure,
@@ -9,20 +9,26 @@ import {
     checkEmailRequest,checkEmailSuccess,checkEmailFailure,
     checkNicknameRequest,checkNicknameSuccess,checkNicknameFailure,
     checkMobileRequest,checkMobileSuccess,checkMobileFailure,
-    logout, resetDuplicateCheck,resetEmailVerification,
+    logout, logoutRequest, resetDuplicateCheck,resetEmailVerification,
     checkPasswordLeakRequest,checkPasswordLeakSuccess,checkPasswordLeakFailure,
-    resetPasswordLeak
+    resetPasswordLeak,findMembersRequest,findMembersSuccess,findMembersFailure,
+    getMyInfoRequest, getMyInfoSuccess, getMyInfoFailure,
 } from '../reducers/userReducer';
 
-const api = axios.create({
-    baseURL: "http://localhost:8080",
-});
+
 
 // =========================
 // 로그인 API
 // =========================
 function loginApi(loginData){
     return api.post("/api/members/login",loginData);
+}
+
+// =========================
+// 내 정보 조회 API
+// =========================
+function getMyInfoApi() {
+    return api.get("/api/members/me");
 }
 
 // =========================
@@ -81,6 +87,20 @@ function checkPasswordLeakApi(password){
     return api.post("/api/members/check-password", {password: password});
 }
 
+// =========================
+// 회원 전체 조회
+// =========================
+function findMembersApi() {
+    return api.get("/api/members");
+}
+
+// =========================
+// 로그아웃
+// =========================
+function logoutApi() {
+    return api.post("/api/members/logout");
+}
+
 ////////////////////////////////////////////////////
 
 // =========================
@@ -89,6 +109,12 @@ function checkPasswordLeakApi(password){
 function* login(action){
     try{
         const response = yield call(loginApi, action.payload);
+
+        console.log("===== 일반 로그인 응답 =====");
+        console.log("status:", response.status);
+        console.log("response.data:", response.data);
+        console.log("accessToken:", response.data?.accessToken);
+        console.log("refreshToken:", response.data?.refreshToken);
 
         console.log("로그인 성공:",response.data);
 
@@ -107,7 +133,8 @@ function* login(action){
         let message = "로그인에 실패했습니다.";
 
         if(err.response?.status == 401){
-            message = "아이디 또는 비밀번호가 올바르지 않습니다.";
+            message = err.response?.data?.message ||
+                "아이디 또는 비밀번호가 올바르지 않습니다.";
         }
 
         // 회원 유형 오류
@@ -118,6 +145,40 @@ function* login(action){
         }
 
         yield put(loginFailure(message));
+    }
+}
+
+// =========================
+// 내 정보 조회
+// =========================
+function* getMyInfo() {
+
+    console.log("===== GET MY INFO SAGA START =====");
+
+    try {
+
+        console.log("===== GET MY INFO API CALL =====");
+
+        const response = yield call(getMyInfoApi);
+
+        console.log("===== GET MY INFO API RESPONSE =====");
+        console.log("status:", response.status);
+        console.log("data:", response.data);
+
+        yield put(getMyInfoSuccess(response.data));
+
+        console.log("===== GET MY INFO SUCCESS DISPATCH =====");
+
+    } catch(err) {
+
+        console.error("===== GET MY INFO SAGA ERROR =====");
+        console.error(err);
+
+        const message =
+            err.response?.data?.message ||
+            "회원정보를 불러오지 못했습니다.";
+
+        yield put(getMyInfoFailure(message));
     }
 }
 
@@ -174,18 +235,34 @@ function* emailVerify(action){
 // =========================
 // 아이디 중복검사
 // =========================
-function* checkLoginId(action){
-    try{
-        const response = yield call(checkLoginIdApi, action.payload);
+function* checkLoginId(action){ 
+    try{ 
+        const response = yield call(checkLoginIdApi, action.payload); 
 
-        console.log("아이디 중복검사:", response.data);
+        console.log("아이디 존재 여부:", response.data);
 
-        yield put(checkLoginIdSuccess(response.data));
-    }catch(err){
-        console.error("아이디 중복검사 실패:",err);
+        // 백엔드:
+        // true  = 이미 존재
+        // false = 존재하지 않음
+        //
+        // 프론트:
+        // true = 사용 가능
+        // false = 사용 불가
+        const available = !response.data;
 
-        yield put(checkLoginIdFailure(err.response?.data?.message || err.message));
-    }
+        console.log("아이디 사용 가능 여부:", available);
+
+        yield put(checkLoginIdSuccess(available));
+
+    }catch(err){ 
+        console.error("아이디 중복검사 실패:",err); 
+ 
+        yield put(
+            checkLoginIdFailure(
+                err.response?.data?.message || err.message
+            )
+        ); 
+    } 
 }
 
 // =========================
@@ -207,56 +284,114 @@ function* checkPasswordLeak(action){
 // =========================
 // 이메일 중복검사 
 // =========================
-function* checkEmail(action){
-    try{
-        const response = yield call(checkEmailApi, action.payload);
+function* checkEmail(action){ 
+    try{ 
+        const response = yield call(checkEmailApi, action.payload); 
 
-        console.log("이메일 중복검사:", response.data);
+        const available = !response.data;
 
-        yield put(checkEmailSuccess(response.data));
-    }catch(err){
-        console.error("이메일 중복검사 실패:",err);
+        console.log("이메일 사용 가능 여부:", available); 
+ 
+        yield put(checkEmailSuccess(available));
 
-        yield put(checkEmailFailure(err.response?.data?.message || err.message));
-    }
+    }catch(err){ 
+        console.error("이메일 중복검사 실패:",err); 
+ 
+        yield put(
+            checkEmailFailure(
+                err.response?.data?.message || err.message
+            )
+        ); 
+    } 
 }
 
 // =========================
 // 닉네임 중복검사 
 // =========================
-function* checkNickname(action){
-    try{
-        const response = yield call(checkNicknameApi, action.payload);
+function* checkNickname(action){ 
+    try{ 
+        const response = yield call(checkNicknameApi, action.payload); 
 
-        console.log("닉네임 중복검사:", response.data);
+        const available = !response.data;
 
-        yield put(checkNicknameSuccess(response.data));
-    }catch(err){
-        console.error("닉네임 중복검사 실패:",err);
+        console.log("닉네임 사용 가능 여부:", available); 
+ 
+        yield put(checkNicknameSuccess(available));
 
-        yield put(checkNicknameFailure(err.response?.data?.message || err.message));
-    }
+    }catch(err){ 
+        console.error("닉네임 중복검사 실패:",err); 
+ 
+        yield put(
+            checkNicknameFailure(
+                err.response?.data?.message || err.message
+            )
+        ); 
+    } 
 }
 
 // =========================
 // 전화번호 중복검사
 // =========================
-function* checkMobile(action){
-    try{
-        const response = yield call(checkMobileApi, action.payload);
+function* checkMobile(action){ 
+    try{ 
+        const response = yield call(checkMobileApi, action.payload); 
 
-        console.log("전화번호 중복검사:", response.data);
+        const available = !response.data;
 
-        yield put(checkMobileSuccess(response.data));
-    }catch(err){
-        console.error("전화번호 중복검사 실패:",err);
+        console.log("전화번호 사용 가능 여부:", available); 
+ 
+        yield put(checkMobileSuccess(available));
 
-        yield put(checkMobileFailure(err.response?.data?.message || err.message));
+    }catch(err){ 
+        console.error("전화번호 중복검사 실패:",err); 
+ 
+        yield put(
+            checkMobileFailure(
+                err.response?.data?.message || err.message
+            )
+        ); 
+    } 
+}
+
+// =========================
+// 회원 전체 조회
+// =========================
+function* findMembers() {
+    try {
+        const response = yield call(findMembersApi);
+
+        console.log("전체 회원 조회:", response.data);
+
+        yield put(findMembersSuccess(response.data));
+    } catch (err) {
+        console.error("전체 회원 조회 실패:", err);
+        yield put(findMembersFailure(err.response?.data?.message || err.message));
     }
 }
 
+// =========================
+// 로그아웃
+// =========================
+function* logoutSaga() {
+    try {
+        yield call(logoutApi);
+        console.log("로그아웃 성공");
+    } catch (err) {
+        console.error("로그아웃 API 실패:", err);
+    } finally {
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+        }
+        // Redux 로그인 상태 초기화
+        yield put(logout());
+    }
+}
 
 export default function* userSaga(){
+
+    console.log("===== USER SAGA STARTED =====");
+
     yield all([
         takeLatest(loginRequest.type, login),
         takeLatest(signupRequest.type, signup),
@@ -267,5 +402,8 @@ export default function* userSaga(){
         takeLatest(checkNicknameRequest.type, checkNickname),
         takeLatest(checkMobileRequest.type, checkMobile),
         takeLatest(checkPasswordLeakRequest.type, checkPasswordLeak),
+        takeLatest(findMembersRequest.type, findMembers),
+        takeLatest(logoutRequest.type, logoutSaga),
+        takeLatest(getMyInfoRequest.type, getMyInfo),
     ]);
 }
