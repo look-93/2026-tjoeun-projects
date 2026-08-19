@@ -1,6 +1,7 @@
 package com.moit.member.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,5 +15,8 @@ public class LoginRequestDto {
 	
 	@NotBlank
 	private String password;
+	
+	@NotNull
+    private Long memberTypeId;
 
 }

@@ -1,33 +1,33 @@
-import axios from "axios";
+import axios from "./axios";
 
 // 광고
-const API_URL = "http://localhost:8080/api/admin/advertisement";
+const API_URL = "/api/admin/advertisement";
 // 가격
 const PRICE_API_URL = `${API_URL}/price`;
 
 // 관리자 광고 가격 목록
 export const getAdvertiseAdminPriceList = () => {
-    return axios.get(`${API_URL}/price`);
+    return axios.get(`${PRICE_API_URL}`);
 };
 
 // 관리자 광고 가격 상세
 export const getAdvertiseAdminPrice = (priceId) => {
-    return axios.get(`${PRICE_API_URL}/price/${priceId}`);
+    return axios.get(`${PRICE_API_URL}/${priceId}`);
 };
 
 // 관리자 광고 가격 등록
 export const createAdvertiseAdminPrice = (data) => {
-    return axios.post(`${PRICE_API_URL}/price`, data);
+    return axios.post(`${PRICE_API_URL}`, data);
 };
 
 // 관리자 광고 가격 수정
 export const updateAdvertiseAdminPrice = (priceId, data) => {
-    return axios.put(`${PRICE_API_URL}/price/${priceId}`, data);
+    return axios.put(`${PRICE_API_URL}/${priceId}`, data);
 };
 
 // 관리자 광고 가격 삭제
 export const deleteAdvertiseAdminPrice = (priceId) => {
-    return axios.delete(`${PRICE_API_URL}/price/${priceId}`);
+    return axios.delete(`${PRICE_API_URL}/${priceId}`);
 };
 
 ////////////////////////////////////////////
@@ -46,6 +46,61 @@ export const getAdvertiseAdminCount = (params) => {
 
     return axios.get(`${API_URL}/count`, {
         params
+    });
+};
+
+// =========================================================
+// 관리자 광고 탭별 목록
+// =========================================================
+
+// 승인 관리
+export const getAdvertiseApprovalTabList = (params) => {
+    return axios.get(`${API_URL}/approval-tab`, {
+        params,
+    });
+};
+
+
+// 결제 확인
+export const getAdvertisePaymentTabList = (params) => {
+    return axios.get(`${API_URL}/payment-tab`, {
+        params,
+    });
+};
+
+
+// 운영 관리
+export const getAdvertiseStatusTabList = (params) => {
+    return axios.get(`${API_URL}/status-tab`, {
+        params,
+    });
+};
+
+
+// =========================================================
+// 관리자 광고 탭별 개수
+// =========================================================
+
+// 승인 관리 개수
+export const getAdvertiseApprovalTabCount = (params) => {
+    return axios.get(`${API_URL}/approval-tab/count`, {
+        params,
+    });
+};
+
+
+// 결제 확인 개수
+export const getAdvertisePaymentTabCount = (params) => {
+    return axios.get(`${API_URL}/payment-tab/count`, {
+        params,
+    });
+};
+
+
+// 운영 관리 개수
+export const getAdvertiseStatusTabCount = (params) => {
+    return axios.get(`${API_URL}/status-tab/count`, {
+        params,
     });
 };
 

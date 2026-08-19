@@ -95,4 +95,47 @@ public interface AdvertisementRepository
 	
 	long count(Specification<Advertisement> spec);
 
+	
+	// =========================================================
+    // 관리자 탭별 전용 쿼리 메서드
+    // =========================================================
+
+    // 1. 승인 관리 탭: 승인 대기(WAITING)이거나, 승인 완료(APPROVED)인데 결제 대기(WAITING)인 경우
+    @Query("""
+        select a from Advertisement a 
+        where a.deleteYn = 'N' 
+          and (a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.WAITING 
+               or (a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED 
+                   and a.paymentStatus = 'WAITING'))
+        order by a.createdAt desc
+    """)
+    Page<Advertisement> findApprovalTabList(Pageable pageable);
+
+    @Query("""
+        select count(a) from Advertisement a 
+        where a.deleteYn = 'N' 
+          and (a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.WAITING 
+               or (a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED 
+                   and a.paymentStatus = 'WAITING'))
+    """)
+    long countApprovalTabList();
+
+
+    // 3. 운영 관리 탭: 승인 완료(APPROVED)되고 결제 완료(PAID)된 정상 운영 대상
+    @Query("""
+        select a from Advertisement a 
+        where a.deleteYn = 'N' 
+          and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED 
+          and a.paymentStatus = 'PAID'
+        order by a.createdAt desc
+    """)
+    Page<Advertisement> findStatusTabList(Pageable pageable);
+
+    @Query("""
+        select count(a) from Advertisement a 
+        where a.deleteYn = 'N' 
+          and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED 
+          and a.paymentStatus = 'PAID'
+    """)
+    long countStatusTabList();
 }
