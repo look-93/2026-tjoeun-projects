@@ -74,11 +74,11 @@ function checkMobileApi(mobile){
 // =========================
 // 로그인
 // =========================
-function* login(action){
-    try{
+function* login(action) {
+    try {
         const response = yield call(loginApi, action.payload);
 
-        console.log("로그인 성공:",response.data);
+        console.log('로그인 성공:', response.data);
 
         // Access Token 저장
         if (typeof window !== "undefined") {
@@ -89,13 +89,13 @@ function* login(action){
 
         yield put(loginSuccess(response.data));
 
-    }catch(err){
-        console.error("로그인 실패:",err);
+    } catch (err) {
+        console.error('로그인 실패:', err);
 
-        let message = "로그인에 실패했습니다.";
+        let message = '로그인에 실패했습니다.';
 
-        if(err.response?.status == 401){
-            message = "아이디 또는 비밀번호가 올바르지 않습니다.";
+        if (err.response?.status == 401) {
+            message = '아이디 또는 비밀번호가 올바르지 않습니다.';
         }
 
 
@@ -106,17 +106,17 @@ function* login(action){
 // =========================
 // 회원가입
 // =========================
-function* signup(action){
-    try{
-        const response = yield call(signupApi,action.payload);
+function* signup(action) {
+    try {
+        const response = yield call(signupApi, action.payload);
 
-        console.log("회원가입 성공:", response.data);
+        console.log('회원가입 성공:', response.data);
 
         yield put(signupSuccess(response.data));
     }catch(err){
         console.error("회원가입 실패:",err);
 
-        let message = "회원가입에 실패했습니다.";
+        let message = '회원가입에 실패했습니다.';
 
         if(err.response?.status == 400){
             message = err.response.data?.message ||
