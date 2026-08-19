@@ -169,7 +169,8 @@ function MeetupDetailPage() {
                   danger
                   onClick={() =>
                     router.push(
-                      `/user/meetup/report/write?type=MEETUP&targetId=${meetup.meetupId}`,
+                      // `/user/meetup/report/write?targetType=MEETUP&targetId=${meetup.meetupId}`,
+                      `/user/meetup/report/write?targetType=MEETUP&targetId=2`,
                     )
                   }
                 >

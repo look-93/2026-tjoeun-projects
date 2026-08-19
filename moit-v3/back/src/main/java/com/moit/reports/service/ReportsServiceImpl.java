@@ -59,13 +59,13 @@ public class ReportsServiceImpl implements ReportsService {
 				.orElseThrow(()-> new IllegalArgumentException("사용자 신고 작성 오류! 존재하지 않는 사용자! ID: " + memberId));
 		
 		// 중복 신고 확인 코드 추가
-		boolean doubleCheck = reportRepository
-				.existsByMember_IdAndTargetTypeAndTargetIdAndDeleteYn(
-				        memberId, requestDto.getTargetType(), requestDto.getTargetId(), 'N');
-		
-		if (doubleCheck) {
-		    throw new IllegalArgumentException("이미 신고한 대상입니다.");
-		}
+//		boolean doubleCheck = reportRepository
+//				.existsByMember_IdAndTargetTypeAndTargetIdAndDeleteYn(
+//				        memberId, requestDto.getTargetType(), requestDto.getTargetId(), 'N');
+//		
+//		if (doubleCheck) {
+//		    throw new IllegalArgumentException("이미 신고한 대상입니다.");
+//		}
 		
 		// 신고 글 작성
 		Report report = new Report();

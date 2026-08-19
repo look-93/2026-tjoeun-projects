@@ -9,31 +9,31 @@ function MyPageSidebar() {
 
   const menuItems = [
     {
-      key: '/user/mypage',
+      key: '/user/member/mypage',
       label: '내 정보',
     },
     {
-      key: '/user/mypage/meetup',
+      key: '/user/member/mypage/meetup',
       label: '내 모임',
     },
     {
-      key: '/user/mypage/meetup-apply',
+      key: '/user/member/mypage/meetup-apply',
       label: '내 신청모임',
     },
     {
-      key: '/user/mypage/review',
+      key: '/user/member/mypage/review',
       label: '내 작성후기',
     },
     {
-      key: '/user/mypage/question',
+      key: '/user/member/mypage/question',
       label: '내 문의내역',
     },
     {
-      key: '/user/mypage/report',
+      key: '/user/member/mypage/report',
       label: '내 신고내역',
     },
     {
-      key: '/user/mypage/member/edit',
+      key: '/user/member/mypage/member/edit',
       label: '회원정보 수정',
     },
     {

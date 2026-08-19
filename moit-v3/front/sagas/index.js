@@ -3,7 +3,8 @@ import { all, fork } from "redux-saga/effects";
 import userSaga from "./userSaga";
 import meetupSaga from "./meetupSaga";
 ///// 추가되는 saga ////////
-import advertiseSaga from "./advertiseSaga";
+import advertiseSaga from './advertiseSaga';
+import reportSaga from './reportSaga';
 import commonSaga from "./commonSaga";
 import qnaSaga  from './qnaSaga';
 
@@ -14,6 +15,7 @@ export default function* rootSaga() {
         ///// 추가되는 saga ////////
         fork(advertiseSaga),
         fork(commonSaga),
+        fork(reportSaga),
         fork(qnaSaga),
     ]);
 }
