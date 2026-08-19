@@ -11,7 +11,7 @@ import {
   NEW_PRICES,
   EXTENSION_PRICES,
   POSITION_PRICES,
-} from '../../constants/advertisePrice';
+} from '../constants/advertisePrice';
 
 function AdvertisePriceModal({
   open,

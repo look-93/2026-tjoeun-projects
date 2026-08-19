@@ -8,6 +8,8 @@ function AdvertiseApprovalTable({
   onApprove,
   onReject,
 }) {
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+
   const columns = [
     {
       title: '번호',
@@ -29,7 +31,7 @@ function AdvertiseApprovalTable({
 
         return (
           <img
-            src={record.imageList[0].imageUrl}
+            src={`${BASE_URL}${record.imageList[0].imageUrl}`}
             alt={record.title}
             style={{
               width: 70,
@@ -52,10 +54,31 @@ function AdvertiseApprovalTable({
       width: 120,
     },
     {
-      title: '승인 상태',
-      dataIndex: 'approvalStatus',
+      title: '상태',
       key: 'approvalStatus',
       align: 'center',
+      render: (_, record) => {
+        // 승인 대기 / 결제 대기 / 반려 등을 명확히 표시
+        const isPaymentWaiting = 
+          record.approvalStatus === 'PAYMENT_WAITING' || 
+          record.paymentStatus === 'WAITING';
+
+        return (
+          <div>
+            <div style={{ fontWeight: 'bold' }}>
+              {record.approvalStatus === 'WAITING' && '승인 대기'}
+              {record.approvalStatus === 'PAYMENT_WAITING' && '결제 대기'}
+              {record.approvalStatus === 'REJECTED' && '반려'}
+              {record.approvalStatus === 'APPROVED' && '승인 완료'}
+            </div>
+            {isPaymentWaiting && (
+              <span style={{ color: '#faad14', fontSize: '11px' }}>
+                💳 결제 대기중
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       title: '광고 기간',
