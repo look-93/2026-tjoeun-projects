@@ -271,9 +271,19 @@ public class Advertisement extends BaseEntity{
     
     public void approve(Member admin) {
         this.approvalStatus = ApprovalStatus.APPROVED;
+
+        // 승인됐지만 아직 광고를 운영하지 않음
         this.status = AdStatus.PENDING;
+
+        // 결제 대기
+        this.paymentStatus = PaymentStatus.WAITING;
+
+        // 최초 결제
+        this.pendingPaymentType = PaymentType.INITIAL;
+
         this.approvedBy = admin;
         this.approvedAt = LocalDateTime.now();
+
         this.rejectReason = null;
     }
     

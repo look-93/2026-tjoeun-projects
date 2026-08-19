@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,11 +15,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
+import com.moit.advertisement.dto.AdvertisementPaymentDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.entity.Advertisement;
 import com.moit.advertisement.entity.AdvertisementClickLog;
 import com.moit.advertisement.entity.AdvertisementImage;
 import com.moit.advertisement.entity.AdvertisementImpressionLog;
+import com.moit.advertisement.entity.AdvertisementPayment;
 import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.AdStatus;
@@ -26,6 +29,7 @@ import com.moit.advertisement.enums.ApprovalStatus;
 import com.moit.advertisement.repository.AdvertisementClickLogRepository;
 import com.moit.advertisement.repository.AdvertisementImageRepository;
 import com.moit.advertisement.repository.AdvertisementImpressionLogRepository;
+import com.moit.advertisement.repository.AdvertisementPaymentRepository;
 import com.moit.advertisement.repository.AdvertisementRepository;
 import com.moit.member.entity.Member;
 import com.moit.member.repository.MemberRepository;
@@ -43,12 +47,88 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     
     private final AdvertisementClickLogRepository clickLogRepository;
     private final AdvertisementImpressionLogRepository impressionLogRepository;
+    private final AdvertisementPaymentRepository advertisementPaymentRepository;
 
     private final MailService mailService;
     private final AiSummaryService aiSummaryService;
 
     private static final String UPLOAD_PATH = "C:/upload/ad";
 
+    // =========================================================
+    // 관리자 탭별 전용 구현 메서드
+    // =========================================================
+
+    @Override
+    public List<AdvertisementDto> searchApprovalTabList(AdvertisementSearchDto dto) {
+        Pageable pageable = PageRequest.of(dto.getPage() - 1, dto.getSize());
+        return advertisementRepository.findApprovalTabList(pageable)
+                .getContent().stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    @Override
+    public Long selectApprovalTabTotalCnt(AdvertisementSearchDto dto) {
+        return advertisementRepository.countApprovalTabList();
+    }
+    
+    @Override
+    public List<AdvertisementPaymentDto> searchPaymentTabList(
+            AdvertisementSearchDto dto) {
+
+        Pageable pageable =
+                PageRequest.of(
+                        dto.getPage() - 1,
+                        dto.getSize()
+                );
+
+        return advertisementPaymentRepository
+                .findAllByOrderByCreatedAtDesc(pageable)
+                .getContent()
+                .stream()
+                .map(this::toPaymentDto)
+                .toList();
+    }
+
+    @Override
+    public long selectPaymentTabTotalCnt(AdvertisementSearchDto dto) {
+        return advertisementPaymentRepository.count();
+    }
+
+    @Override
+    public List<AdvertisementDto> searchStatusTabList(AdvertisementSearchDto dto) {
+        Pageable pageable = PageRequest.of(dto.getPage() - 1, dto.getSize());
+        return advertisementRepository.findStatusTabList(pageable)
+                .getContent().stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    public long selectStatusTabTotalCnt(AdvertisementSearchDto dto) {
+        return advertisementRepository.countStatusTabList();
+    }
+    
+    // =========================================================
+    // 결제내역 목록
+    // =========================================================
+    @Override
+    public List<AdvertisementPaymentDto> searchPaymentHistory(
+            AdvertisementSearchDto dto) {
+
+        Pageable pageable =
+                PageRequest.of(
+                        dto.getPage() - 1,
+                        dto.getSize()
+                );
+
+        return advertisementPaymentRepository
+                .findAllByOrderByCreatedAtDesc(pageable)
+                .getContent()
+                .stream()
+                .map(this::toPaymentDto)
+                .toList();
+    }
+    
     // =========================================================
     // 광고 목록
     // =========================================================
@@ -1011,6 +1091,99 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
         dto.setImageUrl(
                 image.getImageUrl()
+        );
+
+        return dto;
+    }
+    
+    private AdvertisementPaymentDto toPaymentDto(
+            AdvertisementPayment payment) {
+
+        AdvertisementPaymentDto dto =
+                new AdvertisementPaymentDto();
+
+        dto.setPaymentId(
+                payment.getPaymentId()
+        );
+
+        dto.setAdId(
+                payment.getAdvertisement().getAdId()
+        );
+
+        dto.setAdTitle(
+                payment.getAdvertisement().getTitle()
+        );
+
+        dto.setAdvertiserId(
+                payment.getAdvertiser().getId()
+        );
+
+        dto.setPaymentType(
+                payment.getPaymentType()
+        );
+
+        dto.setOrderId(
+                payment.getOrderId()
+        );
+
+        dto.setPaymentKey(
+                payment.getPaymentKey()
+        );
+
+        dto.setBaseAmount(
+                payment.getBaseAmount()
+        );
+
+        dto.setPositionAmount(
+                payment.getPositionAmount()
+        );
+
+        dto.setAmount(
+                payment.getAmount()
+        );
+
+        dto.setPosition(
+                payment.getPosition()
+        );
+
+        dto.setPaymentStatus(
+                payment.getPaymentStatus()
+        );
+
+        dto.setPaymentMethod(
+                payment.getPaymentMethod()
+        );
+
+        dto.setRequestedAt(
+                payment.getRequestedAt()
+        );
+
+        dto.setPaidAt(
+                payment.getPaidAt()
+        );
+
+        dto.setCancelledAt(
+                payment.getCancelledAt()
+        );
+
+        dto.setCancelReason(
+                payment.getCancelReason()
+        );
+
+        dto.setPeriodDays(
+                payment.getPeriodDays()
+        );
+
+        dto.setStartDatetime(
+                payment.getStartDatetime()
+        );
+
+        dto.setEndDatetime(
+                payment.getEndDatetime()
+        );
+
+        dto.setCreatedAt(
+                payment.getCreatedAt()
         );
 
         return dto;

@@ -45,17 +45,17 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 	
 	// 관리자 검색 기능 조회 + 페이징
 	// 전체
-	Page<Report> findByAdminSearch(Character deleteYn, Pageable pageable);
-	// status
-	Page<Report> findByStatusAdminSearch(ReportStatus status, Character deleteYn, Pageable pageable);
-	// targetType
-	Page<Report> findByTargetTypeAdminSearch(TargetType targetType, Character deleteYn, Pageable pageable);
-	// 작성자
-	Page<Report> findByMemberIdAdminSearch(Long memberId, Character deleteYn, Pageable pageable);
-	// 사유
-	Page<Report> findByReasonCodeAdminSearch(ReasonCode reasonCode, Character deleteYn, Pageable pageable);
-	// 날짜
-	Page<Report> findByCreatedAtAdminSearch(LocalDate createdAt, Character deleteYn, Pageable pageable);
+//	Page<Report> findByAdminSearch(Character deleteYn, Pageable pageable);
+//	// status
+//	Page<Report> findByStatusAdminSearch(ReportStatus status, Character deleteYn, Pageable pageable);
+//	// targetType
+//	Page<Report> findByTargetTypeAdminSearch(TargetType targetType, Character deleteYn, Pageable pageable);
+//	// 작성자
+//	Page<Report> findByMemberIdAdminSearch(Long memberId, Character deleteYn, Pageable pageable);
+//	// 사유
+//	Page<Report> findByReasonCodeAdminSearch(ReasonCode reasonCode, Character deleteYn, Pageable pageable);
+//	// 날짜
+//	Page<Report> findByCreatedAtAdminSearch(LocalDate createdAt, Character deleteYn, Pageable pageable);
 	// 관리자 신고 목록 조회 + 검색 + 페이징
 	@Query ("""
 		select r
