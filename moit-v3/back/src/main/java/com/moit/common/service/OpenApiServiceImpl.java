@@ -134,7 +134,11 @@ public class OpenApiServiceImpl implements OpenApiService {
 				String fcstTime = (String)item.get("fcstTime");
 				//System.out.println(fcstTime);
 				//System.out.println(request.getMeetupTime()+ "00");
+;
 				String meetupTime = String.format("%02d00", request.getMeetupTime());
+				//System.out.println("🔥 찾는 예보시간 = " + meetupTime);
+
+				//System.out.println("🔥 itemList size = " + itemList.size());
 				return fcstDate.equals(request.getMeetupDate()) && fcstTime.equals(meetupTime);
 			}).toList();
 			
@@ -148,7 +152,7 @@ public class OpenApiServiceImpl implements OpenApiService {
 			<nx>55</nx>
 			<ny>127</ny>
 			</item> 를 리스트로 받기*/ 
-			//System.out.println(filteredItemList + "dddddddddddddddd");
+
 			for(Map<String, Object> item : filteredItemList ) { //아이템에서 값 뽑아오기
 				String category = (String)item.get("category");				
 				String fcstValue = (String)item.get("fcstValue");

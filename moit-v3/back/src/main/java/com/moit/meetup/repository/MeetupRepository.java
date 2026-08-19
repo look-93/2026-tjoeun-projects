@@ -15,7 +15,7 @@ import com.moit.meetup.entity.Meetup;
 public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 	
 	Page<Meetup> findAll(Pageable pageable);
-	Page<Meetup> findByDeleteYnFalse(Pageable pageable);	
+	Page<Meetup> findByDeleteYn(Character deleteYn, Pageable pageable);	
 	
 	Page<Meetup> findByMember_Id(Long memberId, Pageable  pageable);
 	
