@@ -141,7 +141,7 @@ public class MemberServiceImpl implements MemberService{
 		memberInfo.setMember(member);
 		memberInfo.setGender(dto.getGender());
 		memberInfo.setBirth(dto.getBirth());
-		memberInfo.setReportStatus(reportStatus);
+		memberInfo.setMemberReportStatus(reportStatus);
 		
 		memberInfoRepository.save(memberInfo);
 		
@@ -219,10 +219,24 @@ public class MemberServiceImpl implements MemberService{
 	    dto.setMemberTypeId(member.getMemberType().getMemberTypeId());
 	    dto.setStatusId(member.getMemberStatus().getStatusId());
 	    
+	    // 회원 가입일
+	    if (member.getCreatedAt() != null) {
+	        dto.setCreatedAt( member.getCreatedAt().toLocalDate().toString() );
+	    }
+	    
+	    // 회원 상세정보
 	    if(memberInfo != null) {
 	    	dto.setGender(memberInfo.getGender());
 	        dto.setBirth(memberInfo.getBirth());
 	    }
+	    
+	    // 회원 관심사
+	    List<MemberInterest> memberInterests = memberInterestRepository.findByMember_Id(memberId);
+
+	    List<Integer> interestIds = memberInterests.stream()
+	            .map(memberInterest -> memberInterest.getInterest().getInterestId().intValue() ) .toList();
+
+	    dto.setInterestIds(interestIds);
 		
 		return dto;
 	}
@@ -390,7 +404,7 @@ public class MemberServiceImpl implements MemberService{
 		memberInfo.setGender(dto.getGender());
 		memberInfo.setBirth(dto.getBirth());
 		
-		memberInfo.setReportStatus(reportStatus);
+		memberInfo.setMemberReportStatus(reportStatus);
 		
 		memberInfoRepository.save(memberInfo);
 		
