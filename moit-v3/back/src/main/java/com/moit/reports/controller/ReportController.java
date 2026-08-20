@@ -60,16 +60,36 @@ public class ReportController {
 //      Integer id = (Integer) session.getAttribute("loginMemberId");
 //      return (id != null) ? id : 1; // 일반회원 테스트용
 //   }
-
-   // 사용자 로그인 헬퍼
-//   private Integer getLoginMemberId(HttpSession session) {
-//      Integer id = (Integer) session.getAttribute("loginMemberId");
-//      return (id != null) ? id : 1; // 일반회원 테스트용
+//   
+//   // 내 신고내역 조회 (사용자 신고 목록 조회 + 페이징)
+//   @Operation(summary = "내 신고내역 조회", description = "")
+//   @GetMapping
+//   public ResponseEntity<ReportListResponseDto> getReportsMylist (
+//         Authentication authentication, 
+//         @Parameter(description = "작성자 ID") @RequestParam("memberId") Long memberId,
+//         @PageableDefault(size = 10) Pageable pageable ) {
+//      
+//      // 로그인한 memberId 꺼내오기
+////      Long memberId = authUserJwtService.getCurrentMemberId(authentication);
+//      
+//      ReportListResponseDto response = reportsService.getUserReports(memberId, pageable);
+//      return ResponseEntity.ok(response);
 //   }
-   // 관리자 로그인 헬퍼
-//   private Integer getLoginAdminId(HttpSession session) {
-//      Integer id = (Integer) session.getAttribute("loginMemberId");
-//      return (id != null) ? id : 22; // 관리자 테스트용
+//   
+//   // 사용자 신고 상세 조회
+//   @Operation(summary = "내 신고내역 상세조회", description = "")
+//   @GetMapping("/{reportId}")
+//   public ResponseEntity<ReportResponseDto> getReportMylistDetail (
+//         @PathVariable("reportId") Long reportId) {
+//      
+//      // 로그인 하드코딩
+//      Long memberId = 2L;
+//      
+//      // 로그인한 memberId 꺼내오기
+////      Long memberId = authUserJwtService.getCurrentMemberId(authentication);
+//      
+//      ReportResponseDto report = reportsService.getUserReportDetail(reportId, memberId);
+//      return ResponseEntity.ok(report);
 //   }
    
    //   @PathVariable
