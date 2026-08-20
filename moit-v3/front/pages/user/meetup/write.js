@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
 import {
@@ -56,6 +56,7 @@ function write() {
     const [aiLoading, setAiLoading] = useState(false);
     const titleValue = Form.useWatch("title", form);
     const [showAiGuide, setShowAiGuide] = useState(false);
+    const aiRequestedRef = useRef(false);
 
     //주소
     const [addressModalOpen, setAddressModalOpen] = useState(false);
@@ -75,6 +76,7 @@ function write() {
         createSuccess,
         updateSuccess,
         error,
+        aiRecommendation,
     } = useSelector((state) => state.meetup);
 
     useEffect(() => {
@@ -130,29 +132,52 @@ function write() {
         // 수정 페이지에서는 AI 안내 X
         if (isEdit) return;
 
+        //console.log("🔥 AI 타이머 시작");
+
         // 페이지 진입 후 10초
         const timer = setTimeout(() => {
+            //console.log("🔥🔥 10초 지남!");
             setShowAiGuide(true);
         }, 10000);
 
         return () => clearTimeout(timer);
     }, [isEdit]);
 
+    //ai호출
     useEffect(() => {
         if (isEdit) return;
-
-        // 아직 10초가 안 지났으면 실행 X
         if (!showAiGuide) return;
-
-        // 제목이 없으면 실행 X
         if (!titleValue?.trim()) return;
 
-        dispatch(
-            recommendMeetupRequest({
-                keyword: titleValue,
-            }),
-        );
+        // 이미 AI 추천을 요청했다면 다시 요청하지 않음
+        if (aiRequestedRef.current) return;
+
+        const timer = setTimeout(() => {
+            // ⭐ 요청하기 직전에 true
+            aiRequestedRef.current = true;
+
+            console.log("🤖 AI 요청:", titleValue);
+
+            dispatch(
+                recommendMeetupRequest({
+                    keyword: titleValue,
+                }),
+            );
+        }, 1000);
     }, [titleValue, showAiGuide, isEdit, dispatch]);
+
+    //ai 응답 값 셋팅
+    useEffect(() => {
+        if (!aiRecommendation) return;
+
+        console.log("🤖 AI 추천 결과:", aiRecommendation);
+
+        form.setFieldsValue({
+            title: aiRecommendation.title,
+            categoryId: aiRecommendation.categoryId,
+            content: aiRecommendation.content,
+        });
+    }, [aiRecommendation, form]);
 
     //카테고리
     const categoriesOptions = categories
@@ -341,7 +366,10 @@ function write() {
                             </Text>
                         </Card>
 
-                        <MeetupInfoForm categoriesOptions={categoriesOptions} />
+                        <MeetupInfoForm
+                            categoriesOptions={categoriesOptions}
+                            showAiGuide={showAiGuide}
+                        />
                     </Col>
 
                     <Col xs={24} lg={8}>

@@ -13,23 +13,23 @@ function MyPageSidebar() {
       label: '내 정보',
     },
     {
-      key: '/user/member/mypage/meetup',
+      key: '/user/mypage/meetup',
       label: '내 모임',
     },
     {
-      key: '/user/member/mypage/meetup-apply',
+      key: '/user/mypage/meetup-apply',
       label: '내 신청모임',
     },
     {
-      key: '/user/member/mypage/review',
+      key: '/user/mypage/review',
       label: '내 작성후기',
     },
     {
-      key: '/user/member/mypage/question',
+      key: '/user/mypage/question',
       label: '내 문의내역',
     },
     {
-      key: '/user/member/mypage/report',
+      key: '/user/mypage/report',
       label: '내 신고내역',
     },
     {

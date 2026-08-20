@@ -61,25 +61,26 @@ function MeetupRecruitInfo({ meetup, isOwner }) {
                     </Text>
                 </Row>
 
-                {isOwner ? (
-                    <Button
-                        type="primary"
-                        size="large"
-                        block
-                        onClick={handleEdit}
-                    >
-                        수정하기
-                    </Button>
-                ) : (
-                    <Button
-                        type={isApplied ? "default" : "primary"}
-                        size="large"
-                        block
-                        onClick={handleApply}
-                    >
-                        {isApplied ? "신청취소" : "신청하기"}
-                    </Button>
-                )}
+                {meetup.meetupStatus === "RECRUITING" &&
+                    (isOwner ? (
+                        <Button
+                            type="primary"
+                            size="large"
+                            block
+                            onClick={handleEdit}
+                        >
+                            수정하기
+                        </Button>
+                    ) : (
+                        <Button
+                            type={isApplied ? "default" : "primary"}
+                            size="large"
+                            block
+                            onClick={handleApply}
+                        >
+                            {isApplied ? "신청취소" : "신청하기"}
+                        </Button>
+                    ))}
             </Space>
         </Card>
     );

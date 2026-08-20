@@ -264,7 +264,9 @@ const meetupReducer = createSlice({
 
         fetchMyMeetupsSuccess: (state, action) => {
             state.loading = false;
-            state.myMeetups = action.payload;
+            state.myMeetups = action.payload.meetups;
+            state.totalCount = action.payload.totalCount;
+            state.totalPage = action.payload.totalPage;
         },
 
         fetchMyMeetupsFailure: (state, action) => {

@@ -412,9 +412,15 @@ public class MeetupServiceImpl implements MeetupService{
 	    
 	    // 신규 신청 → 정원 확인
 	    long applicantCount = meetupApplicationRepository.countByMeetupIdAndApplyStatus( meetupId, ApplyStatus.PENDING);
-
+	    
 	    if (applicantCount >= meetup.getMaxParticipants()) {
 	        throw new IllegalStateException("모임 정원이 가득 찼습니다.");
+	    }
+	    
+	    // AI 한줄평이 없는 경우 최초 생성
+	    if (member.getMemberInfo().getAiSummary() == null) {
+	    	//System.out.println("⭐ AI Summary 최초 생성");
+	        updateAiSummary(member);
 	    }
 	    
 	    // 신청 내역 자체가 없으면 → 신규 신청
@@ -542,6 +548,7 @@ public class MeetupServiceImpl implements MeetupService{
 		
 		//기존 상태
 		ApplyStatus beforeStatus = meetupApplication.getApplyStatus();
+		
 		//받아온 상태
 		ApplyStatus afterStatus = requestDto.getApplyStatus();
 		
@@ -639,7 +646,7 @@ public class MeetupServiceImpl implements MeetupService{
 								.findFirst()
 								.orElse(0L);
 			
-			dto.setId(categoryId == null ? 0 : categoryId);
+			dto.setCategoryId(categoryId == null ? 0 : categoryId);
 	
 	
 	        return dto;
@@ -670,10 +677,12 @@ public class MeetupServiceImpl implements MeetupService{
 	private void updateAiSummary(Member member) {
 
 	    Integer trustScore = member.getMemberInfo().getTrustScore();
-
+	    //System.out.println("⭐ updateAiSummary 실행");
+	    //System.out.println("⭐ trustScore = " + trustScore);
 	    String aiSummary;
 
 	    if (trustScore < 60) {
+	        //System.out.println("⭐ 60점 미만 → AI 호출");
 
 	        String aiPrompt = "[대상 유저 이력 정보]\n"
 	                + "- 최근 3개월 내 무단 노쇼(NOSHOW), 당일 모임 신청 후 1시간 이내 취소 등의 이력을 종합\n"
@@ -683,12 +692,13 @@ public class MeetupServiceImpl implements MeetupService{
 	                + "20자 내외의 경고성 한 줄 요약문을 만들어줘.";
 
 	        aiSummary = openAiApiClient.getAIResponse(aiPrompt);
-
+	        //System.out.println("⭐ AI 응답 = " + aiSummary);
 	    } else {
-
+	    	//System.out.println("⭐ 60점 이상 → 기본 문구");
 	        aiSummary = "신뢰도가 높은 회원입니다.";
 	    }
 
 	    member.getMemberInfo().setAiSummary(aiSummary);
+
 	}	
 }

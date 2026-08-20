@@ -1,8 +1,8 @@
 package com.moit.meetup.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
 import com.moit.meetup.entity.MeetupApplication;
 import com.moit.meetup.enums.ApplyStatus;
 
@@ -45,7 +45,7 @@ public class MeetupApplicationDto {
 						                .rejectReason(application.getRejectReason())
 						                .meetupId(application.getMeetup().getId())
 						                .meetupTitle(application.getMeetup().getTitle())
-						                .meetupAt(application.getMeetup().getMeetupAt())
+						                .meetupAt(application.getMeetup().getMeetupAt())						              
 						                .build();
 		}
 	}
@@ -71,6 +71,7 @@ public class MeetupApplicationDto {
 		private String rejectReason;
 		private String aiSummary; 
 		private ApplyStatus applyStatus;
+		private LocalDateTime updateAt;
 		
 		public static MeetupApplicantResponseDto fromEntity(MeetupApplication application) {
 			return MeetupApplicantResponseDto.builder()
@@ -79,6 +80,7 @@ public class MeetupApplicationDto {
 						                .rejectReason(application.getRejectReason())
 						                .aiSummary(application.getMember().getMemberInfo().getAiSummary())
 						                .applyStatus(application.getApplyStatus())
+						                .updateAt(application.getUpdatedAt())
 						                .build();
 		}
 	}

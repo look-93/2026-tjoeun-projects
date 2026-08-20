@@ -374,7 +374,7 @@ export const fetchMeetupApplicantsAPI = (meetupId, params) =>
 export function* fetchMeetupApplicants(action) {
     try {
         const { meetupId, page, size } = action.payload;
-
+        console.log("Saga payload:", action.payload);
         const result = yield call(fetchMeetupApplicantsAPI, meetupId, {
             page,
             size,
@@ -401,7 +401,7 @@ export const fetchMyMeetupsAPI = (params) =>
 export function* fetchMyMeetups(action) {
     try {
         const result = yield call(fetchMyMeetupsAPI, action.payload);
-
+        console.log("🔥 내 모집글 API 응답:", result.data);
         yield put(fetchMyMeetupsSuccess(result.data));
     } catch (err) {
         yield put(
@@ -420,6 +420,7 @@ export const updateApplicationStatusAPI = (data) =>
 
 export function* updateApplicationStatus(action) {
     try {
+        console.log("🔥 승인 요청 data:", action.payload);
         yield call(updateApplicationStatusAPI, action.payload);
 
         yield put(updateApplicationStatusSuccess());
