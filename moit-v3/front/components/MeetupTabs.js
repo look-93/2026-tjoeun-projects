@@ -57,12 +57,12 @@ function MeetupTabs({ activeTab, setActiveTab, meetup, reviews, qnaLists, meetup
       ),
     },
 
-        {
-            key: "qna",
-            label: "Q&A",
-            children: <QnaSection qnaLists={qnaLists} />,
-        },
-    ];
+    {
+      key: 'qna',
+      label: 'Q&A',
+      children: <QnaSection qnaLists={qnaLists} meetupId={meetup.meetupId} />,
+    },
+  ];
 
     return (
         <Card className="meetup-tabs-card">

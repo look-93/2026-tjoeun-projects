@@ -16,7 +16,7 @@ public class AnswerDto {
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class AnswerRequestDto {
         private Long answerId;
-        private Long questionId;;
+        private Long questionId;
         private Long memberId;
 
         private String content;

@@ -137,7 +137,8 @@ public class SecurityConfig {
                 "/user/advertisement/**",
                 "/meetup/write/**",
                 "/meetup/detail/**",
-                "/mypage/**"
+                "/mypage/**",
+                "/api/questions/**"
             ).authenticated()
 
             // -------------------------------------------------

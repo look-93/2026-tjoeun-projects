@@ -90,7 +90,8 @@ function MeetupDetailPage() {
 
   // 모임 데이터
   const meetup = {
-    meetupId: currentMeetupId,
+    //meetupId: currentMeetupId,
+    meetupId: 25, // 테스트용 추가함
     title: '주말 한강 러닝 같이 하실 분!',
     status: '모집중',
     participants: 8,

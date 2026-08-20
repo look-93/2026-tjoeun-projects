@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.moit.reports.api.ApiOpenAi;
 import com.moit.reports.dto.AiReportsDto;
-
 import com.moit.reports.dto.MemberTrustInfoDto;
 import com.moit.reports.dto.ReportAuditLogDto;
 import com.moit.reports.dto.ReportSearchDto;
@@ -400,8 +399,6 @@ public class ReportController {
 		ReportResponseDto report = reportsService.getAdminReportDetail(reportId);
 		return ResponseEntity.ok(report);
 	}
-
-	
 	
 	//////////////////////////////////////////////////////////
 	// 관리자 신고 처리 로그 조회

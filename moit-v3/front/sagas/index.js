@@ -7,6 +7,7 @@ import advertiseSaga from './advertiseSaga';
 import reviewSaga from './reviewSaga';
 import reportSaga from './reportSaga';
 import commonSaga from "./commonSaga";
+import qnaSaga  from './qnaSaga';
 
 
 export default function* rootSaga() {
@@ -18,6 +19,7 @@ export default function* rootSaga() {
         fork(reviewSaga),
         fork(reportSaga),
         fork(commonSaga),
+        fork(qnaSaga),
     ]);
 }
 
