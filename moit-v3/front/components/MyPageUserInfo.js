@@ -48,10 +48,10 @@ function MyPageUserInfo({ user }) {
       label: '이메일',
       value: user?.email || '-',
     },
-    {
-      label: '전화번호',
-      value: user?.mobile || '-',
-    },
+    // {
+    //   label: '전화번호',
+    //   value: user?.mobile || '-',
+    // },
     {
       label: '성별',
       value:
