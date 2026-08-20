@@ -239,7 +239,7 @@ function UserHeader() {
 
                 {/* 관리자 문의 */}
                 <Col flex="none">
-                  <Link href="/user/qna/write?type=ADMIN">
+                  <Link href="/user/qna/questionWrite?type=ADMIN">
                     <a
                       className="moit-header-link moit-inquiry"
                       style={{ textDecoration: 'none' }}

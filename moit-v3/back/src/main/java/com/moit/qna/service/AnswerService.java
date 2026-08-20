@@ -21,7 +21,8 @@ public class AnswerService {
     private final QuestionAnswerRepository questionAnswerRepository;
 
     // 답변 등록 + 문의 상태 업데이트
-    public void register(AnswerRequestDto dto) {
+    public void register(AnswerRequestDto dto, Long memberId) {
+    	dto.setMemberId(memberId);
         AnswerResponseDto oldAnswer = questionMapper.findByQuestionId(dto.getQuestionId());
         if (oldAnswer == null) {
             questionMapper.insertAnswer(dto);

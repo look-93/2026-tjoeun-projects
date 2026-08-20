@@ -3,6 +3,8 @@ package com.moit.qna.dto;
 import java.sql.Timestamp;
 import java.util.List;
 
+import com.moit.qna.entity.QnaStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,7 +36,7 @@ public class QuestionDto {
         private String title;
         private String content;
 
-        private String status;	 // PENDING, ANSWERED
+        private QnaStatus qnaStatus;	 // PENDING, ANSWERED
         private String isPublic;
         private String deleteYn;
 

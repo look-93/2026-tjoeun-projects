@@ -30,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
     private final Oauth2UserService oauthUserService;
     private final SocialLoginSuccessHandler socialLoginSuccessHandler;
     private final CustomLoginFailureHandler customLoginFailureHandler;
@@ -62,7 +61,13 @@ public class SecurityConfig {
                 "/user/member/delete",
                 "/questions/deleteSelected",
                 "/api/meetups/**",
-                "/api/members/**"
+                "/api/members/**",
+                "/api/questions/**",
+                "/api/reports/**",
+                "/api/reports",
+                "/api/admin/advertisement/**",
+                "/api/advertisement/**",
+                "/api/reviews/**"
             )
         );
 
@@ -132,7 +137,8 @@ public class SecurityConfig {
                 "/user/advertisement/**",
                 "/meetup/write/**",
                 "/meetup/detail/**",
-                "/mypage/**"
+                "/mypage/**",
+                "/api/questions/**"
             ).authenticated()
 
             // -------------------------------------------------

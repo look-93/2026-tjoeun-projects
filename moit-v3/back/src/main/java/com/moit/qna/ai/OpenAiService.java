@@ -91,10 +91,12 @@ public class OpenAiService {
             {
               "analysis":"NORMAL",
               "score":0
+        	  "aiCategory":"OTHER"
             }
             
 	        규칙
 	
+	        [공격성 분석]
 	        - score는 0~100의 정수이다.
 	        - score가 0~39이면 일반 문의이다.
 	        - score가 40~59이면 다소 공격적인 표현이 있으나 일반 문의이다.
@@ -105,6 +107,22 @@ public class OpenAiService {
 	        - score가 59 이하이면 반드시 NORMAL을 반환한다.
 	
 	        욕설, 협박, 성희롱, 인신공격, 악성 민원은 높은 점수를 부여한다.
+	
+	        [문의 유형 분류]
+	        - aiCategory는 반드시 다음 6개 중 하나만 반환한다.
+	          LOGIN
+	          PAYMENT
+	          ACCOUNT
+	          REPORT
+	          BUG
+	          OTHER
+	
+	        - LOGIN: 로그인, 비밀번호, 인증, 로그인 실패 등
+	        - PAYMENT: 결제, 결제 실패, 결제 내역, 환불 등
+	        - ACCOUNT: 회원정보, 계정, 회원가입, 회원탈퇴 등
+	        - REPORT: 사용자, 게시글 등의 신고 관련 문의
+	        - BUG: 오류, 버그, 화면 문제, 기능이 정상적으로 동작하지 않는 문제
+	        - OTHER: 위 카테고리에 해당하지 않는 문의
 	
 	        문의 내용
 	

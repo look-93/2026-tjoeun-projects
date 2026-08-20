@@ -4,11 +4,14 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import com.moit.advertisement.entity.Advertisement;
 import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.AdStatus;
 import com.moit.advertisement.enums.ApprovalStatus;
 import com.moit.advertisement.enums.PaymentStatus;
+import com.moit.advertisement.enums.PaymentType;
 import com.moit.advertisement.enums.TargetGender;
 
 import lombok.AllArgsConstructor;
@@ -42,6 +45,7 @@ public class AdvertisementDto {
     private ApprovalStatus approvalStatus;
     private PaymentStatus paymentStatus;
     private AdGrade adGrade;
+    private PaymentType pendingPaymentType;
 
     private Long impressions;
     private Long clicks;
@@ -82,7 +86,9 @@ public class AdvertisementDto {
         private Integer targetAgeMax;
         private TargetGender targetGender;
 
+        @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime startDatetime;
+        @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime endDatetime;
 
         private BigDecimal totalBudget;
@@ -161,6 +167,7 @@ public class AdvertisementDto {
 
         private AdStatus status;
         private ApprovalStatus approvalStatus;
+        private PaymentType pendingPaymentType;
         private PaymentStatus paymentStatus;
         private AdGrade adGrade;
 
@@ -204,6 +211,7 @@ public class AdvertisementDto {
                     .status(ad.getStatus())
                     .approvalStatus(ad.getApprovalStatus())
                     .paymentStatus(ad.getPaymentStatus())
+                    .pendingPaymentType(ad.getPendingPaymentType())
                     .adGrade(ad.getAdGrade())
 
                     .advertiserId(
@@ -245,6 +253,34 @@ public class AdvertisementDto {
 
         public AdvertisementPageResponseDto(
                 List<AdvertisementDto> list,
+                int totalCnt,
+                int page,
+                int size) {
+
+            this.list = list;
+            this.totalCnt = totalCnt;
+            this.page = page;
+            this.size = size;
+
+            this.totalPage =
+                    (int) Math.ceil((double) totalCnt / size);
+        }
+    }
+    
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AdvertisementPaymentPageResponseDto {
+
+        private List<AdvertisementPaymentDto> list;
+        private int totalCnt;
+        private int totalPage;
+        private int page;
+        private int size;
+
+        public AdvertisementPaymentPageResponseDto(
+                List<AdvertisementPaymentDto> list,
                 int totalCnt,
                 int page,
                 int size) {

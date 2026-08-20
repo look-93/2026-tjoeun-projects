@@ -1,0 +1,265 @@
+import { createSlice } from "@reduxjs/toolkit";
+
+//1. 초기화 상태 (공용)
+const initialState = {
+    qnaList: [],             // QnA 목록
+    qna: null,               // QnA 상세
+    meetupQnaList: [],       // 특정 모임 QnA 목록
+
+    adminQnaList: [],        // 관리자 QnA 목록
+    adminQnaTotal: 0,        // 관리자 QnA 전체 개수
+    adminQnaPage: 1,         // 관리자 QnA 현재 페이지
+    adminQnaSize: 10,        // 관리자 QnA 페이지 크기
+
+    loading: false,          // 로딩상태
+    error: null,             // 에러메시지
+    success: false,          // 성공여부
+};
+
+//2. 상태변화
+const qnaReducer = createSlice({
+    name: "qna",
+    initialState,
+    reducers: {
+        // --- QnA 등록 ---
+        qnaCreateRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.success = false;
+        },
+        qnaCreateSuccess: (state, action) => {
+            state.loading = false;
+            state.success = true;
+            state.qna = action.payload;
+        },
+        qnaCreateFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.success = false;
+        },
+
+        // --- QnA 목록 조회 ---
+        qnaListRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+        qnaListSuccess: (state, action) => {
+            state.loading = false;
+            state.qnaList = action.payload;
+        },
+        qnaListFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // --- QnA 특정 모임 조회 ---
+        qnaMeetupListRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+        qnaMeetupListSuccess: (state, action) => {
+            state.loading = false;
+            state.qnaList = action.payload;
+            state.meetupQnaList = action.payload;
+        },
+        qnaMeetupListFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // --- QnA 상세 조회 ---
+        qnaDetailRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+        qnaDetailSuccess: (state, action) => {
+            state.loading = false;
+            state.qna = action.payload;
+        },
+        qnaDetailFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // --- QnA 수정 ---
+        qnaUpdateRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.success = false;
+        },
+        qnaUpdateSuccess: (state) => {
+            state.loading = false;
+            state.success = true;
+        },
+        qnaUpdateFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.success = false;
+        },
+
+        // --- QnA 삭제 ---
+        qnaDeleteRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.success = false;
+        },
+        qnaDeleteSuccess: (state) => {
+            state.loading = false;
+            state.success = true;
+            state.qna = null;
+        },
+        qnaDeleteFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.success = false;
+        },
+
+        // --- 관리자 QnA 조회 ---
+        qnaAdminListRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+        qnaAdminListSuccess: (state, action) => {
+            state.loading = false;
+            state.adminQnaList = action.payload.list;
+            state.adminQnaTotal = action.payload.totalCnt;
+            state.adminQnaPage = action.payload.page;
+            state.adminQnaSize = action.payload.pageSize;
+        },
+        qnaAdminListFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // --- QnA 답변 등록 ---
+        qnaAnswerCreateRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.success = false;
+        },
+        qnaAnswerCreateSuccess: (state) => {
+            state.loading = false;
+            state.success = true;
+        },
+        qnaAnswerCreateFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.success = false;
+        },
+
+        // --- QnA 답변 수정 ---
+        qnaAnswerUpdateRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.success = false;
+        },
+        qnaAnswerUpdateSuccess: (state) => {
+            state.loading = false;
+            state.success = true;
+        },
+        qnaAnswerUpdateFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.success = false;
+        },
+
+        // --- QnA 답변 삭제 ---
+        qnaAnswerDeleteRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.success = false;
+        },
+        qnaAnswerDeleteSuccess: (state) => {
+            state.loading = false;
+            state.success = true;
+        },
+        qnaAnswerDeleteFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.success = false;
+        },
+
+        // --- 답변 만족도 평가 ---
+        qnaSatisfactionRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.success = false;
+        },
+        qnaSatisfactionSuccess: (state) => {
+            state.loading = false;
+            state.success = true;
+        },
+        qnaSatisfactionFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.success = false;
+        },
+
+        // --- 관리자 선택 삭제 ---
+        qnaAdminDeleteSelectedRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.success = false;
+        },
+        qnaAdminDeleteSelectedSuccess: (state) => {
+            state.loading = false;
+            state.success = true;
+        },
+        qnaAdminDeleteSelectedFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.success = false;
+        },
+
+        // --- AI 정상 처리 ---
+        qnaAiNormalRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.success = false;
+        },
+        qnaAiNormalSuccess: (state) => {
+            state.loading = false;
+            state.success = true;
+        },
+        qnaAiNormalFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.success = false;
+        },
+
+        // --- 상태 초기화 ---
+        qnaReset: (state) => {
+            state.qna = null;
+            state.meetupQnaList = [];
+            state.adminQnaList = [];
+            state.error = null;
+            state.success = false;
+        },
+    },
+});
+
+//3. action
+export const {
+    qnaCreateRequest, qnaCreateSuccess, qnaCreateFailure,
+    qnaListRequest, qnaListSuccess, qnaListFailure,
+    qnaMeetupListRequest, qnaMeetupListSuccess, qnaMeetupListFailure,
+    qnaDetailRequest, qnaDetailSuccess, qnaDetailFailure,
+
+    qnaUpdateRequest, qnaUpdateSuccess, qnaUpdateFailure,
+    qnaDeleteRequest, qnaDeleteSuccess, qnaDeleteFailure,
+
+    qnaAdminListRequest, qnaAdminListSuccess, qnaAdminListFailure,
+
+    qnaAnswerCreateRequest, qnaAnswerCreateSuccess, qnaAnswerCreateFailure,
+    qnaAnswerUpdateRequest, qnaAnswerUpdateSuccess, qnaAnswerUpdateFailure,
+    qnaAnswerDeleteRequest, qnaAnswerDeleteSuccess, qnaAnswerDeleteFailure,
+
+    qnaSatisfactionRequest, qnaSatisfactionSuccess, qnaSatisfactionFailure,
+    qnaAdminDeleteSelectedRequest, qnaAdminDeleteSelectedSuccess, qnaAdminDeleteSelectedFailure,
+    qnaAiNormalRequest, qnaAiNormalSuccess, qnaAiNormalFailure,
+
+    qnaReset,
+} = qnaReducer.actions;
+
+//4. export
+export default qnaReducer.reducer;

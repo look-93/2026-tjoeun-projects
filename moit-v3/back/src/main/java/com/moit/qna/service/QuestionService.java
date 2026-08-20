@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.moit.qna.dao.QuestionMapper;
 import com.moit.qna.dto.AnswerDto.AnswerResponseDto;
@@ -62,8 +63,9 @@ public class QuestionService {
     }
 
     // 문의 등록
-    public void register(QuestionRequestDto dto) {
-    	// 동일 사용자 + 동일 제목 + 동일 내용의 문의가 있는지 확인
+    @Transactional
+    public QuestionResponseDto register(QuestionRequestDto dto) {
+        // 동일 사용자 + 동일 제목 + 동일 내용의 문의가 있는지 확인
         int duplicateCount = questionMapper.countDuplicateQuestion(
                 dto.getMemberId(),
                 dto.getTitle(),
@@ -72,11 +74,14 @@ public class QuestionService {
         if (duplicateCount > 0) {
             throw new IllegalStateException("이미 등록한 동일한 문의가 있습니다.");
         }
-    	// questions 테이블 저장
+        // questions 테이블 저장
         questionMapper.insertQuestion(dto);
-        // AI 분석
+        // AI 분석 + QUESTION_AI_ANALYSIS 저장
         String text = dto.getTitle() + "\n" + dto.getContent();
-        questionAiAnalysisService.analyzeAndSave( dto.getQuestionId(), text );
+        questionAiAnalysisService.analyzeAndSave(dto.getQuestionId(), text);
+
+        // 등록된 문의 정보 반환
+        return questionMapper.findById(dto.getQuestionId());
     }
 
     // 문의 수정

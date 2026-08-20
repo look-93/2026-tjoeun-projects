@@ -17,6 +17,7 @@ public class AnswerDto {
     public static class AnswerRequestDto {
         private Long answerId;
         private Long questionId;
+        private Long memberId;
 
         private String content;
         private String isPublic;

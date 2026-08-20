@@ -1,11 +1,11 @@
 package com.moit.reports.repository;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -49,10 +49,10 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 		where	(:status IS NULL OR r.status = :status)
 			and (:deleteYn IS NULL OR r.deleteYn = :deleteYn)
 			and (:targetType IS NULL OR r.targetType = :targetType)
-			
 			and (:memberNickname IS NULL OR LOWER(m.nickname)
-				LIKE LOWER(CONCAT('%', :memberNickname, '%')))
-			and (:reasonCode IS NULL OR r.reasonCode = :reasonCode)
+				LIKE LOWER(CONCAT('%', :memberNickname, '%')) )
+			and (:reasonCode IS NULL OR r.reasonCode = :reasonCode )
+		ORDER BY r.reportId DESC
 	""")
 	Page<Report> findAdminReports(
 			@Param("status")		 ReportStatus status,
@@ -63,5 +63,6 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			Pageable pageable
 	);
 	
+
 	
-}
+} 
