@@ -1,126 +1,138 @@
-import {createSlice} from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 
-
-//초기화 상태
-const initialState={
-    //백엔드 응답 데이터
-    reviews:[],
-    reviewDetail:null,
-    totalCount:0,
+// 초기화 상태
+const initialState = {
+    // 백엔드 응답 데이터
+    reviews: [],
+    reviewDetail: null,
+    totalCount: 0,
     totalPage: 0,
-    analysisResult:"",
+    analysisResult: "",
 
-
-    loading:false,
-    error:null,
-    success:false,
+    loading: false,
+    error: null,
+    success: false,
 };
 
-//상태변화
-const reviewReducer=createSlice({
-    name:"review",
+// 상태변화
+const reviewReducer = createSlice({
+    name: "review",
     initialState,
-    reducers:{
-        //--상태 초기화--
-        resetReviewState:(state)=>{
-            state.loading=false;
-            state.error=null;
-            state.success=false;
+    reducers: {
+        // --상태 초기화--
+        resetReviewState: (state) => {
+            state.loading = false;
+            state.error = null;
+            state.success = false;
         },
 
-        //--리뷰 작성--
-        createReviewRequest:(state)=>{
-            state.loading=true;
-            state.error=null;
-            state.success=false;
+        // --리뷰 작성--
+        createReviewRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.success = false;
         },
-        createReviewSuccess:(state)=>{
-            state.loading=false;
-            state.success=true;
+        createReviewSuccess: (state) => {
+            state.loading = false;
+            state.success = true;
         },
-        createReviewFailure:(state,action)=>{
-            state.loading=false;
-            state.error=action.payload;
-            state.success=false;
-        },
-
-        //--리뷰 상세 조회--
-        getReviewDetailRequest:(state)=>{
-            state.loading=true;
-            state.error=null;
-            state.reviewDetail=null;
-        },
-        getReviewDetailSuccess:(state,action)=>{
-            state.loading=false;
-            state.reviewDetail=action.payload;
-        },
-        getReviewDetailFailure:(state,action)=>{
-            state.loading=false;
-            state.error=action.payload;
+        createReviewFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.success = false;
         },
 
-        //--리뷰 수정--
-        updateReviewRequest:(state)=>{
-            state.loading=true;
-            state.error=null;
-            state.success=false;
+        // --리뷰 상세 조회--
+        getReviewDetailRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.reviewDetail = null;
         },
-        updateReviewSuccess:(state)=>{
-            state.loading=false;
-            state.success=true;
+        getReviewDetailSuccess: (state, action) => {
+            state.loading = false;
+            state.reviewDetail = action.payload;
         },
-        updateReviewFailure:(state,action)=>{
-            state.loading=false;
-            state.error=action.payload;
-            state.success=false;
+        getReviewDetailFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
         },
-        //리뷰 삭제(사용자, 관리자)
-        deleteReviewRequest:(state)=>{
-            state.loading=true;
-            state.error=null;
-            state.success=false;
+
+        // --리뷰 수정--
+        updateReviewRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.success = false;
         },
-        deleteReviewSuccess:(state,action)=>{
-            state.loading=false;
-            state.success=true;
-            const deletedId=action.payload;
+        updateReviewSuccess: (state) => {
+            state.loading = false;
+            state.success = true;
+        },
+        updateReviewFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.success = false;
+        },
+
+        // 리뷰 삭제(사용자, 관리자)
+        deleteReviewRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.success = false;
+        },
+        deleteReviewSuccess: (state, action) => {
+            state.loading = false;
+            state.success = true;
+            const deletedId = action.payload;
 
             // 서버 재요청 없이 현재 목록에서 바로 제거하여 화면 갱신
             state.reviews = state.reviews.filter(review => review.id !== deletedId);
             state.totalCount = Math.max(0, state.totalCount - 1);
         },
-        deleteReviewFailure:(state,action)=>{
-            state.loading=false;
-            state.error=action.payload;
-            state.success=false;
-        },
-        //--리뷰 목록 조회--
-        getReviewListRequest:(state)=>{
-            state.loading=true;
-            state.error=null;
-        },
-        getReviewListSuccess:(state,action)=>{
-            state.loading=false;
 
-            state.reviews = action.payload.reviews || [];
-            state.totalCount = action.payload.totalCount || 0;
-            state.totalPage = action.payload.totalPage || 0;
+        deleteReviewFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.success = false;
         },
-        getReviewListFailure:(state,action)=>{
-            state.loading=false;
-            state.error=action.payload;
+
+        // --리뷰 목록 조회 (방어 코드 강화)--
+        getReviewListRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+        getReviewListSuccess: (state, action) => {
+            state.loading = false;
+            const payload = action.payload || {};
+
+            // 1) 안전하게 reviews 배열 추출
+            const rawReviews = payload.reviews || payload.content || (Array.isArray(payload) ? payload : []);
+
+            // 2) ★ [핵심] 각 리뷰 객체에 isPublic 값이 없거나 누락되었다면 기본값("Y")을 주거나 데이터 유실 방어
+            state.reviews = rawReviews.map(review => ({
+                ...review,
+                isPublic: review.isPublic !== undefined && review.isPublic !== null ? review.isPublic : "Y"
+            }));
+
+            state.totalCount = payload.totalCount !== undefined ? payload.totalCount : (payload.totalElements || 0);
+            state.totalPage = payload.totalPage !== undefined ? payload.totalPage : (payload.totalPages || 0);
+        },
+        getReviewListFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
         },
 
         // --리뷰 좋아요 토글--
         toggleReviewLikeRequest: (state) => {
-            // 좋아요는 화면 깜빡임 방지를 위해 loading 상태를 건드리지 않음
+
             state.error = null;
         },
         toggleReviewLikeSuccess: (state, action) => {
             const targetId = action.payload; // reviewId
 
             // 1) 목록(reviews) 데이터 업데이트
-            const review = state.reviews.find(r => r.id === targetId);
+
+            const review = state.reviews.find(r => r.id === targetId || r.reviewId === targetId);
+
             if (review) {
                 if (review.isLiked === undefined) review.isLiked = false;
                 
@@ -131,7 +143,9 @@ const reviewReducer=createSlice({
             }
 
             // 2) 상세화면(reviewDetail) 데이터 업데이트
-            if (state.reviewDetail && state.reviewDetail.id === targetId) {
+
+            if (state.reviewDetail && (state.reviewDetail.id === targetId || state.reviewDetail.reviewId === targetId)) {
+
                 if (state.reviewDetail.isLiked === undefined) state.reviewDetail.isLiked = false;
                 
                 state.reviewDetail.likesCount = state.reviewDetail.isLiked 
@@ -143,72 +157,64 @@ const reviewReducer=createSlice({
         toggleReviewLikeFailure: (state, action) => {
             state.error = action.payload;
         },
-        //--ai 리뷰 분석--
-        analyzeReviewsRequest:(state)=>{
-            state.loading=true;
-            state.error=null;
+
+        // --AI 리뷰 분석--
+        analyzeReviewsRequest: (state) => {
+            state.loading = true;
+            state.error = null;
             state.analysisResult = "";
         },
-        analyzeReviewsSuccess:(state,action)=>{
-            state.loading=false;
-            state.analysisResult=action.payload;
+        analyzeReviewsSuccess: (state, action) => {
+            state.loading = false;
+            state.analysisResult = action.payload;
         },
-        analyzeReviewsFailure:(state,action)=>{
-            state.loading=false;
-            state.error=action.payload;
+        analyzeReviewsFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
         },
-        //--관리자 리뷰 공개 여부 변경--
-        changeVisibilitySuccess:(state,action)=>{
-            const targetId=action.payload;
 
-            const review = state.reviews.find(r => r.id === targetId);
+        // --관리자 리뷰 공개 여부 변경--
+        changeVisibilitySuccess: (state, action) => {
+            const targetId = action.payload;
+
+            const review = state.reviews.find(r => r.id === targetId || r.reviewId === targetId);
             if (review) {
-                // "Y" <-> "N" 토글
                 review.isPublic = review.isPublic === "Y" ? "N" : "Y";
             }
 
-            if (state.reviewDetail && state.reviewDetail.id === targetId) {
+            if (state.reviewDetail && (state.reviewDetail.id === targetId || state.reviewDetail.reviewId === targetId)) {
                 state.reviewDetail.isPublic = state.reviewDetail.isPublic === "Y" ? "N" : "Y";
             }
         },
-
     },
 });
 
-// 3. Action 내보내기
+// Action 내보내기
 export const {
     resetReviewState,
-    
     createReviewRequest,
     createReviewSuccess,
     createReviewFailure,
-
     getReviewDetailRequest,
     getReviewDetailSuccess,
     getReviewDetailFailure,
-
     updateReviewRequest,
     updateReviewSuccess,
     updateReviewFailure,
-
     deleteReviewRequest,
     deleteReviewSuccess,
     deleteReviewFailure,
-
     getReviewListRequest,
     getReviewListSuccess,
     getReviewListFailure,
-
     toggleReviewLikeRequest,
     toggleReviewLikeSuccess,
     toggleReviewLikeFailure,
-
     analyzeReviewsRequest,
     analyzeReviewsSuccess,
     analyzeReviewsFailure,
-
     changeVisibilitySuccess,
 } = reviewReducer.actions;
 
-// 4. Export Default
+// Export Default
 export default reviewReducer.reducer;

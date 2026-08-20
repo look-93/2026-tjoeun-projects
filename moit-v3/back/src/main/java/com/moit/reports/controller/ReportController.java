@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+
 import com.moit.reports.api.ApiOpenAi;
 import com.moit.reports.dto.AiReportsDto;
 import com.moit.reports.dto.MemberTrustInfoDto;
@@ -42,11 +43,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ReportController {
 
+
 	private final ReportsService reportsService;
 	private final ApiOpenAi apiOpenAi;
 //	private final ApiEmail apiEmail;
-	
-	
 	
 	// test button
 //	@RequestMapping("/user/meetup/report/button")
