@@ -27,7 +27,7 @@ public interface MeetupService {
 	public void create(MeetupRequestDto meetupRequest, Long memberId, List<MultipartFile> files);
 	
 	//수정
-	public void update(MeetupRequestDto meetupRequest, Long meetupId);
+	public void update(MeetupRequestDto meetupRequest, Long meetupId, List<MultipartFile> files, List<String> existingImagePaths);
 	
 	//삭제
 	public void delete(Long meetupId);	

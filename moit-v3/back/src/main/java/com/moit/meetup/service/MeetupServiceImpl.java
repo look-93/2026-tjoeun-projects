@@ -203,37 +203,154 @@ public class MeetupServiceImpl implements MeetupService{
 		}		
 	}
 	
-	//모임수정
+	// 모임 수정
 	@Transactional
 	@Override
-	public void update(MeetupRequestDto meetupRequestDto, Long meetupId) {
-		Meetup meetup = meetupRepository.findById(meetupId)
-										.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 게시글입니다. MEETUPID" + meetupId));
-		
-		Sigungu sigungu = meetupSigunguRepository.findById(meetupRequestDto.getSigunguId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 지역입니다. SigunguId" + meetupRequestDto.getSigunguId()));
-		MeetupCategory meetupCategory = meetupCategoryRepository.findById(meetupRequestDto.getCategoryId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 카테고리입니다. meetupCategory" + meetupRequestDto.getCategoryId()));
-		
-		
-		
-		if(meetup.getDeleteYn() == 'Y') {
-			throw new ResourceNotFoundException("삭제된 게시글 입니다. MEETUPID" + meetupId);
-		}
-		
-		// 저장메서드를 따로 호출하지 않아도 update 쿼리 반영 더티체킹(Dirty Checking)
-		meetup.setTitle(meetupRequestDto.getTitle());
-		meetup.setContent(meetupRequestDto.getContent());
-		meetup.setMaxParticipants(meetupRequestDto.getMaxParticipants());
-		meetup.setMinParticipants(meetupRequestDto.getMinParticipants());
-		meetup.setSigungu(sigungu);
-		meetup.setMeetupCategory(meetupCategory);
-		meetup.setAddress(meetupRequestDto.getAddress());
-		meetup.setAddressDetail(meetupRequestDto.getAddressDetail());
-		meetup.setMeetupAt(meetupRequestDto.getMeetupAt());
-		meetup.setMeetupStatus(meetupRequestDto.getMeetupStatus());
-		meetup.setLatitude(meetupRequestDto.getLatitude());
-		meetup.setLongitude(meetupRequestDto.getLongitude());
-		meetup.setNx(meetupRequestDto.getNx());
-		meetup.setNy(meetupRequestDto.getNy());		
+	public void update(
+	        MeetupRequestDto meetupRequestDto,
+	        Long meetupId,
+	        List<MultipartFile> files,
+	        List<String> existingImagePaths
+	) {
+
+	    Meetup meetup = meetupRepository.findById(meetupId)
+	            .orElseThrow(() ->
+	                    new ResourceNotFoundException(
+	                            "존재하지 않는 게시글입니다. MEETUPID" + meetupId
+	                    )
+	            );
+
+	    Sigungu sigungu = meetupSigunguRepository.findById(
+	            meetupRequestDto.getSigunguId()
+	    ).orElseThrow(() ->
+	            new ResourceNotFoundException(
+	                    "존재하지 않는 지역입니다. SigunguId"
+	                            + meetupRequestDto.getSigunguId()
+	            )
+	    );
+
+	    MeetupCategory meetupCategory = meetupCategoryRepository.findById(
+	            meetupRequestDto.getCategoryId()
+	    ).orElseThrow(() ->
+	            new ResourceNotFoundException(
+	                    "존재하지 않는 카테고리입니다. meetupCategory"
+	                            + meetupRequestDto.getCategoryId()
+	            )
+	    );
+
+	    if (meetup.getDeleteYn() == 'Y') {
+	        throw new ResourceNotFoundException(
+	                "삭제된 게시글 입니다. MEETUPID" + meetupId
+	        );
+	    }
+
+	    // =========================
+	    // 모임 정보 수정
+	    // =========================
+
+	    meetup.setTitle(meetupRequestDto.getTitle());
+	    meetup.setContent(meetupRequestDto.getContent());
+	    meetup.setMaxParticipants(meetupRequestDto.getMaxParticipants());
+	    meetup.setMinParticipants(meetupRequestDto.getMinParticipants());
+	    meetup.setSigungu(sigungu);
+	    meetup.setMeetupCategory(meetupCategory);
+	    meetup.setAddress(meetupRequestDto.getAddress());
+	    meetup.setAddressDetail(meetupRequestDto.getAddressDetail());
+	    meetup.setMeetupAt(meetupRequestDto.getMeetupAt());
+	    meetup.setMeetupStatus(meetupRequestDto.getMeetupStatus());
+	    meetup.setLatitude(meetupRequestDto.getLatitude());
+	    meetup.setLongitude(meetupRequestDto.getLongitude());
+	    meetup.setNx(meetupRequestDto.getNx());
+	    meetup.setNy(meetupRequestDto.getNy());
+	    
+		 // =========================
+		 // 기존 이미지 삭제
+		 // =========================
+	
+		 List<String> keepImagePaths =
+		         existingImagePaths != null
+		                 ? existingImagePaths
+		                 : new ArrayList<>();
+	
+		 List<MeetupImage> removeImages = meetup.getMeetupImages()
+		         .stream()
+		         .filter(meetupImage ->
+		                 !keepImagePaths.contains(
+		                         meetupImage.getImage().getImagePath()
+		                 )
+		         )
+		         .toList();
+	
+		 List<Image> imagesToDelete = new ArrayList<>();
+	
+		 for (MeetupImage meetupImage : removeImages) {
+	
+		     Image image = meetupImage.getImage();
+	
+		     System.out.println(
+		             "🔥 삭제할 이미지 = " + image.getImagePath()
+		     );
+	
+		     // 1. 실제 파일 삭제
+		     utilUpload.fileDelete(
+		             image.getImagePath(),
+		             "meetup"
+		     );
+	
+		     imagesToDelete.add(image);
+	
+		     // 2. 연관관계 제거
+		     meetup.getMeetupImages().remove(meetupImage);
+	
+		     // 3. MEETUP_IMAGES 삭제
+		     meetupImageRepository.delete(meetupImage);
+		 }
+	
+		 // MEETUP_IMAGES 먼저 DB 반영
+		 meetupImageRepository.flush();
+	
+		 // IMAGES 삭제
+		 for (Image image : imagesToDelete) {
+		     imageRepository.delete(image);
+		 }
+
+
+	    // =========================
+	    // 새 이미지 추가
+	    // =========================
+
+	    if (files != null && !files.isEmpty()) {
+
+	        try {
+
+	            for (MultipartFile file : files) {
+
+	                String savedFileName =
+	                        utilUpload.fileUpload(file, "meetup");
+
+	                Image image = Image.builder()
+	                        .imagePath(savedFileName)
+	                        .build();
+
+	                imageRepository.save(image);
+
+	                MeetupImage meetupImage =
+	                        MeetupImage.builder()
+	                                .meetup(meetup)
+	                                .image(image)
+	                                .build();
+
+	                meetupImageRepository.save(meetupImage);
+	            }
+
+	        } catch (IOException e) {
+
+	            throw new RuntimeException(
+	                    "이미지 업로드 중 오류가 발생했습니다.",
+	                    e
+	            );
+	        }
+	    }
 	}
 	
 	//모임삭제
