@@ -11,11 +11,13 @@ import com.moit.member.entity.Member;
 public interface MemberRepository extends JpaRepository<Member, Long>{
 	
 	// 로그인 아이디로 조회
-	Optional<Member> findByLoginId(String loginId);
+	Optional<Member> findByLoginIdAndDeleteYn(String loginId, Character deleteYn);
 	
 	Optional<Member> findByEmail(String email);
 	
 	Optional<Member> findByNickname(String nickname);
+	
+	Optional<Member> findByEmailAndDeleteYn(String email, Character deleteYn);
 	
 	// 소셜 조회용
 	Optional<Member> findByProviderAndProviderId(String provider, String providerId);

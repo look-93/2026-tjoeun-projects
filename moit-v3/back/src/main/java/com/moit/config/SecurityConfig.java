@@ -104,7 +104,9 @@ public class SecurityConfig {
                 "/api/members/email/send",
                 "/api/members/email/verify",
                 "/api/members/check-password",
-                "/api/members/social-info"
+                "/api/members/social-info",
+                "/api/members/find-id",
+                "/api/members/reset-password"
             ).permitAll()
 
             // -------------------------------------------------
