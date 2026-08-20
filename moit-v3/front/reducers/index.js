@@ -5,14 +5,16 @@ import reportReducer from "./reportReducer";
 import advertiseReducer from "./advertiseReducer";
 import qnaReducer from "./qnaReducer";
 import commonReducer from "./commonReducer";
+import reviewReducer from "./reviewReducer";
 
 const rootReducer = combineReducers({
     user: userReducer, //state.user
     meetup: meetupReducer,
     report: reportReducer,
     advertise: advertiseReducer,
-    qna: qnaReducer, //state.qna
+    qna:  qnaReducer,  //state.qna
+    review:reviewReducer,
     common: commonReducer,
-});
+})
 
 export default rootReducer;
