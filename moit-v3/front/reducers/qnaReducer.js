@@ -1,19 +1,27 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 //1. 초기화 상태 (공용)
-const initialState = {
-    qnaList: [],             // QnA 목록
-    qna: null,               // QnA 상세
-    meetupQnaList: [],       // 특정 모임 QnA 목록
+const initialState = { 
+    qnaList: [],             // QnA 목록 
+    qna: null,               // QnA 상세 
+    meetupQnaList: [],       // 특정 모임 QnA 목록 
+ 
+    adminQnaList: [],        // 관리자 QnA 목록 
+    adminQnaTotal: 0,        // 관리자 QnA 전체 개수 
+    adminQnaPage: 1,         // 관리자 QnA 현재 페이지 
+    adminQnaSize: 10,        // 관리자 QnA 페이지 크기 
+    adminQnaTotalPage: 0,    // 관리자 QnA 전체 페이지 수
+    adminQnaStartPage: 1,    // 관리자 QnA 페이지 시작
+    adminQnaEndPage: 1,      // 관리자 QnA 페이지 끝
 
-    adminQnaList: [],        // 관리자 QnA 목록
-    adminQnaTotal: 0,        // 관리자 QnA 전체 개수
-    adminQnaPage: 1,         // 관리자 QnA 현재 페이지
-    adminQnaSize: 10,        // 관리자 QnA 페이지 크기
-
-    loading: false,          // 로딩상태
-    error: null,             // 에러메시지
-    success: false,          // 성공여부
+    adminQnaAllCnt: 0,       // 전체 문의 수
+    adminQnaPendingCnt: 0,   // 답변 대기 문의 수
+    adminQnaAnsweredCnt: 0,  // 답변 완료 문의 수
+    adminQnaTodayCnt: 0,     // 오늘 등록된 문의 수
+ 
+    loading: false,          // 로딩상태 
+    error: null,             // 에러메시지 
+    success: false,          // 성공여부 
 };
 
 //2. 상태변화
@@ -120,11 +128,18 @@ const qnaReducer = createSlice({
             state.error = null;
         },
         qnaAdminListSuccess: (state, action) => {
-            state.loading = false;
-            state.adminQnaList = action.payload.list;
-            state.adminQnaTotal = action.payload.totalCnt;
-            state.adminQnaPage = action.payload.page;
-            state.adminQnaSize = action.payload.pageSize;
+            state.loading = false; 
+            state.adminQnaList = action.payload.list; 
+            state.adminQnaTotal = action.payload.totalCnt; 
+            state.adminQnaPage = action.payload.page; 
+            state.adminQnaSize = action.payload.pageSize; 
+            state.adminQnaTotalPage = action.payload.totalPage;
+            state.adminQnaStartPage = action.payload.startPage;
+            state.adminQnaEndPage = action.payload.endPage;
+            state.adminQnaAllCnt = action.payload.allCnt;
+            state.adminQnaPendingCnt = action.payload.pendingCnt;
+            state.adminQnaAnsweredCnt = action.payload.answeredCnt;
+            state.adminQnaTodayCnt = action.payload.todayCnt;
         },
         qnaAdminListFailure: (state, action) => {
             state.loading = false;
