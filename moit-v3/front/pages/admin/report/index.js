@@ -1,7 +1,10 @@
+// pages/admin/report/index.js
+// 관리자 신고 목록 페이지
+
 import { Row, Col, Button, Input, Select, Table } from 'antd';
-import AdminStatCard from '../../components/AdminStatCard';
-import AdminSearchBox from '../../components/AdminSearchBox';
-import AdminListTabs from '../../components/AdminListTabs';
+import AdminStatCard from '../../../components/AdminStatCard';
+import AdminSearchBox from '../../../components/AdminSearchBox';
+import AdminListTabs from '../../../components/AdminListTabs';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
