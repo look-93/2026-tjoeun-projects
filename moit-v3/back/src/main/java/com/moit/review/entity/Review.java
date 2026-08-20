@@ -18,6 +18,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist; // 1. 임포트 추가
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,8 +33,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor  
 @AllArgsConstructor 
-public class Review  extends BaseEntity{
-	
+public class Review extends BaseEntity{
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -41,18 +41,17 @@ public class Review  extends BaseEntity{
 	private Long id;
 	
 	//모임번호
-	@ManyToOne(fetch = FetchType.LAZY) //lazy 필요할 때 가져옴
+	@ManyToOne(fetch = FetchType.LAZY) 
 	@JoinColumn(name="MEETUP_ID" ,nullable=false)
 	private Meetup meetup;
 	
 	//작성자 번호
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="MEMBER_ID" ,nullable=false)
-	private  Member member;
+	private Member member;
 	
 	@OneToMany(mappedBy="review",cascade=CascadeType.ALL,orphanRemoval=true)
 	private List<ReviewImage> reviewImages=new ArrayList<>();
-	
 	
 	//후기 내용
 	@Lob
@@ -65,15 +64,27 @@ public class Review  extends BaseEntity{
 	
 	//좋아요수
 	@Column
-    private Integer likesCount=0;
+    private Integer likesCount = 0;
 	
 	//조회수
 	@Column
-	private Integer viewsCount=0;
+	private Integer viewsCount = 0;
 	
 	//공개여부
 	@Column(length=1)
-	private String isPublic="Y";
-	
-	
+	private String isPublic = "Y";
+
+	// 2. DB에 저장되기 직전 실행되는 메서드 추가
+	@PrePersist
+	public void prePersist() {
+		if (this.likesCount == null) {
+			this.likesCount = 0;
+		}
+		if (this.viewsCount == null) {
+			this.viewsCount = 0;
+		}
+		if (this.isPublic == null) {
+			this.isPublic = "Y";
+		}
+	}
 }
