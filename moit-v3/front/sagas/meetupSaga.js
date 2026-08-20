@@ -182,17 +182,51 @@ export function* createMeetup(action) {
 // 모임 수정
 // PUT /api/meetups/{meetupId}
 // ==================================================
+export function updateMeetupAPI({ meetupId, data, files, existingImagePaths }) {
+    const formData = new FormData();
 
-export const updateMeetupAPI = ({ meetupId, data }) =>
-    api.put(`${MEETUP_API_BASE}/${meetupId}`, data);
+    // 모임 정보
+    Object.entries(data || {}).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+            formData.append(key, value);
+        }
+    });
+
+    // 기존에 유지할 이미지
+    existingImagePaths?.forEach((imagePath) => {
+        formData.append("existingImagePaths", imagePath);
+    });
+
+    // 새로 추가한 이미지
+    files?.forEach((file) => {
+        formData.append("files", file);
+    });
+
+    // 확인용
+    for (const [key, value] of formData.entries()) {
+        console.log(
+            "🔥 Update FormData:",
+            key,
+            value instanceof File ? value.name : value,
+        );
+    }
+
+    return api.put(`${MEETUP_API_BASE}/${meetupId}`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+}
 
 export function* updateMeetup(action) {
     try {
-        const { meetupId, data, page, size } = action.payload;
+        const { meetupId, data, files, existingImagePaths } = action.payload;
 
         yield call(updateMeetupAPI, {
             meetupId,
             data,
+            files,
+            existingImagePaths,
         });
 
         yield put(updateMeetupSuccess());
