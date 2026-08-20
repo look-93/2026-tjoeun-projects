@@ -12,6 +12,9 @@ import { useRouter } from 'next/router';
 import { getReviewListRequest, toggleReviewLikeRequest } from '../../../reducers/reviewReducer';
 import { useDispatch, useSelector } from 'react-redux';
 
+import { fetchMeetupDetailRequest } from "../../../reducers/meetupReducer";
+import { fetchWeatherRequest } from "../../../reducers/commonReducer";
+
 import { Row, Col, Card, Button, Typography, Tag } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -24,6 +27,13 @@ function MeetupDetailPage() {
   const [activeTab, setActiveTab] = useState('detail');
   const router = useRouter();
   const dispatch = useDispatch();
+
+  // meetup
+  const { meetup } = useSelector((state) => state.meetup);
+  const { weather } = useSelector((state) => state.common);
+  const { user } = useSelector((state) => state.user);
+  const { meetupId } = router.query;
+  const isOwner = 1 === meetup?.memberId; //user?.id === meetup?.memberId;
 
   // Redux Store에서 reviews 가져오기
   const { reviews: reduxReviews } = useSelector((state) => {
@@ -89,25 +99,22 @@ function MeetupDetailPage() {
   };
 
   // 모임 데이터
-  const meetup = {
-    //meetupId: currentMeetupId,
-    meetupId: 25, // 테스트용 추가함
-    title: '주말 한강 러닝 같이 하실 분!',
-    status: '모집중',
-    participants: 8,
-    maxParticipants: 10,
-    location: '서울',
-    author: '보라',
-    content:
-      '주말마다 한강에서 같이 러닝하실 분들을 모집합니다. 초보자도 편하게 참여하실 수 있습니다.',
-  };
+  useEffect(() => {
+      if (!router.isReady || !meetupId) {
+          return;
+      }
+
+      dispatch(fetchMeetupDetailRequest(meetupId));
+  }, [router.isReady, meetupId, dispatch]);
 
   // 이미지
-  const images = [
-    '/images/meetup1.jpg',
-    '/images/meetup2.jpg',
-    '/images/meetup3.jpg',
-  ];
+  const images =
+    meetup?.imagePaths?.length > 0
+        ? meetup.imagePaths.map(
+              (imagePath) =>
+                  `http://localhost:8080/upload/meetup/${imagePath}`,
+          )
+        : ["http://localhost:8080/upload/no-image.png"];
 
   // 추천 모임
   const recommendedMeetups = [
@@ -164,11 +171,27 @@ function MeetupDetailPage() {
   ];
 
   // 날씨
-  const weather = {
-    tmp: 24,
-    pop: 10,
-    sky: '맑음',
-  };
+  useEffect(() => {
+      if (!meetup || !meetup.meetupAt) {
+          return;
+      }
+      const meetupDate = meetup.meetupAt.substring(0, 10).replaceAll("-", "");
+
+      const meetupTime = Number(meetup.meetupAt.substring(11, 13));
+      dispatch(
+          fetchWeatherRequest({
+              meetupDate: meetupDate,
+              meetupTime: meetupTime,
+              nx: meetup.nx,
+              ny: meetup.ny,
+          }),
+      );
+  }, [meetup, dispatch]);
+
+  //로딩처리
+  if (!meetup) {
+    return <div>모임 정보를 불러오는 중입니다...</div>;
+  }
 
   // 광고
   const ad = {
@@ -197,9 +220,9 @@ function MeetupDetailPage() {
         <Col xs={24} lg={16}>
           {/* 날씨 */}
           <MeetupWeather
-            temperature={weather.tmp}
-            precipitation={weather.pop}
-            sky={weather.sky}
+            temperature={weather?.tmp}
+            precipitation={weather?.pop}
+            sky={weather?.sky}
           />
 
           {/* 이미지 */}
@@ -209,7 +232,14 @@ function MeetupDetailPage() {
           <Card className="meetup-title-card">
             <Row justify="space-between" align="middle">
               <Col>
-                <Tag color="green">{meetup.status}</Tag>
+                  {meetup?.meetupStatus === "RECRUITING" ? (
+                      <Tag color="green">모집중</Tag>
+                  ) : meetup?.meetupStatus ===
+                    "WEATHER_CANCELED" ? (
+                      <Tag color="red">기상학화로인한취소</Tag>
+                  ) : (
+                      <Tag color="red">종료</Tag>
+                  )}
               </Col>
 
               <Col>
@@ -248,10 +278,19 @@ function MeetupDetailPage() {
 
         {/* RIGHT SIDEBAR */}
         <Col xs={24} lg={8}>
-          <MeetupRecruitInfo meetup={meetup} />
+          {/* 모집 정보 */}
+          <MeetupRecruitInfo meetup={meetup} isOwner={isOwner}/>
+          {/* 작성자 */}
           <MeetupAuthor meetup={meetup} />
+          {/* 추천 모임 */}
           <RecommendedMeetups recommendedMeetups={recommendedMeetups} />
-          <MeetupMap />
+          {/* 지도 */}
+          <MeetupMap
+              latitude={meetup.latitude}
+              longitude={meetup.longitude}
+              address={meetup.address}
+          />
+          {/* 광고 */}
           <MeetupAd ad={ad} />
         </Col>
       </Row>
