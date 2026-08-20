@@ -54,7 +54,12 @@ export function* createReview(action) {
         yield call(createReviewApi, action.payload);
         yield put(createReviewSuccess());
     } catch (err) {
-        yield put(createReviewFailure(err.response?.data?.message || err.message));
+        // ★ 백엔드가 보낸 응답이 문자열 형태일 경우 처리하도록 수정
+        const errorMsg = typeof err.response?.data === 'string'
+            ? err.response.data
+            : err.response?.data?.message || err.message;
+
+        yield put(createReviewFailure(errorMsg));
     }
 }
 
@@ -63,7 +68,11 @@ export function* fetchReviewDetail(action) {
         const result = yield call(fetchReviewDetailApi, action.payload);
         yield put(getReviewDetailSuccess(result.data));
     } catch (err) {
-        yield put(getReviewDetailFailure(err.response?.data?.message || err.message));
+        const errorMsg = typeof err.response?.data === 'string'
+            ? err.response.data
+            : err.response?.data?.message || err.message;
+
+        yield put(getReviewDetailFailure(errorMsg));
     }
 }
 
@@ -87,7 +96,12 @@ export function* updateReview(action) {
         yield call(updateReviewApi, { reviewId, requestDto });
         yield put(updateReviewSuccess(action.payload));
     } catch (err) {
-        yield put(updateReviewFailure(err.response?.data?.message || err.message));
+        // ★ 백엔드가 보낸 응답이 문자열 형태일 경우 처리하도록 수정
+        const errorMsg = typeof err.response?.data === 'string'
+            ? err.response.data
+            : err.response?.data?.message || err.message;
+
+        yield put(updateReviewFailure(errorMsg));
     }
 }
 
@@ -96,7 +110,11 @@ export function* deleteReview(action) {
         yield call(deleteReviewApi, action.payload);
         yield put(deleteReviewSuccess(action.payload));
     } catch (err) {
-        yield put(deleteReviewFailure(err.response?.data?.message || err.message));
+        const errorMsg = typeof err.response?.data === 'string'
+            ? err.response.data
+            : err.response?.data?.message || err.message;
+
+        yield put(deleteReviewFailure(errorMsg));
     }
 }
 
@@ -120,7 +138,11 @@ export function* fetchReviewList(action) {
             totalPage: result.data.totalPages || 0,
         }));
     } catch (err) {
-        yield put(getReviewListFailure(err.response?.data?.message || err.message));
+        const errorMsg = typeof err.response?.data === 'string'
+            ? err.response.data
+            : err.response?.data?.message || err.message;
+
+        yield put(getReviewListFailure(errorMsg));
     }
 }
 
@@ -139,7 +161,10 @@ export function* toggleReviewLike(action) {
         yield call(toggleReviewLikeApi, reviewId);
         yield put(toggleReviewLikeSuccess(reviewId));
     } catch (err) {
-        const errorMsg = err.response?.data?.message || err.message;
+        const errorMsg = typeof err.response?.data === 'string'
+            ? err.response.data
+            : err.response?.data?.message || err.message;
+            
         console.warn("⚠️ [좋아요 제한]:", errorMsg);
         yield put(toggleReviewLikeFailure(errorMsg));
     }
@@ -150,7 +175,11 @@ export function* analyzeReviews(action) {
         const result = yield call(analyzeReviewsApi, action.payload);
         yield put(analyzeReviewsSuccess(result.data));
     } catch (err) {
-        yield put(analyzeReviewsFailure(err.response?.data?.message || err.message));
+        const errorMsg = typeof err.response?.data === 'string'
+            ? err.response.data
+            : err.response?.data?.message || err.message;
+
+        yield put(analyzeReviewsFailure(errorMsg));
     }
 }
 
@@ -159,7 +188,11 @@ export function* fetchAdminReviewList(action) {
         const result = yield call(fetchAdminReviewListApi, action.payload);
         yield put(getReviewListSuccess(result.data));
     } catch (err) {
-        yield put(getReviewListFailure(err.response?.data?.message || err.message));
+        const errorMsg = typeof err.response?.data === 'string'
+            ? err.response.data
+            : err.response?.data?.message || err.message;
+
+        yield put(getReviewListFailure(errorMsg));
     }
 }
 
@@ -168,7 +201,11 @@ export function* adminDeleteReview(action) {
         yield call(adminDeleteReviewApi, action.payload);
         yield put(deleteReviewSuccess(action.payload));
     } catch (err) {
-        yield put(deleteReviewFailure(err.response?.data?.message || err.message));
+        const errorMsg = typeof err.response?.data === 'string'
+            ? err.response.data
+            : err.response?.data?.message || err.message;
+
+        yield put(deleteReviewFailure(errorMsg));
     }
 }
 
@@ -180,7 +217,7 @@ function* watchCreateReview() { yield takeLatest(createReviewRequest, createRevi
 function* watchFetchReviewDetail() { yield takeLatest(getReviewDetailRequest, fetchReviewDetail); }
 function* watchUpdateReview() { yield takeLatest(updateReviewRequest, updateReview); }
 function* watchDeleteReview() { yield takeLatest(deleteReviewRequest, deleteReview); }
-function* watchFetchReviewList() { yield takeLatest(getReviewListRequest, fetchReviewList); } // ★ 통합된 fetchReviewList 연결
+function* watchFetchReviewList() { yield takeLatest(getReviewListRequest, fetchReviewList); }
 function* watchAnalyzeReviews() { yield takeLatest(analyzeReviewsRequest, analyzeReviews); }
 function* watchToggleReviewLike() { yield takeLatest(toggleReviewLikeRequest, toggleReviewLike); }
 

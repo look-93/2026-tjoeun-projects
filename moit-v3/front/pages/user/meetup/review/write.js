@@ -44,6 +44,9 @@ function ReviewWritePage() {
   const queryReviewId = router.isReady ? router.query.reviewId : null;
   const queryMeetupId = router.isReady ? (router.query.meetupId || router.query.id || router.query.meetup_id) : null;
   
+  // 마이페이지에서 왔는지 여부 파악
+  const fromMypage = router.isReady ? router.query.from === 'mypage' : false;
+  
   // 수정 모드 여부 판단
   const isEditMode = Boolean(queryReviewId);
 
@@ -81,18 +84,32 @@ function ReviewWritePage() {
       alert(isEditMode ? '리뷰가 성공적으로 수정되었습니다.' : '리뷰가 성공적으로 등록되었습니다.');
       dispatch(resetReviewState());
 
-      if (queryMeetupId) {
+      // ★ 마이페이지 리뷰 목록 페이지로 정확히 이동
+      if (fromMypage) {
+        router.push('/user/mypage/review');
+      } else if (queryMeetupId) {
         router.push(`/user/meetup/detail?meetupId=${queryMeetupId}&tab=review`);
       } else {
         router.back();
       }
     }
 
-    if (error) {
-      alert(`리뷰 ${isEditMode ? '수정' : '등록'} 실패: ${error}`);
+   if (error) {
+      console.log('🚨 최종 수신된 에러 값:', error);
+
+      // error가 문자열이든 객체든 간에 문자열로 변환하여 체크합니다.
+      const errorStr = typeof error === 'object' ? JSON.stringify(error) : String(error);
+
+      // 400 에러이거나 Request failed가 포함되어 있다면 백엔드 욕설 필터링 차단으로 간주!
+      if (errorStr.includes('400') || errorStr.includes('Request failed') || errorStr.includes('부적절') || errorStr.includes('비속어')) {
+        alert('부적절한 표현(욕설, 비방 등)이 포함되어 있어 리뷰를 등록할 수 없습니다.');
+      } else {
+        alert(`리뷰 ${isEditMode ? '수정' : '등록'} 실패: ${errorStr}`);
+      }
+      
       dispatch(resetReviewState());
     }
-  }, [success, error, dispatch, router, queryMeetupId, isEditMode]);
+  }, [success, error, dispatch, router, queryMeetupId, isEditMode, fromMypage]);
 
   const handleImageChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);

@@ -1,24 +1,54 @@
 import React, { useEffect } from 'react';
-import { Card, Button, Typography, Space, Rate, Avatar, Image } from 'antd';
+import { Card, Button, Typography, Space, Rate, Avatar, Image, Divider } from 'antd';
 import {
   UserOutlined,
   ArrowLeftOutlined,
   EditOutlined,
   DeleteOutlined,
-  HeartOutlined,
-  HeartFilled,
+  LikeOutlined,
+  EyeOutlined,
+  PictureOutlined,
 } from '@ant-design/icons';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
 
-// ★ 리듀서 파일에서 exported 액션 생성자들을 직접 가져옵니다.
+// 리듀서 파일 위치에 맞춰 경로 확인
 import {
   getReviewDetailRequest,
   deleteReviewRequest,
-  toggleReviewLikeRequest,
-} from '../../../../reducers/reviewReducer'; // 프로젝트 파일 위치에 맞춰 경로 확인
+} from '../../../../reducers/reviewReducer';
 
 const { Text, Paragraph } = Typography;
+
+const BACKEND_URL = 'http://localhost:8080'; // 본인 백엔드 주소
+
+// 목록 페이지와 동일한 이미지 URL 처리 유틸 함수
+const getImageUrl = (imgItem) => {
+  if (imgItem === null || imgItem === undefined) return null;
+
+  if (typeof imgItem === 'number') {
+    return `${BACKEND_URL}/api/images/${imgItem}`;
+  }
+
+  if (typeof imgItem === 'string') {
+    if (imgItem.startsWith('http')) return imgItem;
+    if (!isNaN(imgItem)) return `${BACKEND_URL}/api/images/${imgItem}`;
+    return `${BACKEND_URL}${imgItem.startsWith('/') ? '' : '/'}${imgItem}`;
+  }
+
+  const url = imgItem.imageUrl || imgItem.url || imgItem.path;
+  if (url) {
+    if (url.startsWith('http')) return url;
+    return `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+  }
+
+  const id = imgItem.imageId || imgItem.id || imgItem.reviewImageId;
+  if (id) {
+    return `${BACKEND_URL}/api/images/${id}`;
+  }
+
+  return null;
+};
 
 function DetailReviewPage() {
   const router = useRouter();
@@ -27,26 +57,20 @@ function DetailReviewPage() {
   // URL Query에서 reviewId와 meetupId 추출
   const { reviewId, meetupId } = router.query;
 
-  // ★ 리듀서의 initialState 구조에 맞춰 상태 추출
-  // initialState = { reviewDetail, loading, error, success ... }
   const { reviewDetail, loading } = useSelector((state) => state.review || {});
 
-  // 1. 리뷰 상세 데이터 요청 (리듀서: getReviewDetailRequest)
+  // 1. 리뷰 상세 데이터 요청
   useEffect(() => {
     if (!router.isReady || !reviewId) return;
-
-    // 리듀서의 getReviewDetailRequest 액션 디스패치
     dispatch(getReviewDetailRequest(Number(reviewId)));
   }, [dispatch, router.isReady, reviewId]);
 
-  // 2. 리뷰 삭제 핸들러 (리듀서: deleteReviewRequest)
+  // 2. 리뷰 삭제 핸들러
   const handleDelete = () => {
     if (confirm('정말 후기를 삭제하시겠습니까?')) {
-      //  삭제 핸들러 내 액션 호출
       dispatch(deleteReviewRequest(Number(reviewId)));
       alert('삭제되었습니다.');
 
-      // 삭제 후 목록이나 이전 화면으로 이동
       if (meetupId) {
         router.push(`/user/meetup/detail?meetupId=${meetupId}&tab=review`);
       } else {
@@ -55,17 +79,15 @@ function DetailReviewPage() {
     }
   };
 
-  // 3. 좋아요 토글 핸들러 (리듀서: toggleReviewLikeRequest)
-  const handleLike = () => {
-    if (!reviewId) return;
-
-    // 리듀서의 toggleReviewLikeRequest 액션 실행
-    // 리듀서 내부 toggleReviewLikeSuccess가 action.payload로 reviewId를 받아 가공함
-    dispatch(toggleReviewLikeRequest(Number(reviewId)));
-  };
-
   // 백엔드 이미지 배열 처리
-  const images = reviewDetail?.images || [];
+  const images = 
+    reviewDetail?.images || 
+    reviewDetail?.reviewImages || 
+    reviewDetail?.imageUrls || 
+    reviewDetail?.reviewImageList || 
+    [];
+
+  console.log("🔍 현재 백엔드에서 받아온 reviewDetail 전체 데이터:", reviewDetail);
 
   return (
     <div style={{ padding: '16px', maxWidth: '680px', margin: '0 auto' }}>
@@ -79,11 +101,8 @@ function DetailReviewPage() {
         >
           목록으로
         </Button>
-
-        
       </div>
 
-      {/* 리듀서의 loading 상태 연결 */}
       <Card loading={loading} bodyStyle={{ padding: '20px' }}>
         {/* 작성자 정보 및 수정/삭제 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -95,7 +114,7 @@ function DetailReviewPage() {
             />
             <div>
               <Text strong style={{ fontSize: '15px', display: 'block' }}>
-                {reviewDetail?.nickname || reviewDetail?.userName || '작성자'}
+                {reviewDetail?.memberNickname || reviewDetail?.nickname || reviewDetail?.userName || '작성자'}
               </Text>
               <Text type="secondary" style={{ fontSize: '12px' }}>
                 {reviewDetail?.createdAt
@@ -130,7 +149,7 @@ function DetailReviewPage() {
           </Space>
         </div>
 
-        {/* 평점 */}
+        {/* 평점, 조회수, 좋아요 개수 영역 */}
         <div
           style={{
             margin: '16px 0 12px',
@@ -138,18 +157,37 @@ function DetailReviewPage() {
             backgroundColor: '#fafafa',
             borderRadius: '8px',
             display: 'flex',
+            justifyContent: 'space-between',
             alignItems: 'center',
-            gap: '8px',
           }}
         >
-          <Rate
-            disabled
-            value={reviewDetail?.rating || 0}
-            style={{ fontSize: 16 }}
-          />
-          <Text strong style={{ fontSize: 14 }}>
-            {reviewDetail?.rating ? `${reviewDetail.rating}.0` : '0.0'}
-          </Text>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Rate
+              disabled
+              value={reviewDetail?.rating || 0}
+              style={{ fontSize: 16 }}
+            />
+            <Text strong style={{ fontSize: 14 }}>
+              {reviewDetail?.rating ? `${reviewDetail.rating}.0` : '0.0'}
+            </Text>
+          </div>
+
+          {/* 조회수 및 좋아요 개수 */}
+          <Space size={12}>
+            <Space size={4}>
+              <EyeOutlined style={{ color: '#8c8c8c' }} />
+              <Text type="secondary" style={{ fontSize: '13px' }}>
+                조회 {reviewDetail?.viewsCount ?? reviewDetail?.viewCount ?? reviewDetail?.views ?? 0}
+              </Text>
+            </Space>
+
+            <Space size={4}>
+              <LikeOutlined style={{ color: '#ff4d4f' }} />
+              <Text type="secondary" style={{ fontSize: '13px' }}>
+                좋아요 {reviewDetail?.likesCount ?? reviewDetail?.likes ?? 0}
+              </Text>
+            </Space>
+          </Space>
         </div>
 
         {/* 리뷰 본문 */}
@@ -158,16 +196,24 @@ function DetailReviewPage() {
             fontSize: '15px',
             lineHeight: '1.6',
             color: '#262626',
-            marginBottom: 16,
+            marginBottom: 20,
             whiteSpace: 'pre-wrap',
+            minHeight: '80px',
           }}
         >
           {reviewDetail?.content || '등록된 후기 내용이 없습니다.'}
         </Paragraph>
 
-        {/* 리뷰 이미지 목록 */}
-        {images.length > 0 && (
-          <div style={{ marginBottom: 16 }}>
+        <Divider style={{ margin: '16px 0' }} />
+
+        {/* 리뷰 이미지 목록 영역 (사진이 있을 때와 없을 때 모두 표시) */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 10 }}>
+            <PictureOutlined style={{ color: '#1890ff' }} />
+            <Text strong style={{ fontSize: '14px' }}>첨부 이미지</Text>
+          </div>
+
+          {images.length > 0 ? (
             <Image.PreviewGroup>
               <div
                 style={{
@@ -179,25 +225,50 @@ function DetailReviewPage() {
                   gap: '8px',
                 }}
               >
-                {images.map((imgUrl, index) => (
-                  <Image
-                    key={index}
-                    src={typeof imgUrl === 'string' ? imgUrl : imgUrl.url || imgUrl.src}
-                    alt={`review-img-${index}`}
-                    style={{
-                      width: '100%',
-                      height: '120px',
-                      objectFit: 'cover',
-                      borderRadius: '6px',
-                    }}
-                  />
-                ))}
+                {images.map((imgItem, index) => {
+                  const imgSrc = getImageUrl(imgItem);
+                  if (!imgSrc) return null;
+
+                  return (
+                    <div
+                      key={imgItem?.reviewImageId || imgItem?.imageId || imgItem?.id || index}
+                      style={{
+                        border: '1px solid #f0f0f0',
+                        borderRadius: '6px',
+                        overflow: 'hidden',
+                        backgroundColor: '#fff'
+                      }}
+                    >
+                      <Image
+                        src={imgSrc}
+                        alt={`review-img-${index}`}
+                        style={{
+                          width: '100%',
+                          height: '120px',
+                          objectFit: 'cover',
+                        }}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </Image.PreviewGroup>
-          </div>
-        )}
-
-        
+          ) : (
+            <div
+              style={{
+                padding: '20px',
+                backgroundColor: '#fafafa',
+                borderRadius: '6px',
+                textAlign: 'center',
+                color: '#bfbfbf',
+                fontSize: '13px',
+                border: '1px dashed #d9d9d9',
+              }}
+            >
+              첨부된 이미지가 없습니다.
+            </div>
+          )}
+        </div>
       </Card>
     </div>
   );
