@@ -1,15 +1,20 @@
-// pages/user/meetup/report/[reportId].js   동적라우팅 사용
-// 사용자 신고 상세 조회 페이지
-// 내가 작성한 특정 신고글의 상세 내용을 조회
+// pages/admin/report/[reportId].js
+// 관리자 신고 상세 페이지
+// 신고 상세 조회 + 승인/반려 + 삭제
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
-import { fetchReportsDetailRequest, deleteReportRequest, deleteReportSuccess } from '../../../../reducers/reportReducer';
+import {
+    fetchReportsDetailRequest,
+    deleteReportRequest,
+    deleteReportSuccess,
+    resetReportState
+} from '../../../../reducers/reportReducer';
 import {
     Card, Radio, Input, Button, Typography, Space, Divider, message,
     Descriptions, Tag, Modal, Spin
- } from 'antd';
+} from 'antd';
 
 const { Title } = Typography;
 
