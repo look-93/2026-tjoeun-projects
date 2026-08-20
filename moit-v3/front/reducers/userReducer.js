@@ -37,6 +37,42 @@ const initialState = {
         count: 0,
         error: null,
     },
+
+    // 아이디 찾기
+    findId: {
+        loading: false,
+        result: null,
+        error: null,
+    },
+
+    // 비밀번호 찾기
+    findPassword: {
+        loading: false,
+        success: false,
+        error: null,
+    },
+
+    // 마이페이지 비밀번호 변경
+    changePassword: {
+        loading: false,
+        success: false,
+        error: null,
+    },
+    // 회원정보 수정
+    updateMyInfo: {
+        loading: false,
+        success: false,
+        error: null,
+    },
+    // =========================
+    // 프로필 이미지 업로드
+    // =========================
+    profileImage: {
+        loading: false,
+        success: false,
+        error: null,
+    },
+    
 };
 
 //2. 상태변화
@@ -85,6 +121,25 @@ const userReducer = createSlice({
             state.user = action.payload;
         },
         getMyInfoFailure: (state,action)=>{
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // =========================
+        // 마이페이지 조회
+        // =========================
+        getMyPageRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        getMyPageSuccess: (state, action) => {
+            state.loading = false;
+            state.error = null;
+            state.user = action.payload;
+        },
+
+        getMyPageFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
         },
@@ -227,7 +282,6 @@ const userReducer = createSlice({
         checkNicknameFailure: (state,action)=>{
             state.loading = false;
             state.error = action.payload;
-            state.duplicateCheck.nickname = false;
             state.duplicateCheck.nickname = null;
         },
 
@@ -266,6 +320,151 @@ const userReducer = createSlice({
             state.membersError = action.payload;
         },
 
+        // =========================
+        // 아이디 찾기
+        // =========================
+        findIdRequest: (state) => {
+            state.findId.loading = true;
+            state.findId.result = null;
+            state.findId.error = null;
+        },
+        findIdSuccess: (state, action) => {
+            state.findId.loading = false;
+            state.findId.result = action.payload;
+            state.findId.error = null;
+        },
+        findIdFailure: (state, action) => {
+            state.findId.loading = false;
+            state.findId.result = null;
+            state.findId.error = action.payload;
+        },
+        resetFindId: (state) => {
+            state.findId = {
+                loading: false,
+                result: null,
+                error: null,
+            };
+        },
+        findIdEmailSendRequest: (state) => {
+            state.emailVerification.sending = true;
+            state.emailVerification.sent = false;
+            state.emailVerification.verified = false;
+            state.emailVerification.error = null;
+        },
+        // =========================
+        // 비밀번호 찾기
+        // =========================
+        findPasswordRequest: (state) => {
+            state.findPassword.loading = true;
+            state.findPassword.success = false;
+            state.findPassword.error = null;
+        },
+        findPasswordSuccess: (state) => {
+            state.findPassword.loading = false;
+            state.findPassword.success = true;
+            state.findPassword.error = null;
+        },
+        findPasswordFailure: (state, action) => {
+            state.findPassword.loading = false;
+            state.findPassword.success = false;
+            state.findPassword.error = action.payload;
+        },
+        resetFindPassword: (state) => {
+            state.findPassword = {
+                loading: false,
+                success: false,
+                error: null,
+            };
+        },
+        findPasswordEmailSendRequest: (state) => {
+            state.emailVerification.sending = true;
+            state.emailVerification.sent = false;
+            state.emailVerification.verified = false;
+            state.emailVerification.error = null;
+        },
+        // =========================
+        // 마이페이지 비밀번호 변경
+        // =========================
+        changePasswordRequest: (state) => {
+            state.changePassword.loading = true;
+            state.changePassword.success = false;
+            state.changePassword.error = null;
+        },
+        changePasswordSuccess: (state) => {
+            state.changePassword.loading = false;
+            state.changePassword.success = true;
+            state.changePassword.error = null;
+        },
+        changePasswordFailure: (state, action) => {
+            state.changePassword.loading = false;
+            state.changePassword.success = false;
+            state.changePassword.error = action.payload;
+        },
+        resetChangePassword: (state) => {
+            state.changePassword = {
+                loading: false,
+                success: false,
+                error: null,
+            };
+        },
+        // =========================
+        // 회원정보 수정
+        // =========================
+        updateMyInfoRequest: (state) => {
+            state.updateMyInfo.loading = true;
+            state.updateMyInfo.success = false;
+            state.updateMyInfo.error = null;
+        },
+        updateMyInfoSuccess: (state, action) => {
+            state.updateMyInfo.loading = false;
+            state.updateMyInfo.success = true;
+            state.updateMyInfo.error = null;
+
+            // 수정된 회원정보로 Redux user 갱신
+            state.user = action.payload;
+        },
+        updateMyInfoFailure: (state, action) => {
+            state.updateMyInfo.loading = false;
+            state.updateMyInfo.success = false;
+            state.updateMyInfo.error = action.payload;
+        },
+        resetUpdateMyInfo: (state) => {
+            state.updateMyInfo = {
+                loading: false,
+                success: false,
+                error: null,
+            };
+        },
+
+        // =========================
+        // 프로필 이미지 업로드
+        // =========================
+        uploadProfileImageRequest: (state) => {
+            state.profileImage.loading = true;
+            state.profileImage.success = false;
+            state.profileImage.error = null;
+        },
+        uploadProfileImageSuccess: (state, action) => {
+            state.profileImage.loading = false;
+            state.profileImage.success = true;
+            state.profileImage.error = null;
+            // 백엔드에서 수정된 회원정보 전체를 반환하는 경우
+            if (action.payload) {
+                state.user = action.payload;
+            }
+        },
+        uploadProfileImageFailure: (state, action) => {
+            state.profileImage.loading = false;
+            state.profileImage.success = false;
+            state.profileImage.error = action.payload;
+        },
+        resetProfileImage: (state) => {
+            state.profileImage = {
+                loading: false,
+                success: false,
+                error: null,
+            };
+        },
 
         // =================================================
         // 중복확인 상태 초기화
@@ -318,10 +517,10 @@ const userReducer = createSlice({
 
             // 중복확인 상태 초기화
             state.duplicateCheck = {
-                loginId: false,
-                email: false,
-                nickname: false,
-                mobile: false,
+                loginId: null,
+                email: null,
+                nickname: null,
+                mobile: null,
             };
         },
     }
@@ -341,6 +540,14 @@ export const {
     checkPasswordLeakRequest,checkPasswordLeakSuccess,checkPasswordLeakFailure,
     resetPasswordLeak,findMembersRequest,findMembersSuccess,findMembersFailure,
     getMyInfoRequest, getMyInfoSuccess, getMyInfoFailure,
+    getMyPageRequest,getMyPageSuccess,getMyPageFailure,
+    findIdRequest,findIdSuccess,findIdFailure,resetFindId,findIdEmailSendRequest,
+    findPasswordRequest,findPasswordSuccess,findPasswordFailure,resetFindPassword,
+    findPasswordEmailSendRequest, changePasswordRequest,changePasswordSuccess,
+    changePasswordFailure,resetChangePassword, updateMyInfoRequest,
+    updateMyInfoSuccess,updateMyInfoFailure, resetUpdateMyInfo,
+    uploadProfileImageRequest,uploadProfileImageSuccess,uploadProfileImageFailure,
+    resetProfileImage,
 } = userReducer.actions;
 
 //4. export

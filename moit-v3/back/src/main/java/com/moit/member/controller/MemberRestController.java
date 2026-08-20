@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,15 +15,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.member.dto.LoginRequestDto;
 import com.moit.member.dto.LoginResponseDto;
+import com.moit.member.dto.MyPageDto;
 import com.moit.member.dto.RefreshRequestDto;
 import com.moit.member.dto.RefreshResponseDto;
+import com.moit.member.dto.ResetPasswordDto;
 import com.moit.member.dto.UserDto;
 import com.moit.member.dto.UserRequestDto;
 import com.moit.member.dto.UserResponseDto;
+import com.moit.member.dto.UserUpdateRequestDto;
 import com.moit.member.service.MemberService;
+import com.moit.member.service.VerificationService;
 import com.moit.security.CustomUserDetails;
 import com.moit.security.JwtTokenProvider;
 import com.moit.security.PasswordLeakService;
@@ -34,6 +38,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
+
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/members")
@@ -45,6 +57,7 @@ public class MemberRestController {
 	private final PasswordEncoder passwordEncoder;
 	private final RefreshTokenService refreshTokenService;
 	private final PasswordLeakService passwordLeakService;
+	private final VerificationService verificationService;
 	
 	//회원가입
 	@Operation( summary = "회원가입", description = "새로운 회원을 등록합니다." )
@@ -380,23 +393,24 @@ public class MemberRestController {
     @Operation( summary = "회원정보 수정", description = "로그인한 회원정보 수정" )
     @PutMapping("/me")
     public ResponseEntity<UserResponseDto> updateMyInfo(
-    		@RequestBody UserRequestDto request,
+    		@RequestBody UserUpdateRequestDto request,
     		Authentication authentication
     		) {
-    	//1. JWT에서 로그인 회원정보 가져오기
     	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-    	
-    	Long memberId = userDetails.getAppUserId();
-    	
-    	//2. 수정할 데이터 DTO
-    	UserDto dto = request.toUserDto();
-    	
-    	dto.setMemberId(memberId);
-    	
-    	//3. 회원정보 수정
-    	UserDto result = service.updateMember(memberId,dto);
-    	
-    	return ResponseEntity.ok(UserResponseDto.from(result));
+
+        Long memberId = userDetails.getAppUserId();
+
+        UserDto dto = new UserDto();
+
+        dto.setNickname(request.getNickname());
+        dto.setMobile(request.getMobile());
+        dto.setGender(request.getGender());
+        dto.setBirth(request.getBirth());
+        dto.setInterestIds(request.getInterestIds());
+
+        UserDto result = service.updateMember(memberId, dto);
+
+        return ResponseEntity.ok(UserResponseDto.from(result));
     	
     }
     
@@ -432,7 +446,7 @@ public class MemberRestController {
         return ResponseEntity.ok(response);
     }
     
- // 현재 로그인한 회원정보 조회
+    // 현재 로그인한 회원정보 조회
     @Operation(
         summary = "내 회원정보 조회",
         description = "JWT 인증된 현재 로그인 회원의 정보를 조회합니다."
@@ -451,6 +465,182 @@ public class MemberRestController {
             return ResponseEntity .status(HttpStatus.UNAUTHORIZED) .build();
         }
         return ResponseEntity.ok( UserResponseDto.from(user) );
+    }
+    
+    // 마이페이지 조회
+    @Operation( summary = "마이페이지 조회", description = "JWT 인증된 현재 로그인 회원의 마이페이지 정보를 조회합니다." )
+    @GetMapping("/mypage")
+    public ResponseEntity<MyPageDto> getMyPage( Authentication authentication) {
+
+        // 1. JWT 인증 정보에서 회원 ID 가져오기
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        Long memberId = userDetails.getAppUserId();
+
+        // 2. 마이페이지 정보 조회
+        MyPageDto myPage = service.getMyPage(memberId);
+
+        // 3. 회원이 없는 경우
+        if (myPage == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.ok(myPage);
+    }
+    
+    // 아이디 찾기
+    @Operation( summary = "아이디 찾기", description = "이메일 인증이 완료된 회원의 아이디를 조회합니다." )
+    @PostMapping("/find-id")
+    public ResponseEntity<?> findLoginId( @RequestBody Map<String, String> request) {
+
+        String email = request.get("email");
+
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of( "message", "이메일을 입력해주세요." ));
+        }
+
+        try {
+            String loginId = service.findLoginIdByEmail(email);
+
+            return ResponseEntity.ok( Map.of( "loginId", loginId ) );
+            
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity.badRequest().body(Map.of( "message", e.getMessage() ));
+        }
+    }
+    
+    // 비밀번호 찾기
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword( @RequestBody ResetPasswordDto dto) {
+
+        try {
+            String email = dto.getEmail();
+            String password = dto.getPassword();
+
+            // 1. 이메일 인증 여부 확인
+            if (!verificationService.isEmailVerified(email)) {
+                return ResponseEntity .status(HttpStatus.FORBIDDEN) .body(Map.of( "message", "이메일 인증이 필요합니다." ));
+            }
+
+            // 2. 비밀번호 변경
+            service.resetPassword(email, password);
+
+            // 3. 인증 완료 상태 삭제
+            verificationService.removeEmailVerified(email);
+
+            return ResponseEntity.ok( Map.of( "message", "비밀번호가 변경되었습니다." ) );
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity .badRequest() .body(Map.of( "message", e.getMessage() ));
+        }
+    }
+    
+    // 비밀번호 변경(로그인한 유저)
+    @PutMapping("/me/password")
+    public ResponseEntity<?> changePassword(
+            @RequestBody Map<String, String> request,
+            Authentication authentication) {
+
+        try {
+
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+            Long memberId = userDetails.getAppUserId();
+
+            String currentPassword = request.get("currentPassword");
+            String newPassword = request.get("newPassword");
+
+            if (currentPassword == null || currentPassword.isBlank()) {
+                return ResponseEntity.badRequest() .body(Map.of( "message", "현재 비밀번호를 입력해주세요." ));
+            }
+
+            if (newPassword == null || newPassword.isBlank()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of( "message", "새 비밀번호를 입력해주세요." ));
+            }
+
+            service.changePassword( memberId, currentPassword, newPassword );
+
+            return ResponseEntity.ok( Map.of( "message", "비밀번호가 변경되었습니다." ) );
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity.badRequest() .body(Map.of( "message", e.getMessage() ));
+        }
+    }
+    
+ // 프로필 이미지 수정
+    @Operation(
+            summary = "프로필 이미지 수정",
+            description = "로그인한 회원의 프로필 이미지를 업로드하고 변경합니다."
+    )
+    @PostMapping("/me/profile-image")
+    public ResponseEntity<?> updateProfileImage(
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication) {
+
+        try {
+
+            // 1. 로그인 회원 ID
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+            Long memberId = userDetails.getAppUserId();
+
+            // 2. 파일 존재 여부 확인
+            if (file == null || file.isEmpty()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(Map.of( "message", "프로필 이미지를 선택해주세요." ));
+            }
+
+            // 3. 이미지 파일인지 확인
+            String contentType = file.getContentType();
+
+            if (contentType == null || !contentType.startsWith("image/")) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(Map.of( "message", "이미지 파일만 업로드할 수 있습니다." ));
+            }
+
+            // 4. 확장자 추출
+            String originalFilename = file.getOriginalFilename();
+
+            String extension = "";
+
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring( originalFilename.lastIndexOf(".") );
+            }
+
+            // 5. UUID로 파일명 생성
+            String savedFilename = UUID.randomUUID() + extension;
+
+            // 6. 저장 경로
+            Path uploadPath = Paths.get("uploads/profile");
+
+            Files.createDirectories(uploadPath);
+
+            // 7. 실제 파일 저장
+            Path filePath = uploadPath.resolve(savedFilename);
+
+            Files.write( filePath, file.getBytes() );
+
+            // 8. DB에 저장할 URL
+            String profileUrl = "/images/profile/" + savedFilename;
+
+            // 9. 회원정보 업데이트
+            service.updateProfileImage( memberId, profileUrl );
+
+            // 10. 응답
+            return ResponseEntity.ok(
+                    Map.of( "message", "프로필 이미지가 변경되었습니다.", "profileUrl", profileUrl ) );
+
+        } catch (IOException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of( "message", "프로필 이미지 업로드에 실패했습니다." )); }
     }
     
     

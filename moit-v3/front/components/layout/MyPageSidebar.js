@@ -33,7 +33,7 @@ function MyPageSidebar() {
       label: '내 신고내역',
     },
     {
-      key: '/user/member/mypage/member/edit',
+      key: '/user/mypage/member/edit',
       label: '회원정보 수정',
     },
     {

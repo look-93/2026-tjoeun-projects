@@ -106,6 +106,14 @@ public class VerificationService {
         return "true".equals(value);
     }
     
+    // 이메일 인증 완료 상태 삭제
+    public void removeEmailVerified(String email) {
+
+        String verifiedKey = "verification:email:verified:" + email;
+
+        redisTemplate.delete(verifiedKey);
+    }
+    
     // 휴대폰 인증 완료 여부
     public boolean isPhoneVerified(String mobile) {
 
