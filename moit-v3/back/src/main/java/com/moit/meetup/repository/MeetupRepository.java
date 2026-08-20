@@ -1,21 +1,83 @@
 package com.moit.meetup.repository;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.moit.meetup.dto.MeetupCountResponseDto;
+import com.moit.meetup.dto.MyMeetupCountResponseDto;
 import com.moit.meetup.entity.Meetup;
+import com.moit.meetup.enums.MeetupStatus;
 
 @Repository
 public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 	
 	Page<Meetup> findAll(Pageable pageable);
-	Page<Meetup> findByDeleteYn(Character deleteYn, Pageable pageable);	
+	
+	@Query("""
+		    SELECT m
+		    FROM Meetup m
+
+		    WHERE m.deleteYn = :deleteYn
+
+		      AND m.meetupStatus IN (
+		          com.moit.meetup.enums.MeetupStatus.RECRUITING,
+		          com.moit.meetup.enums.MeetupStatus.COMPLETED
+		      )
+
+		      AND (
+		          :status IS NULL
+		          OR m.meetupStatus = :status
+		      )
+
+		      AND (
+		          :searchText IS NULL
+		          OR :searchText = ''
+		          OR (
+		              :searchType = 'title'
+		              AND m.title LIKE CONCAT('%', :searchText, '%')
+		          )
+		          OR (
+		              :searchType = 'name'
+		              AND m.member.nickname LIKE CONCAT('%', :searchText, '%')
+		          )
+		      )
+
+		      AND (
+		          :sidoId IS NULL
+		          OR m.sigungu.sido.id = :sidoId
+		      )
+
+			  AND (
+			      :categoryId IS NULL
+			      OR m.meetupCategory.id = :categoryId
+			      OR m.meetupCategory.parent.id = :categoryId
+			  )
+
+		      ORDER BY
+		          CASE
+		              WHEN :orderType = 'createAt'
+		              THEN m.createdAt
+		          END DESC,
+
+		          CASE
+		              WHEN :orderType = 'meetupAt'
+		              THEN m.meetupAt
+		          END ASC
+		""")
+	Page<Meetup> findByDeleteYn(
+	        @Param("deleteYn") Character deleteYn,
+	        @Param("status") MeetupStatus status,
+	        @Param("searchType") String searchType,
+	        @Param("searchText") String searchText,
+	        @Param("sidoId") Long sidoId,
+	        @Param("categoryId") Long categoryId,
+	        @Param("orderType") String orderType,
+	        Pageable pageable
+	);
 	
 	Page<Meetup> findByMember_Id(Long memberId, Pageable  pageable);
 	
@@ -31,6 +93,28 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 			WHERE m.deleteYn = 'N'
 			""")
 	MeetupCountResponseDto getMeetupCount();
+	
+	@Query("""
+		    SELECT new com.moit.meetup.dto.MyMeetupCountResponseDto(
+		        COUNT(DISTINCT m.id),
+		        COUNT(DISTINCT ma.id),
+		        COUNT(DISTINCT r.id),
+		        COUNT(DISTINCT ml.id)
+		    )
+		    FROM Meetup m
+		    LEFT JOIN MeetupApplication ma
+		        ON ma.member.id = :memberId
+		        AND ma.meetup.id = m.id
+		    LEFT JOIN Review r
+		        ON r.member.id = :memberId
+		        AND r.meetup.id = m.id
+		    LEFT JOIN MeetupLike ml
+		        ON ml.member.id = :memberId
+		        AND ml.meetup.id = m.id
+		    WHERE m.member.id = :memberId
+		      AND m.deleteYn = 'N'
+		""")
+		MyMeetupCountResponseDto getMyMeetupCount(@Param("memberId") Long memberId);
 }
 
 

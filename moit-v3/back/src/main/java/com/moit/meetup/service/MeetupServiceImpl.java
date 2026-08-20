@@ -32,6 +32,7 @@ import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
 import com.moit.meetup.dto.MeetupLikeCountDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupParticipantCountDto;
+import com.moit.meetup.dto.MyMeetupCountResponseDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.meetup.entity.Meetup;
@@ -40,6 +41,7 @@ import com.moit.meetup.entity.MeetupCategory;
 import com.moit.meetup.entity.MeetupImage;
 import com.moit.meetup.entity.MeetupLike;
 import com.moit.meetup.enums.ApplyStatus;
+import com.moit.meetup.enums.MeetupStatus;
 import com.moit.meetup.repository.MeetupApplicationRepository;
 import com.moit.meetup.repository.MeetupCategoryRepository;
 import com.moit.meetup.repository.MeetupImageRepository;
@@ -71,8 +73,27 @@ public class MeetupServiceImpl implements MeetupService{
 		
 	//모임리스트조회
 	@Override
-	public MeetupListResponseDto search(Pageable pageable, Long memberId) {
-		Page<Meetup> page = meetupRepository.findByDeleteYn('N', pageable);
+	public MeetupListResponseDto search(
+	        Pageable pageable,
+	        Long memberId,
+	        MeetupStatus status,
+	        String searchType,
+	        String searchText,
+	        Long sidoId,
+	        Long categoryId,
+	        String orderType
+	) {
+
+	    Page<Meetup> page = meetupRepository.findByDeleteYn(
+	            'N',
+	            status,
+	            searchType,
+	            searchText,
+	            sidoId,
+	            categoryId,
+	            orderType,
+	            pageable
+	    );
 //		page.getTotalPages(); // 전체페이지수 100개라면 10개
 //		page.getNumberOfElements(); // 전체갯수 100개
 //		page.getContent(); // 0번째 페이지의 10개가 들어있음
@@ -267,50 +288,25 @@ public class MeetupServiceImpl implements MeetupService{
 		 // 기존 이미지 삭제
 		 // =========================
 	
-		 List<String> keepImagePaths =
-		         existingImagePaths != null
-		                 ? existingImagePaths
-		                 : new ArrayList<>();
+		 List<String> keepImagePaths = (existingImagePaths != null) ? existingImagePaths : new ArrayList<>();
 	
-		 List<MeetupImage> removeImages = meetup.getMeetupImages()
+		 // 삭제해야 할 MeetupImage 추출
+		 List<MeetupImage> removeMeetupImages = meetup.getMeetupImages()
 		         .stream()
-		         .filter(meetupImage ->
-		                 !keepImagePaths.contains(
-		                         meetupImage.getImage().getImagePath()
-		                 )
-		         )
+		         .filter(meetupImage -> !keepImagePaths.contains(meetupImage.getImage().getImagePath()))
 		         .toList();
 	
-		 List<Image> imagesToDelete = new ArrayList<>();
-	
-		 for (MeetupImage meetupImage : removeImages) {
-	
+		 for (MeetupImage meetupImage : removeMeetupImages) {
 		     Image image = meetupImage.getImage();
 	
-		     System.out.println(
-		             "🔥 삭제할 이미지 = " + image.getImagePath()
-		     );
+		     // 1. 실제 로컬/S3 파일 삭제
+		     utilUpload.fileDelete(image.getImagePath(), "meetup");
 	
-		     // 1. 실제 파일 삭제
-		     utilUpload.fileDelete(
-		             image.getImagePath(),
-		             "meetup"
-		     );
-	
-		     imagesToDelete.add(image);
-	
-		     // 2. 연관관계 제거
+		     // 2. 부모 자식 관계 명시적 제거 (메모리동기화)
 		     meetup.getMeetupImages().remove(meetupImage);
 	
-		     // 3. MEETUP_IMAGES 삭제
+		     // 3. DB 삭제 (MeetupImage 우선 삭제 -> Image 삭제)
 		     meetupImageRepository.delete(meetupImage);
-		 }
-	
-		 // MEETUP_IMAGES 먼저 DB 반영
-		 meetupImageRepository.flush();
-	
-		 // IMAGES 삭제
-		 for (Image image : imagesToDelete) {
 		     imageRepository.delete(image);
 		 }
 
@@ -488,7 +484,7 @@ public class MeetupServiceImpl implements MeetupService{
 	                    .stream()
 	                    .map(MeetupApplicationResponseDto::fromEntity)
 	                    .toList();
-
+	    //System.out.println("신청 상태 = " + applications.get(0).getMeetupStatus());
 	    response.setApplications(applications);
 
 	    return response;
@@ -605,6 +601,13 @@ public class MeetupServiceImpl implements MeetupService{
 		List<Sigungu> sigungu = meetupSigunguRepository.findAll();
 		
 		return sigungu.stream().map(SigunguDto::from).toList();
+	}
+	
+	//마이페이지 - 통계
+	@Override
+	public MyMeetupCountResponseDto getMyMeetupCount(Long memberId) {
+
+	    return meetupRepository.getMyMeetupCount(memberId);
 	}
 	
 	// ################### open api ###################

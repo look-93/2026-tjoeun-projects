@@ -1,241 +1,218 @@
-import { Row, Col, Button, Input, Select, Table } from 'antd';
-import AdminStatCard from '../../components/AdminStatCard';
-import AdminSearchBox from '../../components/AdminSearchBox';
-import AdminListTabs from '../../components/AdminListTabs';
-import { useState } from 'react';
+import { Row, Col, Button, Table } from "antd";
+import AdminStatCard from "../../components/AdminStatCard";
+import AdminSearchBox from "../../components/AdminSearchBox";
+import AdminListTabs from "../../components/AdminListTabs";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
+import { fetchMeetupsRequest } from "../../reducers/meetupReducer";
+
 // http://localhost:3000/admin/meetup
 
 function AdminMeetupPage() {
-  //테스트용 테이터
-  const serverData = { allcnt: 1200, running: 1000, close: 1200 };
-  const stats = [
-    { title: '전체 모임', value: serverData.allcnt, suffix: '개' },
-    { title: '모집 중', value: serverData.running, suffix: '개' },
-    { title: '모집 마감', value: serverData.close, suffix: '개' },
-    { title: '모집 마감', value: 100, suffix: '개' },
-  ];
-  const adminColumns = [
-    {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
-      align: 'center',
-    },
-    {
-      title: '아이디',
-      dataIndex: 'loginId',
-      key: 'loginId',
-    },
-    {
-      title: '닉네임',
-      dataIndex: 'nickname',
-      key: 'nickname',
-    },
-    {
-      title: '이름',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: '이메일',
-      dataIndex: 'email',
-      key: 'email',
-    },
-    {
-      title: '가입일',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      align: 'center',
-    },
-    {
-      title: '상태',
-      dataIndex: 'status',
-      key: 'status',
-      align: 'center',
-      render: (_, record) => (
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-          <Button size="small">수정</Button>
+    const dispatch = useDispatch();
 
-          <Button size="small" danger>
-            삭제
-          </Button>
-        </div>
-      ),
-    },
-  ];
-  const adminData = [
-    {
-      key: 1,
-      id: 1,
-      loginId: 'admin01',
-      nickname: '관리자1',
-      name: '김관리',
-      email: 'admin01@moit.com',
-      createdAt: '2026-08-01',
-      status: '정상',
-    },
-    {
-      key: 2,
-      id: 2,
-      loginId: 'admin02',
-      nickname: '관리자2',
-      name: '이관리',
-      email: 'admin02@moit.com',
-      createdAt: '2026-08-03',
-      status: '정상',
-    },
-  ];
-  const userColumns = [
-    {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
-      align: 'center',
-    },
-    {
-      title: '아이디',
-      dataIndex: 'loginId',
-      key: 'loginId',
-    },
-    {
-      title: '닉네임',
-      dataIndex: 'nickname',
-      key: 'nickname',
-    },
-    {
-      title: '이름',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: '이메일',
-      dataIndex: 'email',
-      key: 'email',
-    },
-    {
-      title: '가입일',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-    },
-  ];
-  const userData = [
-    {
-      key: 1,
-      id: 1,
-      loginId: 'user01',
-      nickname: '보라',
-      name: '김보라',
-      email: 'bora@moit.com',
-      createdAt: '2026-08-01',
-    },
-    {
-      key: 2,
-      id: 2,
-      loginId: 'user02',
-      nickname: '철수',
-      name: '김철수',
-      email: 'chulsoo@moit.com',
-      createdAt: '2026-08-03',
-    },
-  ];
-  // 체크박스
-  const [checkStrictly, setCheckStrictly] = useState(false);
+    const { meetups, totalCount } = useSelector((state) => state.meetup);
 
-  const rowSelection = {
-    checkStrictly,
-    onChange: (selectedRowKeys, selectedRows) => {
-      console.log('선택된 ID:', selectedRowKeys);
-      console.log('선택된 데이터:', selectedRows);
-    },
-  };
+    console.log("관리자 모임 조회 데이터:", meetups);
+    console.log("전체 개수:", totalCount);
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
 
-  const [listType, setListType] = useState('admin');
+    // 검색 조건
+    // 검색 조건
+    const [searchType, setSearchType] = useState("all");
+    const [status, setStatus] = useState("all");
 
-  // 목록 전환
-  const listTabs = [
-    {
-      key: 'admin',
-      label: '관리자목록',
-    },
-    {
-      key: 'user',
-      label: '사용자목록',
-    },
-  ];
-  return (
-    <>
-      {/* 통계 */}
-      <Row gutter={[16, 16]}>
-        {stats.map((stat) => (
-          <Col xs={24} sm={12} md={12} lg={6} key={stat.title}>
-            <AdminStatCard {...stat} />
-          </Col>
-        ))}
-      </Row>
+    const serverData = { allcnt: 1200, running: 1000, close: 1200 };
 
-      {/* 목록 탭 */}
-      {/* 목록 탭 */}
-      <AdminListTabs
-        tabs={listTabs}
-        activeTab={listType}
-        onChange={setListType}
-      />
+    const stats = [
+        { title: "전체 모임", value: serverData.allcnt, suffix: "개" },
+        { title: "모집 중", value: serverData.running, suffix: "개" },
+        { title: "모집 마감", value: serverData.close, suffix: "개" },
+        { title: "모집 마감", value: 100, suffix: "개" },
+    ];
 
-      {/* 검색 영역 조건1개*/}
-      {/* <AdminSearchBox
-        conditions={[
-          {
-            key: 'searchType',
-            defaultValue: 'title',
-            options: [
-              { value: 'title', label: '제목' },
-              { value: 'content', label: '내용' },
-            ],
-          },
-        ]}
-      /> */}
+    useEffect(() => {
+        dispatch(
+            fetchMeetupsRequest({
+                page: currentPage - 1,
+                size: pageSize,
 
-      {/* 검색 영역 조건2개*/}
-      <AdminSearchBox
-        conditions={[
-          {
-            key: 'category',
-            defaultValue: 'all',
-            options: [
-              { value: 'all', label: '전체' },
-              { value: 'exercise', label: '운동' },
-              { value: 'study', label: '스터디' },
-            ],
-          },
-          {
-            key: 'status',
-            defaultValue: 'all',
-            options: [
-              { value: 'all', label: '전체 상태' },
-              { value: 'recruiting', label: '모집중' },
-              { value: 'closed', label: '마감' },
-            ],
-          },
-        ]}
-      />
+                searchType: searchType === "all" ? null : searchType,
+                searchText: null,
 
-      {/* 모임 목록 */}
-      <div className="admin-table-box">
-        <Table
-          rowSelection={rowSelection}
-          columns={listType === 'admin' ? adminColumns : userColumns}
-          dataSource={listType === 'admin' ? adminData : userData}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: false,
-          }}
-          rowKey="id"
-          scroll={{ x: 800 }}
-        />
-      </div>
-    </>
-  );
+                sidoId: null,
+                categoryId: null,
+
+                status: status === "all" ? null : status,
+            }),
+        );
+    }, [currentPage, searchType, status, dispatch]);
+
+    const adminColumns = [
+        {
+            title: "번호",
+            dataIndex: "id",
+            key: "id",
+            width: 80,
+            align: "center",
+        },
+        {
+            title: "모집자",
+            dataIndex: "nickname",
+            key: "nickname",
+            width: 120,
+            align: "center",
+        },
+        {
+            title: "모집명",
+            dataIndex: "title",
+            key: "title",
+            width: 300,
+        },
+        {
+            title: "모집일",
+            dataIndex: "meetupAt",
+            key: "meetupAt",
+            width: 150,
+            align: "center",
+        },
+        {
+            title: "최소모집인원",
+            dataIndex: "minParticipants",
+            key: "minParticipants",
+            width: 120,
+            align: "center",
+        },
+        {
+            title: "최대모집인원",
+            dataIndex: "maxParticipants",
+            key: "maxParticipants",
+            width: 120,
+            align: "center",
+        },
+        {
+            title: "신청현황",
+            dataIndex: "totalParticipants",
+            key: "totalParticipants",
+            width: 100,
+            align: "center",
+            render: (value) => value ?? 0,
+        },
+        {
+            title: "관리",
+            key: "action",
+            width: 100,
+            align: "center",
+            render: (_, record) => (
+                <Button
+                    size="small"
+                    danger
+                    onClick={() => handleDeleteMeetup(record.meetupId)}
+                >
+                    삭제
+                </Button>
+            ),
+        },
+    ];
+
+    // 체크박스
+    const [checkStrictly, setCheckStrictly] = useState(false);
+
+    const rowSelection = {
+        checkStrictly,
+        onChange: (selectedRowKeys, selectedRows) => {
+            console.log("선택된 ID:", selectedRowKeys);
+            console.log("선택된 데이터:", selectedRows);
+        },
+    };
+
+    // 목록 전환
+    const [listType, setListType] = useState("admin");
+
+    const listTabs = [
+        {
+            key: "admin",
+            label: "관리자목록",
+        },
+    ];
+
+    // 검색
+    const handleSearch = (values) => {
+        console.log("검색 조건:", values);
+
+        setSearchType(values.category);
+        setStatus(values.status);
+
+        // 검색하면 1페이지부터
+        setCurrentPage(1);
+    };
+
+    // 삭제
+
+    const handleDeleteMeetup = (meetupId) => {
+        console.log("삭제할 meetupId:", meetupId);
+    };
+
+    return (
+        <>
+            {/* 통계 */}
+            <Row gutter={[16, 16]}>
+                {stats.map((stat) => (
+                    <Col xs={24} sm={12} md={12} lg={6} key={stat.title}>
+                        <AdminStatCard {...stat} />
+                    </Col>
+                ))}
+            </Row>
+
+            {/* 목록 탭 */}
+            <AdminListTabs
+                tabs={listTabs}
+                activeTab={listType}
+                onChange={setListType}
+            />
+
+            {/* 검색 영역 조건2개*/}
+            <AdminSearchBox
+                conditions={[
+                    {
+                        key: "category",
+                        defaultValue: "all",
+                        options: [
+                            { value: "all", label: "전체" },
+                            { value: "name", label: "모집자" },
+                        ],
+                    },
+                    {
+                        key: "status",
+                        defaultValue: "all",
+                        options: [
+                            { value: "all", label: "전체 상태" },
+                            { value: "RECRUITING", label: "모집중" },
+                            { value: "COMPLETED", label: "마감" },
+                        ],
+                    },
+                ]}
+                onSearch={handleSearch}
+            />
+
+            {/* 모임 목록 */}
+            <div className="admin-table-box">
+                <Table
+                    rowSelection={rowSelection}
+                    columns={adminColumns}
+                    dataSource={meetups}
+                    pagination={{
+                        pageSize: 10,
+                        showSizeChanger: false,
+                    }}
+                    rowKey="id"
+                    scroll={{ x: 800 }}
+                />
+            </div>
+        </>
+    );
 }
+
 export default AdminMeetupPage;

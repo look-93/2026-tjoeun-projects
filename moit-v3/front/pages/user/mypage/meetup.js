@@ -12,6 +12,7 @@ import {
     fetchMyMeetupsRequest,
     fetchMeetupApplicantsRequest,
     updateApplicationStatusRequest,
+    fetchMyMeetupCountRequest,
 } from "../../../reducers/meetupReducer";
 import MeetupApplicantModal from "../../../components/MeetupApplicantModal";
 import MyPageStatCard from "../../../components/MyPageStatCard";
@@ -24,36 +25,53 @@ function UserMyMeetupPage() {
     const router = useRouter();
     const dispatch = useDispatch();
 
-    //신청자관리모달
+    // 신청자관리모달
     const [applicantModalOpen, setApplicantModalOpen] = useState(false);
     const [selectedMeetupId, setSelectedMeetupId] = useState(null);
 
-    const { myMeetups, meetupApplicants, loading } = useSelector(
+    const { myMeetups, meetupApplicants, myMeetupCount, loading } = useSelector(
         (state) => state.meetup,
     );
 
+    // 승인 처리
     const handleApprove = (applicationId) => {
-        console.log("신청자 승인:", applicationId);
+        //console.log("신청자 승인:", selectedMeetupId);
 
         dispatch(
             updateApplicationStatusRequest({
+                meetupId: selectedMeetupId,
                 applicationId,
                 applyStatus: "APPROVED",
             }),
         );
     };
 
+    // 거절 처리
     const handleReject = ({ applicationId, rejectReason }) => {
-        console.log("신청자 거절:", applicationId);
-        console.log("거절 사유:", rejectReason);
+        //console.log("신청자 거절:", selectedMeetupId);
+        //console.log("거절 사유:", rejectReason);
 
-        // TODO: 거절 Saga 연결
-        // dispatch(
-        //     rejectMeetupApplicantRequest({
-        //         applicationId,
-        //         rejectReason,
-        //     }),
-        // );
+        dispatch(
+            updateApplicationStatusRequest({
+                meetupId: selectedMeetupId,
+                applicationId,
+                applyStatus: "REJECTED",
+                rejectReason, // 거절 사유도 필요 시 전달
+            }),
+        );
+    };
+
+    // 1. 노쇼 처리 핸들러 추가
+    const handleNoShow = (applicationId) => {
+        //console.log("신청자 노쇼 처리:", selectedMeetupId);
+
+        dispatch(
+            updateApplicationStatusRequest({
+                meetupId: selectedMeetupId,
+                applicationId,
+                applyStatus: "NOSHOW",
+            }),
+        );
     };
 
     useEffect(() => {
@@ -63,6 +81,9 @@ function UserMyMeetupPage() {
                 size: 10,
             }),
         );
+
+        //통계
+        dispatch(fetchMyMeetupCountRequest());
     }, [dispatch]);
 
     const handleApplicantManage = (meetupId) => {
@@ -81,25 +102,25 @@ function UserMyMeetupPage() {
     const stats = [
         {
             title: "내 모집글",
-            value: 12,
+            value: myMeetupCount.myMeetupCount,
             suffix: "개",
             icon: FileTextOutlined,
         },
         {
             title: "신청 모임",
-            value: 8,
+            value: myMeetupCount.applicationCount,
             suffix: "개",
             icon: TeamOutlined,
         },
         {
             title: "작성 후기",
-            value: 16,
+            value: myMeetupCount.reviewCount,
             suffix: "개",
             icon: StarOutlined,
         },
         {
             title: "관심 모임",
-            value: 6,
+            value: myMeetupCount.favoriteCount,
             suffix: "개",
             icon: HeartOutlined,
         },
@@ -117,7 +138,17 @@ function UserMyMeetupPage() {
             title: "모임명",
             dataIndex: "title",
             key: "title",
-            render: (title) => <Text strong>{title}</Text>,
+            render: (title, record) => (
+                <Text
+                    strong
+                    style={{ cursor: "pointer" }}
+                    onClick={() =>
+                        router.push(`/user/meetup/detail?meetupId=${record.id}`)
+                    }
+                >
+                    {title}
+                </Text>
+            ),
         },
         {
             title: "모임일",
@@ -199,6 +230,7 @@ function UserMyMeetupPage() {
                 <Title level={3}>개설한 모임</Title>
 
                 <Table
+                    rowKey={(record) => record.id}
                     columns={columns}
                     dataSource={myMeetups}
                     pagination={{
@@ -208,6 +240,8 @@ function UserMyMeetupPage() {
                     scroll={{ x: 600 }}
                 />
             </Card>
+
+            {/* 2. onNoShow 전달 */}
             <MeetupApplicantModal
                 open={applicantModalOpen}
                 onCancel={() => setApplicantModalOpen(false)}
@@ -215,6 +249,7 @@ function UserMyMeetupPage() {
                 meetupApplicants={meetupApplicants}
                 onApprove={handleApprove}
                 onReject={handleReject}
+                onNoShow={handleNoShow}
             />
         </div>
     );

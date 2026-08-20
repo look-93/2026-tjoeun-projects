@@ -35,17 +35,18 @@ public class MeetupApplicationDto {
 		private Long meetupId;
 		private String meetupTitle;
 		private String meetupAt;
-		private ApplyStatus applyStatus;
+		private String applyStatus;
 		private String meetupStatus;
 		
 		public static MeetupApplicationResponseDto fromEntity(MeetupApplication application) {
 			return MeetupApplicationResponseDto.builder()
 										.id(application.getId())
-										.applyStatus(application.getApplyStatus())
+										.applyStatus(application.getApplyStatus().getDesc())
 						                .rejectReason(application.getRejectReason())
 						                .meetupId(application.getMeetup().getId())
 						                .meetupTitle(application.getMeetup().getTitle())
-						                .meetupAt(application.getMeetup().getMeetupAt())						              
+						                .meetupAt(application.getMeetup().getMeetupAt())
+						                .meetupStatus(application.getMeetup().getMeetupStatus().getDesc())
 						                .build();
 		}
 	}
@@ -66,6 +67,7 @@ public class MeetupApplicationDto {
 	@AllArgsConstructor	
 	public static class MeetupApplicantResponseDto {
 		//마이페이지 내 모집글 신청자조회
+		private Long applicationId;
 		private Long memberId;
 		private String nickname;
 		private String rejectReason;
@@ -75,6 +77,7 @@ public class MeetupApplicationDto {
 		
 		public static MeetupApplicantResponseDto fromEntity(MeetupApplication application) {
 			return MeetupApplicantResponseDto.builder()
+										.applicationId(application.getId())
 										.memberId(application.getMember().getId())
 										.nickname(application.getMember().getNickname())
 						                .rejectReason(application.getRejectReason())

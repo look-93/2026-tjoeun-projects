@@ -147,7 +147,9 @@ function write() {
     useEffect(() => {
         if (isEdit) return;
         if (!showAiGuide) return;
-        if (!titleValue?.trim()) return;
+        
+        //제목이 작성되었디면 호출x
+        if (titleValue?.trim()) return;
 
         // 이미 AI 추천을 요청했다면 다시 요청하지 않음
         if (aiRequestedRef.current) return;
@@ -163,7 +165,7 @@ function write() {
                     keyword: titleValue,
                 }),
             );
-        }, 1000);
+        }, 3000);
     }, [titleValue, showAiGuide, isEdit, dispatch]);
 
     //ai 응답 값 셋팅
