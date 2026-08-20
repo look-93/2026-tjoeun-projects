@@ -31,6 +31,8 @@ import {
     createMeetupRequest,
     updateMeetupRequest,
     fetchMeetupDetailRequest,
+    resetMeetupState,
+    recommendMeetupRequest,
 } from "../../../reducers/meetupReducer";
 import { searchAddressRequest } from "../../../reducers/commonReducer";
 
@@ -49,6 +51,11 @@ function write() {
     const [fileList, setFileList] = useState([]);
     const [previewImages, setPreviewImages] = useState([]);
     const [currentImage, setCurrentImage] = useState(0);
+
+    //ai
+    const [aiLoading, setAiLoading] = useState(false);
+    const titleValue = Form.useWatch("title", form);
+    const [showAiGuide, setShowAiGuide] = useState(false);
 
     //주소
     const [addressModalOpen, setAddressModalOpen] = useState(false);
@@ -74,15 +81,32 @@ function write() {
         if (!isEdit || !meetup) {
             return;
         }
+        //console.log("🔥 수정할 meetup:", meetup);
+        // 기존 이미지
+        if (meetup.imagePaths?.length > 0) {
+            const existingImages = meetup.imagePaths.map(
+                (imagePath, index) => ({
+                    uid: `existing-${index}`,
+                    name: imagePath,
+                    status: "done",
+                    url: `http://localhost:8080/upload/meetup/${imagePath}`,
+                }),
+            );
+
+            setFileList(existingImages);
+            setPreviewImages(existingImages.map((image) => image.url));
+        }
 
         form.setFieldsValue({
             title: meetup.title,
             content: meetup.content,
             minParticipants: meetup.minParticipants,
             maxParticipants: meetup.maxParticipants,
+            meetupStatus: meetup.meetupStatus,
             address: meetup.address,
             addressDetail: meetup.addressDetail,
             sigunguId: meetup.sigunguId,
+            categoryId: meetup.categoryId,
             nx: meetup.nx,
             ny: meetup.ny,
             latitude: meetup.latitude,
@@ -101,6 +125,35 @@ function write() {
         });
     }, [isEdit, meetup, form]);
 
+    //ai추천
+    useEffect(() => {
+        // 수정 페이지에서는 AI 안내 X
+        if (isEdit) return;
+
+        // 페이지 진입 후 10초
+        const timer = setTimeout(() => {
+            setShowAiGuide(true);
+        }, 10000);
+
+        return () => clearTimeout(timer);
+    }, [isEdit]);
+
+    useEffect(() => {
+        if (isEdit) return;
+
+        // 아직 10초가 안 지났으면 실행 X
+        if (!showAiGuide) return;
+
+        // 제목이 없으면 실행 X
+        if (!titleValue?.trim()) return;
+
+        dispatch(
+            recommendMeetupRequest({
+                keyword: titleValue,
+            }),
+        );
+    }, [titleValue, showAiGuide, isEdit, dispatch]);
+
     //카테고리
     const categoriesOptions = categories
         .filter((cate) => cate.parentId != null)
@@ -112,9 +165,13 @@ function write() {
 
         setFileList(limitedList);
 
-        const previews = limitedList
-            .filter((file) => file.originFileObj)
-            .map((file) => URL.createObjectURL(file.originFileObj));
+        const previews = limitedList.map((file) => {
+            if (file.originFileObj) {
+                return URL.createObjectURL(file.originFileObj);
+            }
+
+            return file.url;
+        });
 
         setPreviewImages(previews);
         setCurrentImage(0);
@@ -207,16 +264,23 @@ function write() {
             meetupAt: values.meetupAt?.format("YYYY-MM-DDTHH:mm:ss"),
         };
 
-        // 이미지 파일만 추출
+        const existingImagePaths = fileList
+            .filter((file) => !file.originFileObj)
+            .map((file) => file.name);
+
         const files = fileList
             .map((file) => file.originFileObj)
             .filter(Boolean);
-
+        console.log("🔥 fileList:", fileList);
+        console.log("🔥 existingImagePaths:", existingImagePaths);
+        console.log("🔥 files:", files);
         if (isEdit) {
             dispatch(
                 updateMeetupRequest({
                     meetupId,
                     data,
+                    files,
+                    existingImagePaths,
                 }),
             );
         } else {
@@ -232,19 +296,20 @@ function write() {
     useEffect(() => {
         if (createSuccess) {
             message.success("모임이 등록되었습니다.");
+            dispatch(resetMeetupState());
             router.push("/user/meetup");
-            //dispatch(resetMeetupState());
         }
 
         if (updateSuccess) {
             message.success("모임이 수정되었습니다.");
+            dispatch(resetMeetupState());
             router.push("/user/meetup");
         }
 
         if (error) {
             message.error("저장 중 오류가 발생했습니다.");
         }
-    }, [createSuccess, updateSuccess, error]);
+    }, [createSuccess, updateSuccess, error, dispatch, router]);
 
     return (
         <div className="mypage-main-content">

@@ -4,6 +4,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,11 +14,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.review.dto.ReviewDto.ReviewListResponseDto;
 import com.moit.review.dto.ReviewDto.ReviewRequestDto;
 import com.moit.review.dto.ReviewDto.ReviewResponseDto;
+import com.moit.review.entity.ReviewImage;
+import com.moit.review.repository.ReviewImageRepository;
 import com.moit.review.service.ReviewService;
 import com.moit.security.CustomUserDetails;
 
@@ -32,18 +37,36 @@ import lombok.RequiredArgsConstructor;
 public class ReviewController {
 
     private final ReviewService reviewService;
+    private final ReviewImageRepository reviewImageRepository;
 
-    // 인증 객체에서 memberId 추출 공통 메서드
+    
+ // 인증 객체에서 memberId 추출 공통 메서드
     private Long extractMemberId(Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
-            Long memberId = userDetails.getUser().getMemberId();
-            if (memberId != null) {
-                return memberId.longValue();
+            try {
+                // 어떤 값이 들어오는지 콘솔 확인용
+                System.out.println("=== 인증된 사용자 Principal 객체 확인 ===");
+                System.out.println("userDetails: " + userDetails);
+                
+                if (userDetails.getUser() != null) {
+                    Long memberId = userDetails.getUser().getMemberId();
+                    System.out.println("추출된 memberId: " + memberId);
+                    
+                    if (memberId != null) {
+                        return memberId;
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("memberId 추출 중 예외 발생: " + e.getMessage());
             }
         }
-        // [TEST] Swagger 테스트 중 로그인 정보(Authentication)가 없을 때 1번 회원으로 fallback
+        
+        // [TEST] 인증 정보가 없거나 추출 실패 시 강제로 1번 회원 반환 (null 방지)
+        System.out.println("⚠️ 인증 정보가 없어 Fallback 회원 ID 1L을 반환합니다.");
         return 1L;
     }
+    
+    
 
     @Operation(summary = "리뷰 작성", description = "새로운 리뷰를 작성합니다.")
     @PostMapping
@@ -83,25 +106,39 @@ public class ReviewController {
     @GetMapping("/meetup/{meetupId}")
     public ResponseEntity<ReviewListResponseDto> getReviewsByMeetup(
             @PathVariable("meetupId") Long meetupId,
+            @RequestParam(value = "keyword", required = false) String keyword, // 👈 [추가] 검색어 받기
             @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        ReviewListResponseDto response = reviewService.getReviewsByMeetup(meetupId, pageable);
+        
+        // 👈 [변경] keyword를 포함한 서비스 메서드 호출
+        ReviewListResponseDto response = reviewService.getReviewsByMeetup(meetupId, keyword, pageable);
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "내가 작성한 리뷰 목록 조회", description = "마이페이지에서 내가 작성한 리뷰 목록을 조회합니다.")
     @GetMapping("/my")
     public ResponseEntity<ReviewListResponseDto> getMyReviews(
+            @RequestParam(value = "keyword", required = false) String keyword, // 👈 검색어 파라미터 추가
             Authentication authentication,
             @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        
         Long memberId = extractMemberId(authentication);
-        ReviewListResponseDto response = reviewService.getMyReviews(memberId, pageable);
+        
+        // 서비스 메서드에 keyword도 함께 전달 (서비스와 레포지토리도 이에 맞게 구현되어 있어야 합니다)
+        ReviewListResponseDto response = reviewService.getMyReviews(memberId, keyword, pageable); 
+        
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "리뷰 좋아요 토글", description = "리뷰 좋아요를 등록하거나 취소합니다.")
     @PostMapping("/{reviewId}/like")
     public ResponseEntity<Void> reviewLike(@PathVariable("reviewId") Long reviewId, Authentication authentication) {
+        // ★ 여기에 로그 추가
+        System.out.println("=== [LIKE API 요청 수신] ===");
+        System.out.println("전달받은 reviewId: " + reviewId);
+
         Long memberId = extractMemberId(authentication);
+        System.out.println("추출된 최종 memberId: " + memberId);
+
         reviewService.reviewLike(memberId, reviewId);
         return ResponseEntity.ok().build();
     }

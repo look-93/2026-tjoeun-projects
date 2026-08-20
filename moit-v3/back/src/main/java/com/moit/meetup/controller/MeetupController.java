@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -82,8 +83,11 @@ public class MeetupController {
 	
 	@Operation(summary = "모임수정", description = "모임을 수정합니다.")
 	@PutMapping("/{meetupId}")
-	public ResponseEntity<Void> update(@RequestBody MeetupRequestDto meetupRequestDto, @PathVariable("meetupId") Long meetupId){
-		meetupService.update(meetupRequestDto, meetupId);
+	public ResponseEntity<Void> update(@ModelAttribute MeetupRequestDto meetupRequestDto,
+								       @RequestParam(value = "files", required = false) List<MultipartFile> files,
+							           @RequestParam(value = "existingImagePaths", required = false) List<String> existingImagePaths,
+							           @PathVariable("meetupId") Long meetupId){
+		meetupService.update(meetupRequestDto, meetupId, files, existingImagePaths);
 		return ResponseEntity.noContent().build(); // 성공 응답 204
 	}
 	

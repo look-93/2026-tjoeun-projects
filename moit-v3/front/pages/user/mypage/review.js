@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router'; // Next.js 라우터 사용
+import { useDispatch, useSelector } from 'react-redux';
 import {
   Button,
   Card,
@@ -7,54 +9,90 @@ import {
   Row,
   Select,
   Space,
-  Statistic,
   Table,
   Tag,
   Typography,
   Rate,
+  message,
+  Modal,
 } from 'antd';
 import {
   EditOutlined,
   DeleteOutlined,
   FileTextOutlined,
   LockOutlined,
+  ExclamationCircleOutlined,
 } from '@ant-design/icons';
 import MyPageStatCard from '../../../components/MyPageStatCard';
+
+import {
+  getReviewListRequest,
+  deleteReviewRequest,
+} from '../../../reducers/reviewReducer';
 
 const { Title, Text } = Typography;
 
 function UserMyReviewPage() {
-  // 샘플 데이터
-  const reviews = [
-    {
-      key: 1,
-      reviewId: 1,
-      meetupId: 101,
-      createdAt: '2026.06.10',
-      rating: 5,
-      content:
-        '즐겁게 참여할 수 있었던 모임이었습니다. 분위기도 좋고 다음에도 참여하고 싶어요!',
-      isPublic: 'Y',
-    },
-    {
-      key: 2,
-      reviewId: 2,
-      meetupId: 102,
-      createdAt: '2026.05.15',
-      rating: 4,
-      content: '좋은 분들과 함께해서 즐거웠습니다. 다음 모임도 기대됩니다.',
-      isPublic: 'N',
-    },
-    {
-      key: 3,
-      reviewId: 3,
-      meetupId: 103,
-      createdAt: '2026.04.20',
-      rating: 3,
-      content: '모임 장소가 조금 아쉬웠지만 전반적으로 괜찮았습니다.',
-      isPublic: 'Y',
-    },
-  ];
+  const dispatch = useDispatch();
+  const router = useRouter(); // Next.js 라우터 훅
+
+  const { reviews = [], totalCount = 0, loading } = useSelector(
+    (state) => state.review || {}
+  );
+
+  const [keyword, setKeyword] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [sort, setSort] = useState('id,desc');
+
+  useEffect(() => {
+    dispatch(
+      getReviewListRequest({
+        keyword: searchKeyword,
+        sort: sort,
+        page: 0,
+        size: 10,
+      })
+    );
+  }, [dispatch, searchKeyword, sort]);
+
+  const handleSearch = () => {
+    setSearchKeyword(keyword);
+  };
+
+  const handleReset = () => {
+    setKeyword('');
+    setSearchKeyword('');
+  };
+
+  const handleSortChange = (value) => {
+    if (value === 'latest') {
+      setSort('id,desc');
+    } else if (value === 'rating') {
+      setSort('rating,desc');
+    }
+  };
+
+  const handleDelete = (reviewId) => {
+    Modal.confirm({
+      title: '정말 후기를 삭제하시겠습니까?',
+      icon: <ExclamationCircleOutlined />,
+      okText: '삭제',
+      okType: 'danger',
+      cancelText: '취소',
+      onOk() {
+        dispatch(deleteReviewRequest(reviewId));
+        message.success('후기가 삭제되었습니다.');
+        dispatch(getReviewListRequest({ keyword: searchKeyword, sort, page: 0, size: 10 }));
+      },
+    });
+  };
+
+  // ★ 수정 버튼: 마이페이지에서 왔음을 알리는 `from=mypage` 파라미터 추가
+  const handleEdit = (reviewId, meetupId) => {
+    router.push(
+      `/user/meetup/review/write?reviewId=${reviewId}&meetupId=${meetupId}&edit=true&from=mypage`
+    );
+  };
 
   const columns = [
     {
@@ -65,16 +103,13 @@ function UserMyReviewPage() {
       render: (meetupId, record) => (
         <div>
           <Text strong>모임 #{meetupId}</Text>
-
           <br />
-
           <Text type="secondary" style={{ fontSize: 12 }}>
-            {record.createdAt}
+            {record.createdAt ? record.createdAt.substring(0, 10) : ''}
           </Text>
         </div>
       ),
     },
-
     {
       title: '후기 내용',
       dataIndex: 'content',
@@ -90,7 +125,6 @@ function UserMyReviewPage() {
               marginBottom: 6,
             }}
           />
-
           <div
             style={{
               color: '#475569',
@@ -103,7 +137,6 @@ function UserMyReviewPage() {
         </div>
       ),
     },
-
     {
       title: '공개 상태',
       dataIndex: 'isPublic',
@@ -119,30 +152,43 @@ function UserMyReviewPage() {
           <Tag color="blue">전체공개</Tag>
         ),
     },
-
     {
       title: '관리',
       key: 'action',
       width: '20%',
       align: 'center',
-      render: (_, record) => (
-        <Space size={6}>
-          <Button size="small" icon={<EditOutlined />}>
-            수정
-          </Button>
-
-          <Button size="small" danger icon={<DeleteOutlined />}>
-            삭제
-          </Button>
-        </Space>
-      ),
+      render: (_, record) => {
+        const currentReviewId = record.reviewId || record.id;
+        const currentMeetupId = record.meetupId;
+        
+        return (
+          <Space size={6}>
+            <Button
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(currentReviewId, currentMeetupId)}
+            >
+              수정
+            </Button>
+            <Button
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(currentReviewId)}
+            >
+              삭제
+            </Button>
+          </Space>
+        );
+      },
     },
   ];
 
-  const totalReviews = reviews.length;
+  const totalReviews = totalCount || reviews.length;
   const privateReviews = reviews.filter(
-    (review) => review.isPublic === 'N',
+    (review) => review.isPublic === 'N'
   ).length;
+
   const stats = [
     {
       title: '작성 후기',
@@ -160,19 +206,23 @@ function UserMyReviewPage() {
 
   return (
     <div className="mypage-reviews">
-      {/* 통계 */}
       <MyPageStatCard stats={stats} />
 
-      {/* 검색 / 정렬 */}
-      <Card className="mypage-review-filter">
+      <Card className="mypage-review-filter" style={{ marginBottom: 16 }}>
         <Row justify="space-between" align="middle" gutter={[16, 16]}>
           <Col xs={24} md={14}>
             <Space.Compact style={{ width: '100%' }}>
-              <Input placeholder="후기 내용 검색" allowClear />
-
-              <Button type="primary">검색</Button>
-
-              <Button>초기화</Button>
+              <Input
+                placeholder="후기 내용 검색"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onPressEnter={handleSearch}
+                allowClear
+              />
+              <Button type="primary" onClick={handleSearch}>
+                검색
+              </Button>
+              <Button onClick={handleReset}>초기화</Button>
             </Space.Compact>
           </Col>
 
@@ -180,6 +230,7 @@ function UserMyReviewPage() {
             <Select
               defaultValue="latest"
               style={{ width: '100%' }}
+              onChange={handleSortChange}
               options={[
                 {
                   value: 'latest',
@@ -195,13 +246,14 @@ function UserMyReviewPage() {
         </Row>
       </Card>
 
-      {/* 후기 목록 */}
       <Card className="mypage-review-list">
-        <Title level={3}>내 작성 후기</Title>
+        <Title level={3} style={{ marginBottom: 16 }}>내 작성 후기</Title>
 
         <Table
           columns={columns}
           dataSource={reviews}
+          rowKey={(record) => record.reviewId || record.id}
+          loading={loading}
           pagination={{
             pageSize: 10,
             showSizeChanger: false,

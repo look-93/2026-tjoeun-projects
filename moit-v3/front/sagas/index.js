@@ -4,9 +4,11 @@ import userSaga from "./userSaga";
 import meetupSaga from "./meetupSaga";
 ///// 추가되는 saga ////////
 import advertiseSaga from './advertiseSaga';
+import reviewSaga from './reviewSaga';
 import reportSaga from './reportSaga';
 import commonSaga from "./commonSaga";
 import qnaSaga  from './qnaSaga';
+
 
 export default function* rootSaga() {
     yield all([
@@ -14,8 +16,10 @@ export default function* rootSaga() {
         fork(meetupSaga),
         ///// 추가되는 saga ////////
         fork(advertiseSaga),
-        fork(commonSaga),
+        fork(reviewSaga),
         fork(reportSaga),
+        fork(commonSaga),
         fork(qnaSaga),
     ]);
 }
+

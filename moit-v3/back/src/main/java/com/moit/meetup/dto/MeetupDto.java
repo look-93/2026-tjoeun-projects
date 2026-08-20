@@ -66,7 +66,8 @@ public class MeetupDto {
 		private Long likeCount = 0L;
 		private String imagePath;
 		private List<String> imagePaths;
-		private Long memberId;
+		private String categoryName;
+		private Long categoryId;
 		
 		public static MeetupResponseDto listFrom(Meetup meetup) { // list에만 보여줄 MeetupResponse
 			MeetupResponseDto response = new MeetupResponseDto();
@@ -123,6 +124,12 @@ public class MeetupDto {
 		    
 		    response.setMemberId(meetup.getMember().getId());
 		    response.setNickname(meetup.getMember().getNickname());
+		    response.setSigunguId(meetup.getSigungu().getId());
+		    response.setSigunguName(meetup.getSigungu().getName());
+		    response.setCategoryId(meetup.getMeetupCategory().getId());
+		    response.setCategoryName(meetup.getMeetupCategory().getCategoryName());
+		    response.setMeetupStatus(meetup.getMeetupStatus());
+		    
 		    // 전체 이미지
 		    if (meetup.getMeetupImages() != null
 		            && !meetup.getMeetupImages().isEmpty()) {
@@ -138,6 +145,7 @@ public class MeetupDto {
 		    } else {
 		        response.setImagePaths(List.of());
 		    }
+		    
 		    return response;
 		}
 	}

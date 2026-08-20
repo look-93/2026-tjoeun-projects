@@ -30,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
     private final Oauth2UserService oauthUserService;
     private final SocialLoginSuccessHandler socialLoginSuccessHandler;
     private final CustomLoginFailureHandler customLoginFailureHandler;
@@ -67,7 +66,8 @@ public class SecurityConfig {
                 "/api/reports/**",
                 "/api/reports",
                 "/api/admin/advertisement/**",
-                "/api/advertisement/**"
+                "/api/advertisement/**",
+                "/api/reviews/**"
             )
         );
 

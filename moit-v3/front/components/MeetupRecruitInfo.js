@@ -20,7 +20,7 @@ function MeetupRecruitInfo({ meetup, isOwner }) {
 
     const handleEdit = () => {
         // 수정 페이지로 이동
-        window.location.href = `/user/meetup/write/${meetup.id}`;
+        window.location.href = `/user/meetup/write?meetupId=${meetup.id}`;
     };
 
     const isApplied = meetup.applyStatus === "PENDING";

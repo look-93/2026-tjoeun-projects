@@ -17,7 +17,6 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-//import com.moit.reports.entity.MemberReportStatus;
 
 @Entity
 @Table(name = "member_info")
