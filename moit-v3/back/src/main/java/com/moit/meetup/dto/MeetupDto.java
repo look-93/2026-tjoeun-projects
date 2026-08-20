@@ -66,7 +66,6 @@ public class MeetupDto {
 		private Long likeCount = 0L;
 		private String imagePath;
 		private List<String> imagePaths;
-		private Long memberId;
 		
 		public static MeetupResponseDto listFrom(Meetup meetup) { // list에만 보여줄 MeetupResponse
 			MeetupResponseDto response = new MeetupResponseDto();
