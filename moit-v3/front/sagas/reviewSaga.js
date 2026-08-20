@@ -1,4 +1,5 @@
-import { all, call, put, takeLatest, takeEvery } from 'redux-saga/effects';
+import { all, call, fork, put, takeLatest } from 'redux-saga/effects';
+
 import api from '../api/axios';
 
 import {
@@ -20,11 +21,18 @@ const ADMIN_REVIEW_API_BASE = '/api/admin/reviews';
 // ==========================================
 export const createReviewApi = (requestDto) => api.post(REVIEW_API_BASE, requestDto);
 export const fetchReviewDetailApi = (reviewId) => api.get(`${REVIEW_API_BASE}/${reviewId}`);
-export const updateReviewApi = ({ reviewId, requestDto }) => api.put(`${REVIEW_API_BASE}/${reviewId}`, requestDto);
+
+export const updateReviewApi = ({ reviewId, requestDto, ...rest }) => {
+    const body = requestDto || rest;
+    return api.put(`${REVIEW_API_BASE}/${reviewId}`, body);
+};
+
 export const deleteReviewApi = (reviewId) => api.delete(`${REVIEW_API_BASE}/${reviewId}`);
 
-export const fetchReviewsByMeetupApi = ({ meetupId, page = 0, size = 10, sort = 'id,desc' }) =>
-    api.get(`${REVIEW_API_BASE}/meetup/${meetupId}`, { params: { page, size, sort } });
+// ★ 모임별 리뷰 API에 keyword 파라미터 추가
+export const fetchReviewsByMeetupApi = ({ meetupId, keyword = '', page = 0, size = 10, sort = 'id,desc' }) =>
+    api.get(`${REVIEW_API_BASE}/meetup/${meetupId}`, { params: { keyword, page, size, sort } });
+
 
 export const fetchMyReviewsApi = (params = { page: 0, size: 10, sort: 'id,desc' }) =>
     api.get(`${REVIEW_API_BASE}/my`, { params });
@@ -32,7 +40,6 @@ export const fetchMyReviewsApi = (params = { page: 0, size: 10, sort: 'id,desc' 
 export const toggleReviewLikeApi = (reviewId) => api.post(`${REVIEW_API_BASE}/${reviewId}/like`);
 export const analyzeReviewsApi = (meetupId) => api.post(`${REVIEW_API_BASE}/meetup/${meetupId}/analysis`);
 
-// 관리자 API
 export const fetchAdminReviewListApi = (params = { keyword: '', page: 0, size: 10, sort: 'id,desc' }) =>
     api.get(ADMIN_REVIEW_API_BASE, { params });
 
@@ -41,8 +48,10 @@ export const adminDeleteReviewApi = (reviewId) => api.delete(`${ADMIN_REVIEW_API
 
 
 
+// ==========================================
+// 2. Saga 처리 함수 
+// ==========================================
 
-// 리뷰 작성
 export function* createReview(action) {
     try {
         yield call(createReviewApi, action.payload);
@@ -52,7 +61,6 @@ export function* createReview(action) {
     }
 }
 
-// 리뷰 상세 조회
 export function* fetchReviewDetail(action) {
     try {
         const result = yield call(fetchReviewDetailApi, action.payload);
@@ -62,17 +70,31 @@ export function* fetchReviewDetail(action) {
     }
 }
 
-// 리뷰 수정
+
 export function* updateReview(action) {
     try {
-        yield call(updateReviewApi, action.payload);
+        const payload = action.payload || {};
+        const reviewId = payload.reviewId || payload.id;
+
+        if (!reviewId) {
+            throw new Error("수정할 리뷰 ID(reviewId)가 존재하지 않습니다.");
+        }
+
+        const requestDto = payload.requestDto || {
+            meetupId: payload.meetupId,
+            content: payload.content,
+            rating: payload.rating,
+            isPublic: payload.isPublic,
+            imageIds: payload.imageIds,
+        };
+
+        yield call(updateReviewApi, { reviewId, requestDto });
         yield put(updateReviewSuccess(action.payload));
     } catch (err) {
         yield put(updateReviewFailure(err.response?.data?.message || err.message));
     }
 }
 
-// 리뷰 삭제 (사용자 / 관리자 공통)
 export function* deleteReview(action) {
     try {
         yield call(deleteReviewApi, action.payload);
@@ -82,37 +104,52 @@ export function* deleteReview(action) {
     }
 }
 
-// 특정 모임 리뷰 목록 조회
-export function* fetchReviewsByMeetup(action) {
+// ★ [통합] meetupId 유무에 따라 모임 상세 API 혹은 마이페이지 API로 자동 분기
+export function* fetchReviewList(action) {
     try {
-        const result = yield call(fetchReviewsByMeetupApi, action.payload);
-        yield put(getReviewListSuccess(result.data));
+        const { meetupId, ...params } = action.payload || {};
+        let result;
+
+        if (meetupId) {
+            // 모임 상세 페이지용 (keyword, 정렬, 페이징 포함)
+            result = yield call(fetchReviewsByMeetupApi, action.payload);
+        } else {
+            // 마이페이지용 (keyword, 정렬, 페이징 포함)
+            result = yield call(fetchMyReviewsApi, params);
+        }
+        
+        yield put(getReviewListSuccess({
+            reviews: result.data.content || result.data.reviews || result.data,
+            totalCount: result.data.totalElements || 0,
+            totalPage: result.data.totalPages || 0,
+        }));
+
     } catch (err) {
         yield put(getReviewListFailure(err.response?.data?.message || err.message));
     }
 }
 
-// 내가 작성한 리뷰 목록 조회
-export function* fetchMyReviews(action) {
-    try {
-        const result = yield call(fetchMyReviewsApi, action.payload);
-        yield put(getReviewListSuccess(result.data));
-    } catch (err) {
-        yield put(getReviewListFailure(err.response?.data?.message || err.message));
-    }
-}
-
-// 리뷰 좋아요 토글
+// 리뷰 좋아요 토글 (중복 좋아요 400 에러 핸들링 추가)
 export function* toggleReviewLike(action) {
     try {
-        yield call(toggleReviewLikeApi, action.payload);
-        yield put(toggleReviewLikeSuccess(action.payload));
+        const reviewId = typeof action.payload === 'object' && action.payload !== null
+            ? action.payload.reviewId || action.payload.id 
+            : action.payload;
+
+        if (!reviewId) {
+            console.error("❌ reviewId가 존재하지 않습니다!");
+            return;
+        }
+
+        yield call(toggleReviewLikeApi, reviewId);
+        yield put(toggleReviewLikeSuccess(reviewId));
     } catch (err) {
-        yield put(toggleReviewLikeFailure(err.response?.data?.message || err.message));
+        const errorMsg = err.response?.data?.message || err.message;
+        console.warn("⚠️ [좋아요 제한]:", errorMsg);
+        yield put(toggleReviewLikeFailure(errorMsg));
     }
 }
 
-// AI 리뷰 분석
 export function* analyzeReviews(action) {
     try {
         const result = yield call(analyzeReviewsApi, action.payload);
@@ -122,7 +159,6 @@ export function* analyzeReviews(action) {
     }
 }
 
-// [관리자] 전체 리뷰 목록 조회
 export function* fetchAdminReviewList(action) {
     try {
         const result = yield call(fetchAdminReviewListApi, action.payload);
@@ -132,7 +168,6 @@ export function* fetchAdminReviewList(action) {
     }
 }
 
-// [관리자] 리뷰 강제 삭제
 export function* adminDeleteReview(action) {
     try {
         yield call(adminDeleteReviewApi, action.payload);
@@ -143,25 +178,25 @@ export function* adminDeleteReview(action) {
 }
 
 
-
-function* watchCreateReview() { yield takeLatest(createReviewRequest.type, createReview); }
-function* watchFetchReviewDetail() { yield takeLatest(getReviewDetailRequest.type, fetchReviewDetail); }
-function* watchUpdateReview() { yield takeLatest(updateReviewRequest.type, updateReview); }
-function* watchDeleteReview() { yield takeLatest(deleteReviewRequest.type, deleteReview); }
-function* watchFetchReviewList() { yield takeLatest(getReviewListRequest.type, fetchReviewsByMeetup); }
-function* watchAnalyzeReviews() { yield takeLatest(analyzeReviewsRequest.type, analyzeReviews); }
-function* watchToggleReviewLike() { yield takeEvery(toggleReviewLikeRequest.type, toggleReviewLike); }
-
-
+// ==========================================
+// 3. Watcher 함수
+// ==========================================
+function* watchCreateReview() { yield takeLatest(createReviewRequest, createReview); }
+function* watchFetchReviewDetail() { yield takeLatest(getReviewDetailRequest, fetchReviewDetail); }
+function* watchUpdateReview() { yield takeLatest(updateReviewRequest, updateReview); }
+function* watchDeleteReview() { yield takeLatest(deleteReviewRequest, deleteReview); }
+function* watchFetchReviewList() { yield takeLatest(getReviewListRequest, fetchReviewList); } // ★ 통합된 fetchReviewList 연결
+function* watchAnalyzeReviews() { yield takeLatest(analyzeReviewsRequest, analyzeReviews); }
+function* watchToggleReviewLike() { yield takeLatest(toggleReviewLikeRequest, toggleReviewLike); }
 
 export default function* reviewSaga() {
     yield all([
-        call(watchCreateReview),
-        call(watchFetchReviewDetail),
-        call(watchUpdateReview),
-        call(watchDeleteReview),
-        call(watchFetchReviewList),
-        call(watchAnalyzeReviews),
-        call(watchToggleReviewLike),
+        fork(watchCreateReview),
+        fork(watchFetchReviewDetail),
+        fork(watchUpdateReview),
+        fork(watchDeleteReview),
+        fork(watchFetchReviewList),
+        fork(watchAnalyzeReviews),
+        fork(watchToggleReviewLike),
     ]);
 }

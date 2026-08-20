@@ -22,9 +22,12 @@ public interface ReviewService {
 
     // 특정 모임의 리뷰 목록 조회 (페이징)
     public ReviewListResponseDto getReviewsByMeetup(Long meetupId, Pageable pageable);
+    
+    // ★ [추가] 특정 모임의 리뷰 목록 조회 (검색어 + 페이징) - 모임 상세페이지용
+    public ReviewListResponseDto getReviewsByMeetup(Long meetupId, String keyword, Pageable pageable);
 
-    // 특정 회원이 작성한 리뷰 목록 조회 (마이페이지용 페이징)
-    public ReviewListResponseDto getMyReviews(Long memberId, Pageable pageable);
+    // 특정 회원이 작성한 리뷰 목록 조회 (마이페이지용 페이징 + 검색)
+    public ReviewListResponseDto getMyReviews(Long memberId, String keyword, Pageable pageable);
 
     // 리뷰 좋아요 토글 (좋아요 / 취소)
     public void reviewLike(Long memberId, Long reviewId);
