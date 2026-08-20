@@ -141,7 +141,7 @@ public class MemberServiceImpl implements MemberService{
 		memberInfo.setMember(member);
 		memberInfo.setGender(dto.getGender());
 		memberInfo.setBirth(dto.getBirth());
-		memberInfo.setReportStatus(reportStatus);
+		memberInfo.setMemberReportStatus(reportStatus);
 		
 		memberInfoRepository.save(memberInfo);
 		
@@ -404,7 +404,7 @@ public class MemberServiceImpl implements MemberService{
 		memberInfo.setGender(dto.getGender());
 		memberInfo.setBirth(dto.getBirth());
 		
-		memberInfo.setReportStatus(reportStatus);
+		memberInfo.setMemberReportStatus(reportStatus);
 		
 		memberInfoRepository.save(memberInfo);
 		
