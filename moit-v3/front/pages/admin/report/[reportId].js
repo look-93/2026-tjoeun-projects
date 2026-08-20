@@ -9,7 +9,7 @@ import {
     fetchReportsDetailRequest,
     deleteReportRequest,
     deleteReportSuccess,
-    resetReportState
+    resetReportState,
 } from '../../../../reducers/reportReducer';
 import {
     Card, Radio, Input, Button, Typography, Space, Divider, message,
