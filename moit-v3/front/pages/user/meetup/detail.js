@@ -13,6 +13,9 @@ import {
     getReviewListRequest,
     toggleReviewLikeRequest,
 } from "../../../reducers/reviewReducer";
+import {
+    qnaMeetupListRequest,
+} from '../../../reducers/qnaReducer';
 import { useDispatch, useSelector } from "react-redux";
 
 import { fetchMeetupDetailRequest } from "../../../reducers/meetupReducer";
@@ -37,6 +40,13 @@ function MeetupDetailPage() {
     const { user } = useSelector((state) => state.user);
     const { meetupId } = router.query;
     const isOwner = user?.memberId === meetup?.memberId; //user?.id === meetup?.memberId;
+    // qna
+    const { meetupQnaList, loading: qnaLoading } = useSelector((state) => state.qna);
+
+    useEffect(() => {
+      if (!meetup?.meetupId) return;
+      dispatch(qnaMeetupListRequest(meetup.meetupId));
+    }, [meetup?.meetupId, dispatch]);
     //console.log(isOwner);
     //console.log(user);
     // Redux Store에서 reviews 가져오기
@@ -166,22 +176,9 @@ function MeetupDetailPage() {
     const reviews = rawReviews.filter((review) => review.isPublic === "Y");
 
     // Q&A
-    const qnaLists = [
-        {
-            id: 1,
-            nickname: "김철수",
-            title: "초보자도 참여 가능한가요?",
-            content: "러닝을 처음 시작하는 사람도 참여할 수 있나요?",
-            answer: "네! 초보자도 편하게 참여 가능합니다.",
-        },
-        {
-            id: 2,
-            nickname: "이영희",
-            title: "몇 시에 모이나요?",
-            content: "정확한 집합 시간이 궁금합니다.",
-            answer: null,
-        },
-    ];
+    const qnaLists = Array.isArray(meetupQnaList)
+    ? meetupQnaList
+    : [];
 
     // 날씨
     useEffect(() => {
