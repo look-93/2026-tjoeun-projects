@@ -38,7 +38,7 @@ function UserMyMeetupApplyPage() {
         //통계
         dispatch(fetchMyMeetupCountRequest());
     }, [dispatch]);
-
+console.log(myMeetupCount)
     // 통계
     const stats = [
         {
