@@ -53,7 +53,7 @@ function MyPageSidebar() {
   // 제휴업체인 경우 광고 메뉴 추가
   if (user?.memberTypeId === 2) {
       menuItems.splice(6, 0, {
-          key: "/user/mypage/advertisement",
+          key: "/user/mypage/advertiseList",
           label: "광고 관리",
       });
   }
