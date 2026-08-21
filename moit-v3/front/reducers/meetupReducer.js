@@ -221,9 +221,22 @@ const meetupReducer = createSlice({
             state.visibilitySuccess = false;
         },
 
-        changeMeetupVisibilitySuccess: (state) => {
+        changeMeetupVisibilitySuccess: (state, action) => {
             state.loading = false;
             state.visibilitySuccess = true;
+
+            const meetupId = action.payload;
+
+            const meetup = state.meetups.find(
+                (meetup) => meetup.id === meetupId,
+            );
+
+            console.log("Reducer meetupId:", meetupId);
+            console.log("Reducer meetup:", meetup);
+
+            if (meetup) {
+                meetup.hidden = !meetup.hidden;
+            }
         },
 
         changeMeetupVisibilityFailure: (state, action) => {

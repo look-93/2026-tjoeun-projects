@@ -17,12 +17,11 @@ function AdminMeetupPage() {
 
     const { meetups, totalCount } = useSelector((state) => state.meetup);
 
-    console.log("관리자 모임 조회 데이터:", meetups);
+    //console.log("관리자 모임 조회 데이터:", meetups);
     //console.log("전체 개수:", totalCount);
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 10;
 
-    // 검색 조건
     // 검색 조건
     const [searchType, setSearchType] = useState("all");
     const [status, setStatus] = useState("all");
@@ -113,10 +112,10 @@ function AdminMeetupPage() {
             render: (_, record) => (
                 <Button
                     size="small"
-                    danger
+                    danger={!record.hidden}
                     onClick={() => handlevisibilityMeetup(record.id)}
                 >
-                    비공개
+                    {record.hidden ? "공개" : "비공개"}
                 </Button>
             ),
         },

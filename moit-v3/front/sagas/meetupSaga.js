@@ -336,7 +336,7 @@ export function* changeMeetupVisibility(action) {
     try {
         yield call(changeMeetupVisibilityAPI, action.payload);
 
-        yield put(changeMeetupVisibilitySuccess());
+        yield put(changeMeetupVisibilitySuccess(action.payload));
     } catch (err) {
         yield put(
             changeMeetupVisibilityFailure(
