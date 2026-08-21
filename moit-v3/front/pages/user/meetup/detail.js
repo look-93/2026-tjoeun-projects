@@ -37,7 +37,8 @@ function MeetupDetailPage() {
     const { user } = useSelector((state) => state.user);
     const { meetupId } = router.query;
     const isOwner = user?.memberId === meetup?.memberId; //user?.id === meetup?.memberId;
-
+    console.log(isOwner);
+    console.log(user);
     // Redux Store에서 reviews 가져오기
     const { reviews: reduxReviews } = useSelector((state) => {
         if (!state) return {};
