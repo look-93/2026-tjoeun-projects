@@ -3,6 +3,8 @@ package com.moit.member.dto;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,4 +21,5 @@ public class UserUpdateRequestDto {
     private LocalDate birth;
 
     private List<Integer> interestIds;
+    private MultipartFile profileImage;
 }

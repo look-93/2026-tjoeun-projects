@@ -45,7 +45,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/members")
@@ -390,28 +389,102 @@ public class MemberRestController {
     }
     
     // 회원정보 수정
-    @Operation( summary = "회원정보 수정", description = "로그인한 회원정보 수정" )
-    @PutMapping("/me")
-    public ResponseEntity<UserResponseDto> updateMyInfo(
-    		@RequestBody UserUpdateRequestDto request,
-    		Authentication authentication
-    		) {
-    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+ // 회원정보 수정
+    @Operation(
+            summary = "회원정보 수정",
+            description = "로그인한 회원의 회원정보와 프로필 이미지를 수정합니다."
+    )
+    @PutMapping(value = "/me", consumes = "multipart/form-data")
+    public ResponseEntity<?> updateMyInfo(
+            @RequestParam(required = false) String nickname,
+            @RequestParam(required = false) String mobile,
+            @RequestParam(required = false) String gender,
+            @RequestParam(required = false) String birth,
+            @RequestParam(required = false) List<Integer> interestIds,
+            @RequestParam(required = false) MultipartFile profileImage,
+            Authentication authentication
+    ) {
 
-        Long memberId = userDetails.getAppUserId();
+        try {
 
-        UserDto dto = new UserDto();
+            // 1. 로그인 회원 ID
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        dto.setNickname(request.getNickname());
-        dto.setMobile(request.getMobile());
-        dto.setGender(request.getGender());
-        dto.setBirth(request.getBirth());
-        dto.setInterestIds(request.getInterestIds());
+            Long memberId = userDetails.getAppUserId();
 
-        UserDto result = service.updateMember(memberId, dto);
+            // 2. DTO 생성
+            UserDto dto = new UserDto();
 
-        return ResponseEntity.ok(UserResponseDto.from(result));
-    	
+            dto.setNickname(nickname);
+            dto.setMobile(mobile);
+            dto.setGender(gender);
+
+            // birth가 들어온 경우에만 변환
+            if (birth != null && !birth.isBlank()) {
+                dto.setBirth(java.time.LocalDate.parse(birth));
+            }
+
+            dto.setInterestIds(interestIds);
+
+            // 3. 프로필 이미지 처리
+            if (profileImage != null && !profileImage.isEmpty()) {
+
+                String contentType = profileImage.getContentType();
+
+                if (contentType == null || !contentType.startsWith("image/")) {
+
+                    return ResponseEntity
+                            .badRequest().body(Map.of( "message", "이미지 파일만 업로드할 수 있습니다." ));
+                }
+
+                String originalFilename = profileImage.getOriginalFilename();
+
+                String extension = "";
+
+                if (originalFilename != null && originalFilename.contains(".")) {
+
+                    extension = originalFilename.substring( originalFilename.lastIndexOf(".") );
+                }
+
+                String savedFilename = UUID.randomUUID() + extension;
+
+                // 업로드 폴더
+                Path uploadPath = Paths.get("uploads/profile");
+
+                Files.createDirectories(uploadPath);
+
+                // 실제 파일 저장
+                Path filePath = uploadPath.resolve(savedFilename);
+
+                Files.write( filePath, profileImage.getBytes() );
+
+                // DB 저장 URL
+                String profileUrl = "/images/profile/" + savedFilename;  
+                
+                dto.setProfileUrl(profileUrl);
+            }
+
+            // 4. 회원정보 + 이미지 수정
+            UserDto result = service.updateMember(memberId, dto);
+
+            // 5. 응답
+            return ResponseEntity.ok( UserResponseDto.from(result) );
+
+        } catch (java.time.format.DateTimeParseException e) {
+
+            return ResponseEntity
+                    .badRequest().body(Map.of( "message", "생년월일 형식이 올바르지 않습니다." ));
+
+        } catch (IOException e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of( "message", "프로필 이미지 업로드에 실패했습니다." ));
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity
+                    .badRequest().body(Map.of( "message", e.getMessage() ));
+        }
     }
     
     //회원탈퇴(논리삭제)
@@ -571,77 +644,74 @@ public class MemberRestController {
         }
     }
     
- // 프로필 이미지 수정
-    @Operation(
-            summary = "프로필 이미지 수정",
-            description = "로그인한 회원의 프로필 이미지를 업로드하고 변경합니다."
-    )
-    @PostMapping("/me/profile-image")
-    public ResponseEntity<?> updateProfileImage(
-            @RequestParam("file") MultipartFile file,
-            Authentication authentication) {
-
-        try {
-
-            // 1. 로그인 회원 ID
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
-            Long memberId = userDetails.getAppUserId();
-
-            // 2. 파일 존재 여부 확인
-            if (file == null || file.isEmpty()) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(Map.of( "message", "프로필 이미지를 선택해주세요." ));
-            }
-
-            // 3. 이미지 파일인지 확인
-            String contentType = file.getContentType();
-
-            if (contentType == null || !contentType.startsWith("image/")) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(Map.of( "message", "이미지 파일만 업로드할 수 있습니다." ));
-            }
-
-            // 4. 확장자 추출
-            String originalFilename = file.getOriginalFilename();
-
-            String extension = "";
-
-            if (originalFilename != null && originalFilename.contains(".")) {
-                extension = originalFilename.substring( originalFilename.lastIndexOf(".") );
-            }
-
-            // 5. UUID로 파일명 생성
-            String savedFilename = UUID.randomUUID() + extension;
-
-            // 6. 저장 경로
-            Path uploadPath = Paths.get("uploads/profile");
-
-            Files.createDirectories(uploadPath);
-
-            // 7. 실제 파일 저장
-            Path filePath = uploadPath.resolve(savedFilename);
-
-            Files.write( filePath, file.getBytes() );
-
-            // 8. DB에 저장할 URL
-            String profileUrl = "/images/profile/" + savedFilename;
-
-            // 9. 회원정보 업데이트
-            service.updateProfileImage( memberId, profileUrl );
-
-            // 10. 응답
-            return ResponseEntity.ok(
-                    Map.of( "message", "프로필 이미지가 변경되었습니다.", "profileUrl", profileUrl ) );
-
-        } catch (IOException e) {
-
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of( "message", "프로필 이미지 업로드에 실패했습니다." )); }
-    }
+    // 프로필 이미지 수정
+//    @Operation( summary = "프로필 이미지 수정", description = "로그인한 회원의 프로필 이미지를 업로드하고 변경합니다." )
+//    @PostMapping("/me/profile-image")
+//    public ResponseEntity<?> updateProfileImage(
+//            @RequestParam("file") MultipartFile file,
+//            Authentication authentication) {
+//
+//        try {
+//
+//            // 1. 로그인 회원 ID
+//            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+//
+//            Long memberId = userDetails.getAppUserId();
+//
+//            // 2. 파일 존재 여부 확인
+//            if (file == null || file.isEmpty()) {
+//                return ResponseEntity
+//                        .badRequest()
+//                        .body(Map.of( "message", "프로필 이미지를 선택해주세요." ));
+//            }
+//
+//            // 3. 이미지 파일인지 확인
+//            String contentType = file.getContentType();
+//
+//            if (contentType == null || !contentType.startsWith("image/")) {
+//                return ResponseEntity
+//                        .badRequest()
+//                        .body(Map.of( "message", "이미지 파일만 업로드할 수 있습니다." ));
+//            }
+//
+//            // 4. 확장자 추출
+//            String originalFilename = file.getOriginalFilename();
+//
+//            String extension = "";
+//
+//            if (originalFilename != null && originalFilename.contains(".")) {
+//                extension = originalFilename.substring( originalFilename.lastIndexOf(".") );
+//            }
+//
+//            // 5. UUID로 파일명 생성
+//            String savedFilename = UUID.randomUUID() + extension;
+//
+//            // 6. 저장 경로
+//            Path uploadPath = Paths.get("uploads/profile");
+//
+//            Files.createDirectories(uploadPath);
+//
+//            // 7. 실제 파일 저장
+//            Path filePath = uploadPath.resolve(savedFilename);
+//
+//            Files.write( filePath, file.getBytes() );
+//
+//            // 8. DB에 저장할 URL
+//            String profileUrl = "/images/profile/" + savedFilename;
+//
+//            // 9. 회원정보 업데이트
+//            service.updateProfileImage( memberId, profileUrl );
+//
+//            // 10. 응답
+//            return ResponseEntity.ok(
+//                    Map.of( "message", "프로필 이미지가 변경되었습니다.", "profileUrl", profileUrl ) );
+//
+//        } catch (IOException e) {
+//
+//            return ResponseEntity
+//                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(Map.of( "message", "프로필 이미지 업로드에 실패했습니다." )); }
+//    }
     
     
 }

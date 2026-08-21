@@ -249,65 +249,115 @@ public class MemberServiceImpl implements MemberService{
 	@Transactional
 	@Override
 	public UserDto updateMember(Long memberId, UserDto dto) {
-		
-		//1. 회원조회
-		Member member = memberRepository.findById(memberId)
-							.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원입니다."));
-		
-		//2. 회원 기본정보 수정
-		member.setNickname(dto.getNickname());
-		member.setMobile(dto.getMobile());
-		
-		// 프로필 이미지 수정
-		if(dto.getProfileUrl() != null && !dto.getProfileUrl().isBlank()) {
-			member.setProfileUrl(dto.getProfileUrl());
-		}
-		
-		//3. 회원 상세정보 조회
-		MemberInfo memberInfo = memberInfoRepository.findById(memberId)
-									.orElseThrow(()-> new IllegalArgumentException("회원 상세정보가 존재하지 않습니다.") );
-		
-		//4. 상세정보 수정
-		memberInfo.setGender(dto.getGender());
-		memberInfo.setBirth(dto.getBirth());
-		
-		// 회원 관심사 수정
-		if (dto.getInterestIds() != null) {
 
-		    // 기존 관심사 삭제
-		    memberInterestRepository.deleteByMember_Id(memberId);
+	    // 1. 회원 조회
+	    Member member = memberRepository.findById(memberId)
+	            .orElseThrow(() -> new IllegalArgumentException( "존재하지 않는 회원입니다." )
+	            );
 
-		    // 새로운 관심사 저장
-		    for (Integer interestId : dto.getInterestIds()) {
+	    // =====================================================
+	    // 2. 회원 기본정보 수정
+	    // =====================================================
 
-		        Interest interest = interestRepository
-		                .findById(interestId.longValue())
-		                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 관심사입니다.") );
+	    // 닉네임
+	    if (dto.getNickname() != null && !dto.getNickname().isBlank()) {
 
-		        MemberInterest memberInterest = new MemberInterest();
+	        member.setNickname(dto.getNickname());
+	    }
 
-		        MemberInterestId id = new MemberInterestId( memberId, interest.getInterestId() );
+	    // 전화번호
+	    if (dto.getMobile() != null && !dto.getMobile().isBlank()) {
 
-		        memberInterest.setId(id);
-		        memberInterest.setMember(member);
-		        memberInterest.setInterest(interest);
+	        member.setMobile(dto.getMobile());
+	    }
 
-		        memberInterestRepository.save(memberInterest);
-		    }
-		}
-		
-		//5. DTO에 반영
-		dto.setMemberId(member.getId());
-		dto.setLoginId(member.getLoginId());
-		dto.setEmail(member.getEmail());
-		dto.setNickname(member.getNickname());
-		dto.setMobile(member.getMobile());
-		dto.setProfileUrl(member.getProfileUrl());
-		
-		dto.setMemberTypeId(member.getMemberType().getMemberTypeId());
-		dto.setStatusId(member.getMemberStatus().getStatusId());
-		
-		return dto;
+	    // 프로필 이미지
+	    if (dto.getProfileUrl() != null && !dto.getProfileUrl().isBlank()) {
+	        member.setProfileUrl(dto.getProfileUrl());
+	    }
+
+
+	    // =====================================================
+	    // 3. 회원 상세정보 조회
+	    // =====================================================
+
+	    MemberInfo memberInfo = memberInfoRepository.findById(memberId)
+	                    .orElseThrow(() -> new IllegalArgumentException( "회원 상세정보가 존재하지 않습니다." ) );
+
+
+	    // =====================================================
+	    // 4. 성별 수정
+	    // =====================================================
+
+	    if (dto.getGender() != null) {  memberInfo.setGender(dto.getGender()); }
+
+
+	    // =====================================================
+	    // 5. 생년월일 수정
+	    // =====================================================
+
+	    if (dto.getBirth() != null) {  memberInfo.setBirth(dto.getBirth()); }
+
+
+	    // =====================================================
+	    // 6. 관심사 수정
+	    // =====================================================
+
+	    // null이면 관심사를 수정하지 않음
+	    if (dto.getInterestIds() != null) {
+
+	        // 기존 관심사 삭제
+	        memberInterestRepository.deleteByMember_Id(memberId);
+
+	        // 새로운 관심사 저장
+	        for (Integer interestId : dto.getInterestIds()) {
+
+	            Interest interest = interestRepository.findById( interestId.longValue() )
+	                    .orElseThrow(() -> new IllegalArgumentException( "존재하지 않는 관심사입니다." ) );
+
+	            MemberInterest memberInterest = new MemberInterest();
+
+	            MemberInterestId id = new MemberInterestId( memberId, interest.getInterestId() );
+
+	            memberInterest.setId(id);
+	            memberInterest.setMember(member);
+	            memberInterest.setInterest(interest);
+
+	            memberInterestRepository.save(memberInterest);
+	        }
+	    }
+
+
+	    // =====================================================
+	    // 7. 수정된 회원정보 DTO 생성
+	    // =====================================================
+
+	    UserDto result = new UserDto();
+
+	    result.setMemberId(member.getId());
+	    result.setLoginId(member.getLoginId());
+	    result.setEmail(member.getEmail());
+	    result.setNickname(member.getNickname());
+	    result.setMobile(member.getMobile());
+	    result.setProfileUrl(member.getProfileUrl());
+	    result.setMemberTypeId( member.getMemberType().getMemberTypeId() );
+	    result.setStatusId( member.getMemberStatus().getStatusId() );
+
+
+	    // 회원 상세정보
+	    result.setGender(memberInfo.getGender());
+	    result.setBirth(memberInfo.getBirth());
+
+
+	    // 관심사
+	    List<MemberInterest> memberInterests = memberInterestRepository.findByMember_Id(memberId);
+
+	    List<Integer> interestIds = memberInterests.stream()
+	                    .map(memberInterest -> memberInterest.getInterest().getInterestId().intValue() ).toList();
+
+	    result.setInterestIds(interestIds);
+
+	    return result;
 	}
 	
 	// 회원탈퇴(논리삭제)
