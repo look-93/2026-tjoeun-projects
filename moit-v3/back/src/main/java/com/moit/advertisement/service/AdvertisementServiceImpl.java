@@ -30,6 +30,7 @@ import com.moit.advertisement.repository.AdvertisementClickLogRepository;
 import com.moit.advertisement.repository.AdvertisementImageRepository;
 import com.moit.advertisement.repository.AdvertisementImpressionLogRepository;
 import com.moit.advertisement.repository.AdvertisementPaymentRepository;
+import com.moit.advertisement.repository.AdvertisementPositionPriceRepository;
 import com.moit.advertisement.repository.AdvertisementRepository;
 import com.moit.member.entity.Member;
 import com.moit.member.repository.MemberRepository;
@@ -130,7 +131,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     }
     
     // =========================================================
-    // 광고 목록
+    // 광고 목록 ( 사용자 )
     // =========================================================
 
     @Override
@@ -144,8 +145,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         }
 
         List<Advertisement> advertisements =
-                advertisementRepository
-                        .findByAdvertiser_Id(advertiserId);
+                advertisementRepository.findByAdvertiser_IdAndDeleteYn(advertiserId, 'N');
 
         return advertisements.stream()
                 .map(this::toDto)
@@ -163,8 +163,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             return 0;
         }
 
-        return (int) advertisementRepository
-                .countByAdvertiser_Id(advertiserId);
+        return (int) advertisementRepository.countByAdvertiser_IdAndDeleteYn(advertiserId, 'N');
     }
 
 
@@ -965,8 +964,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     // DTO 변환
     // =========================================================
 
-    private AdvertisementDto toDto(
-            Advertisement ad) {
+    private AdvertisementDto toDto( Advertisement ad) {
 
         AdvertisementDto dto =
                 new AdvertisementDto();
@@ -1013,11 +1011,12 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                 ad.getAdGrade()
         );
 
-        dto.setAdvertiserId(
-                ad.getAdvertiser() != null
-                        ? ad.getAdvertiser().getId()
-                        : null
-        );
+        if (ad.getAdvertiser() != null) {
+            dto.setAdvertiserId(ad.getAdvertiser().getId()); 
+            
+            // Member 엔티티에 있는 닉네임
+            dto.setAdvertiserNickname(ad.getAdvertiser().getNickname()); 
+        }
 
         dto.setImpressions(
                 ad.getImpressions()

@@ -29,6 +29,7 @@ public class AdvertisementDto {
     private Long adId;
 
     private Long advertiserId;
+    private String advertiserNickname;
 
     private String title;
     private String content;

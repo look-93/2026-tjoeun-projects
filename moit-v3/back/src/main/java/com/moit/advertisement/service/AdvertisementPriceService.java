@@ -1,7 +1,9 @@
 package com.moit.advertisement.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+import com.moit.advertisement.dto.AdvertisementPositionPriceDto;
 import com.moit.advertisement.dto.AdvertisementPriceDto;
 
 public interface AdvertisementPriceService {
@@ -18,4 +20,8 @@ public interface AdvertisementPriceService {
     );
 
     void delete(Long priceId);
+
+	List<AdvertisementPositionPriceDto> findAllPositionPrices();
+
+	void updatePositionPrice(Long id, BigDecimal additionalPrice);
 }
