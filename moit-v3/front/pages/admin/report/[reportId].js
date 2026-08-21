@@ -244,7 +244,7 @@ function ReportDetailPage() {
     return (
         <div className="report-detail-page">
             <Card>
-                <Title level={2}>신고 상세보기</Title>
+                <Title level={2}>관리자 신고 상세보기</Title>
 
                 <Descriptions bordered column={1}>
                     {/* 신고 번호 */}
@@ -256,21 +256,17 @@ function ReportDetailPage() {
                         {currentReport.memberNickname ?? '-'}
                         {' '}
                         ({currentReport.memberId ?? '-'}번)
-                    </Descriptions.Item>
-
-                    <Descriptions.Item label="신고자의 신뢰도점수 & 뱃지">
-                        {currentReport.trustScore}점
-                        <ReportStatusCodeTag statusCode={currentReport.StatusCode} />
+                        {' => '}
+                        {currentReport.trustScore}점{' '}
+                        <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
                     </Descriptions.Item>
 
                     <Descriptions.Item label="신고 대상 회원 (targetMemberId)">
                         {currentReport.targetMemberNickname ?? '-'}
                         {' '}
                         ({currentReport.targetMemberId ?? '-'}번)
-                    </Descriptions.Item>
-
-                    <Descriptions.Item label="신고 대상 회원의 신뢰도점수 & 뱃지">
-                        {currentReport.targetTrustScore}점
+                        {' => '}
+                        {currentReport.targetTrustScore}점{' '}
                         <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
                     </Descriptions.Item>
 
@@ -309,13 +305,17 @@ function ReportDetailPage() {
                     {/* 신고 작성일 */}
                     <Descriptions.Item label="신고일">
                         {/* {currentReport.createdAt} */}
-                        {currentReport.createdAt?.slice(0, 10)}
+                        {currentReport.createdAt?.replace('T', ' ').slice(0, 19)}
                     </Descriptions.Item>
 
-                    {/* 신고 수정일 */}
-                    <Descriptions.Item label="수정일자">
-                        {currentReport.updatedAt?.slice(0, 10)}
-                    </Descriptions.Item>
+                    {/* 수정일이 있을 때만 표시 */}
+                    {
+                        currentReport.userUpdatedAt && (
+                            <Descriptions.Item label="수정일자">
+                                {currentReport.userUpdatedAt?.replace('T', ' ').slice(0, 19)}
+                            </Descriptions.Item>
+                        )
+                    }
                 </Descriptions>
 
 
@@ -363,59 +363,58 @@ function ReportDetailPage() {
 
 
             <Card style={{ marginTop: 20 }}>
-                <Title level={4}>관리자 처리 이력</Title>
+            <Title level={4}>관리자 처리 이력</Title>
 
-                {auditLogFetch.loading ? (
-                    <Spin />
-                ) : auditLogs && auditLogs.length > 0 ? (
+            {auditLogFetch.loading ? (
+                <Spin />
+            ) : auditLogs && auditLogs.length > 0 ? (
 
-                    auditLogs.map((log) => (
-                        <Card
-                            key={log.auditLogId}
-                            size="small"
-                            style={{ marginBottom: 12 }}
-                        >
-                            <Descriptions bordered column={1} size="small">
-                                <Descriptions.Item label="처리 일시">
-                                    {log.processedAt
-                                        ? log.processedAt.replace('T', ' ').slice(0, 19)
-                                        : '-'}
-                                </Descriptions.Item>
+                auditLogs.map((log) => (
+                    <Descriptions
+                        key={log.auditLogId}
+                        bordered
+                        column={1}
+                        size="small"
+                        style={{ marginBottom: 12 }}
+                    >
+                        <Descriptions.Item label="처리 일시">
+                            {log.processedAt
+                                ? log.processedAt.replace('T', ' ').slice(0, 19)
+                                : '-'}
+                        </Descriptions.Item>
 
-                                <Descriptions.Item label="처리 관리자 (adminMemberId)">
-                                    {log.adminNickname || '-'}
-                                    {' '}
-                                    ({log.adminMemberId || '-'})
-                                </Descriptions.Item>
+                        <Descriptions.Item label="처리 관리자 (adminMemberId)">
+                            {log.adminNickname || '-'}
+                            {' '}
+                            ({log.adminMemberId || '-'})
+                        </Descriptions.Item>
 
-                                <Descriptions.Item label="처리 상태">
-                                    <Space>
-                                        <ReportStatusTag status={log.previousStatus} />
-                                        <span> → </span>
-                                        <ReportStatusTag status={log.changedStatus} />
-                                    </Space>
-                                </Descriptions.Item>
+                        <Descriptions.Item label="처리 상태">
+                            <Space>
+                                <ReportStatusTag status={log.previousStatus} />
+                                <span> → </span>
+                                <ReportStatusTag status={log.changedStatus} />
+                            </Space>
+                        </Descriptions.Item>
 
-                                <Descriptions.Item label="관리자 처리 사유">
-                                    {log.processReason || '-'}
-                                </Descriptions.Item>
+                        <Descriptions.Item label="관리자 처리 사유">
+                            {log.processReason || '-'}
+                        </Descriptions.Item>
 
-                                <Descriptions.Item label="신뢰도 점수 변동">
-                                    {log.trustScoreChange != null
-                                        ? `${log.trustScoreChange > 0 ? '+' : ''}${log.trustScoreChange}점`
-                                        : '-'}
-                                </Descriptions.Item>
+                        <Descriptions.Item label="신뢰도 점수 변동">
+                            {log.trustScoreChange != null
+                                ? `${log.trustScoreChange > 0 ? '+' : ''}${log.trustScoreChange}점`
+                                : '-'}
+                        </Descriptions.Item>
+                    </Descriptions>
+                ))
 
-                            </Descriptions>
-                        </Card>
-                    ))
-
-                ) : (
-                    <div>
-                        처리 이력이 없습니다.
-                    </div>
-                )}
-            </Card>
+            ) : (
+                <div>
+                    처리 이력이 없습니다.
+                </div>
+            )}
+        </Card>
         </div>
     );
 }

@@ -1,5 +1,6 @@
 package com.moit.reports.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -24,7 +25,6 @@ import com.moit.reports.dto.ReportsDto.ReportResponseDto;
 import com.moit.reports.entity.MemberReportStatus;
 import com.moit.reports.entity.Report;
 import com.moit.reports.entity.ReportAuditLog;
-import com.moit.reports.enums.ReasonCode;
 import com.moit.reports.enums.ReportStatus;
 import com.moit.reports.enums.TargetType;
 import com.moit.reports.repository.MemberReportStatusRepository;
@@ -86,11 +86,13 @@ public class ReportsServiceImpl implements ReportsService {
 	@Transactional
 	public ReportResponseDto updateUserReport(Long reportId, Long memberId, ReportRequestDto requestDto) {
 		Report report = reportRepository
-				.findByReportIdAndMember_IdAndDeleteYnAndStatus(reportId, memberId, 'N', ReportStatus.PENDING)
+				.findByReportIdAndMember_IdAndDeleteYnAndStatus(
+						reportId, memberId, 'N', ReportStatus.PENDING)
 				.orElseThrow(()-> new IllegalArgumentException("사용자 신고 수정 조회 오류! reportId: " + reportId));
 
 		report.setReasonCode( requestDto.getReasonCode());
 		report.setReasonDetail( requestDto.getReasonDetail() );
+		report.setUserUpdatedAt( LocalDateTime.now() );
 		
 		return ReportResponseDto.from(report);
 	}
@@ -120,7 +122,14 @@ public class ReportsServiceImpl implements ReportsService {
 		// 조회된 신고 Entity 목록을 ResponseDto 목록으로 변환
 		List<ReportResponseDto> response = page.getContent()
 				.stream()
-				.map(ReportResponseDto::from)
+				.map(report -> {
+	                // 1. 신고자 + 신고 기본정보
+	                ReportResponseDto dto = ReportResponseDto.from(report);
+	                // 2. 신고 대상 회원 정보 추가
+	                setTargetMemberInfo(report, dto);
+
+	                return dto;
+	            })
 				.toList();
 		
 		ReportListResponseDto responseDto = new ReportListResponseDto();
@@ -275,7 +284,10 @@ public class ReportsServiceImpl implements ReportsService {
 //	    if (email != null && !email.isBlank()) { apiEmail.sendMail(subject, content, email); }
 //	    else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
 		
-		return ReportResponseDto.from(report);
+		ReportResponseDto responseDto = ReportResponseDto.from(report);
+		setTargetMemberInfo(report, responseDto);
+
+		return responseDto;
 	}
 
 	// 관리자 신고 삭제 (물리삭제 -> 논리삭제 변경 + 감사 로그 processReason 포함)
@@ -324,8 +336,7 @@ public class ReportsServiceImpl implements ReportsService {
 	// 관리자 신고 목록 조회 + 검색 + 페이징
 	@Override
 	public ReportListResponseDto getAdminReports(ReportSearchDto searchDto, Pageable pageable) {
-		Pageable pageRequest = PageRequest
-				.of( pageable.getPageNumber(), pageable.getPageSize() );
+		Pageable pageRequest = PageRequest.of( pageable.getPageNumber(), pageable.getPageSize() );
 		
 		String memberNickname = null;
 	    
@@ -344,13 +355,20 @@ public class ReportsServiceImpl implements ReportsService {
 		);
 		
 		// 조회된 신고 Entity 목록을 ResponseDto 목록으로 변환
-		List<ReportResponseDto> report = page.getContent()
+		List<ReportResponseDto> reports = page.getContent()
 				.stream()
-				.map(ReportResponseDto::from)
+				.map(report -> {
+	                // 신고자 + 신고 기본정보
+	                ReportResponseDto dto = ReportResponseDto.from(report);
+	                // 신고 대상 회원 정보
+	                setTargetMemberInfo(report, dto);
+
+	                return dto;
+	            })
 				.toList();
 		
 		ReportListResponseDto responseDto = new ReportListResponseDto();
-		responseDto.setReports(report);	// 신고 목록
+		responseDto.setReports(reports);	// 신고 목록
 		responseDto.setTotalCount(page.getTotalElements());		// 전체 신고 개수
 		responseDto.setTotalPage((long) page.getTotalPages());	// 전체 페이지 수 (20/10 = 2...)
 		
