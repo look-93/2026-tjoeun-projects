@@ -18,6 +18,14 @@ const initialState = {
         favoriteCount: 0,
     },
 
+    //관리자 통계
+    meetupCount: {
+        totalMeetupCount: 0,
+        recruitingCount: 0,
+        closedCount: 0,
+        weatherCanceledCount: 0,
+    },
+
     aiRecommendation: null, // ai 모임글 추천
 
     loading: false,
@@ -361,6 +369,22 @@ const meetupReducer = createSlice({
             state.error = action.payload;
         },
 
+        // --- 관리자 통계 ---
+        fetchMeetupCountRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        fetchMeetupCountSuccess: (state, action) => {
+            state.loading = false;
+            state.meetupCount = action.payload;
+        },
+
+        fetchMeetupCountFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
         // --- AI 모임 추천 ---
         recommendMeetupRequest: (state) => {
             state.loading = true;
@@ -468,6 +492,11 @@ export const {
     fetchMyMeetupCountRequest,
     fetchMyMeetupCountSuccess,
     fetchMyMeetupCountFailure,
+
+    // 관리자 통계
+    fetchMeetupCountRequest,
+    fetchMeetupCountSuccess,
+    fetchMeetupCountFailure,
 
     // AI 추천
     recommendMeetupRequest,

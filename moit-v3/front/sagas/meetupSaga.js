@@ -77,6 +77,11 @@ import {
     fetchMyMeetupCountSuccess,
     fetchMyMeetupCountFailure,
 
+    //관리자 통계
+    fetchMeetupCountRequest,
+    fetchMeetupCountSuccess,
+    fetchMeetupCountFailure,
+
     // AI 추천
     recommendMeetupRequest,
     recommendMeetupSuccess,
@@ -495,19 +500,41 @@ export const fetchMyMeetupCountAPI = () =>
 
 export function* fetchMyMeetupCount() {
     try {
-        console.log("🔥 마이페이지 통계 조회 dispatch");
+        //console.log("🔥 마이페이지 통계 조회 dispatch");
 
         const result = yield call(fetchMyMeetupCountAPI);
 
-        console.log("🔥 마이페이지 통계!!!!!", result.data);
+        //console.log("🔥 마이페이지 통계!!!!!", result.data);
 
         yield put(fetchMyMeetupCountSuccess(result.data));
     } catch (err) {
-        console.error("마이페이지 통계 조회 실패:", err);
+        //console.error("마이페이지 통계 조회 실패:", err);
 
         yield put(
             fetchMyMeetupCountFailure(
                 err.response?.data?.message || err.message,
+            ),
+        );
+    }
+}
+
+// ==================================================
+// 마이페이지 통계 조회
+// GET /api/meetups/count
+// ==================================================
+
+export const fetchMeetupCountSagaAPI = () =>
+    api.get(`${MEETUP_API_BASE}/count`);
+
+function* fetchMeetupCount() {
+    try {
+        const response = yield call(fetchMeetupCountSagaAPI);
+
+        yield put(fetchMeetupCountSuccess(response.data));
+    } catch (error) {
+        yield put(
+            fetchMeetupCountFailure(
+                error.response?.data?.message || error.message,
             ),
         );
     }
@@ -575,6 +602,8 @@ export function* watchMeetupSaga() {
     yield takeLatest(recommendMeetupRequest.type, recommendMeetup);
 
     yield takeLatest(fetchMyMeetupCountRequest.type, fetchMyMeetupCount);
+
+    yield takeLatest(fetchMeetupCountRequest.type, fetchMeetupCount);
 }
 
 // ==================================================

@@ -1,4 +1,4 @@
-import { Row, Col, Button, Table } from "antd";
+import { Row, Col, Button, Table, Spin } from "antd";
 import AdminStatCard from "../../components/AdminStatCard";
 import AdminSearchBox from "../../components/AdminSearchBox";
 import AdminListTabs from "../../components/AdminListTabs";
@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
     fetchMeetupsRequest,
     changeMeetupVisibilityRequest,
+    fetchMeetupCountRequest,
 } from "../../reducers/meetupReducer";
 
 // http://localhost:3000/admin/meetup
@@ -15,7 +16,9 @@ import {
 function AdminMeetupPage() {
     const dispatch = useDispatch();
 
-    const { meetups, totalCount } = useSelector((state) => state.meetup);
+    const { meetups, meetupCount, loading } = useSelector(
+        (state) => state.meetup,
+    );
 
     //console.log("관리자 모임 조회 데이터:", meetups);
     //console.log("전체 개수:", totalCount);
@@ -29,10 +32,18 @@ function AdminMeetupPage() {
     const serverData = { allcnt: 1200, running: 1000, close: 1200 };
 
     const stats = [
-        { title: "전체 모임", value: serverData.allcnt, suffix: "개" },
-        { title: "모집 중", value: serverData.running, suffix: "개" },
-        { title: "모집 마감", value: serverData.close, suffix: "개" },
-        { title: "모집 마감", value: 100, suffix: "개" },
+        {
+            title: "전체 모임",
+            value: meetupCount.totalMeetupCount,
+            suffix: "개",
+        },
+        { title: "모집 중", value: meetupCount.recruitingCount, suffix: "개" },
+        { title: "모집 마감", value: meetupCount.closedCount, suffix: "개" },
+        {
+            title: "날씨로 인한 취소",
+            value: meetupCount.weatherCanceledCount,
+            suffix: "개",
+        },
     ];
 
     useEffect(() => {
@@ -50,6 +61,7 @@ function AdminMeetupPage() {
                 status: status === "all" ? null : status,
             }),
         );
+        dispatch(fetchMeetupCountRequest());
     }, [currentPage, searchType, status, dispatch]);
 
     const adminColumns = [
@@ -160,6 +172,25 @@ function AdminMeetupPage() {
         dispatch(changeMeetupVisibilityRequest(meetupId));
     };
 
+    //로딩처리
+    if (!meetups) {
+        return (
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "300px",
+                    gap: "16px",
+                }}
+            >
+                <Spin size="large" />
+                <span>모임 정보를 불러오는 중입니다...</span>
+            </div>
+        );
+    }
+
     return (
         <>
             {/* 통계 */}
@@ -212,6 +243,10 @@ function AdminMeetupPage() {
                         pageSize: 10,
                         showSizeChanger: false,
                     }}
+                    // loading={{
+                    //     spinning: loading,
+                    //     tip: "모임 정보를 불러오는 중입니다...",
+                    // }}
                     rowKey="id"
                     scroll={{ x: 800 }}
                 />

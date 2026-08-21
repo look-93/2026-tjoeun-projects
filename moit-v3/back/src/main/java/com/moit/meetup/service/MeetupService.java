@@ -10,6 +10,7 @@ import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplyMemberListResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MyApplicationListResponseDto;
 import com.moit.meetup.dto.MeetupCategoryDto;
+import com.moit.meetup.dto.MeetupCountResponseDto;
 import com.moit.meetup.dto.MyMeetupCountResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
@@ -73,6 +74,9 @@ public interface MeetupService {
 	
 	//마이페이지-통계
 	public MyMeetupCountResponseDto getMyMeetupCount(Long memberId);
+	
+	// 관리자 통계
+    public MeetupCountResponseDto getMeetupCount();
 	
 	// ################### open api ###################
 	//ai 제목/카테고리/컨텐츠 추가

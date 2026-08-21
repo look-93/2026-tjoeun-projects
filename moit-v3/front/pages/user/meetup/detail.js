@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchMeetupDetailRequest } from "../../../reducers/meetupReducer";
 import { fetchWeatherRequest } from "../../../reducers/commonReducer";
 
-import { Row, Col, Card, Button, Typography, Tag } from "antd";
+import { Row, Col, Card, Button, Typography, Tag, Spin } from "antd";
 import {
     ArrowLeftOutlined,
     ExclamationCircleOutlined,
@@ -203,7 +203,21 @@ function MeetupDetailPage() {
 
     //로딩처리
     if (!meetup) {
-        return <div>모임 정보를 불러오는 중입니다...</div>;
+        return (
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "300px",
+                    gap: "16px",
+                }}
+            >
+                <Spin size="large" />
+                <span>모임 정보를 불러오는 중입니다...</span>
+            </div>
+        );
     }
 
     // 광고

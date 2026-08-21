@@ -26,6 +26,7 @@ import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplyMemberListResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MyApplicationListResponseDto;
 import com.moit.meetup.dto.MeetupCategoryDto;
+import com.moit.meetup.dto.MeetupCountResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
@@ -608,6 +609,12 @@ public class MeetupServiceImpl implements MeetupService{
 	public MyMeetupCountResponseDto getMyMeetupCount(Long memberId) {
 
 	    return meetupRepository.getMyMeetupCount(memberId);
+	}
+	
+	//관리자 - 통계
+	@Override
+	public MeetupCountResponseDto getMeetupCount() {
+		return meetupRepository.getMeetupCount();
 	}
 	
 	// ################### open api ###################
