@@ -60,7 +60,6 @@ function MeetupDetailPage() {
     }, [router.isReady, router.query.tab]);
 
     // 2. 리뷰 목록 조회 (의존성 배열 수정: router.query 제거 및 currentMeetupId 사용)
-    // ★ router.query 전체를 넣으면 좋아요 클릭 시 재렌더링으로 서버 데이터를 재요청하여 상태를 덮어씁니다!
     useEffect(() => {
         if (!router.isReady || !currentMeetupId) return;
 
@@ -82,6 +81,7 @@ function MeetupDetailPage() {
         console.log("좋아요 요청 실행! 리뷰 ID:", reviewId);
         dispatch(toggleReviewLikeRequest(reviewId));
     };
+
     // 정렬 핸들러 추가
     const handleSortChange = (sortParam) => {
         console.log("정렬 요청 실행:", sortParam);
@@ -205,51 +205,6 @@ function MeetupDetailPage() {
     if (!meetup) {
         return <div>모임 정보를 불러오는 중입니다...</div>;
     }
-
-    // 2. 리뷰 목록 조회 (의존성 배열 수정: router.query 제거 및 currentMeetupId 사용)
-    useEffect(() => {
-      if (!router.isReady || !currentMeetupId) return;
-
-      // 최초 로딩 시에도 기본 페이징과 정렬 값을 함께 전달
-      dispatch(getReviewListRequest({ 
-          meetupId: currentMeetupId,
-          page: 0,
-          size: 10,
-          sort: 'id,desc'
-      }));
-  }, [dispatch, router.isReady, currentMeetupId]);
-
-    // 3. 좋아요 핸들러
-    const handleLikeReview = (reviewId) => {
-      if (!reviewId) return;
-
-      console.log('좋아요 요청 실행! 리뷰 ID:', reviewId);
-      dispatch(toggleReviewLikeRequest(reviewId));
-    };
-    // 정렬 핸들러 추가
-    const handleSortChange = (sortParam) => {
-      console.log('정렬 요청 실행:', sortParam);
-      dispatch(
-        getReviewListRequest({
-          meetupId: currentMeetupId,
-          sort: sortParam, // 예: 'likesCount,desc' 또는 'id,desc'
-        })
-      );
-    };
-
-    // 리뷰 검색 핸들러 추가
-    const handleSearch = (keyword) => {
-      console.log('2. MeetupDetailPage에서 handleSearch 실행됨! 검색어:', keyword);
-      console.log('현재 모임 ID:', currentMeetupId);
-
-      dispatch(
-        getReviewListRequest({
-          meetupId: currentMeetupId,
-          keyword: keyword, 
-        })
-      );
-    };
-
 
     // 광고
     const ad = {
