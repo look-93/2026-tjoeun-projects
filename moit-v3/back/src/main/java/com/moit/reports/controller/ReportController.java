@@ -178,7 +178,7 @@ public class ReportController {
 	}
 	
 	
-	
+	 
 	////////////////////////////////////////////////////////////////
 	// 관리자 신고 수정
 	@Operation(summary = "관리자 신고 처리 (승인/반려)", description = "")
