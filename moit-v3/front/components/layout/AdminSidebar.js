@@ -66,7 +66,7 @@ function AdminSidebar() {
       key: '/admin/advertise',
       icon: <NotificationOutlined />,
       label: (
-        <Link href="/admin/advertise">
+        <Link href="/admin/advertise/advertise">
           <a style={{ textDecoration: 'none' }}>광고관리</a>
         </Link>
       ),

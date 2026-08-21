@@ -85,6 +85,8 @@ public class AdvertisementDto {
         private Integer targetAgeMin;
         private Integer targetAgeMax;
         private TargetGender targetGender;
+        
+        private AdGrade adGrade;
 
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime startDatetime;
@@ -110,8 +112,12 @@ public class AdvertisementDto {
         private Integer targetAgeMin;
         private Integer targetAgeMax;
         private TargetGender targetGender;
+        
+        private AdGrade adGrade;
 
+        @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime startDatetime;
+        @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime endDatetime;
 
         private BigDecimal totalBudget;
@@ -189,12 +195,27 @@ public class AdvertisementDto {
 
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
+        
+        
+     // 프론트엔드 화면 표출을 위해 추가할 필드들
+        private String advertiserNickname; // 광고주 닉네임
+        
+        // 결제 관련 추가
+        private String paymentType;        // 프론트가 찾는 이름
+        private BigDecimal amount;         // 실 결제 금액
+        private LocalDateTime paymentAt;   // 결제일
 
 
         public static AdvertisementResponseDto fromEntity(
                 Advertisement ad
         ) {
 
+        	// 💡 1. 닉네임 추출 (Member 엔티티에 닉네임 필드가 있다고 가정)
+            String nickname = null;
+            if (ad.getAdvertiser() != null) {
+                nickname = ad.getAdvertiser().getNickname(); // Member 엔티티의 닉네임 Getter
+            }
+            
             return AdvertisementResponseDto.builder()
                     .adId(ad.getAdId())
                     .title(ad.getTitle())
@@ -234,6 +255,12 @@ public class AdvertisementDto {
 
                     .createdAt(ad.getCreatedAt())
                     .updatedAt(ad.getUpdatedAt())
+                    
+                    .advertiserNickname(nickname)
+                    
+                    .paymentType(ad.getPendingPaymentType() != null ? ad.getPendingPaymentType().name() : null)
+                    .amount(ad.getTotalBudget()) // 일단 예산을 결제금액 쪽에 맵핑
+                    // .paymentAt(...) // 결제일은 Payment 엔티티를 조회해야 하므로, 우선 제외
 
                     .build();
         }

@@ -68,6 +68,8 @@ jwt:
   header: Authorization
   prefix: Bearer
 
+toss:
+  secret-key: ${TOSS_SECRET_KEY}
 #server:
 #  port: 8484
 

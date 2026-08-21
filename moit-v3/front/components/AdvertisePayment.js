@@ -79,7 +79,7 @@ export default function AdvertisePayment({ adId, amount, adTitle }) {
         customerEmail: 'customer@email.com',
         // 성공 및 실패 시 리다이렉트 될 URL
         successUrl: `${window.location.origin}/user/mypage/advertiseSuccess`,
-        failUrl: `${window.location.origin}/user/mypage/advertiseFail`,
+        failUrl: `${window.location.origin}/user/mypage/advertiseSuccess`,
       });
     } catch (err) {
       console.error(err);
