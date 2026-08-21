@@ -75,7 +75,11 @@ export function* qnaUpdate(action){
         const result = yield call(qnaUpdateAPI, action.payload);
         yield put(qnaUpdateSuccess());
     }catch(err){
-        yield put(qnaUpdateFailure(err.response?.data?.message || err.message));
+        if (err.response?.status === 403) {
+            yield put(qnaUpdateFailure('문의 수정 권한이 없습니다.'));
+        } else {
+            yield put(qnaUpdateFailure(err.response?.data?.message || err.message));
+        }
     }
 }
 
@@ -86,7 +90,11 @@ export function* qnaDelete(action){
         const result = yield call(qnaDeleteAPI, action.payload);
         yield put(qnaDeleteSuccess());
     }catch(err){
-        yield put(qnaDeleteFailure(err.response?.data?.message || err.message));
+        if (err.response?.status === 403) {
+            yield put(qnaDeleteFailure('문의 삭제 권한이 없습니다.'));
+        } else {
+            yield put(qnaDeleteFailure(err.response?.data?.message || err.message));
+        }
     }
 }
 
@@ -109,7 +117,11 @@ export function* qnaAnswerCreate(action){
         const result = yield call(qnaAnswerCreateAPI, action.payload);
         yield put(qnaAnswerCreateSuccess());
     }catch(err){
-        yield put(qnaAnswerCreateFailure(err.response?.data?.message || err.message));
+        if (err.response?.status === 403) {
+            yield put(qnaAnswerCreateFailure('답변 등록 권한이 없습니다.'));
+        } else {
+            yield put(qnaAnswerCreateFailure(err.response?.data?.message || err.message));
+        }
     }
 }
 
@@ -120,7 +132,11 @@ export function* qnaAnswerUpdate(action){
         const result = yield call(qnaAnswerUpdateAPI, action.payload);
         yield put(qnaAnswerUpdateSuccess());
     }catch(err){
-        yield put(qnaAnswerUpdateFailure(err.response?.data?.message || err.message));
+        if (err.response?.status === 403) {
+            yield put(qnaAnswerUpdateFailure('답변 수정 권한이 없습니다.'));
+        } else {
+            yield put(qnaAnswerUpdateFailure(err.response?.data?.message || err.message));
+        }
     }
 }
 
@@ -131,7 +147,11 @@ export function* qnaAnswerDelete(action){
         const result = yield call(qnaAnswerDeleteAPI, action.payload);
         yield put(qnaAnswerDeleteSuccess());
     }catch(err){
-        yield put(qnaAnswerDeleteFailure(err.response?.data?.message || err.message));
+        if (err.response?.status === 403) {
+            yield put(qnaAnswerDeleteFailure('답변 삭제 권한이 없습니다.'));
+        } else {
+            yield put(qnaAnswerDeleteFailure(err.response?.data?.message || err.message));
+        }
     }
 }
 

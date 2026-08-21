@@ -7,7 +7,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop  # test 환경 create-drop 매번초기화 / update 부분수정 
+      ddl-auto: update  # test 환경 create-drop 매번초기화 / update 부분수정 
     properties:
       hibernate:
         format_sql: true
@@ -34,7 +34,7 @@ spring:
   config:
     import: 
       - optional:application-oauth.yml
-      - optional:file:.env[.properties]
+      - file:./.env[.properties]
 
 mybatis:
   # config-location: classpath:mybatis-config.xml
@@ -68,6 +68,8 @@ jwt:
   header: Authorization
   prefix: Bearer
 
+toss:
+  secret-key: ${TOSS_SECRET_KEY}
 #server:
 #  port: 8484
 

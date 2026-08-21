@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import MyPageUserInfo from "../../../components/MyPageUserInfo";
 
-import { getMyInfoRequest } from "../../../reducers/userReducer";
+import { getMyPageRequest } from "../../../reducers/userReducer";
 
 const { Content } = Layout;
 
@@ -29,7 +29,7 @@ function MyPage() {
     useEffect(() => {
         console.log("===== GET MY INFO REQUEST =====");
 
-        dispatch(getMyInfoRequest());
+        dispatch(getMyPageRequest());
     }, [dispatch]);
 
     // 회원정보 조회 실패

@@ -9,6 +9,9 @@ import { fetchReportsRequest } from '../../../../reducers/reportReducer';
 import { Card, Table, Tag, Button, Typography, Space, Spin, message } from 'antd';
 import { render } from 'react-dom';
 
+import ReportStatusTag from '../../../../components/ReportStatusTag';
+import ReportStatusCodeTag from '../../../../components/ReportStatusCodeTag';
+
 
 const { Title } = Typography;
 
@@ -104,69 +107,26 @@ function ReportListPage() {
             case 'NOSHOW':
                 return '노쇼';
 
-            case 'ETC':
-                return '기타';
-
             default:
-                return reasonCode;
+                return '기타';
         }
     };
+    
 
-
-    // =====================================================
-    // 처리 상태
-    // =====================================================
-    const getStatusTag = (status) => {
-        if (status === 'PENDING') {
-            return (
-                <Tag color="orange">
-                    처리 대기
-                </Tag>
-            );
-        }
-        if (status === 'APPROVED') {
-            return (
-                <Tag color="green">
-                    승인
-                </Tag>
-            );
-        }
-        if (status === 'REJECTED') {
-            return (
-                <Tag color="red">
-                    반려
-                </Tag>
-            );
-        }
-    }
-
-    // =====================================================
-    // 뱃지 statusCode, statusName
-    // =====================================================
-    const getStatusCodeTag = (statusCode) => {
+    const ReportStatusCodeTag = ({ statusCode }) => {
         if (statusCode === 'ACTIVE') {
-            return (
-                <Tag color="green">
-                    정상
-                </Tag>
-            );
-        }
-        if (statusCode === 'WARNING') {
-            return (
-                <Tag color="orange">
-                    주의
-                </Tag>
-            );
-        }
-        if (statusCode === 'DANGER') {
-            return (
-                <Tag color="red">
-                    위험
-                </Tag>
-            );
+            return <Tag color="green">정상</Tag>;
         }
 
-        return '-';
+        if (statusCode === 'WARNING') {
+            return <Tag color="orange">주의</Tag>;
+        }
+
+        if (statusCode === 'DANGER') {
+            return <Tag color="red">위험</Tag>;
+        }
+
+        return null;
     };
 
 
@@ -209,7 +169,7 @@ function ReportListPage() {
             key: 'statusCode',
 
             render: (statusCode) => (
-                getStatusCodeTag(statusCode)
+                <ReportStatusCodeTag statusCode={statusCode} />
             )
         },
 
@@ -224,7 +184,7 @@ function ReportListPage() {
         },
 
         {
-            title: '대상 ID',
+            title: '글 번호',
             dataIndex: 'targetId',
             key: 'targetId'
         },
@@ -245,7 +205,7 @@ function ReportListPage() {
             key: 'status',
 
             render: (status) => (
-                getStatusTag(status)
+                <ReportStatusTag status={status} />
             )
         },
 

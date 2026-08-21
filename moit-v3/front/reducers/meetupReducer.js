@@ -10,6 +10,14 @@ const initialState = {
     categories: [], // 카테고리 목록
     sigungus: [], // 시군구 목록
 
+    // 마이페이지 통계
+    myMeetupCount: {
+        myMeetupCount: 0,
+        applicationCount: 0,
+        reviewCount: 0,
+        favoriteCount: 0,
+    },
+
     aiRecommendation: null, // ai 모임글 추천
 
     loading: false,
@@ -232,7 +240,7 @@ const meetupReducer = createSlice({
 
         fetchMyApplicationsSuccess: (state, action) => {
             state.loading = false;
-            state.myApplications = action.payload;
+            state.myApplications = action.payload.applications;
         },
 
         fetchMyApplicationsFailure: (state, action) => {
@@ -264,7 +272,9 @@ const meetupReducer = createSlice({
 
         fetchMyMeetupsSuccess: (state, action) => {
             state.loading = false;
-            state.myMeetups = action.payload;
+            state.myMeetups = action.payload.meetups;
+            state.totalCount = action.payload.totalCount;
+            state.totalPage = action.payload.totalPage;
         },
 
         fetchMyMeetupsFailure: (state, action) => {
@@ -318,6 +328,22 @@ const meetupReducer = createSlice({
         },
 
         fetchSigungusFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // --- 마이페이지 통계 조회 ---
+        fetchMyMeetupCountRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        fetchMyMeetupCountSuccess: (state, action) => {
+            state.loading = false;
+            state.myMeetupCount = action.payload;
+        },
+
+        fetchMyMeetupCountFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
         },
@@ -424,6 +450,11 @@ export const {
     fetchSigungusRequest,
     fetchSigungusSuccess,
     fetchSigungusFailure,
+
+    // 마이페이지 통계 조회
+    fetchMyMeetupCountRequest,
+    fetchMyMeetupCountSuccess,
+    fetchMyMeetupCountFailure,
 
     // AI 추천
     recommendMeetupRequest,

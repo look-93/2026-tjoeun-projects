@@ -1,5 +1,6 @@
 package com.moit.meetup.controller;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -29,8 +30,10 @@ import com.moit.meetup.dto.MeetupCategoryDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
+import com.moit.meetup.dto.MyMeetupCountResponseDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
+import com.moit.meetup.enums.MeetupStatus;
 import com.moit.meetup.service.MeetupService;
 import com.moit.security.CustomUserDetails;
 
@@ -50,21 +53,57 @@ public class MeetupController {
 	private final MeetupService meetupService;
 	
 	@Operation(summary = "모임리스트조회", description = "모임리스트를 조회합니다.")
-	@GetMapping // 프론트에서 호출할때 /all?page=0&size=10 하면 pageable 에 저절로 들어감
-	public ResponseEntity<MeetupListResponseDto> search(Pageable pageable, Authentication authentication){
-    	//JWT에서 로그인 회원정보 가져오기
-    	//CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
-    	//Long memberId = userDetails.getAppUserId();
-		Long memberId = 1L;
-		MeetupListResponseDto listResponseDto = meetupService.search(pageable, memberId);	
-		
-		return ResponseEntity.ok(listResponseDto); // 200 + data
+	@GetMapping
+	public ResponseEntity<MeetupListResponseDto> search(
+	        Pageable pageable,
+
+	        @RequestParam(name = "status", required = false)
+	        MeetupStatus status,
+
+	        @RequestParam(name = "searchType", required = false)
+	        String searchType,
+	        @RequestParam(name = "searchText", required = false)
+	        String searchText,
+
+	        @RequestParam(name = "sidoId", required = false)
+	        Long sidoId,
+
+	        @RequestParam(name = "categoryId", required = false)
+	        Long categoryId,
+
+	        @RequestParam(name = "orderType", required = false, defaultValue = "createAt")
+	        String orderType,
+
+	        Authentication authentication
+	) {
+
+	    CustomUserDetails userDetails =
+	            (CustomUserDetails) authentication.getPrincipal();
+
+	    Long memberId = userDetails.getAppUserId();
+
+	    MeetupListResponseDto listResponseDto =
+	            meetupService.search(
+	                    pageable,
+	                    memberId,
+	                    status,
+	                    searchType,
+	                    searchText,
+	                    sidoId,
+	                    categoryId,
+	                    orderType
+	            );
+
+	    return ResponseEntity.ok(listResponseDto);
 	}
-	
+
 	@Operation(summary = "모임상세조회", description = "모임 상세를 조회합니다.")
 	@GetMapping("/{meetupId}")
-	public ResponseEntity<MeetupResponseDto> detail(@PathVariable("meetupId") Long meetupId){		
-		MeetupResponseDto meetupResponseDto = meetupService.detail(meetupId);
+	public ResponseEntity<MeetupResponseDto> detail(@PathVariable("meetupId") Long meetupId, Authentication authentication){
+    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
+    	Long memberId = userDetails.getAppUserId();	
+		MeetupResponseDto meetupResponseDto = meetupService.detail(meetupId, memberId);
+		
 		return ResponseEntity.ok(meetupResponseDto);
 	}
 	
@@ -73,9 +112,9 @@ public class MeetupController {
 	public ResponseEntity<Void> create(@ModelAttribute MeetupRequestDto meetupRequestDto,
 						               @RequestPart(name = "files", required = false) List<MultipartFile> files,
 						               Authentication authentication) {
-    	//CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
-    	//Long memberId = userDetails.getAppUserId();	
-		Long memberId = 1L;
+    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
+    	Long memberId = userDetails.getAppUserId();	
+		//Long memberId = 1L;
 		meetupService.create(meetupRequestDto, memberId, files);
 		
 		return ResponseEntity.status(HttpStatus.CREATED).build(); // 성공 응답 201
@@ -87,7 +126,11 @@ public class MeetupController {
 								       @RequestParam(value = "files", required = false) List<MultipartFile> files,
 							           @RequestParam(value = "existingImagePaths", required = false) List<String> existingImagePaths,
 							           @PathVariable("meetupId") Long meetupId){
-		meetupService.update(meetupRequestDto, meetupId, files, existingImagePaths);
+		// null 방지
+	    List<String> safeExistingPaths = (existingImagePaths != null) ? existingImagePaths : Collections.emptyList();
+	    List<MultipartFile> safeFiles = (files != null) ? files : Collections.emptyList();
+		
+		meetupService.update(meetupRequestDto, meetupId, safeFiles, safeExistingPaths);
 		return ResponseEntity.noContent().build(); // 성공 응답 204
 	}
 	
@@ -101,9 +144,9 @@ public class MeetupController {
 	@Operation(summary = "모임신청", description = "모임을 신청합니다.")
 	@PostMapping("/{meetupId}/apply")
 	public ResponseEntity<Void> apply(@PathVariable("meetupId") Long meetupId, Authentication authentication){
-//    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
-//    	Long memberId = userDetails.getAppUserId(); 
-		Long memberId = 1L;
+    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
+    	Long memberId = userDetails.getAppUserId(); 
+		//Long memberId = 1L;
 		meetupService.apply(memberId, meetupId);
 		
 		return ResponseEntity.ok().build(); // 성공 응답 200
@@ -112,9 +155,9 @@ public class MeetupController {
 	@Operation(summary = "좋아요", description = "모임 좋아요.")
 	@PatchMapping("/{meetupId}/like")
 	public ResponseEntity<Void> meetupLike(@PathVariable("meetupId") Long meetupId, Authentication authentication){
-//    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
-//    	Long memberId = userDetails.getAppUserId();
-		Long memberId = 1L;
+    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
+    	Long memberId = userDetails.getAppUserId();
+		//Long memberId = 1L;
 		meetupService.meetupLike(memberId, meetupId);
 		
 		return ResponseEntity.ok().build(); // 성공 응답 200
@@ -130,9 +173,9 @@ public class MeetupController {
 	@Operation(summary = "마이페이지 내 신청 조회", description = "내가 신청한 모집글 목록을 조회합니다.")
 	@GetMapping("/applications")
 	public ResponseEntity<MyApplicationListResponseDto> getMyApplications(Pageable pageable, Authentication authentication){
-//    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
-//    	Long memberId = userDetails.getAppUserId();
-		Long memberId = 1L;
+    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
+    	Long memberId = userDetails.getAppUserId();
+		//Long memberId = 1L;
 		MyApplicationListResponseDto  response = meetupService.getMyApplications(memberId, pageable);
 		
 		return ResponseEntity.ok(response);
@@ -142,8 +185,8 @@ public class MeetupController {
 	@GetMapping("/{meetupId}/applicants")
 	public ResponseEntity<MeetupApplyMemberListResponseDto> getMyMeetupApplicants(@PathVariable("meetupId") Long meetupId, Pageable pageable, Authentication authentication){
     	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
-//    	Long memberId = userDetails.getAppUserId();
-    	Long memberId = 1L;
+    	Long memberId = userDetails.getAppUserId();
+    	//Long memberId = 1L;
 		MeetupApplyMemberListResponseDto  response = meetupService.getMyMeetupApplicants(meetupId, memberId, pageable);
 		
 		return ResponseEntity.ok(response);
@@ -152,9 +195,9 @@ public class MeetupController {
 	@Operation(summary = "마이페이지 내 모집글 조회", description = "내가 모집한 모집글 목록을 조회합니다.")
 	@GetMapping("/my")
 	public ResponseEntity<MeetupListResponseDto> getMyMeetups(Pageable pageable, Authentication authentication){
-//    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
-//    	Long memberId = userDetails.getAppUserId();
-		Long memberId = 1L;
+    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
+    	Long memberId = userDetails.getAppUserId();
+		//Long memberId = 1L;
 		MeetupListResponseDto  response = meetupService.getMyMeetups(memberId, pageable);
 		
 		return ResponseEntity.ok(response);
@@ -181,6 +224,19 @@ public class MeetupController {
 	public ResponseEntity<List<SigunguDto>> getSigungu(){		
 		
 		return ResponseEntity.ok(meetupService.getSigungu());
+	}
+	
+	@Operation(summary = "마이페이지 통계데이터", description = "통계 조회합니다.")
+	@GetMapping("/my-count")
+	public ResponseEntity<MyMeetupCountResponseDto> getMyMeetupCount(
+	        Authentication authentication
+	) {
+    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
+    	Long memberId = userDetails.getAppUserId();
+
+	    return ResponseEntity.ok(
+	            meetupService.getMyMeetupCount(memberId)
+	    );
 	}
 	
 	// ################### open api ###################

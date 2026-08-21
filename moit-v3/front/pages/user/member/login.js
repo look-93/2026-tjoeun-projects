@@ -148,14 +148,14 @@ function Login(){
     // 아이디 찾기
     // =========================
     const handleFindId = () => {
-        message.info( "아이디 찾기 기능은 준비 중입니다.");
+        router.push("/user/member/findId");
     };
 
     // =========================
     // 비밀번호 찾기
     // =========================
     const handleFindPassword = () => {
-        message.info( "비밀번호 찾기 기능은 준비 중입니다.");
+        router.push("/user/member/findPassword");
     };
 
     // =========================

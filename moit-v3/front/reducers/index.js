@@ -12,9 +12,9 @@ const rootReducer = combineReducers({
     meetup: meetupReducer,
     report: reportReducer,
     advertise: advertiseReducer,
-    qna:  qnaReducer,  //state.qna
-    review:reviewReducer,
+    qna: qnaReducer, //state.qna
+    review: reviewReducer,
     common: commonReducer,
-})
+});
 
 export default rootReducer;

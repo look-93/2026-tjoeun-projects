@@ -2,7 +2,7 @@ import React from "react";
 import { Card, Space, Tag, Button } from "antd";
 
 function MeetupCard({ meetup, onClick, onToggleLike }) {
-    const isRecruiting = meetup.status === "RECRUITING";
+    const isRecruiting = meetup.meetupStatus === "RECRUITING";
     //console.log(meetup);
     return (
         <Card
@@ -27,7 +27,7 @@ function MeetupCard({ meetup, onClick, onToggleLike }) {
         >
             <div className="meetup-card-body">
                 {/* 상태 */}
-                {meetup.status && (
+                {meetup.meetupStatus && (
                     <Tag color={isRecruiting ? "green" : "default"}>
                         {isRecruiting ? "모집중" : "종료"}
                     </Tag>

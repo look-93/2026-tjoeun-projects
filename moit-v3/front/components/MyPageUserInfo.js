@@ -9,6 +9,17 @@ import {
 } from '@ant-design/icons';
 const { Title, Text } = Typography;
 
+const interests = [
+  { value: 1, label: '🏃 운동' },
+  { value: 2, label: '✈️ 여행' },
+  { value: 3, label: '🎮 게임' },
+  { value: 4, label: '📚 독서' },
+  { value: 5, label: '🍽️ 맛집' },
+  { value: 6, label: '🎬 영화' },
+  { value: 7, label: '🎵 음악' },
+  { value: 8, label: '🍳 요리' },
+];
+
 function MyPageUserInfo({ user }) {
 
   // 마이페이지 통계
@@ -102,16 +113,21 @@ function MyPageUserInfo({ user }) {
             </Text>
 
             <div className="mypage-interest-list">
-              {user?.interestIds &&
-              user.interestIds.length > 0 ? (
-                user.interestIds.map((interestId) => (
-                  <Tag key={interestId}>
-                    관심사 {interestId}
+              {user?.interests && user.interests.length > 0 ? (
+              user.interests.map((interest) => {
+                const interestInfo = interests.find(
+                  (item) => item.value === interest.interestId
+                );
+
+                return (
+                  <Tag key={interest.interestId}>
+                    {interestInfo?.label || interest.interestName}
                   </Tag>
-                ))
-              ) : (
-                <span>-</span>
-              )}
+                );
+              })
+            ) : (
+              <span>-</span>
+            )}
             </div>
           </div>
         </Col>
