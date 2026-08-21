@@ -1,3 +1,4 @@
+// pages/user/mypage/advertiseSuccess.js
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Result, Button } from 'antd';
@@ -8,7 +9,11 @@ export default function PaymentSuccessPage() {
   const { paymentKey, orderId, amount } = router.query;
 
   useEffect(() => {
-    if (!paymentKey || !orderId || !amount) return;
+    // 라우터가 준비되지 않았으면 무시
+    if (!router.isReady) return;
+
+    if (paymentKey && orderId && amount) {
+      console.log('결제 승인용 데이터:', { paymentKey, orderId, amount });
 
     // TODO: 백엔드로 결제 승인 요청 보내기
     // 토스는 프론트엔드에서 결제가 성공해도, 
@@ -18,8 +23,8 @@ export default function PaymentSuccessPage() {
     // axios.post('/api/payment/confirm', { paymentKey, orderId, amount })
     //   .then(() => message.success("결제 최종 완료!"))
     //   .catch(() => message.error("결제 검증 실패"));
-
-  }, [paymentKey, orderId, amount]);
+    }
+  }, [router.isReady, paymentKey, orderId, amount]);
 
   return (
     <div style={{ padding: '50px' }}>
