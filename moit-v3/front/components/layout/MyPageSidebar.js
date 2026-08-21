@@ -25,7 +25,7 @@ function MyPageSidebar() {
       label: '내 작성후기',
     },
     {
-      key: '/user/member/mypage/question',
+      key: '/user/mypage/question',
       label: '내 문의내역',
     },
     {

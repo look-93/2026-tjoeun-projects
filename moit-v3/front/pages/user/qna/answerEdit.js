@@ -7,6 +7,10 @@ import {
 } from '../../../reducers/qnaReducer';
 
 import {
+  fetchMeetupDetailRequest,
+} from '../../../reducers/meetupReducer';
+
+import {
   Breadcrumb,
   Button,
   Card,
@@ -29,6 +33,14 @@ function answerEdit() {
     (state) => state.qna
   );
 
+  const { user } = useSelector(
+    (state) => state.user
+  );
+
+  const { meetup } = useSelector(
+    (state) => state.meetup
+  );
+
   const [content, setContent] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
@@ -40,6 +52,65 @@ function answerEdit() {
       qnaDetailRequest(Number(questionId))
     );
   }, [router.isReady, questionId, dispatch]);
+
+  // 모임 문의인 경우 모임 상세 조회
+  useEffect(() => {
+    if (!qna?.parentId) return;
+    if (qna?.category !== 'MEETUP') return;
+
+    dispatch(
+      fetchMeetupDetailRequest(Number(qna.parentId))
+    );
+  }, [
+    qna?.parentId,
+    qna?.category,
+    dispatch
+  ]);
+
+  // 답변 수정 권한
+  const canAnswer =
+    user?.memberTypeId === 3 ||
+    user?.memberTypeId === 4 ||
+    (
+      user?.memberTypeId === 1 &&
+      meetup?.memberId === user?.memberId
+    );
+
+  // 권한이 없는 경우 상세 페이지로 이동
+  useEffect(() => {
+    if (!router.isReady) return;
+    if (!qna) return;
+
+    const isMeetup = qna.category === 'MEETUP';
+
+    const hasPermission =
+      user?.memberTypeId === 3 ||
+      user?.memberTypeId === 4 ||
+      (
+        user?.memberTypeId === 1 &&
+        (
+          !isMeetup ||
+          meetup?.memberId === user?.memberId
+        )
+      );
+
+    // 모임 문의인데 meetup 정보가 아직 조회되지 않은 경우
+    if (isMeetup && !meetup) return;
+
+    if (!hasPermission) {
+      alert('답변 수정 권한이 없습니다.');
+      router.replace(
+        `/user/qna/questionDetail?questionId=${questionId}`
+      );
+    }
+  }, [
+    router.isReady,
+    qna,
+    meetup,
+    user,
+    questionId,
+    router
+  ]);
 
   // 기존 답변 내용
   useEffect(() => {
@@ -75,6 +146,11 @@ function answerEdit() {
       : '공개';
 
   const handleSubmit = () => {
+    if (!canAnswer) {
+      alert('답변 수정 권한이 없습니다.');
+      return;
+    }
+
     if (!answerId) return;
     if (!content.trim()) {alert('답변 내용을 입력해주세요.');return;}
     if (!window.confirm('답변을 수정하시겠습니까?')) {return;}
@@ -85,6 +161,7 @@ function answerEdit() {
       qnaAnswerUpdateRequest({
         answerId: Number(answerId),
         data: {
+          questionId: Number(questionId),
           content: content.trim(),
         },
       })
@@ -94,6 +171,19 @@ function answerEdit() {
   const handleCancel = () => {
     router.back();
   };
+
+  // 권한 확인 중에는 화면 표시하지 않음
+  if (!qna) {
+    return null;
+  }
+
+  if (isMeetup && !meetup) {
+    return null;
+  }
+
+  if (!canAnswer) {
+    return null;
+  }
 
   return (
     <div className="qna-write-page">

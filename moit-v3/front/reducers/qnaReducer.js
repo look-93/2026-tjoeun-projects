@@ -22,6 +22,9 @@ const initialState = {
     loading: false,          // 로딩상태 
     error: null,             // 에러메시지 
     success: false,          // 성공여부 
+
+    deleteSuccess: false,    // 삭제성공여부
+    answerDeleteSuccess: false,  // 답변 삭제 성공
 };
 
 //2. 상태변화
@@ -110,16 +113,19 @@ const qnaReducer = createSlice({
             state.loading = true;
             state.error = null;
             state.success = false;
+            state.deleteSuccess = false;
         },
         qnaDeleteSuccess: (state) => {
             state.loading = false;
             state.success = true;
+            state.deleteSuccess = true;
             state.qna = null;
         },
         qnaDeleteFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
             state.success = false;
+            state.deleteSuccess = false;
         },
 
         // --- 관리자 QnA 조회 ---
@@ -183,15 +189,18 @@ const qnaReducer = createSlice({
             state.loading = true;
             state.error = null;
             state.success = false;
+            state.answerDeleteSuccess = false;
         },
         qnaAnswerDeleteSuccess: (state) => {
             state.loading = false;
             state.success = true;
+            state.answerDeleteSuccess = true;
         },
         qnaAnswerDeleteFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
             state.success = false;
+            state.answerDeleteSuccess = false;
         },
 
         // --- 답변 만족도 평가 ---
@@ -249,6 +258,8 @@ const qnaReducer = createSlice({
             state.adminQnaList = [];
             state.error = null;
             state.success = false;
+            state.deleteSuccess = false;
+            state.answerDeleteSuccess = false;
         },
     },
 });

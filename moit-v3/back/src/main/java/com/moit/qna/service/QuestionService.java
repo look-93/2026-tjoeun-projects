@@ -55,6 +55,9 @@ public class QuestionService {
     public QuestionResponseDto getDetail(Long id) {
         // 문의 정보 조회
         QuestionResponseDto question = questionMapper.findById(id);
+        
+        if (question == null) {throw new IllegalArgumentException("존재하지 않는 문의입니다.");}
+
         // 해당 문의의 답변 조회
         AnswerResponseDto answer = questionMapper.findByQuestionId(id);
 
