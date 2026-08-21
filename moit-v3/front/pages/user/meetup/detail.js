@@ -60,7 +60,6 @@ function MeetupDetailPage() {
     }, [router.isReady, router.query.tab]);
 
     // 2. 리뷰 목록 조회 (의존성 배열 수정: router.query 제거 및 currentMeetupId 사용)
-    // ★ router.query 전체를 넣으면 좋아요 클릭 시 재렌더링으로 서버 데이터를 재요청하여 상태를 덮어씁니다!
     useEffect(() => {
         if (!router.isReady || !currentMeetupId) return;
 
@@ -82,6 +81,7 @@ function MeetupDetailPage() {
         console.log("좋아요 요청 실행! 리뷰 ID:", reviewId);
         dispatch(toggleReviewLikeRequest(reviewId));
     };
+
     // 정렬 핸들러 추가
     const handleSortChange = (sortParam) => {
         console.log("정렬 요청 실행:", sortParam);
@@ -283,6 +283,7 @@ function MeetupDetailPage() {
                         reviews={reviews}
                         qnaLists={qnaLists}
                         meetupId={currentMeetupId}
+                        isHost={isOwner}
                         onLikeReview={handleLikeReview}
                         onSortChange={handleSortChange}
                         onSearch={handleSearch}
