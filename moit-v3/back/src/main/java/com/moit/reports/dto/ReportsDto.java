@@ -51,6 +51,8 @@ public class ReportsDto {
 		private LocalDateTime updatedAt;
 		private LocalDateTime userUpdatedAt;
 		
+		private Long meetupId;
+		
 		// Report Entity -> ReportResponseDto 변환
 	    public static ReportResponseDto from(Report report) {
 	        ReportResponseDto dto = new ReportResponseDto();

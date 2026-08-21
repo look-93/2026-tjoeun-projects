@@ -57,7 +57,7 @@ public class Report extends BaseEntity {
 	@Column(name = "REASON_CODE", length = 20, nullable = false)
 	private ReasonCode reasonCode;
 	
-	@Column(name = "REASON_DETAIL", length = 200, nullable = false)
+	@Column(name = "REASON_DETAIL", length = 200)
 	private String reasonDetail;
 	
 	@Enumerated(EnumType.STRING)

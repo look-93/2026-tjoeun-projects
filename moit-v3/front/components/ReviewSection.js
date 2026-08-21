@@ -328,7 +328,7 @@ function ReviewSection({
                       danger
                       onClick={() =>
                         router.push(
-                          `/user/meetup/report/write?type=REVIEW&targetId=${review.id}`,
+                          `/user/meetup/report/write?targetType=REVIEW&targetId=${review.id}`,
                         )
                       }
                     >

@@ -46,7 +46,6 @@ function ReportListPage() {
 
         dispatch(
             fetchReportsRequest({
-                memberId: 2,        // 로그인 미완성 -> 테스트 하드코딩
                 page: page - 1,     // Spring Pageable은 0부터
                 size: 10
             })

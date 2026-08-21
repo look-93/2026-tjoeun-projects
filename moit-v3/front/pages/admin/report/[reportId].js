@@ -241,6 +241,10 @@ function ReportDetailPage() {
         );
     }
 
+    if (!currentReport) {
+        return <div>로딩중...</div>;
+    }
+
     return (
         <div className="report-detail-page">
             <Card>
@@ -249,7 +253,7 @@ function ReportDetailPage() {
                 <Descriptions bordered column={1}>
                     {/* 신고 번호 */}
                     <Descriptions.Item label="신고번호 (reportId)">
-                        {currentReport.reportId}번 신고글
+                        {currentReport?.reportId}번 신고글
                     </Descriptions.Item>
 
                     <Descriptions.Item label="신고자 (memberId)">

@@ -474,6 +474,9 @@ public class ReportsServiceImpl implements ReportsService {
 	                        new IllegalArgumentException("리뷰 조회 실패!")
 	                );
 	        targetMember = review.getMember();
+	        
+	        // 리뷰가 속한 모임 ID
+	        responseDto.setMeetupId(review.getMeetup().getId());
 
 	    } else {
 	        throw new IllegalArgumentException("잘못된 targetType입니다.");

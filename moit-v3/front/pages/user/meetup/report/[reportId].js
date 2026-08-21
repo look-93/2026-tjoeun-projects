@@ -100,6 +100,7 @@ function ReportDetailPage() {
         // 모임 신고
         if (currentReport.targetType === 'MEETUP') {
             router.push(
+                // http://localhost:3000/user/meetup/detail?meetupId=3
                 `/user/meetup/detail?meetupId=${currentReport.targetId}`
             );
             return;
@@ -108,7 +109,8 @@ function ReportDetailPage() {
         // 리뷰 신고
         if (currentReport.targetType === 'REVIEW') {
             router.push(
-                `/user/meetup/review/detail?reviewId=${currentReport.targetId}`
+                // http://localhost:3000/user/meetup/review/detailreview?reviewId=10&meetupId=3
+                `/user/meetup/review/detailreview?reviewId=${currentReport.targetId}&meetupId=${currentReport.meetupId}`
             );
         }
     };
