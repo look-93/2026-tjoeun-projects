@@ -19,6 +19,8 @@ public interface MemberRepository extends JpaRepository<Member, Long>{
 	
 	Optional<Member> findByEmailAndDeleteYn(String email, Character deleteYn);
 	
+	Optional<Member> findByIdAndDeleteYn(Long id, Character deleteYn);
+	
 	// 소셜 조회용
 	Optional<Member> findByProviderAndProviderId(String provider, String providerId);
 	
