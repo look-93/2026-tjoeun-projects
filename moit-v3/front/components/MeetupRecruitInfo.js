@@ -23,8 +23,11 @@ function MeetupRecruitInfo({ meetup, isOwner }) {
         window.location.href = `/user/meetup/write?meetupId=${meetup.id}`;
     };
 
-    const isApplied = meetup.applyStatus === "PENDING";
+    const isApplied =
+        meetup.applyStatus === "PENDING" || meetup.applyStatus === "APPROVED";
+    const isNoShow = meetup.applyStatus === "NOSHOW";
 
+    //console.log(meetup);
     useEffect(() => {
         if (applySuccess) {
             if (meetup?.applyStatus === "PENDING") {
@@ -77,8 +80,13 @@ function MeetupRecruitInfo({ meetup, isOwner }) {
                             size="large"
                             block
                             onClick={handleApply}
+                            disabled={isNoShow}
                         >
-                            {isApplied ? "신청취소" : "신청하기"}
+                            {isNoShow
+                                ? "신청불가"
+                                : isApplied
+                                  ? "신청취소"
+                                  : "신청하기"}
                         </Button>
                     ))}
             </Space>

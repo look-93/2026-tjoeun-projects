@@ -161,7 +161,7 @@ public class MeetupServiceImpl implements MeetupService{
 	
 	//상세조회
 	@Override
-	public MeetupResponseDto detail(Long meetupId) {		
+	public MeetupResponseDto detail(Long meetupId, Long memberId) {		
 		Meetup meetup = meetupRepository.findById(meetupId)
 										.orElseThrow(()->new ResourceNotFoundException("존재하지 않는 게시글입니다. ID: "+ meetupId));
 		
@@ -169,7 +169,7 @@ public class MeetupServiceImpl implements MeetupService{
 			throw new IllegalArgumentException("삭제된 게시글 입니다.");
 		}		
 		
-		MeetupResponseDto response = MeetupResponseDto.detailFrom(meetup);
+		MeetupResponseDto response = MeetupResponseDto.detailFrom(meetup, memberId);
 		
 		return response;
 	}

@@ -62,7 +62,6 @@ public class MeetupController {
 
 	        @RequestParam(name = "searchType", required = false)
 	        String searchType,
-
 	        @RequestParam(name = "searchText", required = false)
 	        String searchText,
 
@@ -100,8 +99,11 @@ public class MeetupController {
 
 	@Operation(summary = "모임상세조회", description = "모임 상세를 조회합니다.")
 	@GetMapping("/{meetupId}")
-	public ResponseEntity<MeetupResponseDto> detail(@PathVariable("meetupId") Long meetupId){		
-		MeetupResponseDto meetupResponseDto = meetupService.detail(meetupId);
+	public ResponseEntity<MeetupResponseDto> detail(@PathVariable("meetupId") Long meetupId, Authentication authentication){
+    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
+    	Long memberId = userDetails.getAppUserId();	
+		MeetupResponseDto meetupResponseDto = meetupService.detail(meetupId, memberId);
+		
 		return ResponseEntity.ok(meetupResponseDto);
 	}
 	

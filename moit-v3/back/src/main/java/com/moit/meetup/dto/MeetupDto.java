@@ -104,7 +104,7 @@ public class MeetupDto {
 			return response;
 		}
 		
-		public static MeetupResponseDto detailFrom(Meetup meetup) { // 상세페이지 MeetupResponse
+		public static MeetupResponseDto detailFrom(Meetup meetup, Long memberId) { // 상세페이지 MeetupResponse
 		    MeetupResponseDto response = new MeetupResponseDto();
 
 		    response.setId(meetup.getId());
@@ -129,6 +129,18 @@ public class MeetupDto {
 		    response.setCategoryId(meetup.getMeetupCategory().getId());
 		    response.setCategoryName(meetup.getMeetupCategory().getCategoryName());
 		    response.setMeetupStatus(meetup.getMeetupStatus());
+		    
+		    // 현재 로그인한 사용자의 신청 상태
+		    if (memberId != null) {
+		        meetup.getMeetupApplications().stream()
+		                .filter(application ->
+		                        application.getMember().getId().equals(memberId)
+		                )
+		                .findFirst()
+		                .ifPresent(application ->
+		                        response.setApplyStatus(application.getApplyStatus())
+		                );
+		    }
 		    
 		    // 전체 이미지
 		    if (meetup.getMeetupImages() != null
