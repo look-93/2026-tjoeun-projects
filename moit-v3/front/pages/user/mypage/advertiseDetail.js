@@ -43,6 +43,8 @@ function AdvertiseDetailPage() {
 
       const response = await getAdvertiseDetail(adId);
 
+      console.log('백엔드 응답 데이터:', response.data);
+
       setAdvertise(response.data);
 
     } catch (error) {
@@ -135,7 +137,7 @@ function AdvertiseDetailPage() {
         <Space>
           {advertise.approvalStatus === 'APPROVED' &&
              advertise.paymentStatus === 'WAITING' && (
-             <Button type="primary" onClick={handlePayment}>
+             <Button type="primary" onClick={handlePaymentClick}>
                 결제하기
              </Button>
           )}
@@ -233,6 +235,17 @@ function AdvertiseDetailPage() {
         </Descriptions>
       </Card>
 
+      {/* 반려 사유 */}
+      {advertise.rejectReason && (
+        <Card title="반려 정보" style={{ marginBottom: 20, borderColor: '#ffa39e' }}>
+          <Descriptions bordered column={1}>
+            <Descriptions.Item label="반려 사유" labelStyle={{ color: '#cf1322' }}>
+              <span style={{ color: '#cf1322', fontWeight: 'bold' }}>{advertise.rejectReason}</span>
+            </Descriptions.Item>
+          </Descriptions>
+        </Card>
+      )}
+
       {/* 타겟 정보 */}
       <Card
         title="타겟 설정"
@@ -252,7 +265,7 @@ function AdvertiseDetailPage() {
           </Descriptions.Item>
 
           <Descriptions.Item label="성별">
-            {advertise.targetGender || '-'}
+            {formatGender(advertise.targetGender)}
           </Descriptions.Item>
         </Descriptions>
       </Card>
@@ -286,16 +299,17 @@ function AdvertiseDetailPage() {
         advertise.imageList.length > 0 ? (
           <Space wrap>
             {advertise.imageList.map((image) => (
-              <Image
-                key={image.imageId}
-                src={`${BASE_URL}${image.imageUrl}`} // 주소와 파일 경로를 합침
-                alt={advertise.title}
-                width={200}
-                height={120}
-                style={{
-                  objectFit: 'cover',
-                }}
-              />
+              <Col xs={24} sm={12} md={8} key={image.imageId || image.imageUrl}>
+                <Image
+                  src={`${BASE_URL}${image.imageUrl}`}
+                  alt={advertise.title}
+                  style={{ width: '100%', height: 180, objectFit: 'cover' }}
+                />
+                {/* 🌟 Admin처럼 사용자도 자기가 등록한 이미지가 어느 위치용인지 볼 수 있게 추가 */}
+                <div style={{ marginTop: 8, textAlign: 'center', color: '#888' }}>
+                  {image.imageType || ''}
+                </div>
+              </Col>
             ))}
           </Space>
         ) : (
