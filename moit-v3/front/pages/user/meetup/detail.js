@@ -54,7 +54,6 @@ function MeetupDetailPage() {
   }, [router.isReady, router.query.tab]);
 
   // 2. 리뷰 목록 조회 (의존성 배열 수정: router.query 제거 및 currentMeetupId 사용)
-  // ★ router.query 전체를 넣으면 좋아요 클릭 시 재렌더링으로 서버 데이터를 재요청하여 상태를 덮어씁니다!
   useEffect(() => {
     if (!router.isReady || !currentMeetupId) return;
 
@@ -146,10 +145,10 @@ function MeetupDetailPage() {
       likesCount: review.likesCount ?? 0,
       isLiked: Boolean(review.isLiked || review.liked),
       images: review.images || [],
-      isPublic: review.isPublic ?? "Y", // 👈 핵심: isPublic 필드 매핑 추가!
+      isPublic: review.isPublic ?? "Y", 
     })) || [];
 
-  // ★ 핵심 안전 장치: 모임 상세 페이지에서는 오직 공개된('Y') 후기만 보여줍니다!
+  
   const reviews = rawReviews.filter((review) => review.isPublic === "Y");
 
   // Q&A
@@ -270,6 +269,7 @@ function MeetupDetailPage() {
             reviews={reviews}
             qnaLists={qnaLists}
             meetupId={currentMeetupId}
+            isHost={isOwner}
             onLikeReview={handleLikeReview}
             onSortChange={handleSortChange}
             onSearch={handleSearch}
