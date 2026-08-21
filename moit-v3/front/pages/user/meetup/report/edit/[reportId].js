@@ -13,16 +13,10 @@ import {
 } from '../../../../../reducers/reportReducer';
 
 import {
-  Card,
-  Radio,
-  Input,
-  Button,
-  Typography,
-  Space,
-  Divider,
-  message,
-  Spin,
+  Card, Radio, Input, Button, Typography,
+  Space, Divider, message, Spin,
 } from 'antd';
+
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;

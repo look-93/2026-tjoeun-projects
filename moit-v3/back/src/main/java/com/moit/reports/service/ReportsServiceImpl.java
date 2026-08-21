@@ -24,6 +24,7 @@ import com.moit.reports.dto.ReportsDto.ReportResponseDto;
 import com.moit.reports.entity.MemberReportStatus;
 import com.moit.reports.entity.Report;
 import com.moit.reports.entity.ReportAuditLog;
+import com.moit.reports.enums.ReasonCode;
 import com.moit.reports.enums.ReportStatus;
 import com.moit.reports.enums.TargetType;
 import com.moit.reports.repository.MemberReportStatusRepository;
@@ -137,7 +138,13 @@ public class ReportsServiceImpl implements ReportsService {
 				.findByReportIdAndMember_IdAndDeleteYn(reportId, memberId, 'N')
 				.orElseThrow(()-> new IllegalArgumentException("사용자 신고 상세 조회 오류! reportId: " + reportId));
 		
-		return ReportResponseDto.from(report);
+		ReportResponseDto responseDto = ReportResponseDto.from(report);
+		
+		// 신고당한 회원 정보 추가 !!!
+		setTargetMemberInfo(report, responseDto);
+		
+		return responseDto;
+//		return ReportResponseDto.from(report);
 	}
 
 	// 모임, 리뷰 신고 더블 체크 (화면용 중복 체크)
@@ -181,23 +188,18 @@ public class ReportsServiceImpl implements ReportsService {
 			Long targetMemberId = null;
 			
 			if (report.getTargetType() == TargetType.MEETUP) {
-				// report.getTargetId()로 Meetup 조회
-				Long meetupId = report.getTargetId();
-				// Meetup 작성자의 memberId 가져오기
-				Meetup meetup = meetupRepository
+				Long meetupId = report.getTargetId();	// report.getTargetId()로 MeetupId 조회
+				Meetup meetup = meetupRepository		// Meetup 작성자의 memberId 가져오기
 						.findById(meetupId)
-						.orElseThrow(()-> new IllegalArgumentException("Meetup 작성자의 memberId 불러오기 실패!"));
+						.orElseThrow(()-> new IllegalArgumentException("Meetup 불러오기 실패!"));
 						
 				targetMemberId = meetup.getMember().getId();
 				
-				
 			} else if (report.getTargetType() == TargetType.REVIEW) {
-				// report.getTargetId()로 Review 조회
-				Long reviewId = report.getTargetId();
-				// Review 작성자의 memberId 가져오기
-				Review review = reviewRepository
+				Long reviewId = report.getTargetId();	// report.getTargetId()로 ReviewId 조회
+				Review review = reviewRepository		// Review 작성자의 memberId 가져오기
 						.findById(reviewId)
-						.orElseThrow(()-> new IllegalArgumentException("Review 작성자의 memberId 불러오기 실패!"));
+						.orElseThrow(()-> new IllegalArgumentException("Review 불러오기 실패!"));
 				
 				targetMemberId = review.getMember().getId();
 			
@@ -213,6 +215,11 @@ public class ReportsServiceImpl implements ReportsService {
 			// 신뢰도 점수 반영
 			int currentTrustScore = memberInfo.getTrustScore();
 			int changedTrustScore = currentTrustScore + trustScoreChange;
+			
+			System.out.println("변경 전 점수 = " + currentTrustScore);
+		    System.out.println("변경량 = " + trustScoreChange);
+		    System.out.println("변경 후 점수 = " + changedTrustScore);
+			
 			memberInfo.setTrustScore(changedTrustScore);
 			
 			// 뱃지 변경
@@ -317,19 +324,22 @@ public class ReportsServiceImpl implements ReportsService {
 	// 관리자 신고 목록 조회 + 검색 + 페이징
 	@Override
 	public ReportListResponseDto getAdminReports(ReportSearchDto searchDto, Pageable pageable) {
-		Pageable pageRequest = PageRequest.of( pageable.getPageNumber(), pageable.getPageSize() );
+		Pageable pageRequest = PageRequest
+				.of( pageable.getPageNumber(), pageable.getPageSize() );
 		
-//		@Param(value="status") ReportStatus status,
-//		@Param(value="deleteYn") Character deleteYn,
-//		@Param(value="targetType") TargetType targetType,
-//		@Param(value="memberNickname") String memberNickname,
-//		@Param(value="reasonCode") ReasonCode reasonCode
+		String memberNickname = null;
+	    
+        // 작성자 검색
+        if (searchDto.getMemberNickname() != null && !searchDto.getMemberNickname().isBlank()) {
+            memberNickname = searchDto.getMemberNickname().trim();
+        }
+
 		Page<Report> page = reportRepository.findAdminReports(
-				searchDto.getStatus(),
-				searchDto.getDeleteYn(),
 				searchDto.getTargetType(),
-				searchDto.getMemberNickname(),
-				searchDto.getReasonCode(),
+				searchDto.getStatus(),
+				searchDto.getReasonCode(),	// 드롭다운
+				searchDto.getDeleteYn(),
+				memberNickname,				// 검색어
 				pageRequest
 		);
 		
@@ -350,10 +360,16 @@ public class ReportsServiceImpl implements ReportsService {
 	// 관리자 신고 상세 조회
 	@Override
 	public ReportResponseDto getAdminReportDetail(Long reportId) {
-		Report report = reportRepository.findById(reportId)
+		Report report = reportRepository
+				.findById(reportId)
 				.orElseThrow(()-> new IllegalArgumentException("관리자 신고 상세 조회 오류! reportId: " + reportId));
 		
-		return ReportResponseDto.from(report);
+		ReportResponseDto responseDto = ReportResponseDto.from(report);
+
+		// 신고당한 회원 정보 추가 !!!
+		setTargetMemberInfo(report, responseDto);
+		
+		return responseDto;
 	}
 
 	// 관리자 처리 로그 조회
@@ -415,5 +431,61 @@ public class ReportsServiceImpl implements ReportsService {
 //
 //	        } else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
 //	    }
+	}
+	
+	
+	
+	//////////////////////////////////////////////////////////////////////////////
+	// 신고 대상 회원 정보 찾기...
+	private void setTargetMemberInfo(Report report, ReportResponseDto responseDto) {
+
+	    Member targetMember;
+
+	    if (report.getTargetType() == TargetType.MEETUP) {
+	        Meetup meetup = meetupRepository
+	                .findById(report.getTargetId())
+	                .orElseThrow(() ->
+	                        new IllegalArgumentException("모임 조회 실패!")
+	                );
+	        targetMember = meetup.getMember();
+
+	    } else if (report.getTargetType() == TargetType.REVIEW) {
+	        Review review = reviewRepository
+	                .findById(report.getTargetId())
+	                .orElseThrow(() ->
+	                        new IllegalArgumentException("리뷰 조회 실패!")
+	                );
+	        targetMember = review.getMember();
+
+	    } else {
+	        throw new IllegalArgumentException("잘못된 targetType입니다.");
+	    }
+
+	    // 신고 대상 회원 정보찾기 시작... id & nickname
+	    responseDto.setTargetMemberId(targetMember.getId());
+	    responseDto.setTargetMemberNickname(targetMember.getNickname());
+
+	    // 신고 대상 회원의... memberInfo 조회
+	    MemberInfo targetMemberInfo = memberInfoRepository
+	            .findById(targetMember.getId())
+	            .orElseThrow(() ->
+	                    new IllegalArgumentException(
+	                            "신고 대상 회원 MemberInfo 조회 불가!"
+	                    )
+	            );
+
+	    // 신고 대상 회원의... 신뢰도
+	    responseDto.setTargetTrustScore(targetMemberInfo.getTrustScore());
+
+	    // 신고 대상 회원의... 뱃지
+	    if (targetMemberInfo.getMemberReportStatus() != null) {
+	        responseDto.setTargetStatusCode(
+	                targetMemberInfo.getMemberReportStatus().getStatusCode()
+	        );
+	        responseDto.setTargetStatusName(
+	                targetMemberInfo.getMemberReportStatus().getStatusName()
+	        );
+	    }
+	   
 	}
 } 

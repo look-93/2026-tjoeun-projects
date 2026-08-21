@@ -10,23 +10,18 @@ import lombok.Setter;
 
 @Getter @Setter
 public class ReportSearchDto {
-	private String filter;		// 필터 버튼 ALL, MEETUP, REVIEW, PENDING, DELETE
-	private String search;		// 검색 종류 MEMBER_NICKNAME, REASON
-	private String keyword;		// 검색 키워드 입력받기
+//	private String filter;		// 필터 버튼 ALL, MEETUP, REVIEW, PENDING, DELETE
+//	private String search;		// 검색 종류 MEMBER_NICKNAME, REASON
+//	private String keyword;		// 검색 키워드 입력받기
 	
-	@Schema(hidden = true)
-	private TargetType targetType;		// 대상
-	@Schema(hidden = true)
-	private ReportStatus status;		// 상태 (PENDING)
-//	private Character deleteYn;			// 상태 (논리삭제)
-	@Schema(hidden = true)
-    private Character deleteYn = 'N';	// 삭제되지 않은 신고 조회
-	
-    @Schema(hidden = true)
-	private String memberNickname;		// 작성자(닉네임)
-    @Schema(hidden = true)
-    private ReasonCode reasonCode;		// 신고사유
-//	private LocalDate createdAt;		// 날짜
+	private TargetType targetType;	// MEETUP / REVIEW
+	private ReportStatus status;	// PENDING / APPROVED / REJECTED
+	private ReasonCode reasonCode;	// 사유 (드롭다운)
+	private Character deleteYn;		// N / Y
+	private String memberNickname;	// 닉네임 (키워드 검색)
+
+//	private String searchType;		// memberNickname / reasonCode
+//	private String keyword;			// 검색어
 }
 
 // 관리자 검색 기능
