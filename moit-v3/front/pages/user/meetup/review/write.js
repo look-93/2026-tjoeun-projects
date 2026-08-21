@@ -46,7 +46,7 @@ function ReviewWritePage() {
   
   // 마이페이지에서 왔는지 여부 파악
   const fromMypage = router.isReady ? router.query.from === 'mypage' : false;
-  
+
   // 수정 모드 여부 판단
   const isEditMode = Boolean(queryReviewId);
 

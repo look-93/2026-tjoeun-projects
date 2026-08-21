@@ -21,7 +21,7 @@ public interface QuestionMapper {
     List<QuestionResponseDto> findAll(Map<String, Object> map);
 
     // 문의 상세 조회
-    QuestionResponseDto findById(Long questionId);
+    QuestionResponseDto findById(@Param("questionId") Long questionId);
 
     // 문의 등록
     void insertQuestion(QuestionRequestDto dto);

@@ -123,7 +123,6 @@ const reviewReducer = createSlice({
 
         // --리뷰 좋아요 토글--
         toggleReviewLikeRequest: (state) => {
-
             state.error = null;
         },
         toggleReviewLikeSuccess: (state, action) => {

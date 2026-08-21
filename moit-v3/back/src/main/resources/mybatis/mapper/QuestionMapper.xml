@@ -110,11 +110,15 @@
 	</select>
 
 	<!-- 상세보기 -->
-	<select id="findById" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto">
-		SELECT q.*, qa.analysis_status, qa.aggression_score
-	    FROM questions q LEFT JOIN question_ai_analysis qa
-	    ON q.question_id = qa.question_id
-	    WHERE q.question_id = #{questionId} AND q.delete_yn = 'N'
+	<select id="findById" parameterType="long" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto">
+	    SELECT q.*,
+	        NVL(qa.analysis_status, 'NORMAL') AS analysis_status,
+	        NVL(qa.aggression_score, 0) AS aggression_score
+	    FROM questions q
+	    LEFT JOIN question_ai_analysis qa
+	        ON q.question_id = qa.question_id
+	    WHERE q.question_id = #{questionId, jdbcType=NUMERIC}
+	      AND q.delete_yn = 'N'
 	</select>
 
 	<!-- 제목, 내용, 등록일 검색 (관리자용)-->
@@ -262,7 +266,7 @@
 		insert into answers
 		( answer_id, question_id, member_id, content, is_public, delete_yn, created_at, updated_at )
 		values
-		( answer_seq.NEXTVAL, #{questionId}, #{memberId}, #{content}, #{isPublic}, 'N', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP )
+		( answer_seq.NEXTVAL, #{questionId}, #{memberId}, #{content}, (select is_public from questions where question_id = #{questionId}), 'N', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP )
 	</insert>
 
 	<!-- 답변 수정 -->
@@ -326,9 +330,9 @@
 	        FROM dual
 	    </selectKey>
 		    INSERT INTO notifications
-		    ( notification_id, question_id, member_id, type, message, created_at )
+		    ( notification_id, question_id, member_id, type, message, created_at, updated_at )
 		    VALUES
-		    ( #{notificationId}, #{questionId}, #{memberId}, #{type}, #{message}, CURRENT_TIMESTAMP )
+		    ( #{notificationId}, #{questionId}, #{memberId}, #{type}, #{message}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP )
 	</insert>
 	
 	<select id="selectUnread" parameterType="long" resultType="com.moit.qna.dto.NotificationDto">

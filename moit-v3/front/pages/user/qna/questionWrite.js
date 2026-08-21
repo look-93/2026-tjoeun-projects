@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
-import { qnaCreateRequest } from '../../../reducers/qnaReducer';
+import { qnaCreateRequest, qnaReset } from '../../../reducers/qnaReducer';
 import {
   Breadcrumb,
   Button,
@@ -20,7 +20,7 @@ function questionWrite() {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const { qna, success } = useSelector((state) => state.qna);
+  const { qna, success, error } = useSelector((state) => state.qna);
   const { type, meetupId } = router.query;
 
   const isMeetup = type === 'MEETUP';
@@ -29,10 +29,14 @@ function questionWrite() {
   
   useEffect(() => {
     if (success && qna?.questionId) {
-      router.push(`/user/qna/questionDetail?questionId=${qna.questionId}`);
+      const questionId = qna.questionId;
       dispatch(qnaReset());
-    }
+      router.push(`/user/qna/questionDetail?questionId=${questionId}`);}
   }, [success, qna, router, dispatch]);
+
+  useEffect(() => {
+    if (error) { alert(error); }
+  }, [error]);
 
   return (
     <div className="qna-write-page">

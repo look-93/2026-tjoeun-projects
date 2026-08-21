@@ -225,6 +225,7 @@ function DetailReviewPage() {
                   gap: '8px',
                 }}
               >
+              
                 {images.map((imgItem, index) => {
                   const imgSrc = getImageUrl(imgItem);
                   if (!imgSrc) return null;

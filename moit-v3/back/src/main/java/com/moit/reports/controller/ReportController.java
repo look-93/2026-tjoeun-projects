@@ -42,12 +42,14 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor
 public class ReportController {
+   
+   private final ReportsService reportsService;
 
    private final ReportsService reportsService;
    private final ApiOpenAi apiOpenAi;
 //   private final ApiEmail apiEmail;
    
-   
+
    
    // test button
 //   @RequestMapping("/user/meetup/report/button")
