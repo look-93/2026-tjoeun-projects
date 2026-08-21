@@ -129,44 +129,50 @@ function write() {
 
     //ai추천
     useEffect(() => {
-        // 수정 페이지에서는 AI 안내 X
         if (isEdit) return;
 
-        //console.log("🔥 AI 타이머 시작");
-
-        // 페이지 진입 후 10초
         const timer = setTimeout(() => {
-            //console.log("🔥🔥 10초 지남!");
+            const title = form.getFieldValue("title");
+
+            // 10초가 지났을 때 제목이 이미 있으면 안내 X
+            if (title?.trim()) return;
+
             setShowAiGuide(true);
         }, 10000);
 
         return () => clearTimeout(timer);
-    }, [isEdit]);
+    }, [isEdit, form]);
 
-    //ai호출
+    // AI 호출
     useEffect(() => {
         if (isEdit) return;
         if (!showAiGuide) return;
-        
-        //제목이 작성되었디면 호출x
-        if (titleValue?.trim()) return;
 
-        // 이미 AI 추천을 요청했다면 다시 요청하지 않음
+        // 제목이 없으면 계속 기다림
+        if (!titleValue?.trim()) return;
+
+        // 이미 요청했다면 다시 요청하지 않음
         if (aiRequestedRef.current) return;
 
         const timer = setTimeout(() => {
-            // ⭐ 요청하기 직전에 true
+            const currentTitle = form.getFieldValue("title");
+
+            if (!currentTitle?.trim()) return;
+
+            // 혹시 입력 중이라면 최신값으로 요청
             aiRequestedRef.current = true;
 
-            console.log("🤖 AI 요청:", titleValue);
+            console.log("🤖 AI 요청:", currentTitle);
 
             dispatch(
                 recommendMeetupRequest({
-                    keyword: titleValue,
+                    keyword: currentTitle,
                 }),
             );
-        }, 3000);
-    }, [titleValue, showAiGuide, isEdit, dispatch]);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [titleValue, showAiGuide, isEdit, dispatch, form]);
 
     //ai 응답 값 셋팅
     useEffect(() => {
