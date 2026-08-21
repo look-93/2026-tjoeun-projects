@@ -1,11 +1,13 @@
 import React from 'react';
 import { Layout, Menu } from 'antd';
 import { useRouter } from 'next/router';
+import { useSelector } from "react-redux";
 
 const { Sider } = Layout;
 
 function MyPageSidebar() {
   const router = useRouter();
+  const { user } = useSelector((state) => state.user);
 
   const menuItems = [
     {
@@ -45,6 +47,16 @@ function MyPageSidebar() {
       label: '회원 탈퇴',
     },
   ];
+
+  //console.log(user)
+
+  // 제휴업체인 경우 광고 메뉴 추가
+  if (user?.memberTypeId === 2) {
+      menuItems.splice(6, 0, {
+          key: "/user/mypage/advertisement",
+          label: "광고 관리",
+      });
+  }
 
   const selectedKey =
     menuItems.find((item) => router.pathname === item.key)?.key ||
