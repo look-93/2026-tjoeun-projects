@@ -26,7 +26,6 @@ export default function PaymentSuccessPage() {
       console.log('결제 승인 요청 준비 완료:', { paymentKey, orderId, amount });
 
       // 실제 백엔드 연동 시 아래 주석 풀기
-      /*
       axios.post('/api/payment/confirm', { 
         paymentKey, 
         orderId, 
@@ -43,14 +42,6 @@ export default function PaymentSuccessPage() {
         message.error("결제 승인에 실패했습니다.");
         console.error(err);
       });
-      */
-
-      // ⚠️ 임시 테스트용 코드 (백엔드 연결 전까지 결과를 확인하기 위함)
-      // 나중에 실제 API 연결 시 이 setTimeout 부분은 지워주세요!
-      setTimeout(() => {
-        setIsConfirming(false);
-        setIsSuccess(true);
-      }, 1500); // 1.5초 후 성공 처리
     }
   }, [router.isReady, paymentKey, orderId, amount]);
 

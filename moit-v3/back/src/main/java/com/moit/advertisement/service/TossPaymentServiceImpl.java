@@ -38,6 +38,7 @@ public class TossPaymentServiceImpl implements TossPaymentService {
     @Override
     @Transactional
     public void confirmPayment(PaymentConfirmRequestDto requestDto) {
+    	System.out.println("🔥 주입된 토스 시크릿키: [" + tossSecretKey + "]");
         
         // 1. 주문번호로 결제 내역 조회
         AdvertisementPayment payment = paymentRepository.findByOrderId(requestDto.getOrderId())
