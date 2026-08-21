@@ -1,5 +1,6 @@
 package com.moit.advertisement.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,5 @@ public interface AdvertisementPositionPriceRepository
             AdPosition position
     );
 
+	List<AdvertisementPositionPrice> findByPositionIn(List<AdPosition> positions);
 }
