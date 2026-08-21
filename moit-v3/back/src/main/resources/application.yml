@@ -67,6 +67,9 @@ jwt:
   refresh-token-exp-seconds: 1209600
   header: Authorization
   prefix: Bearer
+  
+toss:
+  secret-key: ${TOSS_SECRET_KEY}  
 
 #server:
 #  port: 8484
