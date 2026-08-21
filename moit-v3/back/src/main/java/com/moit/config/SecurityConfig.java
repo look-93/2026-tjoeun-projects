@@ -63,6 +63,7 @@ public class SecurityConfig {
                 "/api/meetups/**",
                 "/api/members/**",
                 "/api/questions/**",
+                "/api/notifications/**",
                 "/api/reports/**",
                 "/api/reports",
                 "/api/admin/advertisement/**",

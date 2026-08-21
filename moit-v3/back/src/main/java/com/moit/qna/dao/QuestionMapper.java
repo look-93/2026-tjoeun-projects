@@ -109,6 +109,13 @@ public interface QuestionMapper {
     	    @Param("notificationId") Long notificationId,
     	    @Param("memberId") Long memberId
     	);
+    void readAllNotifications(
+    	    @Param("memberId") Long memberId
+    	);
+    void deleteNotification(
+    	    @Param("notificationId") Long notificationId,
+    	    @Param("memberId") Long memberId
+    	);
     void deleteOldestNotification(Long memberId);
     int countNotifications(Long memberId);
     List<NotificationDto> selectUnread(Long memberId);

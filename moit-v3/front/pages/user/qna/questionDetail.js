@@ -98,14 +98,30 @@ function questionDetail() {
     ? '비공개 🔒'
     : '공개';
 
-  const createdAt = qna?.createdAt
-    ? new Date(qna.createdAt).toLocaleString()
-    : '-';
-
   const answer = qna?.answer || {};
 
+  const createdAt = qna?.createdAt
+  ? new Date(qna.createdAt).toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    })
+  : '-';
+
   const answerCreatedAt = answer.createdAt
-    ? new Date(answer.createdAt).toLocaleString()
+    ? new Date(answer.createdAt).toLocaleString('ko-KR', {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      })
     : '-';
 
   const handleDelete = () => {
