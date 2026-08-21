@@ -32,6 +32,7 @@ import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
 import com.moit.meetup.dto.MeetupLikeCountDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupParticipantCountDto;
+import com.moit.meetup.dto.MyMeetupCountResponseDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.meetup.entity.Meetup;
@@ -40,6 +41,7 @@ import com.moit.meetup.entity.MeetupCategory;
 import com.moit.meetup.entity.MeetupImage;
 import com.moit.meetup.entity.MeetupLike;
 import com.moit.meetup.enums.ApplyStatus;
+import com.moit.meetup.enums.MeetupStatus;
 import com.moit.meetup.repository.MeetupApplicationRepository;
 import com.moit.meetup.repository.MeetupCategoryRepository;
 import com.moit.meetup.repository.MeetupImageRepository;
@@ -71,8 +73,27 @@ public class MeetupServiceImpl implements MeetupService{
 		
 	//모임리스트조회
 	@Override
-	public MeetupListResponseDto search(Pageable pageable, Long memberId) {
-		Page<Meetup> page = meetupRepository.findByDeleteYn('N', pageable);
+	public MeetupListResponseDto search(
+	        Pageable pageable,
+	        Long memberId,
+	        MeetupStatus status,
+	        String searchType,
+	        String searchText,
+	        Long sidoId,
+	        Long categoryId,
+	        String orderType
+	) {
+
+	    Page<Meetup> page = meetupRepository.findByDeleteYn(
+	            'N',
+	            status,
+	            searchType,
+	            searchText,
+	            sidoId,
+	            categoryId,
+	            orderType,
+	            pageable
+	    );
 //		page.getTotalPages(); // 전체페이지수 100개라면 10개
 //		page.getNumberOfElements(); // 전체갯수 100개
 //		page.getContent(); // 0번째 페이지의 10개가 들어있음
@@ -140,7 +161,7 @@ public class MeetupServiceImpl implements MeetupService{
 	
 	//상세조회
 	@Override
-	public MeetupResponseDto detail(Long meetupId) {		
+	public MeetupResponseDto detail(Long meetupId, Long memberId) {		
 		Meetup meetup = meetupRepository.findById(meetupId)
 										.orElseThrow(()->new ResourceNotFoundException("존재하지 않는 게시글입니다. ID: "+ meetupId));
 		
@@ -148,7 +169,7 @@ public class MeetupServiceImpl implements MeetupService{
 			throw new IllegalArgumentException("삭제된 게시글 입니다.");
 		}		
 		
-		MeetupResponseDto response = MeetupResponseDto.detailFrom(meetup);
+		MeetupResponseDto response = MeetupResponseDto.detailFrom(meetup, memberId);
 		
 		return response;
 	}
@@ -203,37 +224,129 @@ public class MeetupServiceImpl implements MeetupService{
 		}		
 	}
 	
-	//모임수정
+	// 모임 수정
 	@Transactional
 	@Override
-	public void update(MeetupRequestDto meetupRequestDto, Long meetupId) {
-		Meetup meetup = meetupRepository.findById(meetupId)
-										.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 게시글입니다. MEETUPID" + meetupId));
-		
-		Sigungu sigungu = meetupSigunguRepository.findById(meetupRequestDto.getSigunguId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 지역입니다. SigunguId" + meetupRequestDto.getSigunguId()));
-		MeetupCategory meetupCategory = meetupCategoryRepository.findById(meetupRequestDto.getCategoryId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 카테고리입니다. meetupCategory" + meetupRequestDto.getCategoryId()));
-		
-		
-		
-		if(meetup.getDeleteYn() == 'Y') {
-			throw new ResourceNotFoundException("삭제된 게시글 입니다. MEETUPID" + meetupId);
-		}
-		
-		// 저장메서드를 따로 호출하지 않아도 update 쿼리 반영 더티체킹(Dirty Checking)
-		meetup.setTitle(meetupRequestDto.getTitle());
-		meetup.setContent(meetupRequestDto.getContent());
-		meetup.setMaxParticipants(meetupRequestDto.getMaxParticipants());
-		meetup.setMinParticipants(meetupRequestDto.getMinParticipants());
-		meetup.setSigungu(sigungu);
-		meetup.setMeetupCategory(meetupCategory);
-		meetup.setAddress(meetupRequestDto.getAddress());
-		meetup.setAddressDetail(meetupRequestDto.getAddressDetail());
-		meetup.setMeetupAt(meetupRequestDto.getMeetupAt());
-		meetup.setMeetupStatus(meetupRequestDto.getMeetupStatus());
-		meetup.setLatitude(meetupRequestDto.getLatitude());
-		meetup.setLongitude(meetupRequestDto.getLongitude());
-		meetup.setNx(meetupRequestDto.getNx());
-		meetup.setNy(meetupRequestDto.getNy());		
+	public void update(
+	        MeetupRequestDto meetupRequestDto,
+	        Long meetupId,
+	        List<MultipartFile> files,
+	        List<String> existingImagePaths
+	) {
+
+	    Meetup meetup = meetupRepository.findById(meetupId)
+	            .orElseThrow(() ->
+	                    new ResourceNotFoundException(
+	                            "존재하지 않는 게시글입니다. MEETUPID" + meetupId
+	                    )
+	            );
+
+	    Sigungu sigungu = meetupSigunguRepository.findById(
+	            meetupRequestDto.getSigunguId()
+	    ).orElseThrow(() ->
+	            new ResourceNotFoundException(
+	                    "존재하지 않는 지역입니다. SigunguId"
+	                            + meetupRequestDto.getSigunguId()
+	            )
+	    );
+
+	    MeetupCategory meetupCategory = meetupCategoryRepository.findById(
+	            meetupRequestDto.getCategoryId()
+	    ).orElseThrow(() ->
+	            new ResourceNotFoundException(
+	                    "존재하지 않는 카테고리입니다. meetupCategory"
+	                            + meetupRequestDto.getCategoryId()
+	            )
+	    );
+
+	    if (meetup.getDeleteYn() == 'Y') {
+	        throw new ResourceNotFoundException(
+	                "삭제된 게시글 입니다. MEETUPID" + meetupId
+	        );
+	    }
+
+	    // =========================
+	    // 모임 정보 수정
+	    // =========================
+
+	    meetup.setTitle(meetupRequestDto.getTitle());
+	    meetup.setContent(meetupRequestDto.getContent());
+	    meetup.setMaxParticipants(meetupRequestDto.getMaxParticipants());
+	    meetup.setMinParticipants(meetupRequestDto.getMinParticipants());
+	    meetup.setSigungu(sigungu);
+	    meetup.setMeetupCategory(meetupCategory);
+	    meetup.setAddress(meetupRequestDto.getAddress());
+	    meetup.setAddressDetail(meetupRequestDto.getAddressDetail());
+	    meetup.setMeetupAt(meetupRequestDto.getMeetupAt());
+	    meetup.setMeetupStatus(meetupRequestDto.getMeetupStatus());
+	    meetup.setLatitude(meetupRequestDto.getLatitude());
+	    meetup.setLongitude(meetupRequestDto.getLongitude());
+	    meetup.setNx(meetupRequestDto.getNx());
+	    meetup.setNy(meetupRequestDto.getNy());
+	    
+		 // =========================
+		 // 기존 이미지 삭제
+		 // =========================
+	
+		 List<String> keepImagePaths = (existingImagePaths != null) ? existingImagePaths : new ArrayList<>();
+	
+		 // 삭제해야 할 MeetupImage 추출
+		 List<MeetupImage> removeMeetupImages = meetup.getMeetupImages()
+		         .stream()
+		         .filter(meetupImage -> !keepImagePaths.contains(meetupImage.getImage().getImagePath()))
+		         .toList();
+	
+		 for (MeetupImage meetupImage : removeMeetupImages) {
+		     Image image = meetupImage.getImage();
+	
+		     // 1. 실제 로컬/S3 파일 삭제
+		     utilUpload.fileDelete(image.getImagePath(), "meetup");
+	
+		     // 2. 부모 자식 관계 명시적 제거 (메모리동기화)
+		     meetup.getMeetupImages().remove(meetupImage);
+	
+		     // 3. DB 삭제 (MeetupImage 우선 삭제 -> Image 삭제)
+		     meetupImageRepository.delete(meetupImage);
+		     imageRepository.delete(image);
+		 }
+
+
+	    // =========================
+	    // 새 이미지 추가
+	    // =========================
+
+	    if (files != null && !files.isEmpty()) {
+
+	        try {
+
+	            for (MultipartFile file : files) {
+
+	                String savedFileName =
+	                        utilUpload.fileUpload(file, "meetup");
+
+	                Image image = Image.builder()
+	                        .imagePath(savedFileName)
+	                        .build();
+
+	                imageRepository.save(image);
+
+	                MeetupImage meetupImage =
+	                        MeetupImage.builder()
+	                                .meetup(meetup)
+	                                .image(image)
+	                                .build();
+
+	                meetupImageRepository.save(meetupImage);
+	            }
+
+	        } catch (IOException e) {
+
+	            throw new RuntimeException(
+	                    "이미지 업로드 중 오류가 발생했습니다.",
+	                    e
+	            );
+	        }
+	    }
 	}
 	
 	//모임삭제
@@ -295,9 +408,15 @@ public class MeetupServiceImpl implements MeetupService{
 	    
 	    // 신규 신청 → 정원 확인
 	    long applicantCount = meetupApplicationRepository.countByMeetupIdAndApplyStatus( meetupId, ApplyStatus.PENDING);
-
+	    
 	    if (applicantCount >= meetup.getMaxParticipants()) {
 	        throw new IllegalStateException("모임 정원이 가득 찼습니다.");
+	    }
+	    
+	    // AI 한줄평이 없는 경우 최초 생성
+	    if (member.getMemberInfo().getAiSummary() == null) {
+	    	//System.out.println("⭐ AI Summary 최초 생성");
+	        updateAiSummary(member);
 	    }
 	    
 	    // 신청 내역 자체가 없으면 → 신규 신청
@@ -365,7 +484,7 @@ public class MeetupServiceImpl implements MeetupService{
 	                    .stream()
 	                    .map(MeetupApplicationResponseDto::fromEntity)
 	                    .toList();
-
+	    //System.out.println("신청 상태 = " + applications.get(0).getMeetupStatus());
 	    response.setApplications(applications);
 
 	    return response;
@@ -425,6 +544,7 @@ public class MeetupServiceImpl implements MeetupService{
 		
 		//기존 상태
 		ApplyStatus beforeStatus = meetupApplication.getApplyStatus();
+		
 		//받아온 상태
 		ApplyStatus afterStatus = requestDto.getApplyStatus();
 		
@@ -483,6 +603,13 @@ public class MeetupServiceImpl implements MeetupService{
 		return sigungu.stream().map(SigunguDto::from).toList();
 	}
 	
+	//마이페이지 - 통계
+	@Override
+	public MyMeetupCountResponseDto getMyMeetupCount(Long memberId) {
+
+	    return meetupRepository.getMyMeetupCount(memberId);
+	}
+	
 	// ################### open api ###################
 
 	//ai 제목/카테고리/컨텐츠 추가
@@ -522,7 +649,7 @@ public class MeetupServiceImpl implements MeetupService{
 								.findFirst()
 								.orElse(0L);
 			
-			dto.setId(categoryId == null ? 0 : categoryId);
+			dto.setCategoryId(categoryId == null ? 0 : categoryId);
 	
 	
 	        return dto;
@@ -553,10 +680,12 @@ public class MeetupServiceImpl implements MeetupService{
 	private void updateAiSummary(Member member) {
 
 	    Integer trustScore = member.getMemberInfo().getTrustScore();
-
+	    //System.out.println("⭐ updateAiSummary 실행");
+	    //System.out.println("⭐ trustScore = " + trustScore);
 	    String aiSummary;
 
 	    if (trustScore < 60) {
+	        //System.out.println("⭐ 60점 미만 → AI 호출");
 
 	        String aiPrompt = "[대상 유저 이력 정보]\n"
 	                + "- 최근 3개월 내 무단 노쇼(NOSHOW), 당일 모임 신청 후 1시간 이내 취소 등의 이력을 종합\n"
@@ -566,12 +695,13 @@ public class MeetupServiceImpl implements MeetupService{
 	                + "20자 내외의 경고성 한 줄 요약문을 만들어줘.";
 
 	        aiSummary = openAiApiClient.getAIResponse(aiPrompt);
-
+	        //System.out.println("⭐ AI 응답 = " + aiSummary);
 	    } else {
-
+	    	//System.out.println("⭐ 60점 이상 → 기본 문구");
 	        aiSummary = "신뢰도가 높은 회원입니다.";
 	    }
 
 	    member.getMemberInfo().setAiSummary(aiSummary);
+
 	}	
 }

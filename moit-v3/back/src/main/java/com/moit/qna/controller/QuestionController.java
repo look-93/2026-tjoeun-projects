@@ -1,6 +1,7 @@
 package com.moit.qna.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -181,14 +182,20 @@ public class QuestionController {
     // 모임글 문의 등록   
     @Operation(summary = "문의 등록", description = "문의를 등록합니다.")
     @PostMapping
-    public ResponseEntity<QuestionResponseDto> create(@RequestBody QuestionRequestDto dto, Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ResponseEntity<?> create(@RequestBody QuestionRequestDto dto, Authentication authentication) {
+    	try {
+    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Long memberId = userDetails.getUser().getMemberId();
         dto.setMemberId(memberId);
         // 관리자 문의일 경우 parentId = 0
         if (dto.getParentId() == null) { dto.setParentId(0L); }
         QuestionResponseDto result = questionService.register(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
+        } catch (IllegalStateException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
     }
     
     // 문의 상세 화면 + 답변 조회 + 버튼 권한
@@ -247,7 +254,15 @@ public class QuestionController {
 	@Operation(summary = "답변 수정", description = "답변을 수정합니다.")
 	@PutMapping("/answer/{answerId}")
 	public ResponseEntity<Void> answerEdit(@PathVariable("answerId") Long answerId, @RequestBody AnswerRequestDto dto, Authentication authentication) {
-	    QuestionResponseDto question = questionService.getDetail(dto.getQuestionId());
+	    System.out.println("🔥 answerId = " + answerId);
+	    System.out.println("🔥 questionId = " + dto.getQuestionId());
+	    System.out.println("🔥 content = " + dto.getContent());
+
+	    if (dto.getQuestionId() == null) {
+	        return ResponseEntity.badRequest().build();
+	    }
+	    
+		QuestionResponseDto question = questionService.getDetail(dto.getQuestionId());
 	    // 답변 수정 권한 확인
 	    if (!canAnswer(question, authentication)) {
 	        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -271,6 +286,7 @@ public class QuestionController {
 	    }
 	    // 답변 삭제 및 문의 상태 PENDING 변경
 	    answerService.delete(answerId, questionId);
+	    
 	    return ResponseEntity.noContent().build(); // 성공 응답 204
 	}
 
@@ -295,7 +311,7 @@ public class QuestionController {
 	    }
 		// 일반 회원인 경우 해당 모임의 모임장인지 확인
 	    if(user.getMemberTypeId() == 1){
-	        MeetupResponseDto meetup =meetupService.detail(question.getParentId());
+	        MeetupResponseDto meetup =meetupService.detail(question.getParentId(), memberId);
 	        return meetup != null && meetup.getMemberId() != null &&
 	               meetup.getMemberId().equals(memberId);
 	    }

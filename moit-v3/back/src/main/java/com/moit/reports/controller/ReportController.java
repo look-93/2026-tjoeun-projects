@@ -242,9 +242,7 @@ public class ReportController {
 		
 		ReportResponseDto report = reportsService.getAdminReportDetail(reportId);
 		return ResponseEntity.ok(report);
-	}
-
-	
+	}	
 	
 	//////////////////////////////////////////////////////////
 	// 관리자 신고 처리 로그 조회

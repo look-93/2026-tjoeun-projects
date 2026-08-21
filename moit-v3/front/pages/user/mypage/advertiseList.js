@@ -18,6 +18,9 @@ import {
   deleteAdvertise,
 } from '../../../api/advertiseApi';
 
+import AdvertisePayment from '../../../components/AdvertisePayment';
+import { Modal } from 'antd';
+
 function AdvertiseListPage() {
   const router = useRouter();
 
@@ -31,6 +34,16 @@ function AdvertiseListPage() {
   const [totalCount, setTotalCount] = useState(0);
 
   const size = 10;
+
+  // 결제 모달 상태 추가
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentTarget, setPaymentTarget] = useState(null); // 결제할 광고 정보
+
+  // 결제 버튼 클릭 시 모달 열기
+  const handlePayment = (record) => {
+    setPaymentTarget(record);
+    setIsPaymentModalOpen(true);
+  };
 
   // 광고 목록 조회
   const loadAdvertiseList = async () => {
@@ -87,11 +100,6 @@ function AdvertiseListPage() {
   // 광고 등록
   const handleWrite = () => {
     router.push('/user/mypage/advertiseWrite');
-  };
-
-  // 광고 결제
-  const handlePayment = (adId) => {
-    console.log('결제하기:', adId);
   };
 
   // 삭제
@@ -301,7 +309,7 @@ function AdvertiseListPage() {
             <Button
                 type="primary"
                 size="small"
-                onClick={() => handlePayment(record.adId)}
+                onClick={() => handlePayment(record)}
             >
                 결제하기
             </Button>
@@ -444,6 +452,22 @@ function AdvertiseListPage() {
         />
       </div>
 
+      {/* 🌟 결제 컴포넌트를 담은 모달 추가 (return 영역 제일 아래에 추가) */}
+      <Modal
+        open={isPaymentModalOpen}
+        onCancel={() => setIsPaymentModalOpen(false)}
+        footer={null} // 결제 컴포넌트 안에 버튼이 있으므로 모달 기본 버튼은 숨김
+        destroyOnClose // 모달을 닫을 때마다 결제 위젯을 초기화하기 위해 꼭 필요!
+        width={650}
+      >
+        {paymentTarget && (
+          <AdvertisePayment 
+            adId={paymentTarget.adId} 
+            amount={paymentTarget.totalBudget} 
+            adTitle={paymentTarget.title} 
+          />
+        )}
+      </Modal>
     </div>
   );
 }

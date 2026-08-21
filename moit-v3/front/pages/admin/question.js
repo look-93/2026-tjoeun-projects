@@ -1,169 +1,137 @@
-import { Row, Col, Button, Input, Select, Table } from 'antd';
+import { Row, Col, Button, Table, Tag } from 'antd';
 import AdminStatCard from '../../components/AdminStatCard';
 import AdminSearchBox from '../../components/AdminSearchBox';
-import AdminListTabs from '../../components/AdminListTabs';
-import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
+import {
+  qnaAdminListRequest,
+} from '../../reducers/qnaReducer';
 // http://localhost:3000/admin/question
 
 function AdminQuestionPage() {
-  //테스트용 테이터
-  const serverData = { allcnt: 1200, running: 1000, close: 1200 };
+  const dispatch = useDispatch();
+
+  const {
+    adminQnaList,
+    adminQnaTotal,
+    adminQnaPage,
+    adminQnaSize,
+    adminQnaTotalPage,
+    adminQnaStartPage,
+    adminQnaEndPage,
+    adminQnaAllCnt,
+    adminQnaPendingCnt,
+    adminQnaAnsweredCnt,
+    adminQnaTodayCnt,
+    loading,
+  } = useSelector((state) => state.qna);
+
+  const [searchParams, setSearchParams] = useState({
+    type: 'all',
+    keyword: '',
+    status: 'all',
+    startDate: '',
+    endDate: '',
+    page: 1,
+    pageSize: 10,
+  });
+
+  useEffect(() => {
+    dispatch(qnaAdminListRequest(searchParams));
+  }, [dispatch, searchParams]);
+
   const stats = [
-    { title: '전체 모임', value: serverData.allcnt, suffix: '개' },
-    { title: '모집 중', value: serverData.running, suffix: '개' },
-    { title: '모집 마감', value: serverData.close, suffix: '개' },
-    { title: '모집 마감', value: 100, suffix: '개' },
+    { title: '전체 문의', value: adminQnaAllCnt, suffix: '건' },
+    { title: '답변 대기', value: adminQnaPendingCnt, suffix: '건' },
+    { title: '답변 완료', value: adminQnaAnsweredCnt, suffix: '건' },
+    { title: '오늘 등록', value: adminQnaTodayCnt, suffix: '건' },
   ];
-  const adminColumns = [
+
+  const handleSearch = (values) => {
+    setSearchParams({
+      ...searchParams,
+      ...values,
+      page: 1,
+    });
+  };
+
+  const handlePageChange = (page) => {
+    setSearchParams({
+      ...searchParams,
+      page,
+    });
+  };
+
+  const columns = [
     {
       title: '번호',
-      dataIndex: 'id',
-      key: 'id',
+      dataIndex: 'questionId',
+      key: 'questionId',
       width: 80,
       align: 'center',
     },
     {
-      title: '아이디',
-      dataIndex: 'loginId',
-      key: 'loginId',
+      title: '카테고리',
+      dataIndex: 'category',
+      key: 'category',
+      width: 120,
+      align: 'center',
+      render: (category) =>
+        category === 'MEETUP' ? '모임 문의' : '관리자 문의',
     },
     {
-      title: '닉네임',
+      title: '제목',
+      dataIndex: 'title',
+      key: 'title',
+    },
+    {
+      title: '작성자',
       dataIndex: 'nickname',
       key: 'nickname',
+      width: 120,
     },
     {
-      title: '이름',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: '이메일',
-      dataIndex: 'email',
-      key: 'email',
-    },
-    {
-      title: '가입일',
+      title: '작성일',
       dataIndex: 'createdAt',
       key: 'createdAt',
+      width: 180,
       align: 'center',
+      render: (value) =>
+        value ? new Date(value).toLocaleString('ko-KR') : '',
     },
     {
       title: '상태',
-      dataIndex: 'status',
-      key: 'status',
+      dataIndex: 'qnaStatus',
+      key: 'qnaStatus',
+      width: 120,
       align: 'center',
-      render: (_, record) => (
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-          <Button size="small">수정</Button>
-
-          <Button size="small" danger>
-            삭제
-          </Button>
-        </div>
-      ),
-    },
-  ];
-  const adminData = [
-    {
-      key: 1,
-      id: 1,
-      loginId: 'admin01',
-      nickname: '관리자1',
-      name: '김관리',
-      email: 'admin01@moit.com',
-      createdAt: '2026-08-01',
-      status: '정상',
+      render: (status) =>
+        status === 'ANSWERED' ? (
+          <Tag color="green">답변 완료</Tag>
+        ) : (
+          <Tag color="orange">답변 대기</Tag>
+        ),
     },
     {
-      key: 2,
-      id: 2,
-      loginId: 'admin02',
-      nickname: '관리자2',
-      name: '이관리',
-      email: 'admin02@moit.com',
-      createdAt: '2026-08-03',
-      status: '정상',
-    },
-  ];
-  const userColumns = [
-    {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
+      title: 'AI 상태',
+      dataIndex: 'analysisStatus',
+      key: 'analysisStatus',
+      width: 120,
       align: 'center',
-    },
-    {
-      title: '아이디',
-      dataIndex: 'loginId',
-      key: 'loginId',
-    },
-    {
-      title: '닉네임',
-      dataIndex: 'nickname',
-      key: 'nickname',
-    },
-    {
-      title: '이름',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: '이메일',
-      dataIndex: 'email',
-      key: 'email',
-    },
-    {
-      title: '가입일',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
+      render: (status) => {
+        if (!status) {
+          return '-';
+        }
+
+        if (status === 'NORMAL') {
+          return <Tag color="green">정상</Tag>;
+        }
+
+        return <Tag color="red">주의</Tag>;
+      },
     },
   ];
-  const userData = [
-    {
-      key: 1,
-      id: 1,
-      loginId: 'user01',
-      nickname: '보라',
-      name: '김보라',
-      email: 'bora@moit.com',
-      createdAt: '2026-08-01',
-    },
-    {
-      key: 2,
-      id: 2,
-      loginId: 'user02',
-      nickname: '철수',
-      name: '김철수',
-      email: 'chulsoo@moit.com',
-      createdAt: '2026-08-03',
-    },
-  ];
-  // 체크박스
-  const [checkStrictly, setCheckStrictly] = useState(false);
 
-  const rowSelection = {
-    checkStrictly,
-    onChange: (selectedRowKeys, selectedRows) => {
-      console.log('선택된 ID:', selectedRowKeys);
-      console.log('선택된 데이터:', selectedRows);
-    },
-  };
-
-  const [listType, setListType] = useState('admin');
-
-  // 목록 전환
-  const listTabs = [
-    {
-      key: 'admin',
-      label: '관리자목록',
-    },
-    {
-      key: 'user',
-      label: '사용자목록',
-    },
-  ];
   return (
     <>
       {/* 통계 */}
@@ -175,38 +143,17 @@ function AdminQuestionPage() {
         ))}
       </Row>
 
-      {/* 목록 탭 */}
-      {/* 목록 탭 */}
-      <AdminListTabs
-        tabs={listTabs}
-        activeTab={listType}
-        onChange={setListType}
-      />
-
-      {/* 검색 영역 조건1개*/}
-      {/* <AdminSearchBox
-        conditions={[
-          {
-            key: 'searchType',
-            defaultValue: 'title',
-            options: [
-              { value: 'title', label: '제목' },
-              { value: 'content', label: '내용' },
-            ],
-          },
-        ]}
-      /> */}
-
-      {/* 검색 영역 조건2개*/}
+      {/* 검색 영역 */}
       <AdminSearchBox
         conditions={[
           {
-            key: 'category',
+            key: 'type',
             defaultValue: 'all',
             options: [
               { value: 'all', label: '전체' },
-              { value: 'exercise', label: '운동' },
-              { value: 'study', label: '스터디' },
+              { value: 'title', label: '제목' },
+              { value: 'content', label: '내용' },
+              { value: 'nickname', label: '작성자' },
             ],
           },
           {
@@ -214,28 +161,33 @@ function AdminQuestionPage() {
             defaultValue: 'all',
             options: [
               { value: 'all', label: '전체 상태' },
-              { value: 'recruiting', label: '모집중' },
-              { value: 'closed', label: '마감' },
+              { value: 'PENDING', label: '답변 대기' },
+              { value: 'ANSWERED', label: '답변 완료' },
             ],
           },
         ]}
+        onSearch={handleSearch}
       />
 
-      {/* 모임 목록 */}
+      {/* 문의 목록 */}
       <div className="admin-table-box">
         <Table
-          rowSelection={rowSelection}
-          columns={listType === 'admin' ? adminColumns : userColumns}
-          dataSource={listType === 'admin' ? adminData : userData}
+          loading={loading}
+          columns={columns}
+          dataSource={adminQnaList}
           pagination={{
-            pageSize: 10,
+            current: adminQnaPage,
+            pageSize: adminQnaSize,
+            total: adminQnaTotal,
             showSizeChanger: false,
+            onChange: handlePageChange,
           }}
-          rowKey="id"
-          scroll={{ x: 800 }}
+          rowKey="questionId"
+          scroll={{ x: 1000 }}
         />
       </div>
     </>
   );
 }
+
 export default AdminQuestionPage;

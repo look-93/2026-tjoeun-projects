@@ -20,11 +20,14 @@ function MeetupRecruitInfo({ meetup, isOwner }) {
 
     const handleEdit = () => {
         // 수정 페이지로 이동
-        window.location.href = `/user/meetup/write/${meetup.id}`;
+        window.location.href = `/user/meetup/write?meetupId=${meetup.id}`;
     };
 
-    const isApplied = meetup.applyStatus === "PENDING";
+    const isApplied =
+        meetup.applyStatus === "PENDING" || meetup.applyStatus === "APPROVED";
+    const isNoShow = meetup.applyStatus === "NOSHOW";
 
+    //console.log(meetup);
     useEffect(() => {
         if (applySuccess) {
             if (meetup?.applyStatus === "PENDING") {
@@ -61,25 +64,31 @@ function MeetupRecruitInfo({ meetup, isOwner }) {
                     </Text>
                 </Row>
 
-                {isOwner ? (
-                    <Button
-                        type="primary"
-                        size="large"
-                        block
-                        onClick={handleEdit}
-                    >
-                        수정하기
-                    </Button>
-                ) : (
-                    <Button
-                        type={isApplied ? "default" : "primary"}
-                        size="large"
-                        block
-                        onClick={handleApply}
-                    >
-                        {isApplied ? "신청취소" : "신청하기"}
-                    </Button>
-                )}
+                {meetup.meetupStatus === "RECRUITING" &&
+                    (isOwner ? (
+                        <Button
+                            type="primary"
+                            size="large"
+                            block
+                            onClick={handleEdit}
+                        >
+                            수정하기
+                        </Button>
+                    ) : (
+                        <Button
+                            type={isApplied ? "default" : "primary"}
+                            size="large"
+                            block
+                            onClick={handleApply}
+                            disabled={isNoShow}
+                        >
+                            {isNoShow
+                                ? "신청불가"
+                                : isApplied
+                                  ? "신청취소"
+                                  : "신청하기"}
+                        </Button>
+                    ))}
             </Space>
         </Card>
     );

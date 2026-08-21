@@ -4,26 +4,30 @@
 
 	<!-- 관리자측 페이징 -->
 	<select id="findAll" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto" parameterType="map">
-		SELECT q.*, qa.analysis_status, qa.aggression_score
-	    FROM questions q LEFT JOIN question_ai_analysis qa
-	    ON	 q.question_id = qa.question_id
+	    SELECT q.*, m.nickname, qa.analysis_status, qa.aggression_score
+	    FROM questions q
+	    LEFT JOIN members m ON q.member_id = m.member_id
+	    LEFT JOIN question_ai_analysis qa ON q.question_id = qa.question_id
 	    <where>
-	        q.delete_yn='N'
-	        <if test="type=='title' and keyword!=null and keyword!=''">
+	        q.delete_yn = 'N'
+	        <if test="type == 'title' and keyword != null and keyword != ''">
 	            AND q.title LIKE '%' || #{keyword} || '%'
 	        </if>
-	        <if test="type=='content' and keyword!=null and keyword!=''">
+	        <if test="type == 'content' and keyword != null and keyword != ''">
 	            AND q.content LIKE '%' || #{keyword} || '%'
 	        </if>
-	        <if test="qnaStatus != null and qnaStatus != ''">
-    			AND q.qna_status=#{qnaStatus}
+	        <if test="type == 'nickname' and keyword != null and keyword != ''">
+	            AND m.nickname LIKE '%' || #{keyword} || '%'
+	        </if>
+	        <if test="status != null and status != '' and status != 'all'">
+	            AND q.qna_status = #{status}
 	        </if>
 	        <if test="startDate != null and startDate != ''">
-	            AND q.created_at >= TO_DATE(#{startDate},'YYYY-MM-DD')
+	            AND q.created_at >= TO_DATE(#{startDate}, 'YYYY-MM-DD')
 	        </if>
 	        <if test="endDate != null and endDate != ''">
-			    AND q.created_at <![CDATA[ < ]]> TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
-			</if>
+	            AND q.created_at <![CDATA[ < ]]> TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
+	        </if>
 	    </where>
 	    ORDER BY q.question_id DESC
 	    OFFSET #{start} ROWS
@@ -40,23 +44,27 @@
 	<!-- 검색 문의 수-->
 	<select id="findSearchCnt" parameterType="map" resultType="int">
 	    SELECT COUNT(*)
-	    FROM questions
-	    <where>
-	        delete_yn='N'
-	        <if test="type=='title' and keyword!=null and keyword!=''">
-	            AND title LIKE '%' || #{keyword} || '%'
+	    FROM questions q
+	    LEFT JOIN members m ON q.member_id = m.member_id
+	    <where>>
+	        q.delete_yn = 'N'
+	        <if test="type == 'title' and keyword != null and keyword != ''">
+	            AND q.title LIKE '%' || #{keyword} || '%'
 	        </if>
-	        <if test="type=='content' and keyword!=null and keyword!=''">
-	            AND content LIKE '%' || #{keyword} || '%'
+	        <if test="type == 'content' and keyword != null and keyword != ''">
+	            AND q.content LIKE '%' || #{keyword} || '%'
 	        </if>
-	        <if test="qnaStatus != null and qnaStatus != ''">
-   				AND qna_status=#{qnaStatus}
+	        <if test="type == 'nickname' and keyword != null and keyword != ''">
+	            AND m.nickname LIKE '%' || #{keyword} || '%'
 	        </if>
-	        <if test="startDate!=null and startDate!=''">
-	            AND created_at >= TO_DATE(#{startDate},'YYYY-MM-DD')
+	        <if test="status != null and status != '' and status != 'all'">
+	            AND q.qna_status = #{status}
 	        </if>
-	        <if test="endDate != null and endDate !=''">
-	            AND created_at <![CDATA[ < ]]> TO_DATE(#{endDate},'YYYY-MM-DD') + 1
+	        <if test="startDate != null and startDate != ''">
+	            AND q.created_at >= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+	        </if>
+	        <if test="endDate != null and endDate != ''">
+	            AND q.created_at <![CDATA[ < ]]> TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
 	        </if>
 	    </where>
 	</select>
@@ -102,11 +110,15 @@
 	</select>
 
 	<!-- 상세보기 -->
-	<select id="findById" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto">
-		SELECT q.*, qa.analysis_status, qa.aggression_score
-	    FROM questions q LEFT JOIN question_ai_analysis qa
-	    ON q.question_id = qa.question_id
-	    WHERE q.question_id = #{questionId} AND q.delete_yn = 'N'
+	<select id="findById" parameterType="long" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto">
+	    SELECT q.*,
+	        NVL(qa.analysis_status, 'NORMAL') AS analysis_status,
+	        NVL(qa.aggression_score, 0) AS aggression_score
+	    FROM questions q
+	    LEFT JOIN question_ai_analysis qa
+	        ON q.question_id = qa.question_id
+	    WHERE q.question_id = #{questionId, jdbcType=NUMERIC}
+	      AND q.delete_yn = 'N'
 	</select>
 
 	<!-- 제목, 내용, 등록일 검색 (관리자용)-->
@@ -254,7 +266,7 @@
 		insert into answers
 		( answer_id, question_id, member_id, content, is_public, delete_yn, created_at, updated_at )
 		values
-		( answer_seq.NEXTVAL, #{questionId}, #{memberId}, #{content}, #{isPublic}, 'N', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP )
+		( answer_seq.NEXTVAL, #{questionId}, #{memberId}, #{content}, (select is_public from questions where question_id = #{questionId}), 'N', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP )
 	</insert>
 
 	<!-- 답변 수정 -->
@@ -318,9 +330,9 @@
 	        FROM dual
 	    </selectKey>
 		    INSERT INTO notifications
-		    ( notification_id, question_id, member_id, type, message, created_at )
+		    ( notification_id, question_id, member_id, type, message, created_at, updated_at )
 		    VALUES
-		    ( #{notificationId}, #{questionId}, #{memberId}, #{type}, #{message}, CURRENT_TIMESTAMP )
+		    ( #{notificationId}, #{questionId}, #{memberId}, #{type}, #{message}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP )
 	</insert>
 	
 	<select id="selectUnread" parameterType="long" resultType="com.moit.qna.dto.NotificationDto">

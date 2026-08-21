@@ -1,11 +1,13 @@
 import React from 'react';
 import { Layout, Menu } from 'antd';
 import { useRouter } from 'next/router';
+import { useSelector } from "react-redux";
 
 const { Sider } = Layout;
 
 function MyPageSidebar() {
   const router = useRouter();
+  const { user } = useSelector((state) => state.user);
 
   const menuItems = [
     {
@@ -13,27 +15,27 @@ function MyPageSidebar() {
       label: '내 정보',
     },
     {
-      key: '/user/member/mypage/meetup',
+      key: '/user/mypage/meetup',
       label: '내 모임',
     },
     {
-      key: '/user/member/mypage/meetup-apply',
+      key: '/user/mypage/meetup-apply',
       label: '내 신청모임',
     },
     {
-      key: '/user/member/mypage/review',
+      key: '/user/mypage/review',
       label: '내 작성후기',
     },
     {
-      key: '/user/member/mypage/question',
+      key: '/user/mypage/question',
       label: '내 문의내역',
     },
     {
-      key: '/user/member/mypage/report',
+      key: '/user/mypage/report',
       label: '내 신고내역',
     },
     {
-      key: '/user/member/mypage/member/edit',
+      key: '/user/mypage/member/edit',
       label: '회원정보 수정',
     },
     {
@@ -45,6 +47,16 @@ function MyPageSidebar() {
       label: '회원 탈퇴',
     },
   ];
+
+  //console.log(user)
+
+  // 제휴업체인 경우 광고 메뉴 추가
+  if (user?.memberTypeId === 2) {
+      menuItems.splice(6, 0, {
+          key: "/user/mypage/advertiseList",
+          label: "광고 관리",
+      });
+  }
 
   const selectedKey =
     menuItems.find((item) => router.pathname === item.key)?.key ||

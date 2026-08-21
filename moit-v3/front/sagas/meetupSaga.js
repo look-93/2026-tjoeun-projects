@@ -72,6 +72,11 @@ import {
     fetchSigungusSuccess,
     fetchSigungusFailure,
 
+    // 마이페이지 통계 조회
+    fetchMyMeetupCountRequest,
+    fetchMyMeetupCountSuccess,
+    fetchMyMeetupCountFailure,
+
     // AI 추천
     recommendMeetupRequest,
     recommendMeetupSuccess,
@@ -182,17 +187,51 @@ export function* createMeetup(action) {
 // 모임 수정
 // PUT /api/meetups/{meetupId}
 // ==================================================
+export function updateMeetupAPI({ meetupId, data, files, existingImagePaths }) {
+    const formData = new FormData();
 
-export const updateMeetupAPI = ({ meetupId, data }) =>
-    api.put(`${MEETUP_API_BASE}/${meetupId}`, data);
+    // 모임 정보
+    Object.entries(data || {}).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+            formData.append(key, value);
+        }
+    });
+
+    // 기존에 유지할 이미지
+    existingImagePaths?.forEach((imagePath) => {
+        formData.append("existingImagePaths", imagePath);
+    });
+
+    // 새로 추가한 이미지
+    files?.forEach((file) => {
+        formData.append("files", file);
+    });
+
+    // 확인용
+    for (const [key, value] of formData.entries()) {
+        console.log(
+            "🔥 Update FormData:",
+            key,
+            value instanceof File ? value.name : value,
+        );
+    }
+
+    return api.put(`${MEETUP_API_BASE}/${meetupId}`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+}
 
 export function* updateMeetup(action) {
     try {
-        const { meetupId, data, page, size } = action.payload;
+        const { meetupId, data, files, existingImagePaths } = action.payload;
 
         yield call(updateMeetupAPI, {
             meetupId,
             data,
+            files,
+            existingImagePaths,
         });
 
         yield put(updateMeetupSuccess());
@@ -318,7 +357,7 @@ export const fetchMyApplicationsAPI = (params) =>
 export function* fetchMyApplications(action) {
     try {
         const result = yield call(fetchMyApplicationsAPI, action.payload);
-
+        //console.log("내 신청목록!!!!!", result);
         yield put(fetchMyApplicationsSuccess(result.data));
     } catch (err) {
         yield put(
@@ -340,7 +379,7 @@ export const fetchMeetupApplicantsAPI = (meetupId, params) =>
 export function* fetchMeetupApplicants(action) {
     try {
         const { meetupId, page, size } = action.payload;
-
+        //console.log("Saga payload:", action.payload);
         const result = yield call(fetchMeetupApplicantsAPI, meetupId, {
             page,
             size,
@@ -367,7 +406,7 @@ export const fetchMyMeetupsAPI = (params) =>
 export function* fetchMyMeetups(action) {
     try {
         const result = yield call(fetchMyMeetupsAPI, action.payload);
-
+        //console.log("🔥 내 모집글 API 응답:", result.data);
         yield put(fetchMyMeetupsSuccess(result.data));
     } catch (err) {
         yield put(
@@ -386,9 +425,19 @@ export const updateApplicationStatusAPI = (data) =>
 
 export function* updateApplicationStatus(action) {
     try {
+        //console.log("🔥 승인 요청 data:", action.payload);
         yield call(updateApplicationStatusAPI, action.payload);
 
         yield put(updateApplicationStatusSuccess());
+        // 💡 승인/거절 성공 후, 신청자 목록 조회 Saga를 다시 실행 (meetupId 필요)
+        //console.log("@@@@@@@meetupID" + action.payload.meetupId);
+        yield put(
+            fetchMeetupApplicantsRequest({
+                meetupId: action.payload.meetupId,
+                page: 0,
+                size: 10,
+            }),
+        );
     } catch (err) {
         yield put(
             updateApplicationStatusFailure(
@@ -432,6 +481,34 @@ export function* fetchSigungus() {
     } catch (err) {
         yield put(
             fetchSigungusFailure(err.response?.data?.message || err.message),
+        );
+    }
+}
+
+// ==================================================
+// 마이페이지 통계 조회
+// GET /api/meetups/my-count
+// ==================================================
+
+export const fetchMyMeetupCountAPI = () =>
+    api.get(`${MEETUP_API_BASE}/my-count`);
+
+export function* fetchMyMeetupCount() {
+    try {
+        console.log("🔥 마이페이지 통계 조회 dispatch");
+
+        const result = yield call(fetchMyMeetupCountAPI);
+
+        console.log("🔥 마이페이지 통계!!!!!", result.data);
+
+        yield put(fetchMyMeetupCountSuccess(result.data));
+    } catch (err) {
+        console.error("마이페이지 통계 조회 실패:", err);
+
+        yield put(
+            fetchMyMeetupCountFailure(
+                err.response?.data?.message || err.message,
+            ),
         );
     }
 }
@@ -496,6 +573,8 @@ export function* watchMeetupSaga() {
     yield takeLatest(fetchSigungusRequest.type, fetchSigungus);
 
     yield takeLatest(recommendMeetupRequest.type, recommendMeetup);
+
+    yield takeLatest(fetchMyMeetupCountRequest.type, fetchMyMeetupCount);
 }
 
 // ==================================================

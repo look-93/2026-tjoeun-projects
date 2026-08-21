@@ -1,10 +1,13 @@
 import React, { useEffect, useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useRouter } from 'next/router';
 import { qnaListRequest } from '../../../reducers/qnaReducer';
+import dayjs from 'dayjs';
 import {
   Button,
   Card,
   Col,
+  DatePicker,
   Input,
   Row,
   Select,
@@ -23,27 +26,38 @@ import {
 
 import MyPageStatCard from '../../../components/MyPageStatCard';
 
+const { RangePicker } = DatePicker;
 const { Title, Text } = Typography;
 
 function UserMyQuestionPage() {
   const dispatch = useDispatch();
-
+  const router = useRouter();
   const { qnaList, loading } = useSelector((state) => state.qna);
 
-  const [page, setPage] = useState(1);
+  // 검색창에 현재 입력 중인 값
   const [searchType, setSearchType] = useState('title');
   const [keyword, setKeyword] = useState('');
-  const [searchKeyword, setSearchKeyword] = useState('');
+  const [createdAtRange, setCreatedAtRange] = useState(null);
 
+  // 실제 검색에 사용되는 값
+  const [searchSearchType, setSearchSearchType] = useState('title');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchStartDate, setSearchStartDate] = useState('');
+  const [searchEndDate, setSearchEndDate] = useState('');
+
+  // 현재 페이지
+  const [page, setPage] = useState(1);
   useEffect(() => {
     dispatch(
       qnaListRequest({
         page,
-        type: searchType,
+        type: searchSearchType,
         keyword: searchKeyword,
+        startDate: searchStartDate,
+        endDate: searchEndDate,
       })
     );
-  }, [dispatch, page, searchType, searchKeyword]);
+  }, [dispatch, page, searchSearchType, searchKeyword, searchStartDate, searchEndDate,]);
 
   const list = qnaList?.list || [];
 
@@ -72,10 +86,11 @@ function UserMyQuestionPage() {
   const columns = [
     {
       title: '번호',
-      dataIndex: 'questionId',
-      key: 'questionId',
+      key: 'number',
       width: 80,
       align: 'center',
+      render: (_, record, index) =>
+        qnaList?.totalCnt - ((page - 1) * 10 + index),
     },
     {
       title: '문의구분',
@@ -90,8 +105,13 @@ function UserMyQuestionPage() {
       title: '제목',
       dataIndex: 'title',
       key: 'title',
-      render: (title) => (
-        <Text strong style={{ cursor: 'pointer' }}>
+      width: 300,
+      ellipsis: true,
+      align: 'center',
+      render: (title, record) => (
+        <Text strong style={{ cursor: 'pointer', }}
+          onClick={() => router.push( `/user/qna/questionDetail?questionId=${record.questionId}` ) }
+        >
           {title}
         </Text>
       ),
@@ -100,7 +120,7 @@ function UserMyQuestionPage() {
       title: '공개여부',
       dataIndex: 'isPublic',
       key: 'isPublic',
-      width: 120,
+      width: 100,
       align: 'center',
       render: (isPublic) =>
         isPublic === 'Y' ? (
@@ -115,7 +135,7 @@ function UserMyQuestionPage() {
       title: '답변상태',
       dataIndex: 'qnaStatus',
       key: 'qnaStatus',
-      width: 120,
+      width: 100,
       align: 'center',
       render: (qnaStatus) =>
         qnaStatus === 'PENDING' ? (
@@ -128,15 +148,15 @@ function UserMyQuestionPage() {
       title: '등록일',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: 160,
+      width: 100,
       align: 'center',
       render: (date) =>
-        date ? new Date(date).toLocaleString('ko-KR') : '-',
+        date ? dayjs(date).format('YYYY. M. D. HH:mm:ss') : '-',
     },
     {
       title: '답변일',
       key: 'answeredAt',
-      width: 160,
+      width: 100,
       align: 'center',
       render: (_, record) =>
         record.answer?.createdAt
@@ -148,7 +168,18 @@ function UserMyQuestionPage() {
   // 검색
   const handleSearch = () => {
     setPage(1);
+    setSearchSearchType(searchType);
     setSearchKeyword(keyword);
+    setSearchStartDate(
+      createdAtRange?.[0]
+        ? createdAtRange[0].format('YYYY-MM-DD')
+        : ''
+    );
+    setSearchEndDate(
+      createdAtRange?.[1]
+        ? createdAtRange[1].format('YYYY-MM-DD')
+        : ''
+    );
   };
 
   // 검색 초기화
@@ -156,6 +187,10 @@ function UserMyQuestionPage() {
     setKeyword('');
     setSearchKeyword('');
     setSearchType('title');
+    setSearchSearchType('title');
+    setCreatedAtRange(null);
+    setSearchStartDate('');
+    setSearchEndDate('');
     setPage(1);
   };
 
@@ -166,33 +201,48 @@ function UserMyQuestionPage() {
 
       {/* 검색 */}
       <Card className="mypage-qna-filter">
-        <Row justify="space-between" align="middle" gutter={[16, 16]}>
-          <Col xs={24} md={14}>
-            <Space.Compact style={{ width: '100%' }}>
-              <Select
-                value={searchType}
-                onChange={setSearchType}
-                style={{ width: 110 }}
-                options={[
-                  {
-                    value: 'title',
-                    label: '제목',
-                  },
-                  {
-                    value: 'content',
-                    label: '내용',
-                  },
-                ]}
+        <Row justify="space-between" align="middle" gutter={[16, 16]} >
+          <Col xs={24}>
+            <Space
+              wrap
+              style={{ width: '100%' }}
+            >
+              {/* 제목 / 내용 검색 */}
+              <Space.Compact>
+                <Select
+                  value={searchType}
+                  onChange={setSearchType}
+                  style={{ width: 110 }}
+                  options={[
+                    {
+                      value: 'title',
+                      label: '제목',
+                    },
+                    {
+                      value: 'content',
+                      label: '내용',
+                    },
+                  ]}
+                />
+                <Input
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  placeholder="검색어를 입력하세요."
+                  allowClear
+                  style={{ width: 300 }}
+                />
+              </Space.Compact>
+
+              {/* 등록일 검색 */}
+              <RangePicker
+                value={createdAtRange}
+                onChange={(dates) => setCreatedAtRange(dates)}
+                placeholder={['시작일', '종료일']}
+                format="YYYY-MM-DD"
+                style={{ width: 260 }}
               />
 
-              <Input
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                onPressEnter={handleSearch}
-                placeholder="검색어를 입력하세요."
-                allowClear
-              />
-
+              {/* 검색 */}
               <Button
                 type="primary"
                 icon={<SearchOutlined />}
@@ -201,8 +251,12 @@ function UserMyQuestionPage() {
                 검색
               </Button>
 
-              <Button onClick={handleReset}>초기화</Button>
-            </Space.Compact>
+              {/* 초기화 */}
+              <Button onClick={handleReset}>
+                초기화
+              </Button>
+
+            </Space>
           </Col>
         </Row>
       </Card>
@@ -221,6 +275,7 @@ function UserMyQuestionPage() {
             pageSize: 10,
             total: qnaList?.totalCnt || 0,
             showSizeChanger: false,
+            position: ['bottomCenter'],
             onChange: (newPage) => {
               setPage(newPage);
             },
