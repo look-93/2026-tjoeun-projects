@@ -4,6 +4,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,10 +16,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.review.dto.ReviewDto.ReviewListResponseDto;
 import com.moit.review.dto.ReviewDto.ReviewRequestDto;
 import com.moit.review.dto.ReviewDto.ReviewResponseDto;
+import com.moit.review.entity.ReviewImage;
+import com.moit.review.repository.ReviewImageRepository;
 import com.moit.review.service.ReviewService;
 import com.moit.security.CustomUserDetails;
 
@@ -33,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 public class ReviewController {
 
     private final ReviewService reviewService;
+    private final ReviewImageRepository reviewImageRepository;
 
     
  // 인증 객체에서 memberId 추출 공통 메서드
@@ -60,6 +65,8 @@ public class ReviewController {
         System.out.println("⚠️ 인증 정보가 없어 Fallback 회원 ID 1L을 반환합니다.");
         return 1L;
     }
+    
+    
 
     @Operation(summary = "리뷰 작성", description = "새로운 리뷰를 작성합니다.")
     @PostMapping

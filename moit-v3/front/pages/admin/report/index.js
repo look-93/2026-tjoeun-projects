@@ -1,13 +1,13 @@
 // pages/admin/report/index.js
 // 관리자 신고 목록 페이지
 
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useRouter } from 'next/router';
 import { Row, Col, Button, Input, Select, Table } from 'antd';
 import AdminStatCard from '../../../components/AdminStatCard';
 import AdminSearchBox from '../../../components/AdminSearchBox';
 import AdminListTabs from '../../../components/AdminListTabs';
-import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useRouter } from 'next/router';
 // http://localhost:3000/admin/report
 
 function AdminReportPage() {
@@ -36,9 +36,7 @@ function AdminReportPage() {
   // 신고 사유 한글
   // =====================================================
   const getReasonCodeText = (reasonCode) => {
-
       switch (reasonCode) {
-
           case 'ABUSE':
               return '욕설/비방';
 
@@ -54,11 +52,8 @@ function AdminReportPage() {
           case 'NOSHOW':
               return '노쇼';
 
-          case 'ETC':
-              return '기타';
-
           default:
-              return reasonCode;
+              return '기타';
       }
   };
 
@@ -115,8 +110,6 @@ function AdminReportPage() {
               </Tag>
           );
       }
-
-      return '-';
   };
 
   const adminColumns = [

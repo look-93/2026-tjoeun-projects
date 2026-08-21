@@ -13,8 +13,15 @@ import {
     checkPasswordLeakRequest,checkPasswordLeakSuccess,checkPasswordLeakFailure,
     resetPasswordLeak,findMembersRequest,findMembersSuccess,findMembersFailure,
     getMyInfoRequest, getMyInfoSuccess, getMyInfoFailure,
+    getMyPageRequest,getMyPageSuccess,getMyPageFailure,
+    findIdRequest,findIdSuccess,findIdFailure,resetFindId,findIdEmailSendRequest,
+    findPasswordRequest,findPasswordSuccess,findPasswordFailure,resetFindPassword,
+    findPasswordEmailSendRequest, changePasswordRequest,changePasswordSuccess,
+    changePasswordFailure,resetChangePassword, updateMyInfoRequest,
+    updateMyInfoSuccess,updateMyInfoFailure, resetUpdateMyInfo,
+    uploadProfileImageRequest,uploadProfileImageSuccess,uploadProfileImageFailure,
+    resetProfileImage,
 } from '../reducers/userReducer';
-
 
 
 // =========================
@@ -29,6 +36,13 @@ function loginApi(loginData){
 // =========================
 function getMyInfoApi() {
     return api.get("/api/members/me");
+}
+
+// =========================
+// 마이페이지 조회 API
+// =========================
+function getMyPageApi() {
+    return api.get("/api/members/mypage");
 }
 
 // =========================
@@ -88,17 +102,58 @@ function checkPasswordLeakApi(password){
 }
 
 // =========================
-// 회원 전체 조회
+// 회원 전체 조회 API
 // =========================
 function findMembersApi() {
     return api.get("/api/members");
 }
 
 // =========================
-// 로그아웃
+// 로그아웃 API
 // =========================
 function logoutApi() {
     return api.post("/api/members/logout");
+}
+
+// =========================
+// 아이디 찾기 API
+// =========================
+function findIdApi(email) {
+    return api.post("/api/members/find-id", {email: email,});
+}
+// =========================
+// 아이디 찾기용 이메일 가입 여부 확인 API
+// =========================
+function findIdEmailCheckApi(email) {
+    return api.get("/api/members/check-email", {params: {email: email }});
+}
+
+// =========================
+// 비밀번호 변경 API
+// =========================
+function resetPasswordApi(data) {
+    return api.post("/api/members/reset-password", data);
+}
+
+// =========================
+// 로그인 회원 비밀번호 변경 API
+// =========================
+function changePasswordApi(data) {
+    return api.put("/api/members/me/password", data);
+}
+
+// =========================
+// 회원정보 수정 API
+// =========================
+function updateMyInfoApi(data) {
+    return api.put("/api/members/me", data);
+}
+
+// =========================
+// 프로필 이미지 업로드 API
+// =========================
+function uploadProfileImageApi(formData) {
+    return api.post("/api/members/me/profile-image", formData,{headers: {"Content-Type": undefined}});
 }
 
 ////////////////////////////////////////////////////
@@ -179,6 +234,20 @@ function* getMyInfo() {
             "회원정보를 불러오지 못했습니다.";
 
         yield put(getMyInfoFailure(message));
+    }
+}
+
+// =========================
+// 마이페이지
+// =========================
+function* getMyPageSaga() {
+    try {
+        const response = yield call(getMyPageApi);
+
+        yield put(getMyPageSuccess(response.data));
+    } catch (error) {
+
+        yield put( getMyPageFailure( error.response?.data?.message || "마이페이지 정보를 불러오지 못했습니다."));
     }
 }
 
@@ -388,6 +457,199 @@ function* logoutSaga() {
     }
 }
 
+// =========================
+// 아이디 찾기
+// =========================
+function* findId(action) {
+    try {
+        const response = yield call(findIdApi,action.payload);
+
+        console.log("===== 아이디 찾기 성공 =====");
+        console.log("response:", response.data);
+
+        yield put(findIdSuccess(response.data.loginId));
+
+    } catch (err) {
+        console.error("===== 아이디 찾기 실패 =====");
+        console.error(err);
+
+        yield put(findIdFailure(err.response?.data?.message ||"아이디를 찾을 수 없습니다."));
+    }
+}
+// =========================
+// 아이디 찾기용 이메일 가입 여부 확인
+// =========================
+function* findIdEmailSend(action) {
+    try {
+        const email = action.payload;
+
+        // 가입 이메일 확인
+        const checkResponse = yield call(checkEmailApi,email);
+
+        console.log("===== 아이디 찾기 이메일 확인 =====");
+        console.log("email:",email);
+        console.log("가입 여부:",checkResponse.data);
+
+        // 가입된 이메일이 아니면 종료
+        if (!checkResponse.data) {
+            yield put( emailSendFailure("해당 이메일로 가입된 회원이 없습니다."));
+            return;
+        }
+
+        // 가입된 이메일이면 인증번호 발송
+        yield call(emailSendApi,email);
+
+        yield put( emailSendSuccess());
+    } catch (err) {
+        console.error("아이디 찾기 이메일 발송 실패:", err);
+
+        yield put(
+            emailSendFailure(err.response?.data?.message ||"인증번호 발송에 실패했습니다."));
+    }
+}
+
+// =========================
+// 비밀번호 변경
+// =========================
+function* resetPassword(action) {
+    try {
+        const response = yield call(resetPasswordApi, action.payload);
+
+        console.log("===== 비밀번호 변경 성공 =====");
+        console.log("response:", response.data);
+
+        yield put(findPasswordSuccess());
+
+    } catch (err) {
+        console.error("===== 비밀번호 변경 실패 =====");
+        console.error(err);
+
+        yield put( findPasswordFailure(err.response?.data?.message ||"비밀번호 변경에 실패했습니다."));
+    }
+}
+// =========================
+// 비밀번호 찾기용 이메일 발송
+// =========================
+function* findPasswordEmailSend(action) {
+
+    try {
+
+        const email = action.payload;
+
+        // =========================
+        // 가입 이메일 확인
+        // =========================
+        const checkResponse = yield call(checkEmailApi,email);
+
+        console.log("===== 비밀번호 찾기 이메일 확인 =====");
+        console.log("email:", email);
+        console.log("가입 여부:", checkResponse.data);
+
+        // =========================
+        // 가입되지 않은 이메일
+        // =========================
+        if (!checkResponse.data) {
+
+            yield put(emailSendFailure("해당 이메일로 가입된 회원이 없습니다."));
+            return;
+        }
+
+        // =========================
+        // 가입된 이메일이면 인증번호 발송
+        // =========================
+        yield call(emailSendApi, email);
+
+        console.log("비밀번호 찾기 인증번호 발송 성공");
+
+        yield put(emailSendSuccess());
+
+    } catch (err) {
+
+        console.error("비밀번호 찾기 이메일 발송 실패:",err);
+
+        yield put( emailSendFailure(err.response?.data?.message ||"인증번호 발송에 실패했습니다."));
+    }
+}
+
+// =========================
+// 로그인 회원 비밀번호 변경
+// =========================
+function* changePassword(action) {
+
+    try {
+
+        console.log("===== 회원 비밀번호 변경 START =====");
+        console.log("request:", action.payload);
+
+        const response = yield call(changePasswordApi,action.payload);
+
+        console.log("===== 회원 비밀번호 변경 SUCCESS =====");
+        console.log("response:", response.data);
+
+        yield put(changePasswordSuccess());
+
+    } catch (err) {
+
+        console.error("===== 회원 비밀번호 변경 FAILURE =====");
+        console.error(err);
+
+        yield put(changePasswordFailure(err.response?.data?.message ||"비밀번호 변경에 실패했습니다."));
+    }
+}
+// =========================
+// 회원정보 수정
+// =========================
+function* updateMyInfo(action) {
+
+    try {
+
+        console.log("===== 회원정보 수정 START =====");
+        console.log("request:", action.payload);
+
+        const response = yield call(updateMyInfoApi,action.payload);
+
+        console.log("===== 회원정보 수정 SUCCESS =====");
+        console.log("response:", response.data);
+
+        yield put(updateMyInfoSuccess(response.data));
+
+    } catch (err) {
+
+        console.error("===== 회원정보 수정 FAILURE =====");
+        console.error(err);
+
+        yield put(updateMyInfoFailure(err.response?.data?.message ||"회원정보 수정에 실패했습니다."));
+    }
+}
+
+// =========================
+// 프로필 이미지 업로드
+// =========================
+function* uploadProfileImage(action) {
+
+    try {
+        console.log("===== 프로필 이미지 업로드 START =====");
+        console.log("file:", action.payload);
+
+        const formData = new FormData();
+
+        formData.append("file", action.payload);
+
+        const response = yield call(uploadProfileImageApi,formData);
+
+        console.log("===== 프로필 이미지 업로드 SUCCESS =====");
+        console.log("response:", response.data);
+
+        yield put(uploadProfileImageSuccess(response.data) );
+
+    } catch (err) {
+        console.error("===== 프로필 이미지 업로드 FAILURE =====");
+        console.error(err);
+
+        yield put(uploadProfileImageFailure(err.response?.data?.message ||"프로필 이미지 업로드에 실패했습니다."));
+    }
+}
+
 export default function* userSaga(){
 
     console.log("===== USER SAGA STARTED =====");
@@ -405,5 +667,13 @@ export default function* userSaga(){
         takeLatest(findMembersRequest.type, findMembers),
         takeLatest(logoutRequest.type, logoutSaga),
         takeLatest(getMyInfoRequest.type, getMyInfo),
+        takeLatest(getMyPageRequest.type,getMyPageSaga),
+        takeLatest(findIdRequest.type, findId),
+        takeLatest(findIdEmailSendRequest.type,findIdEmailSend),
+        takeLatest(findPasswordRequest.type,resetPassword),
+        takeLatest(findPasswordEmailSendRequest.type,findPasswordEmailSend),
+        takeLatest(changePasswordRequest.type, changePassword),
+        takeLatest(updateMyInfoRequest.type,updateMyInfo),
+        takeLatest(uploadProfileImageRequest.type,uploadProfileImage),
     ]);
 }

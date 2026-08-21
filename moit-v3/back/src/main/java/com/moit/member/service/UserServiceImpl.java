@@ -351,7 +351,7 @@ public class UserServiceImpl  implements UserService{
 		dto.setMemberId(memberId);
 		dto.setLoginId(user.getLoginId());
 		dto.setNickname(request.getNickname());
-		dto.setEmail(request.getEmail());
+		//dto.setEmail(request.getEmail());
 		dto.setMobile(request.getMobile());
 		
 		int result = dao.updateUser(dto);

@@ -16,12 +16,23 @@ import {
   deleteAdvertise,
 } from '../../../api/advertiseApi';
 
+import AdvertisePayment from '../../../components/AdvertisePayment';
+import { Modal } from 'antd';
+
 function AdvertiseDetailPage() {
   const router = useRouter();
   const { adId } = router.query;
 
   const [advertise, setAdvertise] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // 결제 모달 상태 추가
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+  // 상단 결제하기 버튼에 연결할 함수
+  const handlePaymentClick = () => {
+    setIsPaymentModalOpen(true);
+  };
 
   // 광고 상세 조회
   const loadAdvertiseDetail = async () => {
@@ -124,7 +135,7 @@ function AdvertiseDetailPage() {
         <Space>
           {advertise.approvalStatus === 'APPROVED' &&
              advertise.paymentStatus === 'WAITING' && (
-             <Button type="primary">
+             <Button type="primary" onClick={handlePayment}>
                 결제하기
              </Button>
           )}
@@ -292,6 +303,22 @@ function AdvertiseDetailPage() {
         )}
       </Card>
 
+      {/* 결제 모달 추가 (return 영역 제일 아래) */}
+      <Modal
+        open={isPaymentModalOpen}
+        onCancel={() => setIsPaymentModalOpen(false)}
+        footer={null}
+        destroyOnClose
+        width={650}
+      >
+        {advertise && (
+          <AdvertisePayment 
+            adId={advertise.adId} 
+            amount={advertise.totalBudget} 
+            adTitle={advertise.title} 
+          />
+        )}
+      </Modal>
     </div>
   );
 }

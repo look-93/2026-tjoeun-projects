@@ -1,6 +1,7 @@
 package com.moit.member.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import lombok.Data;
 
@@ -17,4 +18,21 @@ public class MyPageDto {
 	private LocalDate birth;
 	private String gender;
 	private String provider;
+	private Long memberTypeId;
+	
+	private String createdAt;
+	
+	// 관심사
+    private List<InterestDto> interests;
+    
+    @Data
+    public static class InterestDto {
+        private Long interestId;
+        private String interestName;
+
+        public InterestDto(Long interestId, String interestName) {
+            this.interestId = interestId;
+            this.interestName = interestName;
+        }
+    }
 }

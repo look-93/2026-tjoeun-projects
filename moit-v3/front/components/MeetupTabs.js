@@ -6,8 +6,7 @@ import QnaSection from "./QnaSection";
 
 const { Title, Text, Paragraph } = Typography;
 
-<<<<<<< HEAD
-function MeetupTabs({ activeTab, setActiveTab, meetup, reviews, qnaLists }) {
+function MeetupTabs({ activeTab, setActiveTab, meetup, reviews, qnaLists, meetupId,onWriteReview,onLikeReview,onSortChange,onSearch, }) {
     const items = [
         {
             key: "detail",
@@ -19,20 +18,6 @@ function MeetupTabs({ activeTab, setActiveTab, meetup, reviews, qnaLists }) {
                 </div>
             ),
         },
-=======
-function MeetupTabs({ activeTab, setActiveTab, meetup, reviews, qnaLists,meetupId,onWriteReview,onLikeReview,onSortChange,onSearch,}) {//추가 meetupId,onWriteReview,onLikeReview
-  const items = [
-    {
-      key: 'detail',
-      label: '상세정보',
-      children: (
-        <div>
-          <Title level={4}>모임 안내</Title>
-          <Paragraph>{meetup.content}</Paragraph>
-        </div>
-      ),
-    },
->>>>>>> 97ab135 (2차 옮기는중 ㅜㅜ)
 
         // {
         //   key: 'applicant',

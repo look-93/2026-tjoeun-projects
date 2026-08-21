@@ -4,7 +4,7 @@ import { Card, Form, Input, Select, Typography } from "antd";
 const { Title } = Typography;
 const { TextArea } = Input;
 
-function MeetupInfoForm({ categoriesOptions }) {
+function MeetupInfoForm({ categoriesOptions, showAiGuide }) {
     return (
         <Card className="mypage-user-info">
             <Title level={4}>모임 정보</Title>
@@ -19,7 +19,13 @@ function MeetupInfoForm({ categoriesOptions }) {
                     },
                 ]}
             >
-                <Input size="large" placeholder="모임 제목을 입력하세요." />
+                <Input
+                    placeholder={
+                        showAiGuide
+                            ? "고민이신가요? 키워드만 입력하면 내용을 추천해드려요!"
+                            : "모임 제목을 입력해주세요."
+                    }
+                />
             </Form.Item>
 
             <Form.Item
