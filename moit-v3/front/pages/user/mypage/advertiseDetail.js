@@ -135,7 +135,7 @@ function AdvertiseDetailPage() {
         <Space>
           {advertise.approvalStatus === 'APPROVED' &&
              advertise.paymentStatus === 'WAITING' && (
-             <Button type="primary" onClick={handlePayment}>
+             <Button type="primary" onClick={handlePaymentClick}>
                 결제하기
              </Button>
           )}
