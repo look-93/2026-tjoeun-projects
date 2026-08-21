@@ -571,11 +571,8 @@ public class MemberRestController {
         }
     }
     
- // 프로필 이미지 수정
-    @Operation(
-            summary = "프로필 이미지 수정",
-            description = "로그인한 회원의 프로필 이미지를 업로드하고 변경합니다."
-    )
+    // 프로필 이미지 수정
+    @Operation( summary = "프로필 이미지 수정", description = "로그인한 회원의 프로필 이미지를 업로드하고 변경합니다." )
     @PostMapping("/me/profile-image")
     public ResponseEntity<?> updateProfileImage(
             @RequestParam("file") MultipartFile file,

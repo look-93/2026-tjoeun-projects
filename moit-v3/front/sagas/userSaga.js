@@ -153,7 +153,7 @@ function updateMyInfoApi(data) {
 // 프로필 이미지 업로드 API
 // =========================
 function uploadProfileImageApi(formData) {
-    return api.put("/api/members/me/profile-image",formData);
+    return api.post("/api/members/me/profile-image", formData,{headers: {"Content-Type": undefined}});
 }
 
 ////////////////////////////////////////////////////
@@ -633,7 +633,7 @@ function* uploadProfileImage(action) {
 
         const formData = new FormData();
 
-        formData.append("profileImage", action.payload);
+        formData.append("file", action.payload);
 
         const response = yield call(uploadProfileImageApi,formData);
 

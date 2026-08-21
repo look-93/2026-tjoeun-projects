@@ -449,8 +449,8 @@ const userReducer = createSlice({
             state.profileImage.success = true;
             state.profileImage.error = null;
             // 백엔드에서 수정된 회원정보 전체를 반환하는 경우
-            if (action.payload) {
-                state.user = action.payload;
+            if (action.payload?.profileUrl && state.user) {
+                state.user.profileUrl = action.payload.profileUrl;
             }
         },
         uploadProfileImageFailure: (state, action) => {

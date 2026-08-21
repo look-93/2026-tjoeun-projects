@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useRouter } from 'next/router';
 import {
   updateMyInfoRequest,
   resetUpdateMyInfo,
@@ -37,6 +38,7 @@ const { Title, Text } = Typography;
 function UserMyMemberEditPage() {
   const [form] = Form.useForm();
   const dispatch = useDispatch();
+  const router = useRouter();
 
   // Redux user
   const {user,updateMyInfo,profileImage} = useSelector((state) => state.user);
@@ -93,14 +95,14 @@ function UserMyMemberEditPage() {
 
   // 수정 성공
   useEffect(() => {
-    if (updateSuccess) {
-      message.success('회원정보가 수정되었습니다.');
+    if (!updateSuccess) return;
 
-      dispatch(resetUpdateMyInfo());
+    message.success('회원정보가 수정되었습니다.');
 
-      window.history.back();
-    }
-  }, [updateSuccess, dispatch]);
+    dispatch(resetUpdateMyInfo());
+
+    router.push('/user/member/mypage');
+  }, [updateSuccess, dispatch, router]);
 
   // 수정 실패
   useEffect(() => {
@@ -115,29 +117,30 @@ function UserMyMemberEditPage() {
   const [profileFile, setProfileFile] = useState(null);
 
   const handleProfileChange = ({ file }) => {
-
-    if (!file.originFileObj) {return;}
+    if (!file.originFileObj) return;
 
     const selectedFile = file.originFileObj;
 
-    // 이미지 파일 확인
     if (!selectedFile.type.startsWith('image/')) {
       message.error('이미지 파일만 선택해주세요.');
       return;
     }
 
-    // 미리보기
     const url = URL.createObjectURL(selectedFile);
 
-    setProfilePreview(url);
+    setProfilePreview((prev) => {
+      if (prev && prev.startsWith('blob:')) {
+        URL.revokeObjectURL(prev);
+      }
 
-    // 실제 파일 저장
+      return url;
+    });
+
     setProfileFile(selectedFile);
   };
 
   // 회원정보 수정
   const handleSubmit = (values) => {
-
     const requestData = {
       nickname: values.nickname,
       mobile: values.mobile,
@@ -153,45 +156,42 @@ function UserMyMemberEditPage() {
     console.log('requestData:', requestData);
     console.log('profileFile:', profileFile);
 
-    // =====================================================
-    // 프로필 이미지가 있으면 먼저 업로드
-    // =====================================================
+    // 프로필 이미지가 있으면
     if (profileFile) {
 
       console.log('===== 프로필 이미지 업로드 요청 =====');
       console.log('file:', profileFile);
+
+      // 이미지 업로드 후 이어서 수정할 회원정보 저장
+      setPendingUpdateData(requestData);
 
       dispatch(uploadProfileImageRequest(profileFile));
 
       return;
     }
 
-    // =====================================================
     // 이미지가 없으면 바로 회원정보 수정
-    // =====================================================
     dispatch(updateMyInfoRequest(requestData));
   };
 
+  // 이미지 업로드
   useEffect(() => {
-
-    if (!profileImageSuccess) {return;}
+    if (!profileImageSuccess) return;
 
     console.log('===== 프로필 이미지 업로드 성공 =====');
 
-    // 이미지 업로드 성공 후 회원정보 수정
     if (pendingUpdateData) {
-
       console.log('===== 이미지 업로드 후 회원정보 수정 =====');
 
       dispatch(updateMyInfoRequest(pendingUpdateData));
     }
 
-    // 파일 상태 초기화
     setProfileFile(null);
+    setPendingUpdateData(null);
 
     dispatch(resetProfileImage());
-    
-  }, [ profileImageSuccess,pendingUpdateData,dispatch]);
+
+  }, [profileImageSuccess, pendingUpdateData, dispatch]);
 
   if (!user) {return null;}
 
