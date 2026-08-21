@@ -462,9 +462,9 @@ public class MeetupServiceImpl implements MeetupService{
 	public void changeMeetupVisibility(Long meetupId) {
 		
 		Meetup meetup = meetupRepository.findById(meetupId)
-				.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 게시글입니다. MEETUPID" + meetupId));		
-		
-		meetup.setHidden(!meetup.getHidden());
+				.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 게시글입니다. MEETUPID" + meetupId));
+
+			meetup.setHidden(!meetup.getHidden());
 	}
 	
 	//마이페이지 내가 신청한 모집글 목록 조회(페이징)

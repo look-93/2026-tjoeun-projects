@@ -96,25 +96,31 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 	
 	@Query("""
 		    SELECT new com.moit.meetup.dto.MyMeetupCountResponseDto(
-		        COUNT(DISTINCT m.id),
-		        COUNT(DISTINCT ma.id),
+		        COUNT(DISTINCT CASE WHEN m.member.id = :memberId THEN m.id END),
+		        COUNT(DISTINCT ma.meetup.id),
 		        COUNT(DISTINCT r.id),
 		        COUNT(DISTINCT ml.id)
 		    )
 		    FROM Meetup m
+
 		    LEFT JOIN MeetupApplication ma
 		        ON ma.member.id = :memberId
 		        AND ma.meetup.id = m.id
+
 		    LEFT JOIN Review r
 		        ON r.member.id = :memberId
 		        AND r.meetup.id = m.id
+		        AND r.deleteYn = 'N'
+
 		    LEFT JOIN MeetupLike ml
 		        ON ml.member.id = :memberId
 		        AND ml.meetup.id = m.id
-		    WHERE m.member.id = :memberId
-		      AND m.deleteYn = 'N'
+
+		    WHERE m.deleteYn = 'N'
 		""")
-		MyMeetupCountResponseDto getMyMeetupCount(@Param("memberId") Long memberId);
+		MyMeetupCountResponseDto getMyMeetupCount(
+		    @Param("memberId") Long memberId
+		);
 }
 
 

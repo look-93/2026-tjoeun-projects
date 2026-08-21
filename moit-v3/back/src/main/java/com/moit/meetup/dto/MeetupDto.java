@@ -68,6 +68,7 @@ public class MeetupDto {
 		private List<String> imagePaths;
 		private String categoryName;
 		private Long categoryId;
+		private Boolean hidden;
 		
 		public static MeetupResponseDto listFrom(Meetup meetup) { // list에만 보여줄 MeetupResponse
 			MeetupResponseDto response = new MeetupResponseDto();
@@ -89,6 +90,8 @@ public class MeetupDto {
 			response.setSigunguId(sigungu.getId());
 			response.setSidoName(sigungu.getSido().getName());
 			response.setSigunguName(sigungu.getName());
+			response.setHidden(meetup.getHidden());
+			
 			 // 대표 이미지
 		    if (meetup.getMeetupImages() != null
 		            && !meetup.getMeetupImages().isEmpty()) {

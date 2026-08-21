@@ -5,7 +5,10 @@ import AdminListTabs from "../../components/AdminListTabs";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { fetchMeetupsRequest } from "../../reducers/meetupReducer";
+import {
+    fetchMeetupsRequest,
+    changeMeetupVisibilityRequest,
+} from "../../reducers/meetupReducer";
 
 // http://localhost:3000/admin/meetup
 
@@ -15,7 +18,7 @@ function AdminMeetupPage() {
     const { meetups, totalCount } = useSelector((state) => state.meetup);
 
     console.log("관리자 모임 조회 데이터:", meetups);
-    console.log("전체 개수:", totalCount);
+    //console.log("전체 개수:", totalCount);
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 10;
 
@@ -77,6 +80,8 @@ function AdminMeetupPage() {
             key: "meetupAt",
             width: 150,
             align: "center",
+            render: (meetupAt) =>
+                meetupAt ? meetupAt.replace("T", " ").slice(0, 16) : "-",
         },
         {
             title: "최소모집인원",
@@ -109,9 +114,9 @@ function AdminMeetupPage() {
                 <Button
                     size="small"
                     danger
-                    onClick={() => handleDeleteMeetup(record.meetupId)}
+                    onClick={() => handlevisibilityMeetup(record.id)}
                 >
-                    삭제
+                    비공개
                 </Button>
             ),
         },
@@ -149,10 +154,11 @@ function AdminMeetupPage() {
         setCurrentPage(1);
     };
 
-    // 삭제
+    // 비공개
 
-    const handleDeleteMeetup = (meetupId) => {
-        console.log("삭제할 meetupId:", meetupId);
+    const handlevisibilityMeetup = (meetupId) => {
+        //console.log("비공개할 meetupId:", meetupId);
+        dispatch(changeMeetupVisibilityRequest(meetupId));
     };
 
     return (
