@@ -311,7 +311,7 @@ public class QuestionController {
 	    }
 		// 일반 회원인 경우 해당 모임의 모임장인지 확인
 	    if(user.getMemberTypeId() == 1){
-	        MeetupResponseDto meetup =meetupService.detail(question.getParentId());
+	        MeetupResponseDto meetup =meetupService.detail(question.getParentId(), memberId);
 	        return meetup != null && meetup.getMemberId() != null &&
 	               meetup.getMemberId().equals(memberId);
 	    }
