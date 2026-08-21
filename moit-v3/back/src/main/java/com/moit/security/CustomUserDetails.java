@@ -41,10 +41,8 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
     public Collection<? extends GrantedAuthority> getAuthorities() {
 		
 		// 소셜 로그인 대기
-		if(user.getMemberId() != null && user.getMemberId() == 0){
-	        return List.of(
-	            new SimpleGrantedAuthority("ROLE_SOCIAL")
-	        );
+		if(Long.valueOf(0L).equals(user.getMemberId())){
+	        return List.of( new SimpleGrantedAuthority("ROLE_SOCIAL") );
 	    }
 		// JPA 로그인
        if (authDto == null) {
@@ -71,6 +69,7 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 	public Long   getAppUserId() { return user.getMemberId(); }
 	public String  getEmail()     { return user.getEmail(); }
 	public String  getProvider()  { return user.getProvider(); }
+	public String getProviderId() { return user.getProviderId(); }
 	public String getProfileUrl(){ return user.getProfileUrl(); }
 	
 	public String getNickname() { return user.getNickname(); }
@@ -101,7 +100,8 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 		//this.authDto = new AuthUserDto();
 		this.attributes = new HashMap<>(attirubutes != null? attirubutes : Map.of()) ;
 		this.attributes.put("loginId", user.getLoginId());
-		this.attributes.put("provider", user.getProvider());
+		this.attributes.put("provider", user.getProvider());		
+		this.statusId = user.getStatusId();
 	}
 	
 	public boolean isSocialPending() {

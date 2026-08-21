@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.moit.common.entity.Sigungu;
 import com.moit.meetup.entity.Meetup;
-import com.moit.meetup.entity.MeetupLike;
 import com.moit.meetup.enums.ApplyStatus;
 import com.moit.meetup.enums.MeetupStatus;
 
@@ -40,6 +39,7 @@ public class MeetupDto {
 	@Setter
 	public static class MeetupResponseDto{
 		private Long id;
+	    private Long memberId;
 		private String title;
 		private String content;
 		private Integer maxParticipants;
@@ -56,12 +56,18 @@ public class MeetupDto {
 		private ApplyStatus applyStatus;
 		
 		private String nickname;
+		
+		private Long sigunguId;
 		private String sigunguName;
 		private String sidoName;
 		
 		private Long totalParticipants = 0L;
 		private Boolean hasLike = false;
 		private Long likeCount = 0L;
+		private String imagePath;
+		private List<String> imagePaths;
+		private String categoryName;
+		private Long categoryId;
 		
 		public static MeetupResponseDto listFrom(Meetup meetup) { // list에만 보여줄 MeetupResponse
 			MeetupResponseDto response = new MeetupResponseDto();
@@ -71,8 +77,30 @@ public class MeetupDto {
 			response.setTitle(meetup.getTitle());
 			response.setNickname(meetup.getMember().getNickname());
 			
+		    response.setMaxParticipants(meetup.getMaxParticipants());
+		    response.setMinParticipants(meetup.getMinParticipants());
+
+		    response.setAddress(meetup.getAddress());
+		    response.setAddressDetail(meetup.getAddressDetail());
+
+		    response.setMeetupAt(meetup.getMeetupAt());
+		    response.setMeetupStatus(meetup.getMeetupStatus());
+			
+			response.setSigunguId(sigungu.getId());
 			response.setSidoName(sigungu.getSido().getName());
 			response.setSigunguName(sigungu.getName());
+			 // 대표 이미지
+		    if (meetup.getMeetupImages() != null
+		            && !meetup.getMeetupImages().isEmpty()) {
+
+		        response.setImagePath(
+		            meetup.getMeetupImages()
+		                   .get(0)
+		                   .getImage()
+		                   .getImagePath()
+		        );
+		    }
+			
 			return response;
 		}
 		
@@ -80,6 +108,7 @@ public class MeetupDto {
 		    MeetupResponseDto response = new MeetupResponseDto();
 
 		    response.setId(meetup.getId());
+		    response.setMemberId(meetup.getMember().getId());
 		    response.setTitle(meetup.getTitle());
 		    response.setContent(meetup.getContent());
 		    response.setMaxParticipants(meetup.getMaxParticipants());
@@ -92,7 +121,31 @@ public class MeetupDto {
 		    response.setAddressDetail(meetup.getAddressDetail());
 		    response.setNx(meetup.getNx());
 		    response.setNy(meetup.getNy());
+		    
+		    response.setMemberId(meetup.getMember().getId());
+		    response.setNickname(meetup.getMember().getNickname());
+		    response.setSigunguId(meetup.getSigungu().getId());
+		    response.setSigunguName(meetup.getSigungu().getName());
+		    response.setCategoryId(meetup.getMeetupCategory().getId());
+		    response.setCategoryName(meetup.getMeetupCategory().getCategoryName());
+		    response.setMeetupStatus(meetup.getMeetupStatus());
+		    
+		    // 전체 이미지
+		    if (meetup.getMeetupImages() != null
+		            && !meetup.getMeetupImages().isEmpty()) {
 
+		        response.setImagePaths(
+		            meetup.getMeetupImages()
+		                    .stream()
+		                    .map(meetupImage ->
+		                        meetupImage.getImage().getImagePath()
+		                    )
+		                    .toList()
+		        );
+		    } else {
+		        response.setImagePaths(List.of());
+		    }
+		    
 		    return response;
 		}
 	}

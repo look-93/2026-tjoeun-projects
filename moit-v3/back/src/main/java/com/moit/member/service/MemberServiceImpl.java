@@ -1,9 +1,12 @@
 package com.moit.member.service;
 
+import java.util.List;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.moit.member.dto.MyPageDto;
 import com.moit.member.dto.UserDto;
 import com.moit.member.entity.Interest;
 import com.moit.member.entity.Member;
@@ -20,6 +23,7 @@ import com.moit.member.repository.MemberStatusRepository;
 import com.moit.member.repository.MemberTypeRepository;
 import com.moit.reports.entity.MemberReportStatus;
 import com.moit.reports.repository.MemberReportStatusRepository;
+import com.moit.security.PasswordLeakService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,10 +39,9 @@ public class MemberServiceImpl implements MemberService{
 	private final PasswordEncoder passwordEncoder;
 	private final MemberInterestRepository memberInterestRepository;
 	private final InterestRepository interestRepository;
-	
-	// 신고 뱃지 조회
+	private final PasswordLeakService passwordLeakService;
 	private final MemberReportStatusRepository memberReportStatusRepository;
-	
+	private final VerificationService verificationService;
 	
 	// 중복검사
 	@Override
@@ -89,9 +92,10 @@ public class MemberServiceImpl implements MemberService{
 		// 회원 상태 조회
 		MemberStatus memberStatus = memberStatusRepository.findById(statusId)
 							.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원 상태입니다."));
-		// 신고 회원 상태 조회 (default = "ACTIVE")
-		MemberReportStatus defaultReportStatus = memberReportStatusRepository.findByStatusCode("ACTIVE")
-							.orElseThrow(()-> new IllegalArgumentException("기본 신고 회원 상태 ACTIVE가 등록되지 않았습니다."));
+		
+		// 신고 상태 조회
+		MemberReportStatus reportStatus = memberReportStatusRepository.findById(1L)
+	            	.orElseThrow(() -> new IllegalArgumentException("신고 상태가 존재하지 않습니다.") );
 		
 		// 회원 생성
 		Member member = new Member();
@@ -101,8 +105,24 @@ public class MemberServiceImpl implements MemberService{
 		member.setNickname(dto.getNickname());
 		member.setEmail(dto.getEmail());
 		
+		// 비밀번호 유출 여부 확인
+		int leakCount = passwordLeakService.getLeakCount(dto.getPassword());
+
+		if (leakCount > 0) {
+		    throw new IllegalArgumentException(
+		        "사용하려는 비밀번호가 과거 데이터 유출에 포함된 적이 있습니다. 다른 비밀번호를 사용해주세요."
+		    );
+		}
+
+		if (leakCount == -1) {
+		    throw new IllegalArgumentException(
+		        "비밀번호 보안 검증에 실패했습니다. 잠시 후 다시 시도해주세요."
+		    );
+		}
+		
 		// 비밀번호 암호화
 		member.setPassword(passwordEncoder.encode(dto.getPassword()));
+		
 		// 프로필 이미지(기본 or 설정 이미지)
 		if(dto.getProfileUrl() == null || dto.getProfileUrl().isBlank()) {
 			member.setProfileUrl("/images/moit.png");
@@ -123,8 +143,7 @@ public class MemberServiceImpl implements MemberService{
 		memberInfo.setMember(member);
 		memberInfo.setGender(dto.getGender());
 		memberInfo.setBirth(dto.getBirth());
-		// 회원 상세정보 (신고 뱃지) 저장
-		memberInfo.setMemberReportStatus(defaultReportStatus);
+		memberInfo.setMemberReportStatus(reportStatus);
 		
 		memberInfoRepository.save(memberInfo);
 		
@@ -158,7 +177,9 @@ public class MemberServiceImpl implements MemberService{
 	@Override
 	public UserDto findByLoginId(String loginId) {
 		
-		Member member = memberRepository.findByLoginId(loginId).orElse(null);
+		Member member = memberRepository
+	            .findByLoginIdAndDeleteYn(loginId, 'N')
+	            .orElse(null);
 		
 		if(member == null) { return null; }
 		
@@ -202,10 +223,24 @@ public class MemberServiceImpl implements MemberService{
 	    dto.setMemberTypeId(member.getMemberType().getMemberTypeId());
 	    dto.setStatusId(member.getMemberStatus().getStatusId());
 	    
+	    // 회원 가입일
+	    if (member.getCreatedAt() != null) {
+	        dto.setCreatedAt( member.getCreatedAt().toLocalDate().toString() );
+	    }
+	    
+	    // 회원 상세정보
 	    if(memberInfo != null) {
 	    	dto.setGender(memberInfo.getGender());
 	        dto.setBirth(memberInfo.getBirth());
 	    }
+	    
+	    // 회원 관심사
+	    List<MemberInterest> memberInterests = memberInterestRepository.findByMember_Id(memberId);
+
+	    List<Integer> interestIds = memberInterests.stream()
+	            .map(memberInterest -> memberInterest.getInterest().getInterestId().intValue() ) .toList();
+
+	    dto.setInterestIds(interestIds);
 		
 		return dto;
 	}
@@ -235,6 +270,31 @@ public class MemberServiceImpl implements MemberService{
 		//4. 상세정보 수정
 		memberInfo.setGender(dto.getGender());
 		memberInfo.setBirth(dto.getBirth());
+		
+		// 회원 관심사 수정
+		if (dto.getInterestIds() != null) {
+
+		    // 기존 관심사 삭제
+		    memberInterestRepository.deleteByMember_Id(memberId);
+
+		    // 새로운 관심사 저장
+		    for (Integer interestId : dto.getInterestIds()) {
+
+		        Interest interest = interestRepository
+		                .findById(interestId.longValue())
+		                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 관심사입니다.") );
+
+		        MemberInterest memberInterest = new MemberInterest();
+
+		        MemberInterestId id = new MemberInterestId( memberId, interest.getInterestId() );
+
+		        memberInterest.setId(id);
+		        memberInterest.setMember(member);
+		        memberInterest.setInterest(interest);
+
+		        memberInterestRepository.save(memberInterest);
+		    }
+		}
 		
 		//5. DTO에 반영
 		dto.setMemberId(member.getId());
@@ -266,6 +326,303 @@ public class MemberServiceImpl implements MemberService{
 		member.setMemberStatus(deletedStatus);
 		
 		member.setDeleteYn('Y');
+	}
+	
+	@Transactional
+	@Override
+	public UserDto socialSignup(UserDto dto) {
+		
+		System.out.println("===== SOCIAL SIGNUP START =====");
+
+	    System.out.println("email : " + dto.getEmail());
+	    System.out.println("provider : " + dto.getProvider());
+	    System.out.println("providerId : " + dto.getProviderId());
+	    System.out.println("nickname : " + dto.getNickname());
+	    System.out.println("mobile : " + dto.getMobile());
+	    System.out.println("gender : " + dto.getGender());
+	    System.out.println("birth : " + dto.getBirth());
+	    System.out.println("interestIds : " + dto.getInterestIds());
+
+	    // 1. 이메일 중복 확인
+	    System.out.println("===== 1. EMAIL CHECK =====");
+		
+		// 이미 가입된 이메일인지 확인
+		if(memberRepository.existsByEmail(dto.getEmail())){
+			throw new IllegalArgumentException("이미 가입된 이메일입니다.");
+		}
+		
+		System.out.println("이메일 중복 없음");
+		
+		System.out.println("===== 2. MEMBER TYPE =====");
+		
+		// 회원유형 조회
+		MemberType memberType = memberTypeRepository.findById(1L)
+									.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원 유형입니다."));
+		
+		System.out.println(
+	            "회원 유형 조회 성공 : "
+	            + memberType.getMemberTypeId()
+	    );
+		
+		System.out.println("===== 3. MEMBER STATUS =====");
+		
+		// 일반회원 상태 조회
+		MemberStatus memberStatus = memberStatusRepository.findById(1L)
+										.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원 상태입니다."));
+		
+		
+		System.out.println(
+	            "회원 상태 조회 성공 : "
+	            + memberStatus.getStatusId()
+	    );
+		
+		// 신고 상태 조회
+	    MemberReportStatus reportStatus =
+	            memberReportStatusRepository.findById(1L)
+	            .orElseThrow(() ->
+	                new IllegalArgumentException("신고 상태가 존재하지 않습니다.")
+	            );
+		
+		System.out.println("===== 4. MEMBER CREATE =====");
+		
+		// 회원 생성
+		Member member = new Member();		
+		String socialLoginId = dto.getProvider() + "_" + dto.getProviderId();
+
+		member.setLoginId(socialLoginId);
+		member.setEmail(dto.getEmail());
+		member.setNickname(dto.getNickname());
+		member.setMobile(dto.getMobile());
+		member.setProvider(dto.getProvider());
+		member.setProviderId(dto.getProviderId());
+		
+		member.setPassword(passwordEncoder.encode( dto.getProvider() + "_" + dto.getProviderId() ));
+		
+		// 프로필 이미지
+		if(dto.getProfileUrl() == null || dto.getProfileUrl().isBlank()) {
+			member.setProfileUrl("/images/moit.png");
+		}else {
+			member.setProfileUrl(dto.getProfileUrl());
+		}
+		
+		member.setMemberType(memberType);
+		member.setMemberStatus(memberStatus);
+		
+		System.out.println("loginId : " + member.getLoginId());
+	    System.out.println("email : " + member.getEmail());
+	    System.out.println("nickname : " + member.getNickname());
+	    System.out.println("mobile : " + member.getMobile());
+	    System.out.println("provider : " + member.getProvider());
+	    System.out.println("providerId : " + member.getProviderId());
+		
+	    System.out.println("===== 5. MEMBER SAVE =====");
+	    
+		memberRepository.save(member);
+		
+		System.out.println(
+	            "회원 저장 완료 / memberId : "
+	            + member.getId()
+	    );
+		
+		System.out.println("===== 6. MEMBER INFO SAVE =====");
+		
+		// 회원 상세정보 저장
+		MemberInfo memberInfo = new MemberInfo();
+		
+		memberInfo.setMember(member);
+		memberInfo.setGender(dto.getGender());
+		memberInfo.setBirth(dto.getBirth());
+		
+		memberInfo.setMemberReportStatus(reportStatus);
+		
+		memberInfoRepository.save(memberInfo);
+		
+		System.out.println("회원 상세정보 저장 완료");
+		
+		System.out.println("===== 7. INTEREST SAVE =====");
+		
+		// 회원 관심사 저장
+		if(dto.getInterestIds() != null) {
+			for(Integer interestId : dto.getInterestIds()) {
+				
+				System.out.println(
+	                    "관심사 ID : " + interestId
+	            );
+				
+				Interest interest = interestRepository.findById(interestId.longValue())
+						.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 관심사입니다."));
+				
+				MemberInterest memberInterest = new MemberInterest();
+				
+				MemberInterestId id = new MemberInterestId(member.getId(), interest.getInterestId());
+				
+				memberInterest.setId(id);
+				memberInterest.setMember(member);
+				memberInterest.setInterest(interest);
+				
+				memberInterestRepository.save(memberInterest);
+				
+				System.out.println(
+	                    "관심사 저장 완료 : " + interest.getInterestName()
+	            );
+			}
+		}
+		
+		// DTO에 반영
+		System.out.println("===== 8. DTO SET =====");
+		
+		dto.setMemberId(member.getId());
+		dto.setLoginId(member.getLoginId());
+		dto.setMemberTypeId(member.getMemberType().getMemberTypeId());
+		dto.setStatusId(member.getMemberStatus().getStatusId());
+		dto.setProfileUrl(member.getProfileUrl());
+		
+		System.out.println("===== SOCIAL SIGNUP SUCCESS =====");
+		
+		return dto;
+	}
+	
+	@Override
+	public List<UserDto> findAllMembers() {
+		
+		List<Member> members = memberRepository.findAll();
+		
+		return members.stream().map(member->{
+			UserDto dto = new UserDto();
+			
+			dto.setMemberId(member.getId());
+			dto.setLoginId(member.getLoginId());
+			dto.setEmail(member.getEmail());
+			dto.setNickname(member.getNickname());
+			dto.setMobile(member.getMobile());
+			dto.setProfileUrl(member.getProfileUrl());
+			dto.setMemberTypeId(member.getMemberType().getMemberTypeId());
+			dto.setStatusId(member.getMemberStatus().getStatusId());
+			dto.setProvider(member.getProvider());
+			dto.setProviderId(member.getProviderId());
+			
+			return dto;
+		}).toList();
+	}
+	
+	// 마이페이지 조회
+	@Override
+	public MyPageDto getMyPage(Long memberId) {
+		
+		// 회원조회
+		Member member = memberRepository.findById(memberId)
+							.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원입니다."));
+		
+		// 상세정보 조회
+		MemberInfo memberInfo = memberInfoRepository.findById(memberId)
+									.orElse(null);
+		
+		// 마이페이지 DTO 생성
+		MyPageDto dto = new MyPageDto();
+		
+		dto.setMemberId(member.getId().intValue());
+		dto.setLoginId(member.getLoginId());
+		dto.setNickname(member.getNickname());
+		dto.setEmail(member.getEmail());
+		dto.setMobile(member.getMobile());
+		dto.setProfileUrl(member.getProfileUrl());
+		dto.setProvider(member.getProvider());	
+		dto.setMemberTypeId(member.getMemberType().getMemberTypeId());
+		
+		if (member.getCreatedAt() != null) {
+		    dto.setCreatedAt( member.getCreatedAt().toLocalDate().toString() );
+		}
+		
+		// 회원 상세정보
+		if(memberInfo != null) {
+			dto.setPoint(memberInfo.getPoint());
+			dto.setTrustScore(memberInfo.getTrustScore());
+			dto.setBirth(memberInfo.getBirth());
+			dto.setGender(memberInfo.getGender());
+		}
+		
+		// 회원 관심사 조회
+		List<MemberInterest> memberInterests = memberInterestRepository.findByMember_Id(memberId);
+		
+		// 관심사 id + 이름 반환
+		List<MyPageDto.InterestDto> interests = memberInterests.stream()
+													.map(memberInterest -> new MyPageDto.InterestDto(memberInterest.getInterest().getInterestId(),
+																									 memberInterest.getInterest().getInterestName())).toList();
+		
+		// dto에 관심사 저장
+		dto.setInterests(interests);
+		
+		return dto;
+	}
+	@Override
+	public String findLoginIdByEmail(String email) {
+		
+		if (!verificationService.isEmailVerified(email)) {
+	        throw new IllegalArgumentException( "이메일 인증이 완료되지 않았습니다." );
+	    }
+		
+		Member member = memberRepository.findByEmail(email)
+							.orElseThrow(()-> new IllegalArgumentException("해당 이메일로 가입된 회원이 없습니다."));
+		
+		return member.getLoginId();
+	}
+	
+	@Transactional
+	@Override
+	public void resetPassword(String email, String password) {
+		Member member = memberRepository.findByEmailAndDeleteYn(email, 'N')
+							.orElseThrow(()-> new IllegalArgumentException("해당 이메일로 가입된 회원이 없습니다."));
+		
+		// 기존 비밀번호와 동일한지 확인
+	    if (passwordEncoder.matches(password, member.getPassword())) {
+	        throw new IllegalArgumentException( "이미 사용했던 비밀번호로 변경은 어렵습니다." );
+	    }
+		
+		member.setPassword(passwordEncoder.encode(password));
+	}
+	
+	@Transactional
+	@Override
+	public void changePassword(Long memberId, String currentPassword, String newPassword) {
+		
+		Member member = memberRepository.findById(memberId)
+							.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원입니다."));
+		
+		// 현재 비밀번호 확인
+		if(!passwordEncoder.matches(currentPassword, member.getPassword())) {
+			throw new IllegalArgumentException("현재 비밀번호가 올바르지 않습니다.");
+		}
+		
+		// 기존 비밀번호와 동일한지 확인
+		if(passwordEncoder.matches(newPassword, member.getPassword())) {
+			throw new IllegalArgumentException("이미 사용했던 비밀번호로 변경은 어렵습니다.");
+		}
+		
+		// 비밀번호 유출검사
+		int leakCount = passwordLeakService.getLeakCount(newPassword);
+		
+		if(leakCount>0) {
+			throw new IllegalArgumentException("유출된 비밀번호는 사용할 수 없습니다.");
+		}
+		
+		if(leakCount == -1) {
+			throw new IllegalArgumentException("비밀번호 보안 검증에 실패했습니다.");
+		}
+		
+		// 새 비밀번호 암호화
+		member.setPassword(passwordEncoder.encode(newPassword));
+		
+	}
+	
+	@Transactional
+	@Override
+	public void updateProfileImage(Long memberId, String profileUrl) {
+		
+		Member member = memberRepository.findById(memberId)
+							.orElseThrow(()-> new IllegalArgumentException("존재하지 않는 회원입니다."));
+		
+		member.setProfileUrl(profileUrl);
+		
 	}
 	
 	

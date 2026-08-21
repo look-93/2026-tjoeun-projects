@@ -1,6 +1,7 @@
 package com.moit.member.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import lombok.Data;
 
@@ -12,4 +13,5 @@ public class UserUpdateDto {
 	private String profileUrl;
 	private String gender;
 	private LocalDate birth;
+	private List<Integer> interestIds;
 }

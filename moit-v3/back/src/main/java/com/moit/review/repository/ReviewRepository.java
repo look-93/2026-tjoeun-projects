@@ -21,11 +21,15 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     // 2. 특정 모임의 리뷰 목록 조회 (좋아요순) - 
     List<Review> findByMeetup_IdAndDeleteYnAndIsPublicOrderByLikesCountDescIdDesc(Long meetupId, Character deleteYn, String isPublic);
 
-    // 3. [마이페이지] 내가 쓴 리뷰 목록 조회 (키워드 검색 + 정렬)
+    // 3. [마이페이지] 내가 쓴 리뷰 목록 조회 (키워드 검색 + Pageable 정렬 적용)
     @Query("SELECT r FROM Review r WHERE r.member.id = :memberId " +
            "AND r.deleteYn = 'N' " +
            "AND (:keyword IS NULL OR :keyword = '' OR r.content LIKE %:keyword%)")
-    List<Review> selectReviewByMemberId(@Param("memberId") Long memberId, @Param("keyword") String keyword);
+    Page<Review> selectReviewByMemberId(
+        @Param("memberId") Long memberId, 
+        @Param("keyword") String keyword, 
+        Pageable pageable
+    );
 
     // 4. 공개 리뷰 내용 검색 (사용자용) - 
     List<Review> findByContentContainingAndDeleteYnAndIsPublicOrderByIdDesc(String keyword, Character deleteYn, String isPublic);
@@ -45,12 +49,26 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
                                     Pageable pageable);
 
     // 8. 좋아요 수 +1
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomatically = true, clearAutomatically = false)
     @Query("UPDATE Review r SET r.likesCount = r.likesCount + 1 WHERE r.id = :reviewId")
     int incrementLikesCount(@Param("reviewId") Long reviewId);
 
     // 9. 좋아요 수 -1
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomatically = true, clearAutomatically = false)
     @Query("UPDATE Review r SET r.likesCount = r.likesCount - 1 WHERE r.id = :reviewId")
     int decrementLikesCount(@Param("reviewId") Long reviewId);
+    
+    // 특정 모임의 공개된 리뷰 목록 조회 (페이징 + 정렬 적용)
+    Page<Review> findByMeetup_IdAndDeleteYnAndIsPublic(Long meetupId, Character deleteYn, String isPublic, Pageable pageable);
+
+    // ★ [추가된 부분] 모임 상세 페이지용 리뷰 목록 조회 (검색어 + 페이징 + 정렬 적용)
+    @Query("SELECT r FROM Review r WHERE r.meetup.id = :meetupId " +
+           "AND r.deleteYn = 'N' " +
+           "AND r.isPublic = 'Y' " +
+           "AND (:keyword IS NULL OR :keyword = '' OR r.content LIKE %:keyword%)")
+    Page<Review> selectReviewByMeetupId(
+        @Param("meetupId") Long meetupId, 
+        @Param("keyword") String keyword, 
+        Pageable pageable
+    );
 }

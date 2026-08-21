@@ -17,115 +17,196 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-public class JwtAuthenticationFilter extends OncePerRequestFilter{
-	
-	private final JwtTokenProvider jwtTokenProvider;
-	private final MemberService service;
-	
-	public JwtAuthenticationFilter(
-			JwtTokenProvider jwtTokenProvider,
-			MemberService memberService) {
-		this.jwtTokenProvider = jwtTokenProvider;
-		this.service = memberService;
-	}
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-	@Override
-	protected void doFilterInternal(
-	        HttpServletRequest request,
-	        HttpServletResponse response,
-	        FilterChain filterChain)
-	        throws ServletException, IOException {
+    private final JwtTokenProvider jwtTokenProvider;
+    private final MemberService service;
 
-	    // 1. Authorization 헤더 확인
-	    String authorization = request.getHeader("Authorization");
+    public JwtAuthenticationFilter(
+        JwtTokenProvider jwtTokenProvider,
+        MemberService memberService
+    ) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.service = memberService;
+    }
 
-	    System.out.println("===== JWT FILTER =====");
-	    System.out.println("요청 URI : " + request.getRequestURI());
-	    System.out.println("Authorization : " + authorization);
+    @Override
+    protected void doFilterInternal(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain filterChain
+    ) throws ServletException, IOException {
 
-	    // 2. JWT가 없으면 다음 필터로
-	    if (authorization == null || !authorization.startsWith("Bearer ")) {
+        // =====================================================
+        // 0. CORS Preflight 요청
+        // =====================================================
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
 
-	        System.out.println("JWT 없음");
- 
-	        filterChain.doFilter(request, response);
-	        return;
-	    }
+            System.out.println("===== JWT FILTER =====");
+            System.out.println("OPTIONS 요청 - JWT 검사 생략");
+            System.out.println("요청 URI : " + request.getRequestURI());
 
-	    // 3. Bearer 제거
-	    String token = authorization.substring(7);
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-	    System.out.println("Token 존재 : " + !token.isEmpty());
+        // =====================================================
+        // 1. Authorization Header 확인
+        // =====================================================
+        String authorization =
+            request.getHeader("Authorization");
 
-	    // 4. JWT 검증
-	    boolean valid = jwtTokenProvider.validateToken(token);
+        System.out.println("===== JWT FILTER =====");
+        System.out.println("요청 URI : " + request.getRequestURI());
+        System.out.println("Authorization : " + authorization);
 
-	    System.out.println("JWT 검증 결과 : " + valid);
+        // =====================================================
+        // 2. JWT가 없는 경우
+        // =====================================================
+        if (
+            authorization == null ||
+            !authorization.startsWith("Bearer ")
+        ) {
 
-	    if (valid) {
+            System.out.println("JWT 없음");
 
-	    	// 5. JWT 타입 확인
-	        String tokenType = jwtTokenProvider.getTokenType(token);
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-	        System.out.println("JWT 타입  : " + tokenType);
-	        
-	        // Refresh Token은 API 인증에 사용할 수 없음
-	        if (!"ACCESS".equals(tokenType)) {
+        // =====================================================
+        // 3. Bearer 제거
+        // =====================================================
+        String token = authorization.substring(7);
 
-	            System.out.println("Access Token이 아님");
+        System.out.println(
+            "Token 존재 : " + !token.isEmpty()
+        );
 
-	            filterChain.doFilter(request, response);
-	            return;
-	        }
-	        
-	        // JWT에서 회원 ID 가져오기
-	        Long memberId = jwtTokenProvider.getMemberId(token);
+        // =====================================================
+        // 4. JWT 검증
+        // =====================================================
+        boolean valid =
+            jwtTokenProvider.validateToken(token);
 
-	        System.out.println("JWT memberId : " + memberId);
+        System.out.println(
+            "JWT 검증 결과 : " + valid
+        );
 
-	        // 6. DB에서 회원 조회
-	        UserDto user = service.findByMemberId(memberId);
+        if (valid) {
 
-	        System.out.println("DB 회원 조회 결과 : " + user);
+            // =================================================
+            // 5. JWT 타입 확인
+            // =================================================
+            String tokenType =
+                jwtTokenProvider.getTokenType(token);
 
-	        // 7. 회원이 존재하면 인증객체 생성
-	        if (user != null) {
-	        	
-	        	// 탈퇴 / 정지 회원 차단
-	            if (user.getStatusId() == null || !user.getStatusId().equals(1L)) {
+            System.out.println(
+                "JWT 타입 : " + tokenType
+            );
 
-	                System.out.println("탈퇴 또는 정지 회원 - 인증 차단");
+            // Refresh Token은 API 인증에 사용할 수 없음
+            if (!"ACCESS".equals(tokenType)) {
 
-	                filterChain.doFilter(request, response);
-	                return;
-	            }
+                System.out.println(
+                    "Access Token이 아님"
+                );
 
-	            CustomUserDetails userDetails = new CustomUserDetails(user);
+                filterChain.doFilter(request, response);
+                return;
+            }
 
-	            UsernamePasswordAuthenticationToken authentication =new UsernamePasswordAuthenticationToken(
-											                            userDetails,
-											                            null,
-											                            userDetails.getAuthorities()
-											                    		);
+            // =================================================
+            // 6. JWT에서 회원 ID 가져오기
+            // =================================================
+            Long memberId =
+                jwtTokenProvider.getMemberId(token);
 
-	            authentication.setDetails( new WebAuthenticationDetailsSource() .buildDetails(request) );
+            System.out.println(
+                "JWT memberId : " + memberId
+            );
 
-	            // 8. SecurityContext에 인증정보 저장
-	            SecurityContextHolder
-	                    .getContext()
-	                    .setAuthentication(authentication);
+            // =================================================
+            // 7. DB에서 회원 조회
+            // =================================================
+            UserDto user =
+                service.findByMemberId(memberId);
 
-	            System.out.println("인증 객체 생성 완료");
-	            System.out.println("현재 인증 : "
-	                    + SecurityContextHolder.getContext().getAuthentication());
+            System.out.println(
+                "DB 회원 조회 결과 : " + user
+            );
 
-	        } else {
+            // =================================================
+            // 8. 회원 존재 여부
+            // =================================================
+            if (user != null) {
 
-	            System.out.println("회원 조회 실패");
-	        }
-	    }
+                // ---------------------------------------------
+                // 탈퇴 / 정지 회원 차단
+                // ---------------------------------------------
+                if (
+                    user.getStatusId() == null ||
+                    !user.getStatusId().equals(1L)
+                ) {
 
-	    // 9. 다음 필터
-	    filterChain.doFilter(request, response);
-	}	
+                    System.out.println(
+                        "탈퇴 또는 정지 회원 - 인증 차단"
+                    );
+
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
+                // ---------------------------------------------
+                // CustomUserDetails 생성
+                // ---------------------------------------------
+                CustomUserDetails userDetails =
+                    new CustomUserDetails(user);
+
+                // ---------------------------------------------
+                // Authentication 생성
+                // ---------------------------------------------
+                UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                    );
+
+                authentication.setDetails(
+                    new WebAuthenticationDetailsSource()
+                        .buildDetails(request)
+                );
+
+                // ---------------------------------------------
+                // SecurityContext 저장
+                // ---------------------------------------------
+                SecurityContextHolder
+                    .getContext()
+                    .setAuthentication(authentication);
+
+                System.out.println(
+                    "인증 객체 생성 완료"
+                );
+
+                System.out.println(
+                    "현재 인증 : " +
+                    SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                );
+
+            } else {
+
+                System.out.println(
+                    "회원 조회 실패"
+                );
+            }
+        }
+
+        // =====================================================
+        // 9. 다음 Filter
+        // =====================================================
+        filterChain.doFilter(request, response);
+    }
 }

@@ -9,7 +9,7 @@ function MyPageSidebar() {
 
   const menuItems = [
     {
-      key: '/user/mypage',
+      key: '/user/member/mypage',
       label: '내 정보',
     },
     {
