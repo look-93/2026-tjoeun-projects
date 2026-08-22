@@ -1,5 +1,7 @@
 package com.moit.meetup.repository;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,6 +29,22 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 	        Character deleteYn
 	);
 	
+	//하루모임등록3개제한
+	/*
+	 m.createdAt < :startOfNextDay -> 23:59:59
+	*/
+	@Query("""
+		    SELECT COUNT(m)
+		    FROM Meetup m
+		    WHERE m.member.id = :memberId
+		      AND m.createdAt >= :startOfDay
+		      AND m.createdAt < :startOfNextDay
+		""")
+	long countTodayCreatedMeetups(@Param("memberId") Long memberId
+								, @Param("startOfDay") LocalDateTime  startOfDay
+								, @Param("startOfNextDay") LocalDateTime startOfNextDay);
+	
+	//관리자/사용자 모임조회
 	@Query("""
 		    SELECT m
 		    FROM Meetup m
@@ -111,6 +129,7 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 			""")
 	MeetupCountResponseDto getMeetupCount();
 	
+	//마이페이지 통계
 	@Query("""
 		    SELECT new com.moit.meetup.dto.MyMeetupCountResponseDto(
 		        COUNT(DISTINCT CASE WHEN m.member.id = :memberId THEN m.id END),

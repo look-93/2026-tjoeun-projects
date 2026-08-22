@@ -86,6 +86,11 @@ import {
     recommendMeetupRequest,
     recommendMeetupSuccess,
     recommendMeetupFailure,
+
+    //하루 모임 3개 제한
+    fetchTodayMeetupCountRequest,
+    fetchTodayMeetupCountSuccess,
+    fetchTodayMeetupCountFailure,
 } from "../reducers/meetupReducer";
 
 const MEETUP_API_BASE = "/api/meetups";
@@ -154,16 +159,16 @@ export function createMeetupAPI(payload) {
         });
     }
 
-    console.log("🔥 dto:", dto);
-    console.log("🔥 files:", files);
+    //console.log("🔥 dto:", dto);
+    //console.log("🔥 files:", files);
 
-    for (const [key, value] of formData.entries()) {
-        console.log(
-            "🔥 FormData:",
-            key,
-            value instanceof File ? value.name : value,
-        );
-    }
+    // for (const [key, value] of formData.entries()) {
+    //     console.log(
+    //         "🔥 FormData:",
+    //         key,
+    //         value instanceof File ? value.name : value,
+    //     );
+    // }
 
     return api.post(MEETUP_API_BASE, formData, {
         headers: {
@@ -178,7 +183,9 @@ export function* createMeetup(action) {
 
         yield call(createMeetupAPI, action.payload);
 
-        //console.log("🔥 모임 등록 성공");
+        console.log("🔥 모임 등록 실패:", err);
+        console.log("🔥 status:", err.response?.status);
+        console.log("🔥 data:", err.response?.data);
 
         yield put(createMeetupSuccess());
     } catch (err) {

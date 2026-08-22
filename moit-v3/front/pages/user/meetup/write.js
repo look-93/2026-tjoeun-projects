@@ -340,7 +340,7 @@ function write() {
         }
 
         if (error) {
-            message.error("저장 중 오류가 발생했습니다.");
+            message.error(error);
         }
     }, [createSuccess, updateSuccess, error, dispatch, router]);
 

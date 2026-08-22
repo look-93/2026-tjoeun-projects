@@ -3,6 +3,7 @@ package com.moit.meetup.service;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -207,6 +208,32 @@ public class MeetupServiceImpl implements MeetupService{
 		Sigungu sigungu = meetupSigunguRepository.findById(meetupRequestDto.getSigunguId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 지역입니다. SigunguId" + meetupRequestDto.getSigunguId()));
 		MeetupCategory meetupCategory = meetupCategoryRepository.findById(meetupRequestDto.getCategoryId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 카테고리입니다. meetupCategory" + meetupRequestDto.getCategoryId()));
 		
+		//하루모임 3개제한
+		ZoneId zoneId = ZoneId.of("Asia/Seoul");
+		
+		//한국시간기준
+        LocalDate today = LocalDate.now(zoneId);
+        
+        //오늘 00시
+        LocalDateTime startOfDay =
+                today.atStartOfDay();
+        //다음날 00시
+        LocalDateTime startOfNextDay =
+                today.plusDays(1).atStartOfDay();
+
+        long todayCount =
+                meetupRepository.countTodayCreatedMeetups(
+                        memberId,
+                        startOfDay,
+                        startOfNextDay
+                );
+
+        if (todayCount >= 3) {
+            throw new IllegalArgumentException(
+                    "하루 최대 3개의 모임만 등록할 수 있습니다."
+            );
+        }		
+		
 	    Meetup meetup = Meetup.builder()
 							  .title(meetupRequestDto.getTitle())
 							  .content(meetupRequestDto.getContent())
@@ -246,7 +273,7 @@ public class MeetupServiceImpl implements MeetupService{
 			throw new RuntimeException("이미지 업로드 중 오류가 발생했습니다.", e);
 		}		
 	}
-	
+
 	// 모임 수정
 	@Transactional
 	@Override
