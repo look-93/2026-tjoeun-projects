@@ -69,6 +69,11 @@ public class MeetupDto {
 		private String categoryName;
 		private Long categoryId;
 		private Boolean hidden;
+		private Integer trustScore;
+		
+		private Long hostMeetupCount; // 개설한 모임 수
+		private Long completedMeetupCount;  // 완료된 모임 수
+		private Long noShowCount;  // 노쇼 횟수
 		
 		public static MeetupResponseDto listFrom(Meetup meetup) { // list에만 보여줄 MeetupResponse
 			MeetupResponseDto response = new MeetupResponseDto();
@@ -107,7 +112,7 @@ public class MeetupDto {
 			return response;
 		}
 		
-		public static MeetupResponseDto detailFrom(Meetup meetup, Long memberId) { // 상세페이지 MeetupResponse
+		public static MeetupResponseDto detailFrom(Meetup meetup, Long memberId, Long hostMeetupCount, Long completedMeetupCount, Long noShowCount) { // 상세페이지 MeetupResponse
 		    MeetupResponseDto response = new MeetupResponseDto();
 
 		    response.setId(meetup.getId());
@@ -133,6 +138,10 @@ public class MeetupDto {
 		    response.setCategoryName(meetup.getMeetupCategory().getCategoryName());
 		    response.setMeetupStatus(meetup.getMeetupStatus());
 		    response.setHidden(meetup.getHidden());
+		    response.setTrustScore(meetup.getMember().getMemberInfo().getTrustScore());
+		    response.setHostMeetupCount(hostMeetupCount);
+		    response.setCompletedMeetupCount(completedMeetupCount);
+		    response.setNoShowCount(noShowCount);
 		    
 		    // 현재 로그인한 사용자의 신청 상태
 		    if (memberId != null) {

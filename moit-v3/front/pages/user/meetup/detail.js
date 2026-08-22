@@ -132,9 +132,9 @@ function MeetupDetailPage() {
 
         if (meetup.hidden) {
             alert("모임이 관리자에 의해 비공개 처리되었습니다.");
-            router.replace("/user/meetup");
+            router.back();
         }
-    }, [meetup, router]);
+    }, [meetup, meetupId, router]);
 
     // 이미지
     const images =

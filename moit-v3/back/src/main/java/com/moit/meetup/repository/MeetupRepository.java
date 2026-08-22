@@ -17,6 +17,16 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 	
 	Page<Meetup> findAll(Pageable pageable);
 	
+	//개설한모임 카운트
+	long countByMemberIdAndDeleteYn(Long MemberId, Character deleteYn);
+	
+	//완료카운트
+	long countByMemberIdAndMeetupStatusAndDeleteYn(
+	        Long memberId,
+	        MeetupStatus meetupStatus,
+	        Character deleteYn
+	);
+	
 	@Query("""
 		    SELECT m
 		    FROM Meetup m

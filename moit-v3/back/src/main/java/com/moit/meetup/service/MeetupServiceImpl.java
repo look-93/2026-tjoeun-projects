@@ -170,8 +170,30 @@ public class MeetupServiceImpl implements MeetupService{
 			throw new IllegalArgumentException("삭제된 게시글 입니다.");
 		}		
 		
-		MeetupResponseDto response = MeetupResponseDto.detailFrom(meetup, memberId);
+	    // 모임 개설자 ID
+	    Long hostId = meetup.getMember().getId();
 		
+		Long hostMeetupCount =
+		        meetupRepository.countByMemberIdAndDeleteYn(
+		        		hostId,
+		                'N'
+		        );
+		
+		// 완료 횟수
+		Long completedMeetupCount =
+		        meetupRepository.countByMemberIdAndMeetupStatusAndDeleteYn(
+		        		hostId,
+		                MeetupStatus.COMPLETED,
+		                'N'
+		        );
+		
+		// 노쇼 횟수
+		Long noShowCount =
+		        meetupApplicationRepository.countNoShowByMemberId(hostId);
+		
+		
+		MeetupResponseDto response = MeetupResponseDto.detailFrom(meetup, memberId, hostMeetupCount, completedMeetupCount, noShowCount);	
+
 		return response;
 	}
 	
