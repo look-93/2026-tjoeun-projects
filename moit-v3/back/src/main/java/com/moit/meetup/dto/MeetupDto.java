@@ -132,6 +132,7 @@ public class MeetupDto {
 		    response.setCategoryId(meetup.getMeetupCategory().getId());
 		    response.setCategoryName(meetup.getMeetupCategory().getCategoryName());
 		    response.setMeetupStatus(meetup.getMeetupStatus());
+		    response.setHidden(meetup.getHidden());
 		    
 		    // 현재 로그인한 사용자의 신청 상태
 		    if (memberId != null) {

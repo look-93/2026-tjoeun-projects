@@ -38,7 +38,7 @@ function UserMyMeetupApplyPage() {
         //통계
         dispatch(fetchMyMeetupCountRequest());
     }, [dispatch]);
-console.log(myMeetupCount)
+    console.log(myMeetupCount);
     // 통계
     const stats = [
         {
@@ -69,6 +69,12 @@ console.log(myMeetupCount)
 
     // 테이블
     const columns = [
+        {
+            title: "번호",
+            key: "number",
+            align: "center",
+            render: (_, record, index) => myApplications.length - index,
+        },
         {
             title: "모임명",
             dataIndex: "meetupTitle",

@@ -406,6 +406,8 @@ const meetupReducer = createSlice({
             state.loading = false;
             state.error = null;
 
+            state.meetup = null; // ⭐ 이전 상세 모임 데이터 초기화
+
             state.createSuccess = null;
             state.updateSuccess = null;
             state.deleteSuccess = null;

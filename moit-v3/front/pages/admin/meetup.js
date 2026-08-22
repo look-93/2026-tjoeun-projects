@@ -28,6 +28,7 @@ function AdminMeetupPage() {
     // 검색 조건
     const [searchType, setSearchType] = useState("all");
     const [status, setStatus] = useState("all");
+    const [searchText, setSearchText] = useState("");
 
     const serverData = { allcnt: 1200, running: 1000, close: 1200 };
 
@@ -46,24 +47,6 @@ function AdminMeetupPage() {
         },
     ];
 
-    useEffect(() => {
-        dispatch(
-            fetchMeetupsRequest({
-                page: currentPage - 1,
-                size: pageSize,
-
-                searchType: searchType === "all" ? null : searchType,
-                searchText: null,
-
-                sidoId: null,
-                categoryId: null,
-
-                status: status === "all" ? null : status,
-            }),
-        );
-        dispatch(fetchMeetupCountRequest());
-    }, [currentPage, searchType, status, dispatch]);
-
     const adminColumns = [
         {
             title: "번호",
@@ -71,6 +54,7 @@ function AdminMeetupPage() {
             key: "id",
             width: 80,
             align: "center",
+            render: (_, record, index) => meetups.length - index,
         },
         {
             title: "모집자",
@@ -139,8 +123,8 @@ function AdminMeetupPage() {
     const rowSelection = {
         checkStrictly,
         onChange: (selectedRowKeys, selectedRows) => {
-            console.log("선택된 ID:", selectedRowKeys);
-            console.log("선택된 데이터:", selectedRows);
+            //console.log("선택된 ID:", selectedRowKeys);
+            //console.log("선택된 데이터:", selectedRows);
         },
     };
 
@@ -159,11 +143,30 @@ function AdminMeetupPage() {
         console.log("검색 조건:", values);
 
         setSearchType(values.category);
+        setSearchText(values.keyword || "");
         setStatus(values.status);
 
         // 검색하면 1페이지부터
         setCurrentPage(1);
     };
+
+    useEffect(() => {
+        dispatch(
+            fetchMeetupsRequest({
+                page: currentPage - 1,
+                size: pageSize,
+
+                searchType: searchType === "all" ? null : searchType,
+                searchText: searchText || null,
+
+                sidoId: null,
+                categoryId: null,
+
+                status: status === "all" ? null : status,
+            }),
+        );
+        dispatch(fetchMeetupCountRequest());
+    }, [currentPage, searchType, searchText, status, dispatch]);
 
     // 비공개
 
@@ -217,6 +220,7 @@ function AdminMeetupPage() {
                         defaultValue: "all",
                         options: [
                             { value: "all", label: "전체" },
+                            { value: "title", label: "모집명" },
                             { value: "name", label: "모집자" },
                         ],
                     },

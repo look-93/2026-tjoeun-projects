@@ -33,18 +33,25 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 		          OR m.meetupStatus = :status
 		      )
 
-		      AND (
-		          :searchText IS NULL
-		          OR :searchText = ''
-		          OR (
-		              :searchType = 'title'
-		              AND m.title LIKE CONCAT('%', :searchText, '%')
-		          )
-		          OR (
-		              :searchType = 'name'
-		              AND m.member.nickname LIKE CONCAT('%', :searchText, '%')
-		          )
-		      )
+			  AND (
+			      :searchText IS NULL
+			      OR :searchText = ''
+			      OR (
+			          :searchType = 'title'
+			          AND m.title LIKE CONCAT('%', :searchText, '%')
+			      )
+			      OR (
+			          :searchType = 'name'
+			          AND m.member.nickname LIKE CONCAT('%', :searchText, '%')
+			      )
+			      OR (
+			          :searchType IS NULL
+			          AND (
+			              m.title LIKE CONCAT('%', :searchText, '%')
+			              OR m.member.nickname LIKE CONCAT('%', :searchText, '%')
+			          )
+			      )
+			  )
 
 		      AND (
 		          :sidoId IS NULL

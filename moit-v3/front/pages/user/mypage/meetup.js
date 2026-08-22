@@ -132,7 +132,7 @@ function UserMyMeetupPage() {
             title: "번호",
             key: "number",
             align: "center",
-            render: (_, record, index) => index + 1,
+            render: (_, record, index) => myMeetups.length - index,
         },
         {
             title: "모임명",
