@@ -3,6 +3,7 @@ package com.moit.meetup.controller;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,6 +33,7 @@ import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
 import com.moit.meetup.dto.MyMeetupCountResponseDto;
+import com.moit.meetup.dto.PopularMeetupResponseDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.meetup.enums.MeetupStatus;
@@ -246,6 +248,15 @@ public class MeetupController {
         return ResponseEntity.ok(meetupService.getMeetupCount());
     }
 	
+    //인기모임
+    @GetMapping("/popular")
+    public ResponseEntity<List<PopularMeetupResponseDto>> getPopularMeetups() {
+
+        return ResponseEntity.ok(
+            meetupService.getPopularMeetups()
+        );
+    }
+    
 	// ################### open api ###################
 
 	@Operation(summary = "AI 모임 제목/카테고리/내용 추천", description = "사용자가 입력한 키워드를 기반으로 AI가 모임 제목, 카테고리, 내용을 추천합니다.")

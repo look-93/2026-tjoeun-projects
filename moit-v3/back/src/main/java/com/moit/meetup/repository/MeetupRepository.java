@@ -1,6 +1,7 @@
 package com.moit.meetup.repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import com.moit.meetup.dto.MeetupCountResponseDto;
 import com.moit.meetup.dto.MyMeetupCountResponseDto;
+import com.moit.meetup.dto.PopularMeetupResponseDto;
 import com.moit.meetup.entity.Meetup;
 import com.moit.meetup.enums.MeetupStatus;
 
@@ -114,7 +116,7 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 	        Pageable pageable
 	);
 	
-	Page<Meetup> findByMember_IdAndDeleteYnOrderByCreatedAtDesc(Long memberId, char deleteYn, Pageable  pageable);
+	Page<Meetup> findByMember_IdAndDeleteYnOrderByCreatedAtDesc(Long memberId, Character deleteYn, Pageable  pageable);
 	
 	//관리자 통계
 	@Query("""
@@ -157,6 +159,38 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 		MyMeetupCountResponseDto getMyMeetupCount(
 		    @Param("memberId") Long memberId
 		);
+	
+	// 인기모임
+	@Query("""
+	    SELECT new com.moit.meetup.dto.PopularMeetupResponseDto(
+	        m.id,
+	        m.title,
+	        m.member.nickname,
+	        m.meetupAt,
+	        m.sigungu.sido.name,
+	        m.sigungu.name,
+	        MIN(img.image.imagePath),
+	        COUNT(DISTINCT ml),
+	        m.maxParticipants,
+	        m.minParticipants
+	    )
+	    FROM Meetup m
+	    LEFT JOIN m.meetupLike ml
+	    LEFT JOIN m.meetupImages img
+	    WHERE m.hidden = false
+	      AND m.meetupStatus = com.moit.meetup.enums.MeetupStatus.RECRUITING
+	    GROUP BY
+	        m.id,
+	        m.title,
+	        m.member.nickname,
+	        m.meetupAt,
+	        m.sigungu.sido.name,
+	        m.sigungu.name,
+	        m.maxParticipants,
+	        m.minParticipants
+	    ORDER BY COUNT(DISTINCT ml) DESC, m.id DESC
+	""")
+	List<PopularMeetupResponseDto> findPopularMeetups(Pageable pageable);
 }
 
 

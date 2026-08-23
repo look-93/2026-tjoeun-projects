@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,7 @@ import com.moit.meetup.dto.MeetupLikeCountDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupParticipantCountDto;
 import com.moit.meetup.dto.MyMeetupCountResponseDto;
+import com.moit.meetup.dto.PopularMeetupResponseDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.meetup.entity.Meetup;
@@ -664,6 +666,15 @@ public class MeetupServiceImpl implements MeetupService{
 	@Override
 	public MeetupCountResponseDto getMeetupCount() {
 		return meetupRepository.getMeetupCount();
+	}
+	
+	//인기모임
+	@Override
+	public List<PopularMeetupResponseDto> getPopularMeetups() {
+
+	    Pageable pageable = PageRequest.of(0, 4);
+
+	    return meetupRepository.findPopularMeetups(pageable);
 	}
 	
 	// ################### open api ###################
