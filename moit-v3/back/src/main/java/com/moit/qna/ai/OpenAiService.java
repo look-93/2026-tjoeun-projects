@@ -90,7 +90,7 @@ public class OpenAiService {
 	        출력 형식
             {
               "analysis":"NORMAL",
-              "score":0
+              "score":0,
         	  "aiCategory":"OTHER"
             }
             
