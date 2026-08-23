@@ -29,13 +29,11 @@ const POST_API_BASE = '/api/reports';
 
 
 // watchCreateReport          - POST      /api/reports        신고 작성
-export const createReportAPI = (payload)=> {
-    const { memberId, dto } = payload;              // Controller에서 memberId + ReportRequestDto 받음
+export const createReportAPI = (dto)=> {
 
-    // @RequestParam("memberId") Long memberId,     URL 뒤에 붙여서 보내기
     // @RequestBody ReportRequestDto requestDto     신고 내용을 요청 body에 넣어서 보내기
-    // POST_API_BASE = http://localhost:8080/api/reports?memberId=2
-    return api.post(`${POST_API_BASE}?memberId=${memberId}`, dto);
+    // POST_API_BASE = http://localhost:8080/api/reports
+    return api.post(POST_API_BASE, dto);
 }
 export function* createReport(action) {
     try {

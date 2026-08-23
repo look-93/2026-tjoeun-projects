@@ -1,5 +1,6 @@
 package com.moit.reports.entity;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,12 +57,16 @@ public class Report extends BaseEntity {
 	@Column(name = "REASON_CODE", length = 20, nullable = false)
 	private ReasonCode reasonCode;
 	
-	@Column(name = "REASON_DETAIL", length = 200, nullable = false)
+	@Column(name = "REASON_DETAIL", length = 200)
 	private String reasonDetail;
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "STATUS", length = 20, nullable = false)
 	private ReportStatus status;
+	
+	// 사용자 수정일자
+	@Column(name = "user_updated_at")
+	private LocalDateTime userUpdatedAt;
 	
 	// 
 	public Report(TargetType targetType, Long targetId, Member member, ReasonCode reasonCode, String reasonDetail) {
