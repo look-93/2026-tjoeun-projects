@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.moit.advertisement.dto.AdvertisementCalculationResultDto;
 import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.PaymentType;
@@ -18,6 +19,14 @@ public interface AdvertisementCalculationService {
             LocalDateTime endDatetime, 
             AdGrade adGrade, 
             PaymentType paymentType, 
+            List<AdPosition> positions
+    );
+    
+    AdvertisementCalculationResultDto calculate(
+            LocalDateTime startDatetime,
+            LocalDateTime endDatetime,
+            AdGrade adGrade,
+            PaymentType paymentType,
             List<AdPosition> positions
     );
 }

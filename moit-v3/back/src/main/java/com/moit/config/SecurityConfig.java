@@ -67,7 +67,9 @@ public class SecurityConfig {
                 "/api/reports",
                 "/api/admin/advertisement/**",
                 "/api/advertisement/**",
-                "/api/reviews/**"
+                "/api/reviews/**",
+                "/api/payment/**",
+                "/user/advertisement/aiAdvertise"
             )
         );
 

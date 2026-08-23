@@ -232,6 +232,32 @@ function AdvertiseDetailPage() {
             {formatDateTime(advertise.endDatetime)}
           </Descriptions.Item>
 
+          <Descriptions.Item label="광고 기간">
+            {formatDateTime(advertise.startDatetime)}
+            {' ~ '}
+            {formatDateTime(advertise.endDatetime)}
+          </Descriptions.Item>
+
+          <Descriptions.Item label="가격 계산">
+            <div>
+              <div>
+                광고 기간: {advertise.totalDays}일
+              </div>
+
+              <div>
+                기본 광고비: {formatMoney(advertise.basePrice)}
+              </div>
+
+              <div>
+                위치 추가금: +{formatMoney(advertise.positionPrice)}
+              </div>
+
+              <div style={{ fontWeight: 'bold', marginTop: 8 }}>
+                예상 광고비: {formatMoney(advertise.calculatedAmount)}
+              </div>
+            </div>
+          </Descriptions.Item>
+
           <Descriptions.Item label="총 예산">
             {formatMoney(advertise.totalBudget)}
           </Descriptions.Item>

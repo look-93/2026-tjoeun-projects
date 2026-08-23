@@ -36,6 +36,14 @@ function AdvertiseDetailPage() {
     try {
       setLoading(true);
       const response = await getAdvertiseAdminDetail(adId);
+
+      console.log('관리자 상세 결제정보:', {
+        paymentType: response.data.paymentType,
+        paymentHistoryStatus: response.data.paymentHistoryStatus,
+        paymentAmount: response.data.paymentAmount,
+        paidAt: response.data.paidAt,
+      });
+
       setAdvertise(response.data);
     } catch (error) {
       console.error('광고 상세 조회 실패', error);
@@ -143,7 +151,7 @@ function AdvertiseDetailPage() {
           <Descriptions.Item label="광고 번호">{advertise.adId}</Descriptions.Item>
           <Descriptions.Item label="광고주">{advertise.advertiserNickname || '-'}</Descriptions.Item>
           <Descriptions.Item label="광고명" span={2}>{advertise.title || '-'}</Descriptions.Item>
-          <Descriptions.Item label="광고 유형">{advertise.adChannel || '-'}</Descriptions.Item>
+          <Descriptions.Item label="결제 상태"><PaymentStatusTag value={advertise.paymentStatus} /></Descriptions.Item>
           <Descriptions.Item label="광고 등급"><AdGradeTag value={advertise.adGrade} /></Descriptions.Item>
           <Descriptions.Item label="승인 상태"><ApprovalStatusTag value={advertise.approvalStatus} /></Descriptions.Item>
           <Descriptions.Item label="광고 상태"><AdStatusTag value={advertise.status} /></Descriptions.Item>
@@ -177,7 +185,6 @@ function AdvertiseDetailPage() {
           <Descriptions.Item label="최소 연령">{advertise.targetAgeMin != null ? `${advertise.targetAgeMin}세` : '-'}</Descriptions.Item>
           <Descriptions.Item label="최대 연령">{advertise.targetAgeMax != null ? `${advertise.targetAgeMax}세` : '-'}</Descriptions.Item>
           <Descriptions.Item label="성별">{formatGender(advertise.targetGender)}</Descriptions.Item>
-          <Descriptions.Item label="광고 위치">{advertise.position || '-'}</Descriptions.Item>
         </Descriptions>
       </Card>
 
@@ -208,25 +215,25 @@ function AdvertiseDetailPage() {
       {/* 결제 정보 */}
       <Card title="결제 정보" style={{ marginBottom: 20 }}>
         <Descriptions bordered column={2}>
-          <Descriptions.Item label="결제 유형">{advertise.paymentType || '-'}</Descriptions.Item>
-          <Descriptions.Item label="결제 상태"><PaymentStatusTag value={advertise.paymentStatus} /></Descriptions.Item>
-          <Descriptions.Item label="결제 금액">{formatPrice(advertise.amount)}</Descriptions.Item>
-          <Descriptions.Item label="총 예산">{formatPrice(advertise.totalBudget)}</Descriptions.Item>
-          <Descriptions.Item label="결제일">{formatDateTime(advertise.paymentAt)}</Descriptions.Item>
+
+          <Descriptions.Item label="결제 유형">
+            {advertise.paymentType || '-'}
+          </Descriptions.Item>
+
+          <Descriptions.Item label="결제 상태">
+            <PaymentStatusTag value={advertise.paymentHistoryStatus} />
+          </Descriptions.Item>
+
+          <Descriptions.Item label="결제 금액">
+            {formatPrice(advertise.paymentAmount)}
+          </Descriptions.Item>
+
+          <Descriptions.Item label="결제일">
+            {formatDateTime(advertise.paidAt)}
+          </Descriptions.Item>
+
         </Descriptions>
       </Card>
-
-      {/* 반려 사유 */}
-      {advertise.rejectReason && (
-        <Card title="반려 정보" style={{ marginBottom: 20, borderColor: '#ffa39e' }}>
-          <Descriptions bordered column={1}>
-            <Descriptions.Item label="반려 사유" labelStyle={{ color: '#cf1322' }}>
-              <span style={{ color: '#cf1322', fontWeight: 'bold' }}>{advertise.rejectReason}</span>
-            </Descriptions.Item>
-            <Descriptions.Item label="반려일">{formatDateTime(advertise.rejectedAt)}</Descriptions.Item>
-          </Descriptions>
-        </Card>
-      )}
 
       <Divider />
 
