@@ -114,7 +114,7 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 	        Pageable pageable
 	);
 	
-	Page<Meetup> findByMember_Id(Long memberId, Pageable  pageable);
+	Page<Meetup> findByMember_IdAndDeleteYnOrderByCreatedAtDesc(Long memberId, char deleteYn, Pageable  pageable);
 	
 	//관리자 통계
 	@Query("""

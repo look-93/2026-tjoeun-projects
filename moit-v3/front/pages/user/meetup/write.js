@@ -304,9 +304,9 @@ function write() {
         const files = fileList
             .map((file) => file.originFileObj)
             .filter(Boolean);
-        console.log("🔥 fileList:", fileList);
-        console.log("🔥 existingImagePaths:", existingImagePaths);
-        console.log("🔥 files:", files);
+        //console.log("🔥 fileList:", fileList);
+        //console.log("🔥 existingImagePaths:", existingImagePaths);
+        //console.log("🔥 files:", files);
         if (isEdit) {
             dispatch(
                 updateMeetupRequest({

@@ -131,9 +131,9 @@ const meetupReducer = createSlice({
 
         deleteMeetupSuccess: (state) => {
             state.loading = false;
-            // state.meetups = state.meetups.filter(
-            //     (meetup) => meetup.id !== action.payload,
-            // );
+            state.meetups = state.meetups.filter(
+                (meetup) => meetup.id !== action.payload,
+            );
             state.deleteSuccess = true;
         },
 

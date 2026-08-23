@@ -183,14 +183,19 @@ export function* createMeetup(action) {
 
         yield call(createMeetupAPI, action.payload);
 
-        console.log("🔥 모임 등록 실패:", err);
-        console.log("🔥 status:", err.response?.status);
-        console.log("🔥 data:", err.response?.data);
+        //console.log("🔥 모임 등록 실패:", err);
+        //console.log("🔥 status:", err.response?.status);
+        //.log("🔥 data:", err.response?.data);
 
         yield put(createMeetupSuccess());
     } catch (err) {
+        //console.log(err);
         yield put(
-            createMeetupFailure(err.response?.data?.message || err.message),
+            createMeetupFailure(
+                err.response?.data?.message ||
+                    err.response?.data?.error ||
+                    err.message,
+            ),
         );
     }
 }
@@ -267,21 +272,23 @@ export const deleteMeetupAPI = (meetupId) =>
 
 export function* deleteMeetup(action) {
     try {
-        const { meetupId, page, size } = action.payload;
+        const { meetupId, page = 0, size = 10 } = action.payload;
 
         yield call(deleteMeetupAPI, meetupId);
 
+        // 삭제 성공
         yield put(deleteMeetupSuccess());
 
-        // 삭제 후 현재 페이지 다시 조회
-        if (page !== undefined) {
-            yield put(
-                fetchMeetupsRequest({
-                    page,
-                    size,
-                }),
-            );
-        }
+        // 목록 다시 조회
+        yield put(
+            fetchMyMeetupsRequest({
+                page,
+                size,
+            }),
+        );
+
+        // 통계 다시 조회
+        yield put(fetchMyMeetupCountRequest());
     } catch (err) {
         yield put(
             deleteMeetupFailure(err.response?.data?.message || err.message),

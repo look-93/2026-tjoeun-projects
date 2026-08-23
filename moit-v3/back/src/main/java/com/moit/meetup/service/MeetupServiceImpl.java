@@ -211,7 +211,7 @@ public class MeetupServiceImpl implements MeetupService{
 		//하루모임 3개제한
 		ZoneId zoneId = ZoneId.of("Asia/Seoul");
 		
-		//한국시간기준
+		//서버시간기준
         LocalDate today = LocalDate.now(zoneId);
         
         //오늘 00시
@@ -565,7 +565,7 @@ public class MeetupServiceImpl implements MeetupService{
 	//마이페이지 내가 모집한 모집글 조회(페이징)
 	@Override
 	public MeetupListResponseDto getMyMeetups(Long memberId, Pageable pageable) {
-		Page<Meetup> page = meetupRepository.findByMember_Id(memberId, pageable);
+		Page<Meetup> page = meetupRepository.findByMember_IdAndDeleteYnOrderByCreatedAtDesc(memberId, 'N', pageable);
 		MeetupListResponseDto response = new MeetupListResponseDto();
 		
 		response.setTotalCount(page.getTotalElements());
