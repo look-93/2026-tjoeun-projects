@@ -372,5 +372,11 @@ public class Advertisement extends BaseEntity{
     public void delete() {
         this.setDeleteYn('Y');
     }
+    
+    // 광고 수정 시 승인 상태를 다시 대기로 변경
+    public void resetApprovalStatusForUpdate() {
+        this.approvalStatus = ApprovalStatus.WAITING;
+        this.rejectReason = null; // 수정했으므로 기존 반려 사유 초기화
+    }
 
 }

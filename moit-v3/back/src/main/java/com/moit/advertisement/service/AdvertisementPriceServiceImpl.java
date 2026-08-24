@@ -181,4 +181,6 @@ public class AdvertisementPriceServiceImpl
         // 🌟 엔티티에 Setter가 있어야 합니다.
         entity.setAdditionalPrice(additionalPrice); 
     }
+    
+    
 }

@@ -2,6 +2,7 @@ package com.moit.advertisement.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.moit.advertisement.dto.AdvertisementCalculationResultDto;
 import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
@@ -26,6 +28,8 @@ import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.AdStatus;
 import com.moit.advertisement.enums.ApprovalStatus;
+import com.moit.advertisement.enums.PaymentHistoryStatus;
+import com.moit.advertisement.enums.PaymentType;
 import com.moit.advertisement.repository.AdvertisementClickLogRepository;
 import com.moit.advertisement.repository.AdvertisementImageRepository;
 import com.moit.advertisement.repository.AdvertisementImpressionLogRepository;
@@ -45,6 +49,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     private final AdvertisementRepository advertisementRepository;
     private final AdvertisementImageRepository advertisementImageRepository;
     private final MemberRepository memberRepository;
+    private final AdvertisementCalculationService calculationService;
     
     private final AdvertisementClickLogRepository clickLogRepository;
     private final AdvertisementImpressionLogRepository impressionLogRepository;
@@ -281,21 +286,45 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                                 )
                         );
 
-    	Advertisement advertisement =
-    	        Advertisement.builder()
-    	                .advertiser(advertiser)
-    	                .title(dto.getTitle())
-    	                .content(dto.getContent())
-    	                .landingUrl(dto.getLandingUrl())
-    	                .targetAgeMin(dto.getTargetAgeMin())
-    	                .targetAgeMax(dto.getTargetAgeMax())
-    	                .targetGender(dto.getTargetGender())
-    	                .startDatetime(dto.getStartDatetime())
-    	                .endDatetime(dto.getEndDatetime())
-    	                .totalBudget(dto.getTotalBudget())
-    	                .build();
+        Advertisement advertisement =
+                Advertisement.builder()
+                        .advertiser(advertiser)
+                        .title(dto.getTitle())
+                        .content(dto.getContent())
+                        .landingUrl(dto.getLandingUrl())
+                        .targetAgeMin(dto.getTargetAgeMin())
+                        .targetAgeMax(dto.getTargetAgeMax())
+                        .targetGender(dto.getTargetGender())
+                        .adGrade(dto.getAdGrade())
+                        .pendingPaymentType(dto.getPaymentType())
+                        .startDatetime(dto.getStartDatetime())
+                        .endDatetime(dto.getEndDatetime())
+                        .totalBudget(dto.getTotalBudget())
+                        .build();
 
         advertisementRepository.save(advertisement);
+        
+        // =========================================================
+        // 광고가 등록될 때 결제 대기(Payment) 데이터 미리 생성
+        // =========================================================
+        String generatedOrderId = "AD_" + advertisement.getAdId() + "_" + System.currentTimeMillis();
+
+        AdvertisementPayment payment = AdvertisementPayment.builder()
+                .advertisement(advertisement)
+                .advertiser(advertiser)
+                .paymentType(PaymentType.INITIAL) // 최초 결제
+                .orderId(generatedOrderId)         // 토스가 검증할 주문번호
+                .baseAmount(dto.getTotalBudget())  // (또는 기본금과 위치 추가금 분리해서 세팅)
+                .positionAmount(BigDecimal.ZERO)
+                .amount(dto.getTotalBudget())      // 최종 결제 금액
+                .position(AdPosition.MAIN)         // 대표 위치 (또는 선택된 위치)
+                .paymentStatus(PaymentHistoryStatus.REQUESTED) // 대기 상태
+                .periodDays(30)                    // 기간 계산된 일수 (필요시 세팅)
+                .startDatetime(dto.getStartDatetime())
+                .endDatetime(dto.getEndDatetime())
+                .build();
+
+        advertisementPaymentRepository.save(payment);
 
         return advertisement.getAdId();
     }
@@ -361,95 +390,66 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                 dto.getTotalBudget()
         );
 
+        advertisement.resetApprovalStatusForUpdate();
 
         // -----------------------------------------------------
-        // 새 이미지가 있는 경우
+        // 이미지 수정 처리 (위치별 개별 갱신)
         // -----------------------------------------------------
-
-        boolean hasNewImage =
-                imageFiles != null
-                        && imageFiles.stream()
-                        .anyMatch(file ->
-                                file != null
-                                        && !file.isEmpty()
-                        );
-
-        if (!hasNewImage) {
-            return 1;
-        }
-
-
-        // 기존 이미지 삭제
-        List<AdvertisementImage> oldImages =
-                advertisementImageRepository
-                        .findByAdvertisement_AdId( adId );
-
-        deletePhysicalFiles(oldImages);
-
-        advertisementImageRepository.deleteAll(oldImages);
-
-
-        // 새 이미지 저장
-        File directory =
-                new File(UPLOAD_PATH);
-
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
-
-
-        for (int i = 0;
-             i < imageFiles.size();
-             i++) {
-
-            MultipartFile file =
-                    imageFiles.get(i);
-
-            if (file == null || file.isEmpty()) {
-                continue;
+        if (imageFiles != null && !imageFiles.isEmpty() && imageTypes != null && !imageTypes.isEmpty()) {
+            File directory = new File(UPLOAD_PATH);
+            if (!directory.exists()) {
+                directory.mkdirs();
             }
 
-            String originalName =
-                    file.getOriginalFilename();
+            for (int i = 0; i < imageFiles.size(); i++) {
+                MultipartFile file = imageFiles.get(i);
+                
+                // 파일이 비어있으면 해당 위치는 건너뜁니다 (기존 이미지 유지)
+                if (file == null || file.isEmpty()) {
+                    continue;
+                }
 
-            String saveName =
-                    UUID.randomUUID()
-                            + "_"
-                            + originalName;
+                String imageTypeName = imageTypes.get(i);
+                AdPosition targetPosition = AdPosition.valueOf(imageTypeName);
 
-            try {
+                // 해당 위치(Position)에 이미 등록된 기존 이미지가 있다면 물리 파일 및 DB에서 삭제
+                List<AdvertisementImage> existingImages = advertisementImageRepository.findByAdvertisement_AdId(adId);
+                for (AdvertisementImage oldImg : existingImages) {
+                    if (oldImg.getImageType() == targetPosition) {
+                        // 물리 파일 삭제
+                        if (oldImg.getImageUrl() != null) {
+                            String fileName = oldImg.getImageUrl().replace("/upload/ad/", "");
+                            File physicalFile = new File(UPLOAD_PATH, fileName);
+                            if (physicalFile.exists()) {
+                                physicalFile.delete();
+                            }
+                        }
+                        // DB에서 해당 위치 이미지 삭제
+                        advertisementImageRepository.delete(oldImg);
+                    }
+                }
 
-                file.transferTo(
-                        new File(
-                                directory,
-                                saveName
-                        )
-                );
+                // 삭제가 DB에 즉시 반영
+                advertisementImageRepository.flush();
+                
+                // 2. 새로운 파일 업로드 및 저장
+                String originalName = file.getOriginalFilename();
+                String saveName = UUID.randomUUID().toString() + "_" + originalName;
 
-            } catch (IOException e) {
+                try {
+                    file.transferTo(new File(directory, saveName));
+                } catch (IOException e) {
+                    throw new RuntimeException("광고 이미지 저장 실패", e);
+                }
 
-                throw new RuntimeException(
-                        "광고 이미지 저장 실패",
-                        e
-                );
+                AdvertisementImage newImage = AdvertisementImage.builder()
+                        .advertisement(advertisement)
+                        .imageType(targetPosition)
+                        .imageUrl("/upload/ad/" + saveName)
+                        .build();
+
+                advertisementImageRepository.save(newImage);
             }
-
-
-            AdvertisementImage image =
-                    AdvertisementImage.builder()
-                            .advertisement(advertisement)
-                            .imageType(
-                                    AdPosition.valueOf(
-                                            imageTypes.get(i)
-                                    )
-                            )
-                            .imageUrl(
-                                    "/upload/ad/"
-                                            + saveName
-                            )
-                            .build();
-
-            advertisementImageRepository.save(image);
         }
 
         return 1;
@@ -693,8 +693,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             Long adId) {
 
         List<AdvertisementImage> images =
-                advertisementImageRepository
-                        .findByAdvertisement_AdId(adId);
+                advertisementImageRepository.findByAdvertisement_AdId(adId);
 
         deletePhysicalFiles(images);
 
@@ -966,8 +965,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
     private AdvertisementDto toDto( Advertisement ad) {
 
-        AdvertisementDto dto =
-                new AdvertisementDto();
+        AdvertisementDto dto = new AdvertisementDto();
 
         dto.setAdId(ad.getAdId());
 
@@ -975,95 +973,88 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         dto.setContent(ad.getContent());
         dto.setLandingUrl(ad.getLandingUrl());
 
-        dto.setTargetAgeMin(
-                ad.getTargetAgeMin()
-        );
+        dto.setTargetAgeMin( ad.getTargetAgeMin() );  
+        dto.setTargetAgeMax( ad.getTargetAgeMax() );  
+        dto.setTargetGender( ad.getTargetGender() );
 
-        dto.setTargetAgeMax(
-                ad.getTargetAgeMax()
-        );
+        dto.setStartDatetime( ad.getStartDatetime() );  
+        dto.setEndDatetime( ad.getEndDatetime() );
 
-        dto.setTargetGender(
-                ad.getTargetGender()
-        );
-
-        dto.setStartDatetime(
-                ad.getStartDatetime()
-        );
-
-        dto.setEndDatetime(
-                ad.getEndDatetime()
-        );
-
-        dto.setStatus(
-                ad.getStatus()
-        );
-
-        dto.setApprovalStatus(
-                ad.getApprovalStatus()
-        );
-
-        dto.setPaymentStatus(
-                ad.getPaymentStatus()
-        );
-
-        dto.setAdGrade(
-                ad.getAdGrade()
-        );
+        dto.setStatus( ad.getStatus() );  
+        dto.setApprovalStatus( ad.getApprovalStatus() );  
+        dto.setPaymentStatus( ad.getPaymentStatus() );  
+        dto.setAdGrade( ad.getAdGrade() );
+        dto.setPendingPaymentType(ad.getPendingPaymentType());
 
         if (ad.getAdvertiser() != null) {
             dto.setAdvertiserId(ad.getAdvertiser().getId()); 
-            
-            // Member 엔티티에 있는 닉네임
             dto.setAdvertiserNickname(ad.getAdvertiser().getNickname()); 
         }
 
-        dto.setImpressions(
-                ad.getImpressions()
-        );
+        dto.setImpressions( ad.getImpressions() );  
+        dto.setClicks( ad.getClicks() );
+        dto.setPriorityScore( ad.getPriorityScore() );  
+        dto.setTotalBudget( ad.getTotalBudget() );  
+        dto.setRejectReason(ad.getRejectReason());  
+        dto.setFatigueScore( ad.getFatigueScore() );
 
-        dto.setClicks(
-                ad.getClicks()
-        );
+        dto.setReminder30dSent( ad.getReminder30dSent() );  
+        dto.setReminder14dSent( ad.getReminder14dSent() );  
+        dto.setDeleteYn( ad.getDeleteYn() );  
+        dto.setCreatedAt( ad.getCreatedAt() );  
+        dto.setUpdatedAt( ad.getUpdatedAt() ); 
+        
+        // 이미지 목록
+        List<AdvertisementImageDto> imageList = selectAdvertisementImageList(ad.getAdId());
+        dto.setImageList(imageList);
 
-        dto.setPriorityScore(
-                ad.getPriorityScore()
-        );
+        // 광고 가격 계산
+        if (ad.getStartDatetime() != null
+                && ad.getEndDatetime() != null
+                && ad.getAdGrade() != null
+                && ad.getPendingPaymentType() != null) {
 
-        dto.setTotalBudget(
-                ad.getTotalBudget()
-        );
+            List<AdPosition> positions =
+                    imageList.stream()
+                            .map(AdvertisementImageDto::getImageType)
+                            .filter(type -> type != null)
+                            .map(AdPosition::valueOf)
+                            .toList();
 
-        dto.setFatigueScore(
-                ad.getFatigueScore()
-        );
+            AdvertisementCalculationResultDto calculation =
+                    calculationService.calculate(
+                            ad.getStartDatetime(),
+                            ad.getEndDatetime(),
+                            ad.getAdGrade(),
+                            ad.getPendingPaymentType(),
+                            positions
+                    );
 
-        dto.setReminder30dSent(
-                ad.getReminder30dSent()
-        );
+            dto.setTotalDays( calculation.getTotalDays() );  
+            dto.setBasePrice( calculation.getBasePrice() );  
+            dto.setPositionPrice( calculation.getPositionPrice() );  
+            dto.setCalculatedAmount( calculation.getTotalAmount() );
+        }
+        
+     // 결제 정보
+     advertisementPaymentRepository.findTopByAdvertisement_AdIdOrderByCreatedAtDesc(ad.getAdId())
+             .ifPresent(payment -> {
 
-        dto.setReminder14dSent(
-                ad.getReminder14dSent()
-        );
+                 dto.setPaymentType(payment.getPaymentType());
 
-        dto.setDeleteYn(
-                ad.getDeleteYn()
-        );
+                 dto.setPaymentHistoryStatus(
+                         payment.getPaymentStatus()
+                 );
 
-        dto.setCreatedAt(
-                ad.getCreatedAt()
-        );
+                 dto.setPaymentAmount(
+                         payment.getAmount()
+                 );
 
-        dto.setUpdatedAt(
-                ad.getUpdatedAt()
-        );
-
-        dto.setImageList(
-                selectAdvertisementImageList(
-                        ad.getAdId()
-                )
-        );
-
+                 dto.setPaidAt(
+                         payment.getPaidAt()
+                 );
+             });
+        
         return dto;
     }
 
@@ -1071,26 +1062,12 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     private AdvertisementImageDto toImageDto(
             AdvertisementImage image) {
 
-        AdvertisementImageDto dto =
-                new AdvertisementImageDto();
-
-        dto.setImageId(
-                image.getImageId()
-        );
-
-        dto.setAdId(
-                image.getAdvertisement()
-                        .getAdId()
-        );
-
-        dto.setImageType(
-                image.getImageType()
-                        .name()
-        );
-
-        dto.setImageUrl(
-                image.getImageUrl()
-        );
+        AdvertisementImageDto dto = new AdvertisementImageDto();  
+        
+        dto.setImageId( image.getImageId() );  
+        dto.setAdId( image.getAdvertisement() .getAdId() );  
+        dto.setImageType( image.getImageType() .name() );  
+        dto.setImageUrl( image.getImageUrl() );
 
         return dto;
     }
@@ -1098,92 +1075,33 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     private AdvertisementPaymentDto toPaymentDto(
             AdvertisementPayment payment) {
 
-        AdvertisementPaymentDto dto =
-                new AdvertisementPaymentDto();
+        AdvertisementPaymentDto dto = new AdvertisementPaymentDto();
 
-        dto.setPaymentId(
-                payment.getPaymentId()
-        );
+        dto.setPaymentId( payment.getPaymentId() );  
+        dto.setAdId( payment.getAdvertisement().getAdId() );  
+        dto.setAdTitle( payment.getAdvertisement().getTitle() );  
+        dto.setAdvertiserId( payment.getAdvertiser().getId() );  
+        dto.setPaymentType( payment.getPaymentType() );  
+        dto.setOrderId( payment.getOrderId() );
 
-        dto.setAdId(
-                payment.getAdvertisement().getAdId()
-        );
+        dto.setPaymentKey( payment.getPaymentKey() );  
+        dto.setBaseAmount( payment.getBaseAmount() );  
+        dto.setPositionAmount( payment.getPositionAmount() );
+        dto.setAmount( payment.getAmount() );
 
-        dto.setAdTitle(
-                payment.getAdvertisement().getTitle()
-        );
+        dto.setPosition( payment.getPosition() );  
+        dto.setPaymentStatus( payment.getPaymentStatus() );  
+        dto.setPaymentMethod( payment.getPaymentMethod() );  
+        dto.setRequestedAt( payment.getRequestedAt() );
 
-        dto.setAdvertiserId(
-                payment.getAdvertiser().getId()
-        );
+        dto.setPaidAt( payment.getPaidAt() );  
+        dto.setCancelledAt( payment.getCancelledAt() );  
+        dto.setCancelReason( payment.getCancelReason() );  
+        dto.setPeriodDays( payment.getPeriodDays() );
 
-        dto.setPaymentType(
-                payment.getPaymentType()
-        );
-
-        dto.setOrderId(
-                payment.getOrderId()
-        );
-
-        dto.setPaymentKey(
-                payment.getPaymentKey()
-        );
-
-        dto.setBaseAmount(
-                payment.getBaseAmount()
-        );
-
-        dto.setPositionAmount(
-                payment.getPositionAmount()
-        );
-
-        dto.setAmount(
-                payment.getAmount()
-        );
-
-        dto.setPosition(
-                payment.getPosition()
-        );
-
-        dto.setPaymentStatus(
-                payment.getPaymentStatus()
-        );
-
-        dto.setPaymentMethod(
-                payment.getPaymentMethod()
-        );
-
-        dto.setRequestedAt(
-                payment.getRequestedAt()
-        );
-
-        dto.setPaidAt(
-                payment.getPaidAt()
-        );
-
-        dto.setCancelledAt(
-                payment.getCancelledAt()
-        );
-
-        dto.setCancelReason(
-                payment.getCancelReason()
-        );
-
-        dto.setPeriodDays(
-                payment.getPeriodDays()
-        );
-
-        dto.setStartDatetime(
-                payment.getStartDatetime()
-        );
-
-        dto.setEndDatetime(
-                payment.getEndDatetime()
-        );
-
-        dto.setCreatedAt(
-                payment.getCreatedAt()
-        );
+        dto.setStartDatetime( payment.getStartDatetime() );  
+        dto.setEndDatetime( payment.getEndDatetime() );  
+        dto.setCreatedAt( payment.getCreatedAt() );
 
         return dto;
     }

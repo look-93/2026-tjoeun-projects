@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { loadPaymentWidget } from '@tosspayments/payment-widget-sdk';
 import { Button, message, Spin } from 'antd';
+import api from '../api/axios';
 
 const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
 
@@ -8,22 +9,28 @@ export default function AdvertisePayment({ adId, amount, adTitle }) {
   const paymentWidgetRef = useRef(null);
   const paymentMethodsWidgetRef = useRef(null);
   
-  const [price, setPrice] = useState(amount || 50000);
+  const [price, setPrice] = useState(amount);
   const [isReady, setIsReady] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [realOrderId, setRealOrderId] = useState('');
 
   useEffect(() => {
     let isMounted = true;
     
-    // 🌟 괄호 위치 수정 완료!
     const customerKey = `customer_${adId}_${Math.random().toString(36).substring(2, 9)}`;
 
     const initializeWidget = async () => {
       try {
         setLoading(true);
 
-        const paymentWidget = await loadPaymentWidget(clientKey, customerKey);
+        // 백엔드 DB에 이미 생성되어 있는 orderId
+        const res = await api.get(`/api/advertisement/payment/orderId/${adId}`);
+        if (!isMounted) return;
+        setRealOrderId(res.data);
+        console.log("DB에서 가져온 진짜 orderId:", res.data);
 
+        // 2. 토스 위젯 로드
+        const paymentWidget = await loadPaymentWidget(clientKey, customerKey);
         if (!isMounted) return;
 
         const paymentMethodsWidget = paymentWidget.renderPaymentMethods(
@@ -82,7 +89,7 @@ export default function AdvertisePayment({ adId, amount, adTitle }) {
 
     try {
       await paymentWidget.requestPayment({
-        orderId: `AD_${adId}_${new Date().getTime()}`,
+        orderId: realOrderId,
         orderName: adTitle || '광고 결제',
         customerName: '광고주',
         customerEmail: 'advertiser@moit.com',
