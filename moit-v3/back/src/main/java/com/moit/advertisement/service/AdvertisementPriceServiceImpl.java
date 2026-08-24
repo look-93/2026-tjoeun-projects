@@ -1,14 +1,18 @@
 package com.moit.advertisement.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.moit.advertisement.dto.AdvertisementPositionPriceDto;
 import com.moit.advertisement.dto.AdvertisementPriceDto;
+import com.moit.advertisement.entity.AdvertisementPositionPrice;
 import com.moit.advertisement.entity.AdvertisementPrice;
 import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.PaymentType;
+import com.moit.advertisement.repository.AdvertisementPositionPriceRepository;
 import com.moit.advertisement.repository.AdvertisementPriceRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -20,6 +24,7 @@ public class AdvertisementPriceServiceImpl
         implements AdvertisementPriceService {
 
     private final AdvertisementPriceRepository priceRepository;
+    private final AdvertisementPositionPriceRepository positionPriceRepository;
 
 
     @Override
@@ -154,4 +159,28 @@ public class AdvertisementPriceServiceImpl
                 .basePrice(price.getBasePrice())
                 .build();
     }
+    
+    @Override
+    public List<AdvertisementPositionPriceDto> findAllPositionPrices() {
+        return positionPriceRepository.findAll().stream().map(p -> {
+            AdvertisementPositionPriceDto dto = new AdvertisementPositionPriceDto();
+            // 🌟 엔티티의 PK getter 이름에 맞게 고쳐주세요 (ex: getId() 또는 getPositionPriceId())
+            dto.setPositionPriceId(p.getPositionPriceId()); 
+            dto.setPosition(p.getPosition());
+            dto.setAdditionalPrice(p.getAdditionalPrice());
+            return dto;
+        }).toList();
+    }
+
+    @Override
+    @Transactional
+    public void updatePositionPrice(Long id, BigDecimal additionalPrice) {
+        AdvertisementPositionPrice entity = positionPriceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("위치 추가금을 찾을 수 없습니다."));
+        
+        // 🌟 엔티티에 Setter가 있어야 합니다.
+        entity.setAdditionalPrice(additionalPrice); 
+    }
+    
+    
 }

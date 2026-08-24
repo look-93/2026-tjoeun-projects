@@ -28,6 +28,11 @@ public class ModerationClientService {
         if (content == null || content.isBlank()) {
             return false;
         }
+        if (apiKey == null || apiKey.isBlank()) {
+            log.error("=== [오류] OpenAI API Key가 주입되지 않았거나 비어 있습니다. .env 및 application.properties 설정을 확인하세요. ===");
+        } else {
+            log.info("=== [성공] OpenAI API Key 로드 완료 (키 길이: {}) ===", apiKey.length());
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(apiKey != null ? apiKey.trim() : "");

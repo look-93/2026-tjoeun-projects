@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class MemberTrustInfoDto {	// 회원 신고 신뢰도/뱃지 조회 DTO
+public class MemberTrustInfoDto {	// 신고당한 회원 정보, 신뢰도/뱃지 조회 DTO
 	// MEMBERS
 	private Long targetMemberId;	// 신고당한 회원 id
 	private String targetNickname;	// 신고당한 회원 닉네임	MemberRepository

@@ -10,10 +10,15 @@ import AdminLayout from "../components/layout/AdminLayout"; // 공통레이아�
 import "antd/dist/antd.css"; // ant 디자인
 import "../styles/global.css"; // 전역 css
 import "bootstrap/dist/css/bootstrap.min.css"; // bootstrap css
+import { useDispatch, useSelector } from "react-redux";
+import { getMyInfoRequest } from "../reducers/userReducer";
 
 //부품
 function MyApp({ Component, pageProps, router }) {
     const dispatch = useDispatch();
+
+    // 새로고침 시 유저 정보 초기화 방지
+
     const isAdminPage = router.pathname.startsWith("/admin");
 
     // =====================================================

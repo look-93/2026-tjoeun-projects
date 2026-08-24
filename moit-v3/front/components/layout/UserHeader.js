@@ -19,6 +19,9 @@ import {
   Drawer,
   message,
   Grid,
+  Dropdown,
+  List,
+  Empty,
 } from 'antd';
 
 import Link from 'next/link';
@@ -37,6 +40,10 @@ function UserHeader() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
   // =========================================================
   // 로그인 사용자 조회
@@ -83,12 +90,87 @@ function UserHeader() {
     }
   };
 
+  const loadNotifications = async () => {
+    try {
+      if (typeof window === 'undefined') return;
+
+      const accessToken = localStorage.getItem('accessToken');
+
+      if (!accessToken) {
+        setNotificationCount(0);
+        setNotifications([]);
+        return;
+      }
+
+      // 읽지 않은 알림 개수
+      const countResponse = await api.get('/api/notifications/count');
+      setNotificationCount(countResponse.data);
+
+      // 읽지 않은 알림 목록
+      const listResponse = await api.get('/api/notifications/unread');
+      setNotifications(listResponse.data || []);
+
+    } catch (error) {
+      console.error('알림 조회 실패:', error);
+      setNotificationCount(0);
+      setNotifications([]);
+    }
+  };
+
+  const handleNotificationOpen = async () => {
+    try {
+      // 전체 알림 목록 조회
+      const response = await api.get('/api/notifications');
+
+      setNotifications(response.data || []);
+
+      // 읽지 않은 알림이 있으면 전체 읽음 처리
+      if (notificationCount > 0) {
+        await api.patch('/api/notifications/read-all');
+
+        // 종 옆 숫자 즉시 제거
+        setNotificationCount(0);
+
+        // 화면의 알림도 읽음 상태로 변경
+        setNotifications((prev) =>
+          prev.map((notification) => ({
+            ...notification,
+            isRead: 'Y',
+          }))
+        );
+      }
+      setNotificationOpen(true);
+
+    } catch (error) {
+      console.error('알림 처리 실패:', error);
+    }
+  };
+
+  const handleDeleteNotification = async (notificationId) => {
+    try {
+      await api.delete(
+        `/api/notifications/${notificationId}`
+      );
+
+      setNotifications((prev) =>
+        prev.filter(
+          (notification) =>
+            notification.notificationId !== notificationId
+        )
+      );
+
+    } catch (error) {
+      console.error('알림 삭제 실패:', error);
+    }
+  };
+
   // =========================================================
   // 최초 실행 + 페이지 이동할 때마다 사용자 정보 다시 조회
   // =========================================================
   useEffect(() => {
     setLoading(true);
     loadUser();
+    loadNotifications();
   }, [router.asPath]);
 
   // =========================================================
@@ -300,12 +382,117 @@ function UserHeader() {
 
                 {/* 알림 */}
                 <Col flex="none">
-                  <Badge
-                    count={3}
-                    size="small"
+                  <Dropdown
+                    open={notificationOpen}
+                    onOpenChange={(open) => {
+                      if (open) {
+                        handleNotificationOpen();
+                      } else {
+                        setNotificationOpen(false);
+                      }
+                    }}
+                    trigger={['click']}
+                    dropdownRender={() => (
+                      <div
+                        style={{
+                          width: 360,
+                          maxHeight: 400,
+                          overflowY: 'auto',
+                          background: '#fff',
+                          padding: 16,
+                          borderRadius: 8,
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 16,
+                            fontWeight: 'bold',
+                            marginBottom: 12,
+                          }}
+                        >
+                          알림
+                        </div>
+
+                        {notifications.length === 0 ? (
+                          <Empty
+                            description="새로운 알림이 없습니다."
+                            image={Empty.PRESENTED_IMAGE_SIMPLE}
+                          />
+                        ) : (
+                          <List
+                            dataSource={notifications}
+                            renderItem={(notification) => (
+                              <List.Item
+                                actions={[
+                                  <Button
+                                    key="delete"
+                                    type="text"
+                                    danger
+                                    size="small"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteNotification(notification.notificationId);
+                                    }}
+                                  >
+                                    X
+                                  </Button>
+                                ]}
+                                style={{
+                                  cursor: 'pointer',
+                                  padding: '12px 8px',
+                                }}
+                              >
+                                <div>
+                                  <div
+                                    style={{
+                                      fontSize: 14,
+                                      fontWeight: 500,
+                                    }}
+                                  >
+                                    {notification.message}
+                                  </div>
+
+                                  <div
+                                    style={{
+                                      fontSize: 12,
+                                      color: '#999',
+                                      marginTop: 6,
+                                    }}
+                                  >
+                                    {new Date(
+                                      notification.createdAt
+                                    ).toLocaleString('ko-KR', {
+                                      year: 'numeric',
+                                      month: 'numeric',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                      second: '2-digit',
+                                      hour12: false,
+                                    })}
+                                  </div>
+                                </div>
+                              </List.Item>
+                            )}
+                          />
+                        )}
+                      </div>
+                    )}
                   >
-                    <BellOutlined className="moit-alarm-icon" />
-                  </Badge>
+                    <Badge
+                      count={notificationCount}
+                      size="small"
+                    >
+                      <BellOutlined
+                        className="moit-alarm-icon"
+                        style={{
+                          cursor: 'pointer',
+                          fontSize: 20,
+                        }}
+                      />
+                    </Badge>
+                  </Dropdown>
                 </Col>
 
 

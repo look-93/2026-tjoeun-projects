@@ -72,10 +72,22 @@ import {
     fetchSigungusSuccess,
     fetchSigungusFailure,
 
+    // 마이페이지 통계 조회
+    fetchMyMeetupCountRequest,
+    fetchMyMeetupCountSuccess,
+    fetchMyMeetupCountFailure,
+
+    //관리자 통계
+    fetchMeetupCountRequest,
+    fetchMeetupCountSuccess,
+    fetchMeetupCountFailure,
+
     // AI 추천
     recommendMeetupRequest,
     recommendMeetupSuccess,
     recommendMeetupFailure,
+
+    //하루 모임 3개 제한
 } from "../reducers/meetupReducer";
 
 const MEETUP_API_BASE = "/api/meetups";
@@ -144,16 +156,16 @@ export function createMeetupAPI(payload) {
         });
     }
 
-    console.log("🔥 dto:", dto);
-    console.log("🔥 files:", files);
+    //console.log("🔥 dto:", dto);
+    //console.log("🔥 files:", files);
 
-    for (const [key, value] of formData.entries()) {
-        console.log(
-            "🔥 FormData:",
-            key,
-            value instanceof File ? value.name : value,
-        );
-    }
+    // for (const [key, value] of formData.entries()) {
+    //     console.log(
+    //         "🔥 FormData:",
+    //         key,
+    //         value instanceof File ? value.name : value,
+    //     );
+    // }
 
     return api.post(MEETUP_API_BASE, formData, {
         headers: {
@@ -168,12 +180,19 @@ export function* createMeetup(action) {
 
         yield call(createMeetupAPI, action.payload);
 
-        //console.log("🔥 모임 등록 성공");
+        //console.log("🔥 모임 등록 실패:", err);
+        //console.log("🔥 status:", err.response?.status);
+        //.log("🔥 data:", err.response?.data);
 
         yield put(createMeetupSuccess());
     } catch (err) {
+        //console.log(err);
         yield put(
-            createMeetupFailure(err.response?.data?.message || err.message),
+            createMeetupFailure(
+                err.response?.data?.message ||
+                    err.response?.data?.error ||
+                    err.message,
+            ),
         );
     }
 }
@@ -182,17 +201,51 @@ export function* createMeetup(action) {
 // 모임 수정
 // PUT /api/meetups/{meetupId}
 // ==================================================
+export function updateMeetupAPI({ meetupId, data, files, existingImagePaths }) {
+    const formData = new FormData();
 
-export const updateMeetupAPI = ({ meetupId, data }) =>
-    api.put(`${MEETUP_API_BASE}/${meetupId}`, data);
+    // 모임 정보
+    Object.entries(data || {}).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+            formData.append(key, value);
+        }
+    });
+
+    // 기존에 유지할 이미지
+    existingImagePaths?.forEach((imagePath) => {
+        formData.append("existingImagePaths", imagePath);
+    });
+
+    // 새로 추가한 이미지
+    files?.forEach((file) => {
+        formData.append("files", file);
+    });
+
+    // 확인용
+    for (const [key, value] of formData.entries()) {
+        console.log(
+            "🔥 Update FormData:",
+            key,
+            value instanceof File ? value.name : value,
+        );
+    }
+
+    return api.put(`${MEETUP_API_BASE}/${meetupId}`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+}
 
 export function* updateMeetup(action) {
     try {
-        const { meetupId, data, page, size } = action.payload;
+        const { meetupId, data, files, existingImagePaths } = action.payload;
 
         yield call(updateMeetupAPI, {
             meetupId,
             data,
+            files,
+            existingImagePaths,
         });
 
         yield put(updateMeetupSuccess());
@@ -216,21 +269,23 @@ export const deleteMeetupAPI = (meetupId) =>
 
 export function* deleteMeetup(action) {
     try {
-        const { meetupId, page, size } = action.payload;
+        const { meetupId, page = 0, size = 10 } = action.payload;
 
         yield call(deleteMeetupAPI, meetupId);
 
+        // 삭제 성공
         yield put(deleteMeetupSuccess());
 
-        // 삭제 후 현재 페이지 다시 조회
-        if (page !== undefined) {
-            yield put(
-                fetchMeetupsRequest({
-                    page,
-                    size,
-                }),
-            );
-        }
+        // 목록 다시 조회
+        yield put(
+            fetchMyMeetupsRequest({
+                page,
+                size,
+            }),
+        );
+
+        // 통계 다시 조회
+        yield put(fetchMyMeetupCountRequest());
     } catch (err) {
         yield put(
             deleteMeetupFailure(err.response?.data?.message || err.message),
@@ -297,7 +352,7 @@ export function* changeMeetupVisibility(action) {
     try {
         yield call(changeMeetupVisibilityAPI, action.payload);
 
-        yield put(changeMeetupVisibilitySuccess());
+        yield put(changeMeetupVisibilitySuccess(action.payload));
     } catch (err) {
         yield put(
             changeMeetupVisibilityFailure(
@@ -318,7 +373,7 @@ export const fetchMyApplicationsAPI = (params) =>
 export function* fetchMyApplications(action) {
     try {
         const result = yield call(fetchMyApplicationsAPI, action.payload);
-
+        //console.log("내 신청목록!!!!!", result);
         yield put(fetchMyApplicationsSuccess(result.data));
     } catch (err) {
         yield put(
@@ -340,7 +395,7 @@ export const fetchMeetupApplicantsAPI = (meetupId, params) =>
 export function* fetchMeetupApplicants(action) {
     try {
         const { meetupId, page, size } = action.payload;
-
+        //console.log("Saga payload:", action.payload);
         const result = yield call(fetchMeetupApplicantsAPI, meetupId, {
             page,
             size,
@@ -367,7 +422,7 @@ export const fetchMyMeetupsAPI = (params) =>
 export function* fetchMyMeetups(action) {
     try {
         const result = yield call(fetchMyMeetupsAPI, action.payload);
-
+        //console.log("🔥 내 모집글 API 응답:", result.data);
         yield put(fetchMyMeetupsSuccess(result.data));
     } catch (err) {
         yield put(
@@ -386,9 +441,19 @@ export const updateApplicationStatusAPI = (data) =>
 
 export function* updateApplicationStatus(action) {
     try {
+        //console.log("🔥 승인 요청 data:", action.payload);
         yield call(updateApplicationStatusAPI, action.payload);
 
         yield put(updateApplicationStatusSuccess());
+        // 💡 승인/거절 성공 후, 신청자 목록 조회 Saga를 다시 실행 (meetupId 필요)
+        //console.log("@@@@@@@meetupID" + action.payload.meetupId);
+        yield put(
+            fetchMeetupApplicantsRequest({
+                meetupId: action.payload.meetupId,
+                page: 0,
+                size: 10,
+            }),
+        );
     } catch (err) {
         yield put(
             updateApplicationStatusFailure(
@@ -432,6 +497,56 @@ export function* fetchSigungus() {
     } catch (err) {
         yield put(
             fetchSigungusFailure(err.response?.data?.message || err.message),
+        );
+    }
+}
+
+// ==================================================
+// 마이페이지 통계 조회
+// GET /api/meetups/my-count
+// ==================================================
+
+export const fetchMyMeetupCountAPI = () =>
+    api.get(`${MEETUP_API_BASE}/my-count`);
+
+export function* fetchMyMeetupCount() {
+    try {
+        //console.log("🔥 마이페이지 통계 조회 dispatch");
+
+        const result = yield call(fetchMyMeetupCountAPI);
+
+        //console.log("🔥 마이페이지 통계!!!!!", result.data);
+
+        yield put(fetchMyMeetupCountSuccess(result.data));
+    } catch (err) {
+        //console.error("마이페이지 통계 조회 실패:", err);
+
+        yield put(
+            fetchMyMeetupCountFailure(
+                err.response?.data?.message || err.message,
+            ),
+        );
+    }
+}
+
+// ==================================================
+// 마이페이지 통계 조회
+// GET /api/meetups/count
+// ==================================================
+
+export const fetchMeetupCountSagaAPI = () =>
+    api.get(`${MEETUP_API_BASE}/count`);
+
+function* fetchMeetupCount() {
+    try {
+        const response = yield call(fetchMeetupCountSagaAPI);
+
+        yield put(fetchMeetupCountSuccess(response.data));
+    } catch (error) {
+        yield put(
+            fetchMeetupCountFailure(
+                error.response?.data?.message || error.message,
+            ),
         );
     }
 }
@@ -496,6 +611,10 @@ export function* watchMeetupSaga() {
     yield takeLatest(fetchSigungusRequest.type, fetchSigungus);
 
     yield takeLatest(recommendMeetupRequest.type, recommendMeetup);
+
+    yield takeLatest(fetchMyMeetupCountRequest.type, fetchMyMeetupCount);
+
+    yield takeLatest(fetchMeetupCountRequest.type, fetchMeetupCount);
 }
 
 // ==================================================

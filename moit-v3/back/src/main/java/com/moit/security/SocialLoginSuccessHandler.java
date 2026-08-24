@@ -2,6 +2,7 @@ package com.moit.security;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,12 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler{
 	private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
 	
+    @Value("${app.oauth2.redirect-url}")
+    private String frontendRedirectUrl;
+    
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
+    
 	@Override
     public void onAuthenticationSuccess(
             HttpServletRequest request,
@@ -42,7 +49,7 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler{
             System.out.println("providerId : " + user.getProviderId());
             System.out.println("socialUser 세션 저장 완료");
         	
-            response.sendRedirect( "http://localhost:3000/user/member/social-info" );
+            response.sendRedirect( frontendUrl + "/user/member/social-info" );
             return;
         }
         
@@ -60,7 +67,7 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler{
 
         // 프론트로 전달
         response.sendRedirect(
-                "http://localhost:3000/oauth2/callback"
+                frontendRedirectUrl
                         + "?accessToken=" + accessToken
                         + "&refreshToken=" + refreshToken
         );

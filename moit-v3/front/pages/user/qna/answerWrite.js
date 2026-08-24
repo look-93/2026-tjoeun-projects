@@ -7,6 +7,10 @@ import {
 } from '../../../reducers/qnaReducer';
 
 import {
+  fetchMeetupDetailRequest,
+} from '../../../reducers/meetupReducer';
+
+import {
   Breadcrumb,
   Button,
   Card,
@@ -26,7 +30,9 @@ function answerWrite() {
 
   const { questionId } = router.query;
 
-  const { qna, loading, success } = useSelector((state) => state.qna);
+  const { qna, loading, success, error } = useSelector((state) => state.qna);
+  const { user } = useSelector((state) => state.user);
+  const { meetup } = useSelector((state) => state.meetup);
 
   const [content, setContent] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -38,12 +44,59 @@ function answerWrite() {
   }, [router.isReady, questionId, dispatch]);
 
   useEffect(() => {
+    if (!qna?.parentId) return;
+    if (qna?.category !== 'MEETUP') return;
+
+    dispatch(
+      fetchMeetupDetailRequest(Number(qna.parentId))
+    );
+  }, [qna?.parentId, qna?.category, dispatch]);
+
+  useEffect(() => {
+    if (!router.isReady || !qna) return;
+
+    const isMeetup = qna?.category === 'MEETUP';
+
+    if (isMeetup && !meetup) return;
+
+    const canAnswer =
+      user?.memberTypeId === 3 ||
+      user?.memberTypeId === 4 ||
+      (
+        isMeetup &&
+        user?.memberTypeId === 1 &&
+        meetup?.memberId === user?.memberId
+      );
+
+    if (!canAnswer) {
+      alert('답변 등록 권한이 없습니다.');
+      router.back();
+    }
+  }, [
+    router.isReady,
+    qna,
+    meetup,
+    user,
+    router,
+  ]);
+
+  useEffect(() => {
     if (!submitted || !success) return;
 
-    router.push(`/questions/detail/${questionId}`);
+    alert('답변이 등록되었습니다.');
+    router.push(`/user/qna/questionDetail?questionId=${questionId}`);
   }, [submitted, success, router, questionId]);
 
   const isMeetup = qna?.category === 'MEETUP';
+
+  const canAnswer =
+    user?.memberTypeId === 3 ||
+    user?.memberTypeId === 4 ||
+    (
+      isMeetup &&
+      user?.memberTypeId === 1 &&
+      meetup?.memberId === user?.memberId
+    );
 
   const title = isMeetup ? '모임 1:1 문의 답변' : '관리자 1:1 문의 답변';
 
@@ -56,7 +109,13 @@ function answerWrite() {
     : '공개';
 
   const handleSubmit = () => {
+
     if (!questionId) return;
+
+    if (!canAnswer) {
+      alert('답변 등록 권한이 없습니다.');
+      return;
+    }
 
     if (!content.trim()) {
       alert('답변 내용을 입력해주세요.');
@@ -78,6 +137,12 @@ function answerWrite() {
   const handleCancel = () => {
     router.back();
   };
+
+  if (!qna) return null;
+
+  if (isMeetup && !meetup) return null;
+
+  if (!canAnswer) return null;
 
   return (
     <div className="qna-write-page">

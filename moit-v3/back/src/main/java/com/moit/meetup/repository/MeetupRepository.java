@@ -1,23 +1,122 @@
 package com.moit.meetup.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.moit.meetup.dto.MeetupCountResponseDto;
+import com.moit.meetup.dto.MyMeetupCountResponseDto;
+import com.moit.meetup.dto.PopularMeetupResponseDto;
 import com.moit.meetup.entity.Meetup;
+import com.moit.meetup.enums.MeetupStatus;
 
 @Repository
 public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 	
 	Page<Meetup> findAll(Pageable pageable);
-	Page<Meetup> findByDeleteYn(Character deleteYn, Pageable pageable);	
 	
-	Page<Meetup> findByMember_Id(Long memberId, Pageable  pageable);
+	//개설한모임 카운트
+	long countByMemberIdAndDeleteYn(Long MemberId, Character deleteYn);
+	
+	//완료카운트
+	long countByMemberIdAndMeetupStatusAndDeleteYn(
+	        Long memberId,
+	        MeetupStatus meetupStatus,
+	        Character deleteYn
+	);
+	
+	//하루모임등록3개제한
+	/*
+	 m.createdAt < :startOfNextDay -> 23:59:59
+	*/
+	@Query("""
+		    SELECT COUNT(m)
+		    FROM Meetup m
+		    WHERE m.member.id = :memberId
+		      AND m.createdAt >= :startOfDay
+		      AND m.createdAt < :startOfNextDay
+		""")
+	long countTodayCreatedMeetups(@Param("memberId") Long memberId
+								, @Param("startOfDay") LocalDateTime  startOfDay
+								, @Param("startOfNextDay") LocalDateTime startOfNextDay);
+	
+	//관리자/사용자 모임조회
+	@Query("""
+		    SELECT m
+		    FROM Meetup m
+
+		    WHERE m.deleteYn = :deleteYn
+
+		      AND m.meetupStatus IN (
+		          com.moit.meetup.enums.MeetupStatus.RECRUITING,
+		          com.moit.meetup.enums.MeetupStatus.COMPLETED
+		      )
+
+		      AND (
+		          :status IS NULL
+		          OR m.meetupStatus = :status
+		      )
+
+			  AND (
+			      :searchText IS NULL
+			      OR :searchText = ''
+			      OR (
+			          :searchType = 'title'
+			          AND m.title LIKE CONCAT('%', :searchText, '%')
+			      )
+			      OR (
+			          :searchType = 'name'
+			          AND m.member.nickname LIKE CONCAT('%', :searchText, '%')
+			      )
+			      OR (
+			          :searchType IS NULL
+			          AND (
+			              m.title LIKE CONCAT('%', :searchText, '%')
+			              OR m.member.nickname LIKE CONCAT('%', :searchText, '%')
+			          )
+			      )
+			  )
+
+		      AND (
+		          :sidoId IS NULL
+		          OR m.sigungu.sido.id = :sidoId
+		      )
+
+			  AND (
+			      :categoryId IS NULL
+			      OR m.meetupCategory.id = :categoryId
+			      OR m.meetupCategory.parent.id = :categoryId
+			  )
+
+		      ORDER BY
+		          CASE
+		              WHEN :orderType = 'createAt'
+		              THEN m.createdAt
+		          END DESC,
+
+		          CASE
+		              WHEN :orderType = 'meetupAt'
+		              THEN m.meetupAt
+		          END ASC
+		""")
+	Page<Meetup> findByDeleteYn(
+	        @Param("deleteYn") Character deleteYn,
+	        @Param("status") MeetupStatus status,
+	        @Param("searchType") String searchType,
+	        @Param("searchText") String searchText,
+	        @Param("sidoId") Long sidoId,
+	        @Param("categoryId") Long categoryId,
+	        @Param("orderType") String orderType,
+	        Pageable pageable
+	);
+	
+	Page<Meetup> findByMember_IdAndDeleteYnOrderByCreatedAtDesc(Long memberId, Character deleteYn, Pageable  pageable);
 	
 	//관리자 통계
 	@Query("""
@@ -31,6 +130,67 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 			WHERE m.deleteYn = 'N'
 			""")
 	MeetupCountResponseDto getMeetupCount();
+	
+	//마이페이지 통계
+	@Query("""
+		    SELECT new com.moit.meetup.dto.MyMeetupCountResponseDto(
+		        COUNT(DISTINCT CASE WHEN m.member.id = :memberId THEN m.id END),
+		        COUNT(DISTINCT ma.meetup.id),
+		        COUNT(DISTINCT r.id),
+		        COUNT(DISTINCT ml.id)
+		    )
+		    FROM Meetup m
+
+		    LEFT JOIN MeetupApplication ma
+		        ON ma.member.id = :memberId
+		        AND ma.meetup.id = m.id
+
+		    LEFT JOIN Review r
+		        ON r.member.id = :memberId
+		        AND r.meetup.id = m.id
+		        AND r.deleteYn = 'N'
+
+		    LEFT JOIN MeetupLike ml
+		        ON ml.member.id = :memberId
+		        AND ml.meetup.id = m.id
+
+		    WHERE m.deleteYn = 'N'
+		""")
+		MyMeetupCountResponseDto getMyMeetupCount(
+		    @Param("memberId") Long memberId
+		);
+	
+	// 인기모임
+	@Query("""
+	    SELECT new com.moit.meetup.dto.PopularMeetupResponseDto(
+	        m.id,
+	        m.title,
+	        m.member.nickname,
+	        m.meetupAt,
+	        m.sigungu.sido.name,
+	        m.sigungu.name,
+	        MIN(img.image.imagePath),
+	        COUNT(DISTINCT ml),
+	        m.maxParticipants,
+	        m.minParticipants
+	    )
+	    FROM Meetup m
+	    LEFT JOIN m.meetupLike ml
+	    LEFT JOIN m.meetupImages img
+	    WHERE m.hidden = false
+	      AND m.meetupStatus = com.moit.meetup.enums.MeetupStatus.RECRUITING
+	    GROUP BY
+	        m.id,
+	        m.title,
+	        m.member.nickname,
+	        m.meetupAt,
+	        m.sigungu.sido.name,
+	        m.sigungu.name,
+	        m.maxParticipants,
+	        m.minParticipants
+	    ORDER BY COUNT(DISTINCT ml) DESC, m.id DESC
+	""")
+	List<PopularMeetupResponseDto> findPopularMeetups(Pageable pageable);
 }
 
 

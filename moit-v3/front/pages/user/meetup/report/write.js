@@ -14,11 +14,33 @@ const { TextArea } = Input;
 function ReportWritePage() {
   const router = useRouter();
   const dispatch = useDispatch();
-  
+
   // 로그인
   // const { user } = useSelector();
   const { targetType, targetId } = router.query;
   const { aiReportDetail, create } = useSelector((state)=> state.report);
+
+  // 검색 기능
+  const [reasonCode, setReasonCode] = useState(null);
+  const [keywords, setKeywords] = useState('');
+  const [reasonDetail, setReasonDetail] = useState('');
+
+  // 신고 사유 목록
+  const isMeetup = targetType === 'MEETUP';
+
+  const title = isMeetup ? '모임 신고하기' : '후기 신고하기';
+
+  const reasons = [
+    { value: 'ABUSE', label: '욕설/비방' },
+    { value: 'SPAM', label: '도배/스팸' },
+    { value: 'FAKE_INFO', label: '허위 정보' },
+    { value: 'AD', label: '광고성 게시물' },
+    ...(isMeetup
+      ? [{ value: 'NOSHOW', label: '노쇼' }]
+      : []
+    ),
+    { value: 'ETC', label: '기타' },
+  ];
 
   // 신고 작성 페이지를 나갈 때 신고 성공 상태 초기화
   useEffect(() => {
@@ -49,26 +71,6 @@ function ReportWritePage() {
       }
   }, [create.error]);
 
-  // 검색 기능
-  const [reasonCode, setReasonCode] = useState(null);
-  const [keywords, setKeywords] = useState('');
-  const [reasonDetail, setReasonDetail] = useState('');
-
-  const isMeetup = targetType === 'MEETUP';
-  const title = isMeetup ? '모임 신고하기' : '후기 신고하기';
-
-  const reasons = [
-    { value: 'ABUSE', label: '욕설/비방' },
-    { value: 'SPAM', label: '도배/스팸' },
-    { value: 'FAKE_INFO', label: '허위 정보' },
-    { value: 'AD', label: '광고성 게시물' },
-    ...(isMeetup
-      ? [{ value: 'NOSHOW', label: '노쇼' }]
-      : []
-    ),
-    { value: 'ETC', label: '기타' },
-  ];
-
   // 키워드 작성 버튼 클릭
   const handleAICreate = () => {
       if (!keywords.trim()) {
@@ -94,21 +96,27 @@ function ReportWritePage() {
         message.error('신고 대상 ID가 없습니다.');
         return;
     }
+   
+    if (!targetType) {
+      message.error('신고 대상 유형이 없습니다.');
+      return;
+    }
+   
     if (!reasonCode) {
       message.warning('신고 사유를 선택해주세요.');
       return;
     }
-    dispatch(
-      createReportRequest({
-        memberId: 2,  // 로그인 하드코딩
-        dto: {
-          targetType: targetType,
-          targetId: Number(targetId),
-          reasonCode: reasonCode,
-          reasonDetail: reasonDetail
-        }
-      })
-    );
+   
+    const dto = {
+      targetType,
+      targetId: Number(targetId),
+      reasonCode,
+      reasonDetail: reasonDetail || '',
+    };
+
+    console.log('신고 등록 요청:', dto);
+
+    dispatch(createReportRequest(dto));
   };
 
   return (
@@ -122,7 +130,7 @@ function ReportWritePage() {
 
         <div className="report-write-field">
           <Title level={5}>
-            신고 사유 <span className="report-required">(필수)</span>
+            신고 사유<span className="report-required">(필수)</span>
           </Title>
 
           <Radio.Group
@@ -192,6 +200,7 @@ function ReportWritePage() {
             </Button>
           </Space>
         </div>
+
       </Card>
     </div>
   );

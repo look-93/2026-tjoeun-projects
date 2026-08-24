@@ -6,6 +6,7 @@ import java.util.List;
 import com.moit.common.entity.Sigungu;
 import com.moit.meetup.enums.MeetupStatus;
 import com.moit.member.entity.Member;
+import com.moit.review.entity.Review;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.CascadeType;

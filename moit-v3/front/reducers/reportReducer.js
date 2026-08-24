@@ -117,14 +117,15 @@ const initialState= {
         loading: false,
         error: null,
     },
-
-
+    
+    
     // =====================================================
     // 회원 신뢰도 조회
     // =====================================================
     trustInfoFetch: {
         loading: false,
         error: null,
+        data: null,
     },
 
 
@@ -274,16 +275,22 @@ const reportReducer = createSlice({
         // --- 관리자 처리 상태 (승인/반려/신뢰도점수/감사로그) 변경 ---
         updateAdminReportRequest: (state) => {
             state.adminUpdate.loading = true;
-            state.adminUpdate.error = null;
             state.adminUpdate.success = false;
+            state.adminUpdate.error = null;
         },
         updateAdminReportSuccess: (state, action) => {
             state.adminUpdate.loading = false;
             state.adminUpdate.success = true;
             state.currentReport = action.payload;
+
+            state.currentReport = {
+                ...state.currentReport,
+                ...action.payload,
+            };
+
             state.reports = state.reports.map((report) =>
                 report.reportId === action.payload.reportId
-                    ? action.payload
+                    ? { ...report, ...action.payload, }
                     : report
             );
         },
@@ -364,7 +371,7 @@ const reportReducer = createSlice({
         },
         fetchMemberReportTrustInfoSuccess: (state, action) => {
             state.trustInfoFetch.loading = false;
-            state.trustInfo = action.payload;
+            state.trustInfoFetch.data = action.payload;
         },
         fetchMemberReportTrustInfoFailure: (state, action) => {
             state.trustInfoFetch.loading = false;

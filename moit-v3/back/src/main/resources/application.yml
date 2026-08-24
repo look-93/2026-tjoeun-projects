@@ -34,7 +34,7 @@ spring:
   config:
     import: 
       - optional:application-oauth.yml
-      - optional:file:.env[.properties]
+      - file:./.env[.properties]
 
 mybatis:
   # config-location: classpath:mybatis-config.xml
@@ -63,7 +63,7 @@ resource:
 jwt:
   issuer: thejoa703
   secret: ${JWT_SECRET}
-  access-token-exp-seconds: 900
+  access-token-exp-seconds: 21600
   refresh-token-exp-seconds: 1209600
   header: Authorization
   prefix: Bearer
@@ -73,5 +73,4 @@ toss:
 
 #server:
 #  port: 8484
-
 

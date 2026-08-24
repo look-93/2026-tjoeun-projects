@@ -9,6 +9,9 @@ import {
   Space,
   message,
   Spin,
+  Divider,
+  Row,   
+  Col,
 } from 'antd';
 
 import {
@@ -16,12 +19,23 @@ import {
   deleteAdvertise,
 } from '../../../api/advertiseApi';
 
+import AdvertisePayment from '../../../components/AdvertisePayment';
+import { Modal } from 'antd';
+
 function AdvertiseDetailPage() {
   const router = useRouter();
   const { adId } = router.query;
 
   const [advertise, setAdvertise] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // 결제 모달 상태 추가
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+  // 상단 결제하기 버튼에 연결할 함수
+  const handlePaymentClick = () => {
+    setIsPaymentModalOpen(true);
+  };
 
   // 광고 상세 조회
   const loadAdvertiseDetail = async () => {
@@ -31,6 +45,8 @@ function AdvertiseDetailPage() {
       setLoading(true);
 
       const response = await getAdvertiseDetail(adId);
+
+      console.log('백엔드 응답 데이터:', response.data);
 
       setAdvertise(response.data);
 
@@ -103,7 +119,7 @@ function AdvertiseDetailPage() {
     );
   }
 
-  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   return (
     <div style={{ padding: 24 }}>
@@ -124,7 +140,7 @@ function AdvertiseDetailPage() {
         <Space>
           {advertise.approvalStatus === 'APPROVED' &&
              advertise.paymentStatus === 'WAITING' && (
-             <Button type="primary">
+             <Button type="primary" onClick={handlePaymentClick}>
                 결제하기
              </Button>
           )}
@@ -216,11 +232,48 @@ function AdvertiseDetailPage() {
             {formatDateTime(advertise.endDatetime)}
           </Descriptions.Item>
 
+          <Descriptions.Item label="광고 기간">
+            {formatDateTime(advertise.startDatetime)}
+            {' ~ '}
+            {formatDateTime(advertise.endDatetime)}
+          </Descriptions.Item>
+
+          <Descriptions.Item label="가격 계산">
+            <div>
+              <div>
+                광고 기간: {advertise.totalDays}일
+              </div>
+
+              <div>
+                기본 광고비: {formatMoney(advertise.basePrice)}
+              </div>
+
+              <div>
+                위치 추가금: +{formatMoney(advertise.positionPrice)}
+              </div>
+
+              <div style={{ fontWeight: 'bold', marginTop: 8 }}>
+                예상 광고비: {formatMoney(advertise.calculatedAmount)}
+              </div>
+            </div>
+          </Descriptions.Item>
+
           <Descriptions.Item label="총 예산">
             {formatMoney(advertise.totalBudget)}
           </Descriptions.Item>
         </Descriptions>
       </Card>
+
+      {/* 반려 사유 */}
+      {advertise.rejectReason && (
+        <Card title="반려 정보" style={{ marginBottom: 20, borderColor: '#ffa39e' }}>
+          <Descriptions bordered column={1}>
+            <Descriptions.Item label="반려 사유" labelStyle={{ color: '#cf1322' }}>
+              <span style={{ color: '#cf1322', fontWeight: 'bold' }}>{advertise.rejectReason}</span>
+            </Descriptions.Item>
+          </Descriptions>
+        </Card>
+      )}
 
       {/* 타겟 정보 */}
       <Card
@@ -241,7 +294,7 @@ function AdvertiseDetailPage() {
           </Descriptions.Item>
 
           <Descriptions.Item label="성별">
-            {advertise.targetGender || '-'}
+            {formatGender(advertise.targetGender)}
           </Descriptions.Item>
         </Descriptions>
       </Card>
@@ -270,53 +323,102 @@ function AdvertiseDetailPage() {
       </Card>
 
       {/* 이미지 */}
-      <Card title="광고 이미지">
-        {advertise.imageList &&
-        advertise.imageList.length > 0 ? (
-          <Space wrap>
+      <Card title="광고 이미지" style={{ marginBottom: 20 }}>
+        {advertise.imageList && advertise.imageList.length > 0 ? (
+          <Row gutter={[16, 16]}> 
             {advertise.imageList.map((image) => (
-              <Image
-                key={image.imageId}
-                src={`${BASE_URL}${image.imageUrl}`} // 주소와 파일 경로를 합침
-                alt={advertise.title}
-                width={200}
-                height={120}
-                style={{
-                  objectFit: 'cover',
-                }}
-              />
+              <Col xs={24} sm={12} md={8} key={image.imageId || image.imageUrl}>
+                <div style={{ background: '#fafafa', padding: 10, borderRadius: 8, border: '1px solid #f0f0f0' }}>
+                  <Image
+                    src={`${BASE_URL}${image.imageUrl}`}
+                    alt={advertise.title}
+                    style={{ width: '100%', height: 180, objectFit: 'contain' }} 
+                  />
+                  <div style={{ marginTop: 8, textAlign: 'center', color: '#888', fontWeight: 'bold' }}>
+                    {image.imageType || '기본 이미지'}
+                  </div>
+                </div>
+              </Col>
             ))}
-          </Space>
+          </Row>
         ) : (
           <div>등록된 이미지가 없습니다.</div>
         )}
       </Card>
 
+      {/* 결제 모달 추가 (return 영역 제일 아래) */}
+      <Modal
+        open={isPaymentModalOpen}
+        onCancel={() => setIsPaymentModalOpen(false)}
+        footer={null}
+        destroyOnClose
+        width={650}
+      >
+        {advertise && (
+          <AdvertisePayment 
+            adId={advertise.adId} 
+            amount={advertise.totalBudget} 
+            adTitle={advertise.title} 
+          />
+        )}
+      </Modal>
     </div>
   );
 }
 
 
-// 날짜
+/* ==========================================
+   헬퍼 함수들 
+========================================== */
+
+function ApprovalStatusTag({ value }) {
+  if (value === 'APPROVED') return <Tag color="green">승인완료</Tag>;
+  if (value === 'REJECTED') return <Tag color="red">반려</Tag>;
+  return <Tag color="orange">승인대기</Tag>;
+}
+
+function AdStatusTag({ value }) {
+  if (value === 'OPEN') return <Tag color="blue">진행중</Tag>;
+  if (value === 'CLOSED') return <Tag>종료</Tag>;
+  return <Tag color="orange">대기</Tag>;
+}
+
+function AdGradeTag({ value }) {
+  if (value === 'PREMIUM') return <Tag color="gold">PREMIUM</Tag>;
+  return <Tag>GENERAL</Tag>;
+}
+
+function PaymentStatusTag({ approvalStatus, paymentStatus }) {
+  if (approvalStatus !== 'APPROVED') return <Tag color="default">승인 후 결제 가능</Tag>;
+  if (paymentStatus === 'PAID') return <Tag color="green">결제완료</Tag>;
+  if (paymentStatus === 'FAILED') return <Tag color="red">결제실패</Tag>;
+  return <Tag color="orange">결제대기</Tag>;
+}
+
+function formatGender(value) {
+  if (value === 'MALE' || value === 'M') return '남성';
+  if (value === 'FEMALE' || value === 'F') return '여성';
+  if (value === 'ALL') return '전체';
+  return value || '-';
+}
+
+function formatDate(value) {
+  if (!value) return '-';
+  return String(value).substring(0, 10);
+}
+
+function formatMoney(value) {
+  if (value == null) return '-';
+  return `${Number(value).toLocaleString()}원`;
+}
+
 function formatDateTime(value) {
   if (!value) {
     return '-';
   }
-
   return String(value)
     .replace('T', ' ')
-    .substring(0, 16);
+    .substring(0, 16); // 혹은 초까지 보여주려면 19
 }
-
-
-// 금액
-function formatMoney(value) {
-  if (value == null) {
-    return '-';
-  }
-
-  return `${Number(value).toLocaleString()}원`;
-}
-
 
 export default AdvertiseDetailPage;

@@ -26,7 +26,7 @@ function questionEdit() {
 
   const { question } = router.query;
 
-  const { qna, loading, success } = useSelector(
+  const { qna, loading, success, error } = useSelector(
     (state) => state.qna
   );
 
@@ -64,13 +64,22 @@ function questionEdit() {
     question,
   ]);
 
+  useEffect(() => {
+    if (error) {
+      setSubmitted(false);
+      alert(error);
+    }
+  }, [error]);
+
   const isMeetup = qna?.category === 'MEETUP';
 
   const title = isMeetup ? '모임 1:1 문의 수정' : '관리자 1:1 문의 수정';
 
   const handleSubmit = (values) => {
     if (!question) return;
-    if (!window.confirm('문의 내용을 수정하시겠습니까?')) {return;}
+    if (!window.confirm('문의 내용을 수정하시겠습니까?')) {
+      return;
+    }
     setSubmitted(true);
 
     dispatch(

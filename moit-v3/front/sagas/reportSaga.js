@@ -29,13 +29,11 @@ const POST_API_BASE = '/api/reports';
 
 
 // watchCreateReport          - POST      /api/reports        신고 작성
-export const createReportAPI = (payload)=> {
-    const { memberId, dto } = payload;              // Controller에서 memberId + ReportRequestDto 받음
+export const createReportAPI = (dto)=> {
 
-    // @RequestParam("memberId") Long memberId,     URL 뒤에 붙여서 보내기
     // @RequestBody ReportRequestDto requestDto     신고 내용을 요청 body에 넣어서 보내기
-    // POST_API_BASE = http://localhost:8080/api/reports?memberId=2
-    return api.post(`${POST_API_BASE}?memberId=${memberId}`, dto);
+    // POST_API_BASE = http://localhost:8080/api/reports
+    return api.post(POST_API_BASE, dto);
 }
 export function* createReport(action) {
     try {
@@ -43,10 +41,9 @@ export function* createReport(action) {
         yield put(createReportSuccess(result.data));
         
     } catch(err) {
-        console.log("신고 등록 실패");
-        console.log("status:", err.response?.status);
-        console.log("data:", err.response?.data);
-        console.log("message:", err.message);
+        console.log("신고 등록 오류 전체:", err);
+        console.log("응답 데이터:", err.response?.data);
+        console.log("응답 상태:", err.response?.status);
 
         yield put(createReportFailure(err.response?.data?.message || err.message));
     }
@@ -157,6 +154,9 @@ export function* checkDoubleReport(action) {
 export const updateAdminReportAPI = (payload)=> {
     const { reportId, processDto } = payload;
 
+    console.log('관리자 처리 reportId:', reportId);
+    console.log('관리자 처리 processDto:', processDto);
+
     // @PathVariable("reportId") Long reportId
     // @RequestBody ReportProcessDto processDto
     //
@@ -173,6 +173,9 @@ export function* updateAdminReport(action) {
     try {
         const result = yield call(updateAdminReportAPI, action.payload);
         yield put(updateAdminReportSuccess(result.data));
+
+        // 승인/반려 처리 끝난 후 상세정보 다시 조회
+        yield put( fetchAdminReportsDetailRequest(action.data.reportId) );
         
     } catch(err) {
         yield put(updateAdminReportFailure(err.response?.data?.message || err.message));
@@ -204,28 +207,56 @@ export function* deleteAdminReport(action) {
 // 관리자 신고 목록 조회 + 검색 + 페이징
 export const fetchAdminReportsAPI = (payload)=> {
     const {
-        filter = 'ALL',
-        search = '',
-        keyword = '',
+        targetType,
+        status,
+        reasonCode,
+        deleteYn,
+        memberNickname,
         page = 0,
         size = 10
     } = payload;
 
+    const params = {
+        page,
+        size
+    };
+
+    // 값이 있을 때만 요청 파라미터에 추가
+    if (targetType) {
+        params.targetType = targetType;
+    }
+
+    if (status) {
+        params.status = status;
+    }
+
+    if (reasonCode) {
+        params.reasonCode = reasonCode;
+    }
+
+    if (deleteYn) {
+        params.deleteYn = deleteYn;
+    }
+    
+    if (memberNickname) {
+        params.memberNickname = memberNickname;
+    }
+
     // @ModelAttribute ReportSearchDto searchDto
-    // filter  : ALL / MEETUP / REVIEW / PENDING / DELETE
-    // search  : MEMBER_NICKNAME / REASONCODE
-    // keyword : 검색어
+    // targetType  : MEETUP / REVIEW
+    // status : PENDING / APPROVED / REJECTED
+    // reasonCode : 
+    // deleteYn : N / Y
+    // memberNickname : 검색어 (닉네임)
     // Pageable pageable
     //
     // POST_API_BASE = http://localhost:8080/api/reports/admin/adminReportsList
     //                 ?filter=ALL&search=MEMBER_NICKNAME&keyword=test&page=0&size=10
     return api.get(
-        `${POST_API_BASE}/admin/adminReportsList`
-        + `?filter=${filter}`
-        + `&search=${search}`
-        + `&keyword=${encodeURIComponent(keyword)}`
-        + `&page=${page}`
-        + `&size=${size}`
+        `${POST_API_BASE}/admin/adminReportsList`,
+        {
+            params
+        }
     );
 }
 export function* fetchAdminReports(action) {
@@ -290,7 +321,8 @@ export const fetchMemberReportTrustInfoAPI = (payload)=> {
 export function* fetchMemberReportTrustInfo(action) {
     try {
         // result.data  (action.payload)
-        // targetMemberId, targetNickname, trustScore, reportStatusId, statusCode, statusName
+        // targetMemberId, targetNickname, trustScore,
+        // reportStatusId, statusCode, statusName
         const result = yield call(fetchMemberReportTrustInfoAPI, action.payload);
         yield put(fetchMemberReportTrustInfoSuccess(result.data));
 

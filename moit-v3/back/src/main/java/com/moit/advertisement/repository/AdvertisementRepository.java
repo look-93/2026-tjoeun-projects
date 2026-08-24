@@ -72,9 +72,16 @@ public interface AdvertisementRepository
 	);
 	
 	
-	List<Advertisement> findByAdvertiser_Id(Long id);
+	List<Advertisement> findByAdvertiser_IdAndDeleteYn(Long advertiserId, Character deleteYn);
+
+	long countByAdvertiser_IdAndDeleteYn(Long advertiserId, Character deleteYn);
+
+	List<Advertisement> findByAdvertiser_IdAndApprovalStatusAndDeleteYn(
+	        Long advertiserId, 
+	        ApprovalStatus approvalStatus, 
+	        Character deleteYn
+	);
 	
-	long countByAdvertiser_Id(Long id);
 	long countByApprovalStatus(ApprovalStatus status);
 	
 	long countByDeleteYn(Character deleteYn);
@@ -88,10 +95,6 @@ public interface AdvertisementRepository
 
 	long countByStatus(AdStatus status);
 
-	List<Advertisement> findByAdvertiser_IdAndApprovalStatus(
-	        Long id,
-	        ApprovalStatus approvalStatus
-	);
 	
 	long count(Specification<Advertisement> spec);
 
