@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.moit.member.dto.DeleteAccountRequestDto;
 import com.moit.member.dto.LoginRequestDto;
 import com.moit.member.dto.LoginResponseDto;
 import com.moit.member.dto.MyPageDto;
@@ -389,21 +390,27 @@ public class MemberRestController {
     }
     
     // 회원정보 수정
- // 회원정보 수정
-    @Operation(
-            summary = "회원정보 수정",
-            description = "로그인한 회원의 회원정보와 프로필 이미지를 수정합니다."
-    )
+    @Operation( summary = "회원정보 수정", description = "로그인한 회원의 회원정보와 프로필 이미지를 수정합니다." )
     @PutMapping(value = "/me", consumes = "multipart/form-data")
     public ResponseEntity<?> updateMyInfo(
-            @RequestParam(required = false) String nickname,
-            @RequestParam(required = false) String mobile,
-            @RequestParam(required = false) String gender,
-            @RequestParam(required = false) String birth,
-            @RequestParam(required = false) List<Integer> interestIds,
-            @RequestParam(required = false) MultipartFile profileImage,
+    		@RequestParam(value = "nickname", required = false) String nickname,
+    		@RequestParam(value = "mobile", required = false) String mobile,
+    		@RequestParam(value = "gender", required = false) String gender,
+    		@RequestParam(value = "birth", required = false) String birth,
+    		@RequestParam(value = "interestIds", required = false) List<Integer> interestIds,
+    		@RequestParam(value = "profileImage", required = false) MultipartFile profileImage,
             Authentication authentication
     ) {
+    	
+    	System.out.println("=================================");
+        System.out.println("===== PUT /api/members/me 진입 =====");
+        System.out.println("nickname = " + nickname);
+        System.out.println("mobile = " + mobile);
+        System.out.println("gender = " + gender);
+        System.out.println("birth = " + birth);
+        System.out.println("interestIds = " + interestIds);
+        System.out.println("profileImage = " + profileImage);
+        System.out.println("=================================");
 
         try {
 
@@ -465,7 +472,7 @@ public class MemberRestController {
             }
 
             // 4. 회원정보 + 이미지 수정
-            UserDto result = service.updateMember(memberId, dto);
+            UserDto result = service.updateMember(memberId, dto);                 
 
             // 5. 응답
             return ResponseEntity.ok( UserResponseDto.from(result) );
@@ -487,23 +494,56 @@ public class MemberRestController {
         }
     }
     
-    //회원탈퇴(논리삭제)
-    @Operation( summary = "회원 탈퇴", description = "로그인한 회원 탈퇴처리" )
+    // 회원탈퇴(논리삭제)
+    @Operation( summary = "회원 탈퇴", description = "현재 로그인한 회원의 비밀번호를 확인한 후 회원을 논리삭제합니다." )
     @DeleteMapping("/me")
-    public ResponseEntity<Void> deleteMyAccount(Authentication authentication) {
-    	
-    	//1. JWT 인증 정보에서 회원 ID 가져오기
-    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-    	
-    	Long memberId = userDetails.getAppUserId();
-    	
-    	//2. 회원 탈퇴 처리
-    	service.deleteMember(memberId);
-    	
-    	//3. redis refresh Token 삭제
-    	refreshTokenService.deleteRefreshToken(memberId);
-    	
-    	return ResponseEntity.ok().build();    	
+    public ResponseEntity<?> deleteMyAccount(
+            @RequestBody DeleteAccountRequestDto request,
+            Authentication authentication) {
+
+        try {
+
+            // 1. 비밀번호 입력 확인
+            if (request.getPassword() == null || request.getPassword().isBlank()) {
+
+                return ResponseEntity.badRequest().body(Map.of( "message", "비밀번호를 입력해주세요." ));
+            }
+
+            // 2. JWT 인증 정보에서 회원 ID 가져오기
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+            Long memberId = userDetails.getAppUserId();
+
+            // 3. 회원 조회
+            UserDto user = service.findByMemberId(memberId);
+
+            if (user == null) {
+
+                return ResponseEntity .status(HttpStatus.UNAUTHORIZED) .body(Map.of( "message", "회원정보를 찾을 수 없습니다." ));
+            }
+
+            // 4. 비밀번호 확인
+            boolean passwordMatch = passwordEncoder.matches( request.getPassword(), user.getPassword() );
+
+            if (!passwordMatch) {
+
+                return ResponseEntity .status(HttpStatus.BAD_REQUEST) .body(Map.of( "message", "비밀번호가 일치하지 않습니다." ));
+            }
+
+            // 5. 회원 논리삭제
+            service.deleteMember(memberId);
+
+            // 6. Redis Refresh Token 삭제
+            refreshTokenService.deleteRefreshToken(memberId);
+
+            // 7. 성공
+            return ResponseEntity.ok( Map.of( "message", "회원탈퇴가 완료되었습니다." ) );
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity
+                    .badRequest() .body(Map.of( "message", e.getMessage() ));
+        }
     }
     
     // 회원 전체 조회

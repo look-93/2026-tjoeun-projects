@@ -8,6 +8,7 @@ import {
   checkPasswordLeakRequest,
   resetChangePassword,
   resetPasswordLeak,
+  getMyPageRequest,
 } from '../../../../reducers/userReducer';
 
 const { Title, Text } = Typography;

@@ -222,6 +222,34 @@ function UserHeader() {
   };
 
   // =========================================================
+  // 프로필 이미지 URL
+  // =========================================================
+  const getProfileImageUrl = (profileUrl) => {
+
+    if (!profileUrl) {
+      return "/images/moit.png";
+    }
+
+    if (profileUrl === "/images/moit.png") {
+      return "/images/moit.png";
+    }
+
+    if (profileUrl.startsWith("http")) {
+      return profileUrl;
+    }
+
+    const imageUrl =
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}${profileUrl}`;
+
+    console.log("===== HEADER PROFILE IMAGE =====");
+    console.log("profileUrl:", profileUrl);
+    console.log("API BASE URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
+    console.log("최종 이미지 URL:", imageUrl);
+
+    return imageUrl;
+  };
+
+  // =========================================================
   // 로딩 중
   // =========================================================
   if (loading) {
@@ -472,7 +500,7 @@ function UserHeader() {
                           <Col flex="none">
                             <Avatar
                               size={38}
-                              src={user.profileUrl || undefined}
+                              src={getProfileImageUrl(user.profileUrl)}
                               icon={
                                 !user.profileUrl && (
                                   <UserOutlined />

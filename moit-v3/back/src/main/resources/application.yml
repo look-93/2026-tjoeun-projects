@@ -7,7 +7,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update  # test 환경 create-drop 매번초기화 / update 부분수정 
+      ddl-auto: create-drop  # test 환경 create-drop 매번초기화 / update 부분수정 
     properties:
       hibernate:
         format_sql: true
@@ -67,9 +67,9 @@ jwt:
   refresh-token-exp-seconds: 1209600
   header: Authorization
   prefix: Bearer
-
+  
 toss:
-  secret-key: ${TOSS_SECRET_KEY}
+  secret-key: ${TOSS_SECRET_KEY}  
 
 #server:
 #  port: 8484
