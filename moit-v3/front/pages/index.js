@@ -1,20 +1,27 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import CategoryList from "../components/CategoryList";
 import AdBanner from "../components/AdBanner";
 import PopularMeetupList from "../components/PopularMeetupList";
 import Hero from "../components/Hero";
+import { useRouter } from "next/router";
+import { useSelector, useDispatch } from "react-redux";
+import {
+    fetchCategoriesRequest,
+    fetchPopularMeetupsRequest,
+} from "../reducers/meetupReducer";
 
 export default function Home() {
-    const categories = [
-        { icon: "🏃", name: "운동" },
-        { icon: "📚", name: "여행" },
-        { icon: "🎮", name: "게임" },
-        { icon: "🎨", name: "독서" },
-        { icon: "☕", name: "맛집" },
-        { icon: "✈️", name: "영화" },
-        { icon: "☕", name: "음악" },
-        { icon: "🎵", name: "요리" },
-    ];
+    const dispatch = useDispatch();
+    const { categories } = useSelector((state) => state.meetup);
+    const router = useRouter();
+
+    useEffect(() => {
+        dispatch(fetchCategoriesRequest());
+    }, [dispatch]);
+
+    const handleCategoryClick = (category) => {
+        router.push(`/user/meetup?categoryId=${category.id}`);
+    };
 
     const popularMeetups = [
         {
@@ -49,7 +56,10 @@ export default function Home() {
             <Hero />
 
             {/* Category */}
-            <CategoryList categories={categories} />
+            <CategoryList
+                categories={categories.filter((cate) => cate.parentId === null)}
+                onCategoryClick={handleCategoryClick}
+            />
 
             {/* 광고 */}
             <AdBanner />

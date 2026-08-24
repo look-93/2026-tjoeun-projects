@@ -87,10 +87,10 @@ import {
     recommendMeetupSuccess,
     recommendMeetupFailure,
 
-    //하루 모임 3개 제한
-    fetchTodayMeetupCountRequest,
-    fetchTodayMeetupCountSuccess,
-    fetchTodayMeetupCountFailure,
+    //인기모임
+    fetchPopularMeetupsRequest,
+    fetchPopularMeetupsSuccess,
+    fetchPopularMeetupsFailure,
 } from "../reducers/meetupReducer";
 
 const MEETUP_API_BASE = "/api/meetups";
@@ -575,6 +575,28 @@ export function* recommendMeetup(action) {
 }
 
 // ==================================================
+// 인기모임
+// POST /api/meetups/popular
+// ==================================================
+
+const fetchPopularMeetupsAPI = () => api.get(`${MEETUP_API_BASE}/popular`);
+
+export function* fetchPopularMeetups() {
+    try {
+        const result = yield call(fetchPopularMeetupsAPI);
+        console.log("인기모임조회성공", result.data);
+
+        yield put(fetchPopularMeetupsSuccess(result.data));
+    } catch (err) {
+        yield put(
+            fetchPopularMeetupsFailure(
+                err.response?.data?.message || err.message,
+            ),
+        );
+    }
+}
+
+// ==================================================
 // Watcher
 // ==================================================
 
@@ -618,6 +640,8 @@ export function* watchMeetupSaga() {
     yield takeLatest(fetchMyMeetupCountRequest.type, fetchMyMeetupCount);
 
     yield takeLatest(fetchMeetupCountRequest.type, fetchMeetupCount);
+
+    yield takeLatest(fetchPopularMeetupsRequest.type, fetchPopularMeetups);
 }
 
 // ==================================================
