@@ -27,7 +27,8 @@ public class PopularMeetupResponseDto {
 
     private Integer maxParticipants;
     private Integer minParticipants;
-
+    private Boolean hasLike = false;
+    
     public PopularMeetupResponseDto(
             Long id,
             String title,
@@ -50,6 +51,7 @@ public class PopularMeetupResponseDto {
         this.likeCount = likeCount;
         this.maxParticipants = maxParticipants;
         this.minParticipants = minParticipants;
+        this.hasLike = false;
     }
     
     @Getter

@@ -670,11 +670,79 @@ public class MeetupServiceImpl implements MeetupService{
 	
 	//인기모임
 	@Override
-	public List<PopularMeetupResponseDto> getPopularMeetups() {
+	public List<PopularMeetupResponseDto> getPopularMeetups(Long memberId) {
 
 	    Pageable pageable = PageRequest.of(0, 4);
 
-	    return meetupRepository.findPopularMeetups(pageable);
+	    // 좋아요 수 기준 인기 모임 4개
+	    List<PopularMeetupResponseDto> list =
+	            meetupRepository.findPopularMeetups(pageable);
+	    
+	    //System.out.println("인기모임 원본 조회: " + list);
+	    
+	    // 인기 모임 ID 추출
+	    List<Long> meetupIds = list.stream()
+	            .map(PopularMeetupResponseDto::getId)
+	            .toList();
+	    
+	    //System.out.println("인기모임 ID: " + meetupIds);
+	    
+	    // 로그인 사용자라면 내가 좋아요했는지 조회
+	    if (memberId != null && !meetupIds.isEmpty()) {
+
+	        List<MeetupLikeDto> likeResult =
+	                meetupLikesRepository.findLikedMeetups(
+	                        meetupIds,
+	                        memberId
+	                );
+	        //System.out.println("내가 좋아요한 인기모임: " + likeResult);
+	        // hasLike 세팅
+	        list.forEach(meetup -> {
+
+	            boolean hasLike = likeResult.stream()
+	                    .anyMatch(like ->
+	                            like.getMeetupId().equals(meetup.getId())
+	                    );
+
+	            meetup.setHasLike(hasLike);
+	        });
+	    }
+
+	    return list;
+	}
+	
+	// 추천모임
+	@Override
+	public List<MeetupResponseDto> getRecommendedMeetups(Long memberId, Long meetupId) {
+	    Pageable pageable = PageRequest.of(0, 3);
+
+	    List<Meetup> recommended;
+
+	    // 로그인한 회원 → 관심사 기반 추천
+	    if (memberId != null) {
+	        recommended = meetupRepository.findRecommendedMeetups(
+	                memberId,
+	                meetupId,
+	                pageable
+	        );
+	    } else {
+	        // 비로그인 → 전체 랜덤
+	        recommended = meetupRepository.findRandomMeetups(
+	                meetupId,
+	                pageable
+	        );
+	    }
+
+	    // 관심사에 맞는 모임이 없으면 전체 랜덤
+	    if (recommended.isEmpty()) {
+	        recommended = meetupRepository.findRandomMeetups(
+	                meetupId,
+	                pageable
+	        );
+	    }
+	    return recommended.stream()
+	            .map(MeetupResponseDto::listFrom)
+	            .toList();	    
 	}
 	
 	// ################### open api ###################

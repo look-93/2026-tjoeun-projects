@@ -3,7 +3,6 @@ package com.moit.meetup.controller;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -80,11 +79,19 @@ public class MeetupController {
 	        Authentication authentication
 	) {
 
-	    CustomUserDetails userDetails =
-	            (CustomUserDetails) authentication.getPrincipal();
+	    Long memberId = null;
 
-	    Long memberId = userDetails.getAppUserId();
+	    // 로그인한 경우에만 memberId 가져오기
+	    if (authentication != null
+	            && authentication.isAuthenticated()
+	            && authentication.getPrincipal() instanceof CustomUserDetails) {
 
+	        CustomUserDetails userDetails =
+	                (CustomUserDetails) authentication.getPrincipal();
+
+	        memberId = userDetails.getAppUserId();
+	    }
+	    
 	    MeetupListResponseDto listResponseDto =
 	            meetupService.search(
 	                    pageable,
@@ -158,7 +165,14 @@ public class MeetupController {
 	@Operation(summary = "좋아요", description = "모임 좋아요.")
 	@PatchMapping("/{meetupId}/like")
 	public ResponseEntity<Void> meetupLike(@PathVariable("meetupId") Long meetupId, Authentication authentication){
-    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
+    	
+	    if (authentication == null || !authentication.isAuthenticated()) {
+	        return ResponseEntity
+	                .status(HttpStatus.UNAUTHORIZED)
+	                .build();
+	    }
+		
+		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
     	Long memberId = userDetails.getAppUserId();
 		//Long memberId = 1L;
 		meetupService.meetupLike(memberId, meetupId);
@@ -250,10 +264,45 @@ public class MeetupController {
 	
     //인기모임
     @GetMapping("/popular")
-    public ResponseEntity<List<PopularMeetupResponseDto>> getPopularMeetups() {
+    public ResponseEntity<List<PopularMeetupResponseDto>> getPopularMeetups(Authentication authentication) {
+        Long memberId = null;
+
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getPrincipal() instanceof CustomUserDetails) {
+
+            CustomUserDetails userDetails =
+                    (CustomUserDetails) authentication.getPrincipal();
+
+            memberId = userDetails.getAppUserId();
+        }
 
         return ResponseEntity.ok(
-            meetupService.getPopularMeetups()
+                meetupService.getPopularMeetups(memberId)
+        );
+    }
+    
+    // 추천 모임
+    @GetMapping("/{meetupId}/recommended")
+    public ResponseEntity<List<MeetupResponseDto>> getRecommendedMeetups(
+            @PathVariable("meetupId") Long meetupId,
+            Authentication authentication
+    ) {
+
+        Long memberId = null;
+
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getPrincipal() instanceof CustomUserDetails) {
+
+            CustomUserDetails userDetails =
+                    (CustomUserDetails) authentication.getPrincipal();
+
+            memberId = userDetails.getAppUserId();
+        }
+
+        return ResponseEntity.ok(
+                meetupService.getRecommendedMeetups(memberId, meetupId)
         );
     }
     
