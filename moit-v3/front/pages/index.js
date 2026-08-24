@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { message } from "antd";
 import CategoryList from "../components/CategoryList";
 import AdBanner from "../components/AdBanner";
 import PopularMeetupList from "../components/PopularMeetupList";
@@ -13,7 +14,10 @@ import {
 
 export default function Home() {
     const dispatch = useDispatch();
-    const { categories, popularMeetups } = useSelector((state) => state.meetup);
+    const { categories, popularMeetups, user } = useSelector(
+        (state) => state.meetup,
+        (state) => state.user,
+    );
     const router = useRouter();
 
     useEffect(() => {
@@ -28,11 +32,21 @@ export default function Home() {
 
     // 인기모임 클릭
     const handlePopularMeetupClick = (meetupId) => {
+        if (!user) {
+            message.warning("로그인이 필요한 서비스입니다.");
+            router.push("/user/member/login");
+            return;
+        }
         router.push(`/user/meetup/detail?meetupId=${meetupId}`);
     };
 
     // 인기모임 좋아요
     const handlePopularMeetupLike = (meetupId) => {
+        if (!user) {
+            message.warning("로그인이 필요한 서비스입니다.");
+            router.push("/user/member/login");
+            return;
+        }
         dispatch(meetupLikeRequest(meetupId));
     };
 

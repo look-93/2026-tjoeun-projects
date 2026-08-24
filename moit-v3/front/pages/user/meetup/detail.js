@@ -13,15 +13,13 @@ import {
     getReviewListRequest,
     toggleReviewLikeRequest,
 } from "../../../reducers/reviewReducer";
-import {
-    qnaMeetupListRequest,
-} from '../../../reducers/qnaReducer';
+import { qnaMeetupListRequest } from "../../../reducers/qnaReducer";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
     fetchMeetupDetailRequest,
     resetMeetupState,
-    fetchRecommendedMeetupsRequest
+    fetchRecommendedMeetupsRequest,
 } from "../../../reducers/meetupReducer";
 import { fetchWeatherRequest } from "../../../reducers/commonReducer";
 
@@ -46,11 +44,13 @@ function MeetupDetailPage() {
     const isOwner = user?.memberId === meetup?.memberId; //user?.id === meetup?.memberId;
 
     // qna
-    const { meetupQnaList, loading: qnaLoading } = useSelector((state) => state.qna);
+    const { meetupQnaList, loading: qnaLoading } = useSelector(
+        (state) => state.qna,
+    );
 
     useEffect(() => {
-      if (!meetup?.meetupId) return;
-      dispatch(qnaMeetupListRequest(meetup.meetupId));
+        if (!meetup?.meetupId) return;
+        dispatch(qnaMeetupListRequest(meetup.meetupId));
     }, [meetup?.meetupId, dispatch]);
     //console.log(isOwner);
     //console.log(user);
@@ -159,7 +159,6 @@ function MeetupDetailPage() {
               )
             : ["http://localhost:8080/upload/no-image.png"];
 
-
     // ★ 후기 데이터 변환 (isPublic 및 isLiked 포함)
     const rawReviews =
         reduxReviews?.map((review) => ({
@@ -180,9 +179,7 @@ function MeetupDetailPage() {
     const reviews = rawReviews.filter((review) => review.isPublic === "Y");
 
     // Q&A
-    const qnaLists = Array.isArray(meetupQnaList)
-    ? meetupQnaList
-    : [];
+    const qnaLists = Array.isArray(meetupQnaList) ? meetupQnaList : [];
 
     // 날씨
     useEffect(() => {
@@ -202,8 +199,8 @@ function MeetupDetailPage() {
         );
     }, [meetup, dispatch]);
 
-    console.log("🔥 추천모임:", recommendedMeetups);
-    console.log("🔥 현재 meetupId:", meetupId);
+    // console.log("추천모임:", recommendedMeetups);
+    // console.log("현재 meetupId:", meetupId);
 
     //인기모임
     useEffect(() => {
@@ -325,6 +322,12 @@ function MeetupDetailPage() {
                     {/* 추천 모임 */}
                     <RecommendedMeetups
                         recommendedMeetups={recommendedMeetups}
+                        onMeetupClick={(meetupId) => {
+                            router.push({
+                                pathname: "/user/meetup/detail",
+                                query: { meetupId },
+                            });
+                        }}
                     />
                     {/* 지도 */}
                     <MeetupMap

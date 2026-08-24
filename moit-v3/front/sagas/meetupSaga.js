@@ -611,19 +611,28 @@ const fetchRecommendedMeetupsAPI = (meetupId) =>
 
 export function* fetchRecommendedMeetups(action) {
     try {
-        const response = yield call(fetchRecommendedMeetupsAPI, action.payload);
+        // console.log("추천모임 요청 meetupId:", action.payload);
 
-        console.log("🔥 추천모임 API 응답:", response.data);
+        const response = yield call(
+            fetchRecommendedMeetupsAPI,
+            action.payload
+        );
+
+        // console.log("추천모임 API 응답:", response.data);
 
         yield put(fetchRecommendedMeetupsSuccess(response.data));
     } catch (error) {
-        console.error("🔥 추천모임 조회 실패:", error);
+        // console.error("추천모임 조회 실패");
+        // console.error("status:", error.response?.status);
+        // console.error("data:", error.response?.data);
+        // console.error("message:", error.message);
+        // console.error("전체 error:", error);
 
         yield put(
             fetchRecommendedMeetupsFailure(
                 error.response?.data?.message ||
-                    "추천모임을 불러오지 못했습니다.",
-            ),
+                    "추천모임을 불러오지 못했습니다."
+            )
         );
     }
 }
