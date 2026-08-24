@@ -3,11 +3,13 @@ package com.moit.meetup.service;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,7 @@ import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplyMemberListResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MyApplicationListResponseDto;
 import com.moit.meetup.dto.MeetupCategoryDto;
+import com.moit.meetup.dto.MeetupCountResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
@@ -33,6 +36,7 @@ import com.moit.meetup.dto.MeetupLikeCountDto;
 import com.moit.meetup.dto.MeetupLikeDto;
 import com.moit.meetup.dto.MeetupParticipantCountDto;
 import com.moit.meetup.dto.MyMeetupCountResponseDto;
+import com.moit.meetup.dto.PopularMeetupResponseDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.meetup.entity.Meetup;
@@ -169,8 +173,30 @@ public class MeetupServiceImpl implements MeetupService{
 			throw new IllegalArgumentException("삭제된 게시글 입니다.");
 		}		
 		
-		MeetupResponseDto response = MeetupResponseDto.detailFrom(meetup, memberId);
+	    // 모임 개설자 ID
+	    Long hostId = meetup.getMember().getId();
 		
+		Long hostMeetupCount =
+		        meetupRepository.countByMemberIdAndDeleteYn(
+		        		hostId,
+		                'N'
+		        );
+		
+		// 완료 횟수
+		Long completedMeetupCount =
+		        meetupRepository.countByMemberIdAndMeetupStatusAndDeleteYn(
+		        		hostId,
+		                MeetupStatus.COMPLETED,
+		                'N'
+		        );
+		
+		// 노쇼 횟수
+		Long noShowCount =
+		        meetupApplicationRepository.countNoShowByMemberId(hostId);
+		
+		
+		MeetupResponseDto response = MeetupResponseDto.detailFrom(meetup, memberId, hostMeetupCount, completedMeetupCount, noShowCount);	
+
 		return response;
 	}
 	
@@ -183,6 +209,32 @@ public class MeetupServiceImpl implements MeetupService{
 		
 		Sigungu sigungu = meetupSigunguRepository.findById(meetupRequestDto.getSigunguId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 지역입니다. SigunguId" + meetupRequestDto.getSigunguId()));
 		MeetupCategory meetupCategory = meetupCategoryRepository.findById(meetupRequestDto.getCategoryId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 카테고리입니다. meetupCategory" + meetupRequestDto.getCategoryId()));
+		
+		//하루모임 3개제한
+		ZoneId zoneId = ZoneId.of("Asia/Seoul");
+		
+		//서버시간기준
+        LocalDate today = LocalDate.now(zoneId);
+        
+        //오늘 00시
+        LocalDateTime startOfDay =
+                today.atStartOfDay();
+        //다음날 00시
+        LocalDateTime startOfNextDay =
+                today.plusDays(1).atStartOfDay();
+
+        long todayCount =
+                meetupRepository.countTodayCreatedMeetups(
+                        memberId,
+                        startOfDay,
+                        startOfNextDay
+                );
+
+        if (todayCount >= 3) {
+            throw new IllegalArgumentException(
+                    "하루 최대 3개의 모임만 등록할 수 있습니다."
+            );
+        }		
 		
 	    Meetup meetup = Meetup.builder()
 							  .title(meetupRequestDto.getTitle())
@@ -223,7 +275,7 @@ public class MeetupServiceImpl implements MeetupService{
 			throw new RuntimeException("이미지 업로드 중 오류가 발생했습니다.", e);
 		}		
 	}
-	
+
 	// 모임 수정
 	@Transactional
 	@Override
@@ -462,9 +514,9 @@ public class MeetupServiceImpl implements MeetupService{
 	public void changeMeetupVisibility(Long meetupId) {
 		
 		Meetup meetup = meetupRepository.findById(meetupId)
-				.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 게시글입니다. MEETUPID" + meetupId));		
-		
-		meetup.setHidden(!meetup.getHidden());
+				.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 게시글입니다. MEETUPID" + meetupId));
+
+			meetup.setHidden(!meetup.getHidden());
 	}
 	
 	//마이페이지 내가 신청한 모집글 목록 조회(페이징)
@@ -515,7 +567,7 @@ public class MeetupServiceImpl implements MeetupService{
 	//마이페이지 내가 모집한 모집글 조회(페이징)
 	@Override
 	public MeetupListResponseDto getMyMeetups(Long memberId, Pageable pageable) {
-		Page<Meetup> page = meetupRepository.findByMember_Id(memberId, pageable);
+		Page<Meetup> page = meetupRepository.findByMember_IdAndDeleteYnOrderByCreatedAtDesc(memberId, 'N', pageable);
 		MeetupListResponseDto response = new MeetupListResponseDto();
 		
 		response.setTotalCount(page.getTotalElements());
@@ -608,6 +660,21 @@ public class MeetupServiceImpl implements MeetupService{
 	public MyMeetupCountResponseDto getMyMeetupCount(Long memberId) {
 
 	    return meetupRepository.getMyMeetupCount(memberId);
+	}
+	
+	//관리자 - 통계
+	@Override
+	public MeetupCountResponseDto getMeetupCount() {
+		return meetupRepository.getMeetupCount();
+	}
+	
+	//인기모임
+	@Override
+	public List<PopularMeetupResponseDto> getPopularMeetups() {
+
+	    Pageable pageable = PageRequest.of(0, 4);
+
+	    return meetupRepository.findPopularMeetups(pageable);
 	}
 	
 	// ################### open api ###################

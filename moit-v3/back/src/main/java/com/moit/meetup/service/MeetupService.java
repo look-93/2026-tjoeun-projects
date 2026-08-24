@@ -10,10 +10,12 @@ import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplyMemberListResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MyApplicationListResponseDto;
 import com.moit.meetup.dto.MeetupCategoryDto;
-import com.moit.meetup.dto.MyMeetupCountResponseDto;
+import com.moit.meetup.dto.MeetupCountResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
+import com.moit.meetup.dto.MyMeetupCountResponseDto;
+import com.moit.meetup.dto.PopularMeetupResponseDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.meetup.enums.MeetupStatus;
@@ -74,6 +76,12 @@ public interface MeetupService {
 	//마이페이지-통계
 	public MyMeetupCountResponseDto getMyMeetupCount(Long memberId);
 	
+	// 관리자 통계
+    public MeetupCountResponseDto getMeetupCount();
+	
+    //인기모임 
+    public List<PopularMeetupResponseDto> getPopularMeetups();
+    
 	// ################### open api ###################
 	//ai 제목/카테고리/컨텐츠 추가
 	public RecommendMeetupResponseDto meetupWriteAiRecommended(RecommendMeetupRequestDto request);

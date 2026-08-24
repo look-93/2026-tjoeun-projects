@@ -49,6 +49,9 @@ public class ReportsDto {
 		private Character deleteYn;
 		private LocalDateTime createdAt;
 		private LocalDateTime updatedAt;
+		private LocalDateTime userUpdatedAt;
+		
+		private Long meetupId;
 		
 		// Report Entity -> ReportResponseDto 변환
 	    public static ReportResponseDto from(Report report) {
@@ -57,6 +60,15 @@ public class ReportsDto {
 	        dto.setReportId(report.getReportId());
 	        dto.setTargetType(report.getTargetType());
 	        dto.setTargetId(report.getTargetId());
+	        
+	        dto.setReasonCode(report.getReasonCode());
+	        dto.setReasonDetail(report.getReasonDetail());
+	        dto.setStatus(report.getStatus());
+	        dto.setDeleteYn(report.getDeleteYn());
+	        
+	        dto.setCreatedAt(report.getCreatedAt());
+	        dto.setUpdatedAt(report.getUpdatedAt());
+	        dto.setUserUpdatedAt(report.getUserUpdatedAt());
 	        
 	        
 	        // 신고 대상 회원 정보는 Service 에 ...
@@ -90,13 +102,6 @@ public class ReportsDto {
 	                }
 	            }
 	        }
-	        
-	        dto.setReasonCode(report.getReasonCode());
-	        dto.setReasonDetail(report.getReasonDetail());
-	        dto.setStatus(report.getStatus());
-	        dto.setDeleteYn(report.getDeleteYn());
-	        dto.setCreatedAt(report.getCreatedAt());
-	        dto.setUpdatedAt(report.getUpdatedAt());
 	        
 	        return dto;
 	    }

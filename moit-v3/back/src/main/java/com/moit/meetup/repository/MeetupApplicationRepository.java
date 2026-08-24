@@ -28,6 +28,15 @@ public interface MeetupApplicationRepository extends JpaRepository<MeetupApplica
 	
 	long countByMeetupIdAndApplyStatus(Long meetupId, ApplyStatus applyStatus);
 	
+	//노쇼 카운트
+	@Query("""
+		    SELECT COUNT(ma)
+		    FROM MeetupApplication ma
+		    WHERE ma.member.id = :memberId
+		      AND ma.applyStatus = com.moit.meetup.enums.ApplyStatus.NOSHOW
+		""")
+		Long countNoShowByMemberId(@Param("memberId") Long memberId);
+	
 	@Query("""
 		    SELECT new com.moit.meetup.dto.MeetupParticipantCountDto(
 		        ma.meetup.id,

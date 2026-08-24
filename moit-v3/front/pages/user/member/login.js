@@ -31,7 +31,7 @@ function Login(){
         loading,
         error,
         success,
-    } = useSelector((state) => state.user);
+    } = useSelector((state) => state.user.login);
 
 
     // =========================
@@ -50,15 +50,10 @@ function Login(){
     // 로그인 성공
     // =========================
     useEffect(() => {
+        if (!success) return;
 
-        if(success){
-
-            message.success("로그인되었습니다.");
-
-            router.push("/");
-
-        }
-
+        message.success("로그인되었습니다.");
+        router.push("/");
     }, [success, router]);
 
     // =========================
@@ -108,7 +103,7 @@ function Login(){
 
         if(loginTab === "admin"){
             // 관리자
-            memberTypeId = 3;
+            memberTypeId = null;
         }else{
             // 일반회원 / 제휴업체
             memberTypeId = Number(values.memberTypeId);
@@ -493,27 +488,33 @@ function Login(){
                     </div>
 
                     {/* 회원가입 */}
-                    <div
-                        style={{
-                            textAlign: "center",
-                            marginTop: "10px",
-                            paddingTop: "15px",
-                            borderTop: "1px solid #f0f0f0",
-                        }}
+                    <div 
+                        style={{ 
+                            textAlign: "center", 
+                            marginTop: "10px", 
+                            paddingTop: "15px", 
+                            borderTop: "1px solid #f0f0f0", 
+                        }} 
                     >
                         <Text type="secondary">
-                            계정이 없으신가요?
+                            {loginTab === "admin"
+                                ? "관리자 계정이 없으신가요?"
+                                : "계정이 없으신가요?"}
                         </Text>
 
-                        <Button
-                            type="link"
-                            onClick={() =>
-                                router.push(
-                                    "/user/member/signup"
-                                )
-                            }
+                        <Button 
+                            type="link" 
+                            onClick={() => {
+                                if (loginTab === "admin") {
+                                    router.push("/user/member/admin-signup");
+                                } else {
+                                    router.push("/user/member/signup");
+                                }
+                            }}
                         >
-                            회원가입
+                            {loginTab === "admin"
+                                ? "관리자 회원가입"
+                                : "회원가입"}
                         </Button>
                     </div>
 

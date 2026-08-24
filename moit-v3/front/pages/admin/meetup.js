@@ -1,54 +1,51 @@
-import { Row, Col, Button, Table } from "antd";
+import { Row, Col, Button, Table, Spin } from "antd";
 import AdminStatCard from "../../components/AdminStatCard";
 import AdminSearchBox from "../../components/AdminSearchBox";
 import AdminListTabs from "../../components/AdminListTabs";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { fetchMeetupsRequest } from "../../reducers/meetupReducer";
+import {
+    fetchMeetupsRequest,
+    changeMeetupVisibilityRequest,
+    fetchMeetupCountRequest,
+} from "../../reducers/meetupReducer";
 
 // http://localhost:3000/admin/meetup
 
 function AdminMeetupPage() {
     const dispatch = useDispatch();
 
-    const { meetups, totalCount } = useSelector((state) => state.meetup);
+    const { meetups, meetupCount, loading } = useSelector(
+        (state) => state.meetup,
+    );
 
-    console.log("관리자 모임 조회 데이터:", meetups);
-    console.log("전체 개수:", totalCount);
+    //console.log("관리자 모임 조회 데이터:", meetups);
+    //console.log("전체 개수:", totalCount);
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 10;
 
     // 검색 조건
-    // 검색 조건
     const [searchType, setSearchType] = useState("all");
     const [status, setStatus] = useState("all");
+    const [searchText, setSearchText] = useState("");
 
     const serverData = { allcnt: 1200, running: 1000, close: 1200 };
 
     const stats = [
-        { title: "전체 모임", value: serverData.allcnt, suffix: "개" },
-        { title: "모집 중", value: serverData.running, suffix: "개" },
-        { title: "모집 마감", value: serverData.close, suffix: "개" },
-        { title: "모집 마감", value: 100, suffix: "개" },
+        {
+            title: "전체 모임",
+            value: meetupCount.totalMeetupCount,
+            suffix: "개",
+        },
+        { title: "모집 중", value: meetupCount.recruitingCount, suffix: "개" },
+        { title: "모집 마감", value: meetupCount.closedCount, suffix: "개" },
+        {
+            title: "날씨로 인한 취소",
+            value: meetupCount.weatherCanceledCount,
+            suffix: "개",
+        },
     ];
-
-    useEffect(() => {
-        dispatch(
-            fetchMeetupsRequest({
-                page: currentPage - 1,
-                size: pageSize,
-
-                searchType: searchType === "all" ? null : searchType,
-                searchText: null,
-
-                sidoId: null,
-                categoryId: null,
-
-                status: status === "all" ? null : status,
-            }),
-        );
-    }, [currentPage, searchType, status, dispatch]);
 
     const adminColumns = [
         {
@@ -57,6 +54,7 @@ function AdminMeetupPage() {
             key: "id",
             width: 80,
             align: "center",
+            render: (_, record, index) => meetups.length - index,
         },
         {
             title: "모집자",
@@ -77,6 +75,8 @@ function AdminMeetupPage() {
             key: "meetupAt",
             width: 150,
             align: "center",
+            render: (meetupAt) =>
+                meetupAt ? meetupAt.replace("T", " ").slice(0, 16) : "-",
         },
         {
             title: "최소모집인원",
@@ -108,10 +108,10 @@ function AdminMeetupPage() {
             render: (_, record) => (
                 <Button
                     size="small"
-                    danger
-                    onClick={() => handleDeleteMeetup(record.meetupId)}
+                    danger={!record.hidden}
+                    onClick={() => handlevisibilityMeetup(record.id)}
                 >
-                    삭제
+                    {record.hidden ? "공개" : "비공개"}
                 </Button>
             ),
         },
@@ -123,8 +123,8 @@ function AdminMeetupPage() {
     const rowSelection = {
         checkStrictly,
         onChange: (selectedRowKeys, selectedRows) => {
-            console.log("선택된 ID:", selectedRowKeys);
-            console.log("선택된 데이터:", selectedRows);
+            //console.log("선택된 ID:", selectedRowKeys);
+            //console.log("선택된 데이터:", selectedRows);
         },
     };
 
@@ -143,17 +143,56 @@ function AdminMeetupPage() {
         console.log("검색 조건:", values);
 
         setSearchType(values.category);
+        setSearchText(values.keyword || "");
         setStatus(values.status);
 
         // 검색하면 1페이지부터
         setCurrentPage(1);
     };
 
-    // 삭제
+    useEffect(() => {
+        dispatch(
+            fetchMeetupsRequest({
+                page: currentPage - 1,
+                size: pageSize,
 
-    const handleDeleteMeetup = (meetupId) => {
-        console.log("삭제할 meetupId:", meetupId);
+                searchType: searchType === "all" ? null : searchType,
+                searchText: searchText || null,
+
+                sidoId: null,
+                categoryId: null,
+
+                status: status === "all" ? null : status,
+            }),
+        );
+        dispatch(fetchMeetupCountRequest());
+    }, [currentPage, searchType, searchText, status, dispatch]);
+
+    // 비공개
+
+    const handlevisibilityMeetup = (meetupId) => {
+        //console.log("비공개할 meetupId:", meetupId);
+        dispatch(changeMeetupVisibilityRequest(meetupId));
     };
+
+    //로딩처리
+    if (!meetups) {
+        return (
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "300px",
+                    gap: "16px",
+                }}
+            >
+                <Spin size="large" />
+                <span>모임 정보를 불러오는 중입니다...</span>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -181,6 +220,7 @@ function AdminMeetupPage() {
                         defaultValue: "all",
                         options: [
                             { value: "all", label: "전체" },
+                            { value: "title", label: "모집명" },
                             { value: "name", label: "모집자" },
                         ],
                     },
@@ -207,6 +247,10 @@ function AdminMeetupPage() {
                         pageSize: 10,
                         showSizeChanger: false,
                     }}
+                    // loading={{
+                    //     spinning: loading,
+                    //     tip: "모임 정보를 불러오는 중입니다...",
+                    // }}
                     rowKey="id"
                     scroll={{ x: 800 }}
                 />

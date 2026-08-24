@@ -13,12 +13,16 @@ import {
     getReviewListRequest,
     toggleReviewLikeRequest,
 } from "../../../reducers/reviewReducer";
+import { qnaMeetupListRequest } from "../../../reducers/qnaReducer";
 import { useDispatch, useSelector } from "react-redux";
 
-import { fetchMeetupDetailRequest } from "../../../reducers/meetupReducer";
+import {
+    fetchMeetupDetailRequest,
+    resetMeetupState,
+} from "../../../reducers/meetupReducer";
 import { fetchWeatherRequest } from "../../../reducers/commonReducer";
 
-import { Row, Col, Card, Button, Typography, Tag } from "antd";
+import { Row, Col, Card, Button, Typography, Tag, Spin } from "antd";
 import {
     ArrowLeftOutlined,
     ExclamationCircleOutlined,
@@ -62,14 +66,25 @@ function MeetupDetailPage() {
     const { user } = useSelector((state) => state.user);
     const { meetupId } = router.query;
     const isOwner = user?.memberId === meetup?.memberId; //user?.id === meetup?.memberId;
+
+    // qna
+    const { meetupQnaList, loading: qnaLoading } = useSelector(
+        (state) => state.qna,
+    );
+
+    useEffect(() => {
+        if (!meetup?.meetupId) return;
+        dispatch(qnaMeetupListRequest(meetup.meetupId));
+    }, [meetup?.meetupId, dispatch]);
     //console.log(isOwner);
     //console.log(user);
+
     // Redux Store에서 reviews 가져오기
     const { reviews: reduxReviews } = useSelector((state) => {
         if (!state) return {};
         return state.review || state.reviewReducer || {};
     });
-
+    //console.log(meetup);
     // 1. 현재 모임 ID 추출
     const currentMeetupId = router.query.meetupId
         ? Number(router.query.meetupId)
@@ -85,7 +100,6 @@ function MeetupDetailPage() {
     }, [router.isReady, router.query.tab]);
 
     // 2. 리뷰 목록 조회 (의존성 배열 수정: router.query 제거 및 currentMeetupId 사용)
-    // ★ router.query 전체를 넣으면 좋아요 클릭 시 재렌더링으로 서버 데이터를 재요청하여 상태를 덮어씁니다!
     useEffect(() => {
         if (!router.isReady || !currentMeetupId) return;
 
@@ -107,6 +121,7 @@ function MeetupDetailPage() {
         console.log("좋아요 요청 실행! 리뷰 ID:", reviewId);
         dispatch(toggleReviewLikeRequest(reviewId));
     };
+
     // 정렬 핸들러 추가
     const handleSortChange = (sortParam) => {
         console.log("정렬 요청 실행:", sortParam);
@@ -140,8 +155,24 @@ function MeetupDetailPage() {
             return;
         }
 
+        // 이전 상세 데이터 초기화
+        dispatch(resetMeetupState());
+
+        // 새로운 모임 조회
         dispatch(fetchMeetupDetailRequest(meetupId));
     }, [router.isReady, meetupId, dispatch]);
+
+    // 비공개 모임 접근 차단
+    useEffect(() => {
+        if (!meetup || !meetupId) return;
+
+        if (Number(meetup.id) !== Number(meetupId)) return;
+
+        if (meetup.hidden) {
+            alert("모임이 관리자에 의해 비공개 처리되었습니다.");
+            router.back();
+        }
+    }, [meetup, meetupId, router]);
 
     // 이미지
     const images =
@@ -191,22 +222,7 @@ function MeetupDetailPage() {
     const reviews = rawReviews.filter((review) => review.isPublic === "Y");
 
     // Q&A
-    const qnaLists = [
-        {
-            id: 1,
-            nickname: "김철수",
-            title: "초보자도 참여 가능한가요?",
-            content: "러닝을 처음 시작하는 사람도 참여할 수 있나요?",
-            answer: "네! 초보자도 편하게 참여 가능합니다.",
-        },
-        {
-            id: 2,
-            nickname: "이영희",
-            title: "몇 시에 모이나요?",
-            content: "정확한 집합 시간이 궁금합니다.",
-            answer: null,
-        },
-    ];
+    const qnaLists = Array.isArray(meetupQnaList) ? meetupQnaList : [];
 
     // 날씨
     useEffect(() => {
@@ -228,22 +244,23 @@ function MeetupDetailPage() {
 
     //로딩처리
     if (!meetup) {
-        return <div>모임 정보를 불러오는 중입니다...</div>;
+        return (
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "300px",
+                    gap: "16px",
+                }}
+            >
+                <Spin size="large" />
+                <span>모임 정보를 불러오는 중입니다...</span>
+            </div>
+        );
     }
-
-    // 2. 리뷰 목록 조회 (의존성 배열 수정: router.query 제거 및 currentMeetupId 사용)
-    useEffect(() => {
-      if (!router.isReady || !currentMeetupId) return;
-
-      // 최초 로딩 시에도 기본 페이징과 정렬 값을 함께 전달
-      dispatch(getReviewListRequest({ 
-          meetupId: currentMeetupId,
-          page: 0,
-          size: 10,
-          sort: 'id,desc'
-      }));
-  }, [dispatch, router.isReady, currentMeetupId]);
-
+    
     // 광고
     const ad = {
         title: "Moit 특별 이벤트",
@@ -298,8 +315,9 @@ function MeetupDetailPage() {
                                     danger
                                     onClick={() =>
                                         router.push(
+                                            `/user/meetup/report/write?targetType=MEETUP&targetId=${meetup.id}`,
                                             // `/user/meetup/report/write?targetType=MEETUP&targetId=${meetup.meetupId}`,
-                                            `/user/meetup/report/write?targetType=MEETUP&targetId=2`,
+                                            // `/user/meetup/report/write?targetType=MEETUP&targetId=2`,
                                         )
                                     }
                                 >

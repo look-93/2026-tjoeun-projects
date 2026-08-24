@@ -23,6 +23,8 @@ function ReportStatusCodeTag({ statusCode }) {
             </Tag>
         );
     }
+    
+    return null;
 }
 
 export default ReportStatusCodeTag;

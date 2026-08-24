@@ -82,6 +82,7 @@ const qnaReducer = createSlice({
         qnaDetailRequest: (state) => {
             state.loading = true;
             state.error = null;
+            state.success = false;
         },
         qnaDetailSuccess: (state, action) => {
             state.loading = false;
@@ -161,6 +162,7 @@ const qnaReducer = createSlice({
         qnaAnswerCreateSuccess: (state) => {
             state.loading = false;
             state.success = true;
+            state.answerDeleteSuccess = false;
         },
         qnaAnswerCreateFailure: (state, action) => {
             state.loading = false;
@@ -177,6 +179,7 @@ const qnaReducer = createSlice({
         qnaAnswerUpdateSuccess: (state) => {
             state.loading = false;
             state.success = true;
+            state.answerDeleteSuccess = false;
         },
         qnaAnswerUpdateFailure: (state, action) => {
             state.loading = false;

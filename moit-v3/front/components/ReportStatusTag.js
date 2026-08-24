@@ -1,5 +1,6 @@
 import { Tag } from 'antd';
 
+// status 상태
 function ReportStatusTag({ status }) {
     if (status === 'PENDING') {
         return <Tag color="orange">처리 대기</Tag>;
