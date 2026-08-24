@@ -3,7 +3,7 @@ import { Card, Space, Row, Col, Typography } from 'antd';
 
 const { Text } = Typography;
 
-function RecommendedMeetups({ recommendedMeetups }) {
+function RecommendedMeetups({ recommendedMeetups = [] }) {
   return (
     <Card title="추천 모임" className="meetup-side-card">
       <Space direction="vertical" style={{ width: '100%' }} size={12}>
@@ -16,7 +16,14 @@ function RecommendedMeetups({ recommendedMeetups }) {
           >
             <Row gutter={12}>
               <Col span={8}>
-                <div className="recommended-image">🖼️</div>
+                  <img
+                    src={
+                        item.imagePath
+                            ? `http://localhost:8080/upload/meetup/${item.imagePath}`
+                            : "http://localhost:8080/upload/no-image.png"
+                    }
+                    alt={item.title}
+                />
               </Col>
 
               <Col span={16}>

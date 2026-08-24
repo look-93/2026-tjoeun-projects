@@ -8,47 +8,33 @@ import { useSelector, useDispatch } from "react-redux";
 import {
     fetchCategoriesRequest,
     fetchPopularMeetupsRequest,
+    meetupLikeRequest,
 } from "../reducers/meetupReducer";
 
 export default function Home() {
     const dispatch = useDispatch();
-    const { categories } = useSelector((state) => state.meetup);
+    const { categories, popularMeetups } = useSelector((state) => state.meetup);
     const router = useRouter();
 
     useEffect(() => {
         dispatch(fetchCategoriesRequest());
+        dispatch(fetchPopularMeetupsRequest());
     }, [dispatch]);
 
+    // 카테고리 클릭
     const handleCategoryClick = (category) => {
         router.push(`/user/meetup?categoryId=${category.id}`);
     };
 
-    const popularMeetups = [
-        {
-            id: 1,
-            title: "러닝 크루 모집",
-            participants: "8 / 10",
-            location: "서울",
-        },
-        {
-            id: 2,
-            title: "독서 스터디",
-            participants: "6 / 8",
-            location: "인천",
-        },
-        {
-            id: 3,
-            title: "보드게임 모임",
-            participants: "7 / 10",
-            location: "경기",
-        },
-        {
-            id: 4,
-            title: "영화 같이 볼 사람",
-            participants: "5 / 10",
-            location: "서울",
-        },
-    ];
+    // 인기모임 클릭
+    const handlePopularMeetupClick = (meetupId) => {
+        router.push(`/user/meetup/detail?meetupId=${meetupId}`);
+    };
+
+    // 인기모임 좋아요
+    const handlePopularMeetupLike = (meetupId) => {
+        dispatch(meetupLikeRequest(meetupId));
+    };
 
     return (
         <div className="main-page">
@@ -65,7 +51,11 @@ export default function Home() {
             <AdBanner />
 
             {/* 인기 모임 */}
-            <PopularMeetupList popularMeetups={popularMeetups} />
+            <PopularMeetupList
+                popularMeetups={popularMeetups}
+                onMeetupClick={handlePopularMeetupClick}
+                onToggleLike={handlePopularMeetupLike}
+            />
         </div>
     );
 }

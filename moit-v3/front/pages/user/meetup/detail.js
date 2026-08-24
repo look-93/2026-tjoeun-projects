@@ -21,6 +21,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
     fetchMeetupDetailRequest,
     resetMeetupState,
+    fetchRecommendedMeetupsRequest
 } from "../../../reducers/meetupReducer";
 import { fetchWeatherRequest } from "../../../reducers/commonReducer";
 
@@ -38,7 +39,7 @@ function MeetupDetailPage() {
     const dispatch = useDispatch();
 
     // meetup
-    const { meetup } = useSelector((state) => state.meetup);
+    const { meetup, recommendedMeetups } = useSelector((state) => state.meetup);
     const { weather } = useSelector((state) => state.common);
     const { user } = useSelector((state) => state.user);
     const { meetupId } = router.query;
@@ -158,24 +159,6 @@ function MeetupDetailPage() {
               )
             : ["http://localhost:8080/upload/no-image.png"];
 
-    // 추천 모임
-    const recommendedMeetups = [
-        {
-            id: 1,
-            title: "한강 자전거 모임",
-            location: "서울",
-        },
-        {
-            id: 2,
-            title: "주말 등산 모임",
-            location: "서울",
-        },
-        {
-            id: 3,
-            title: "러닝 초보 모임",
-            location: "인천",
-        },
-    ];
 
     // ★ 후기 데이터 변환 (isPublic 및 isLiked 포함)
     const rawReviews =
@@ -218,6 +201,16 @@ function MeetupDetailPage() {
             }),
         );
     }, [meetup, dispatch]);
+
+    console.log("🔥 추천모임:", recommendedMeetups);
+    console.log("🔥 현재 meetupId:", meetupId);
+
+    //인기모임
+    useEffect(() => {
+        if (!router.isReady || !meetupId) return;
+
+        dispatch(fetchRecommendedMeetupsRequest(Number(meetupId)));
+    }, [router.isReady, meetupId, dispatch]);
 
     //로딩처리
     if (!meetup) {

@@ -28,7 +28,7 @@ function CategoryList({ categories, onCategoryClick }) {
                     <Card
                         hoverable
                         className="category-card"
-                        onClick={onCategoryClick(category)}
+                        onClick={() => onCategoryClick(category)}
                     >
                         <div className="category-icon">
                             {categoryIcons[category.categoryName]}

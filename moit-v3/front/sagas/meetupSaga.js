@@ -91,6 +91,11 @@ import {
     fetchPopularMeetupsRequest,
     fetchPopularMeetupsSuccess,
     fetchPopularMeetupsFailure,
+
+    //추천모임
+    fetchRecommendedMeetupsRequest,
+    fetchRecommendedMeetupsSuccess,
+    fetchRecommendedMeetupsFailure,
 } from "../reducers/meetupReducer";
 
 const MEETUP_API_BASE = "/api/meetups";
@@ -337,6 +342,7 @@ export function* meetupLike(action) {
             yield put(meetupLikeSuccess({ meetupId: action.payload }));
         }
     } catch (err) {
+        console.log(err);
         yield put(
             meetupLikeFailure(err.response?.data?.message || err.message),
         );
@@ -576,7 +582,7 @@ export function* recommendMeetup(action) {
 
 // ==================================================
 // 인기모임
-// POST /api/meetups/popular
+// POST /api/meetups/{meetupId}/recommended
 // ==================================================
 
 const fetchPopularMeetupsAPI = () => api.get(`${MEETUP_API_BASE}/popular`);
@@ -591,6 +597,32 @@ export function* fetchPopularMeetups() {
         yield put(
             fetchPopularMeetupsFailure(
                 err.response?.data?.message || err.message,
+            ),
+        );
+    }
+}
+
+// ==================================================
+// 추천모임
+// POST /api/meetups/popular
+// ==================================================
+const fetchRecommendedMeetupsAPI = (meetupId) =>
+    api.get(`${MEETUP_API_BASE}/${meetupId}/recommended`);
+
+export function* fetchRecommendedMeetups(action) {
+    try {
+        const response = yield call(fetchRecommendedMeetupsAPI, action.payload);
+
+        console.log("🔥 추천모임 API 응답:", response.data);
+
+        yield put(fetchRecommendedMeetupsSuccess(response.data));
+    } catch (error) {
+        console.error("🔥 추천모임 조회 실패:", error);
+
+        yield put(
+            fetchRecommendedMeetupsFailure(
+                error.response?.data?.message ||
+                    "추천모임을 불러오지 못했습니다.",
             ),
         );
     }
@@ -642,6 +674,8 @@ export function* watchMeetupSaga() {
     yield takeLatest(fetchMeetupCountRequest.type, fetchMeetupCount);
 
     yield takeLatest(fetchPopularMeetupsRequest.type, fetchPopularMeetups);
+
+    yield takeLatest(fetchRecommendedMeetupsRequest.type, fetchRecommendedMeetups);
 }
 
 // ==================================================
