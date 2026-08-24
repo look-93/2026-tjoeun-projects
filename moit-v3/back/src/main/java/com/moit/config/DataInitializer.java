@@ -14,6 +14,12 @@ import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.PaymentType;
 import com.moit.advertisement.repository.AdvertisementPositionPriceRepository;
 import com.moit.advertisement.repository.AdvertisementPriceRepository;
+import com.moit.common.entity.Sido;
+import com.moit.common.entity.Sigungu;
+import com.moit.common.repository.SidoRepository;
+import com.moit.common.repository.SigunguRepository;
+import com.moit.meetup.entity.MeetupCategory;
+import com.moit.meetup.repository.MeetupCategoryRepository;
 import com.moit.member.entity.MemberStatus;
 import com.moit.member.entity.MemberType;
 import com.moit.member.enums.MemberStatusEnum;
@@ -35,6 +41,10 @@ public class DataInitializer {
 	private final AdvertisementPriceRepository priceRepository;
     private final AdvertisementPositionPriceRepository positionPriceRepository;
 	
+    private final MeetupCategoryRepository categoryRepository;
+    private final SidoRepository  sidoRepository;
+    private final SigunguRepository  sigunguRepository;
+    
 	@Bean
 	public CommandLineRunner initData() {
 		return args -> {
@@ -115,6 +125,21 @@ public class DataInitializer {
                     createPositionPrice(AdPosition.MEETUP_DETAIL_SIDEBAR, new BigDecimal("10000"))
                 ));
             }
+            
+            // ==========================================
+            // 5. 카테고리
+            // ==========================================
+            initCategories();
+
+            // ==========================================
+            // 6. 시도
+            // ==========================================
+            initSidos();
+
+            // ==========================================
+            // 7. 시군구
+            // ==========================================
+            initSigungus();
 		};
 	}
 
@@ -126,4 +151,206 @@ public class DataInitializer {
         
         return positionPrice;
     }
+    
+    //카테고리
+    private void initCategories() {
+
+        if (categoryRepository.count() > 0) {
+            log.info("🔥 [DataInit] 카테고리 데이터가 이미 존재합니다.");
+            return;
+        }
+
+        log.info("🔥 [DataInit] 카테고리 초기 데이터를 생성합니다.");
+
+        // 대분류
+        MeetupCategory exercise = createCategory("운동");
+        MeetupCategory travel = createCategory("여행");
+        MeetupCategory game = createCategory("게임");
+        MeetupCategory reading = createCategory("독서");
+        MeetupCategory food = createCategory("맛집");
+        MeetupCategory movie = createCategory("영화");
+        MeetupCategory music = createCategory("음악");
+        MeetupCategory cooking = createCategory("요리");
+
+        categoryRepository.saveAll(Arrays.asList(
+            exercise,
+            travel,
+            game,
+            reading,
+            food,
+            movie,
+            music,
+            cooking
+        ));
+
+        // 운동
+        categoryRepository.saveAll(Arrays.asList(
+            createCategory("축구", exercise),
+            createCategory("러닝", exercise),
+            createCategory("등산", exercise)
+        ));
+
+        // 여행
+        categoryRepository.saveAll(Arrays.asList(
+            createCategory("국내여행", travel),
+            createCategory("해외여행", travel),
+            createCategory("캠핑", travel)
+        ));
+
+        // 게임
+        categoryRepository.saveAll(Arrays.asList(
+            createCategory("PC게임", game),
+            createCategory("콘솔게임", game),
+            createCategory("보드게임", game)
+        ));
+
+        // 독서
+        categoryRepository.saveAll(Arrays.asList(
+            createCategory("소설", reading),
+            createCategory("자기계발", reading),
+            createCategory("독서토론", reading)
+        ));
+
+        // 맛집
+        categoryRepository.saveAll(Arrays.asList(
+            createCategory("한식", food),
+            createCategory("카페", food),
+            createCategory("맛집탐방", food)
+        ));
+
+        // 영화
+        categoryRepository.saveAll(Arrays.asList(
+            createCategory("영화관", movie),
+            createCategory("OTT", movie),
+            createCategory("영화토론", movie)
+        ));
+
+        // 음악
+        categoryRepository.saveAll(Arrays.asList(
+            createCategory("악기", music),
+            createCategory("노래", music),
+            createCategory("공연", music)
+        ));
+
+        // 요리
+        categoryRepository.saveAll(Arrays.asList(
+            createCategory("한식요리", cooking),
+            createCategory("베이킹", cooking),
+            createCategory("홈카페", cooking)
+        ));
+
+        log.info("🔥 [DataInit] 카테고리 초기 데이터 생성 완료");
+    }
+    
+    private MeetupCategory createCategory(String categoryName) {
+
+        MeetupCategory category = new MeetupCategory();
+        category.setCategoryName(categoryName);
+        category.setParent(null);
+
+        return category;
+    }
+
+    private MeetupCategory createCategory(
+            String categoryName,
+            MeetupCategory parent
+    ) {
+
+        MeetupCategory category = new MeetupCategory();
+        category.setCategoryName(categoryName);
+        category.setParent(parent);
+
+        return category;
+    }
+    
+    //시도
+    private void initSidos() {
+
+        if (sidoRepository.count() > 0) {
+            return;
+        }
+
+        log.info("🔥 [DataInit] 시도 초기 데이터를 생성합니다.");
+
+        sidoRepository.saveAll(Arrays.asList(
+            createSido("서울특별시"),
+            createSido("경기도"),
+            createSido("인천광역시"),
+            createSido("부산광역시"),
+            createSido("대전광역시")
+        ));
+
+        log.info("🔥 [DataInit] 시도 초기 데이터 생성 완료");
+    }
+    
+    // 시군구
+    private void initSigungus() {
+
+        if (sigunguRepository.count() > 0) {
+            return;
+        }
+
+        log.info("🔥 [DataInit] 시군구 초기 데이터를 생성합니다.");
+
+        Sido seoul = sidoRepository.findByName("서울특별시")
+                .orElseThrow();
+
+        Sido gyeonggi = sidoRepository.findByName("경기도")
+                .orElseThrow();
+
+        Sido incheon = sidoRepository.findByName("인천광역시")
+                .orElseThrow();
+
+        Sido busan = sidoRepository.findByName("부산광역시")
+                .orElseThrow();
+
+        Sido daejeon = sidoRepository.findByName("대전광역시")
+                .orElseThrow();
+
+        sigunguRepository.saveAll(Arrays.asList(
+
+            // 서울
+            createSigungu("강남구", seoul),
+            createSigungu("마포구", seoul),
+            createSigungu("송파구", seoul),
+
+            // 경기도
+            createSigungu("부천시", gyeonggi),
+            createSigungu("수원시", gyeonggi),
+            createSigungu("성남시", gyeonggi),
+
+            // 인천
+            createSigungu("남동구", incheon),
+            createSigungu("부평구", incheon),
+
+            // 부산
+            createSigungu("해운대구", busan),
+            createSigungu("수영구", busan),
+
+            // 대전
+            createSigungu("유성구", daejeon),
+            createSigungu("서구", daejeon)
+        ));
+
+        log.info("🔥 [DataInit] 시군구 초기 데이터 생성 완료");
+    }   
+    
+    
+    private Sido createSido(String name) {
+
+        Sido sido = new Sido();
+        sido.setName(name);
+
+        return sido;
+    }
+
+    private Sigungu createSigungu(String name, Sido sido) {
+
+        Sigungu sigungu = new Sigungu();
+        sigungu.setName(name);
+        sigungu.setSido(sido);
+
+        return sigungu;
+    }
+    
 }
