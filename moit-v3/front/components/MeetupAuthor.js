@@ -9,7 +9,7 @@ function MeetupAuthor({ meetup }) {
     const router = useRouter();
 
     const handleQnaClick = () => {
-        router.push(`/user/qna/write?type=MEETUP&meetupId=${meetup.meetupId}`);
+        router.push(`/user/qna/questionWrite?type=MEETUP&meetupId=${meetup.meetupId}`);
     };
     return (
         <Card title="작성자" className="meetup-side-card">

@@ -244,30 +244,29 @@ function AdminReportPage() {
     },
 
     {
-      title: '신뢰도 점수',
-      dataIndex: 'trustScore',
-      key: 'trustScore',
+      title: '신고 대상',
+      dataIndex: 'targetMemberNickname',
+      key: 'targetMemberNickname'
+    },
 
-      render: (trustScore) => (
-        trustScore !== null &&
-        trustScore !== undefined
-          ? `${trustScore}점`
-          : '-'
-      ),
+    {
+      title: '신뢰도 점수',
+      dataIndex: 'targetTrustScore',
+      key: 'targetTrustScore'
     },
 
     {
       title: '뱃지',
-      dataIndex: 'statusCode',
-      key: 'statusCode',
+      dataIndex: 'targetStatusCode',
+      key: 'targetStatusCode',
 
-      render: (statusCode) => (
-        <ReportStatusCodeTag statusCode={statusCode} />
+      render: (targetStatusCode) => (
+          <ReportStatusCodeTag statusCode={targetStatusCode} />
       )
     },
 
     {
-      title: '신고 대상',
+      title: '타입',
       dataIndex: 'targetType',
       key: 'targetType',
 

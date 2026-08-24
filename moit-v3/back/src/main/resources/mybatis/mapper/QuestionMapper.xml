@@ -330,9 +330,9 @@
 	        FROM dual
 	    </selectKey>
 		    INSERT INTO notifications
-		    ( notification_id, question_id, member_id, type, message, created_at, updated_at )
+		    ( notification_id, question_id, member_id, type, message, is_read, created_at, updated_at )
 		    VALUES
-		    ( #{notificationId}, #{questionId}, #{memberId}, #{type}, #{message}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP )
+		    ( #{notificationId}, #{questionId}, #{memberId}, #{type}, #{message}, 'N', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP )
 	</insert>
 	
 	<select id="selectUnread" parameterType="long" resultType="com.moit.qna.dto.NotificationDto">
@@ -356,6 +356,22 @@
 	    WHERE notification_id=#{notificationId}
 	    AND member_id = #{memberId}
 	</update>
+	
+	<!-- 회원의 읽지 않은 알림 전체 읽음 처리 -->
+	<update id="readAllNotifications" parameterType="long">
+	    UPDATE notifications
+	    SET
+	        is_read = 'Y',
+	        updated_at = CURRENT_TIMESTAMP
+	    WHERE member_id = #{memberId}
+	      AND is_read = 'N'
+	</update>
+	
+	<delete id="deleteNotification">
+	    DELETE FROM notifications
+	    WHERE notification_id = #{notificationId}
+	      AND member_id = #{memberId}
+	</delete>
 	
 	<select id="unreadCount" parameterType="long" resultType="int">
 		SELECT COUNT(*)
