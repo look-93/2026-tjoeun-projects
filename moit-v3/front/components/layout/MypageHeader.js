@@ -1,5 +1,6 @@
 import React from "react";
 import { Avatar, Tag } from "antd";
+import api from '../../api/axios';
 
 function MypageHeader({ user }) {
 

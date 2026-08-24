@@ -12,9 +12,20 @@ import {
   Space,
   Avatar,
   Image,
+  Modal,
+  Spin,
 } from 'antd';
-import { SearchOutlined, LikeOutlined, LikeFilled, UserOutlined } from '@ant-design/icons';
+import { 
+  SearchOutlined, 
+  LikeOutlined, 
+  LikeFilled, 
+  UserOutlined, 
+  RobotOutlined,
+  LoadingOutlined 
+} from '@ant-design/icons';
 import { useRouter } from 'next/router';
+import { useDispatch, useSelector } from 'react-redux';
+import { analyzeReviewsRequest } from '../reducers/reviewReducer'; // 경로에 맞게 확인해주세요!
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -50,19 +61,35 @@ const getImageUrl = (imgItem) => {
 function ReviewSection({ 
   reviews = [], 
   meetupId, 
+  isHost = false, // 👈 [추가] 개설자 여부 prop (기본값 false)
   onWriteReview, 
   onLikeReview,
   onSortChange,
   onSearch 
 }) {
   const router = useRouter();
+  const dispatch = useDispatch();
 
-  // 검색어 상태 관리
+  // 검색어 및 정렬 상태 관리
   const [searchText, setSearchText] = useState('');
-  // 정렬 상태 관리 (기본값: 최신순)
   const [sortValue, setSortValue] = useState('latest');
 
-  // 비공개 후기('N')는 목록에서 제외하고 공개 후기만 필터링
+  // 모달 오픈 상태 관리
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Redux에서 AI 분석 관련 상태 가져오기
+  const { analysisResult, loading: aiLoading } = useSelector((state) => {
+    const reviewState = state.review || state.reviewReducer || {};
+    return {
+      analysisResult: reviewState.analysisResult,
+      loading: reviewState.loading,
+    };
+  });
+
+  // 대상 모임 ID 추출
+  const targetMeetupId = meetupId || router.query.meetupId || router.query.id;
+
+  // 비공개 후기('N')는 목록에서 제외
   const publicReviews = reviews.filter((review) => {
     const pub = review.isPublic;
     if (pub === 'N' || pub === 'n' || pub === false) {
@@ -72,16 +99,14 @@ function ReviewSection({
   });
 
   // ==========================================
-  // ★ [추가] 평점 및 개수 동적 계산 로직
+  // 평점 및 개수 동적 계산 로직
   // ==========================================
   const totalReviewsCount = publicReviews.length;
 
-  // 1. 평균 평점 계산 (소수점 첫째 자리까지)
   const averageRating = totalReviewsCount > 0
     ? (publicReviews.reduce((acc, cur) => acc + (Number(cur.rating) || 0), 0) / totalReviewsCount).toFixed(1)
     : '0.0';
 
-  // 2. 점수별(1~5점) 개수 카운트
   const ratingCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
   publicReviews.forEach((review) => {
     const rate = Math.round(Number(review.rating) || 0);
@@ -90,12 +115,23 @@ function ReviewSection({
     }
   });
 
-  // 3. 점수별 백분율(%) 계산 함수
   const getRatingPercent = (score) => {
     if (totalReviewsCount === 0) return 0;
     return Math.round((ratingCounts[score] / totalReviewsCount) * 100);
   };
   // ==========================================
+
+  // AI 후기 인사이트 버튼 클릭 핸들러
+  const handleOpenAiModal = () => {
+    if (!targetMeetupId) {
+      alert('모임 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    setIsModalOpen(true);
+    // Redux 사가 액션 디스패치
+    dispatch(analyzeReviewsRequest(targetMeetupId));
+  };
 
   // 후기 작성 이동
   const handleWriteClick = () => {
@@ -104,10 +140,8 @@ function ReviewSection({
       return;
     }
 
-    const targetId = meetupId || router.query.meetupId || router.query.id;
-
-    if (targetId) {
-      router.push(`/user/meetup/review/write?meetupId=${targetId}`);
+    if (targetMeetupId) {
+      router.push(`/user/meetup/review/write?meetupId=${targetMeetupId}`);
     } else {
       alert('모임 정보(meetupId)를 찾을 수 없습니다.');
     }
@@ -116,8 +150,6 @@ function ReviewSection({
   // 후기 상세보기 이동
   const handleDetailClick = (reviewId) => {
     if (!reviewId) return;
-
-    const targetMeetupId = meetupId || router.query.meetupId || router.query.id;
 
     if (targetMeetupId) {
       router.push(`/user/meetup/review/detailreview?reviewId=${reviewId}&meetupId=${targetMeetupId}`);
@@ -138,7 +170,6 @@ function ReviewSection({
   // 정렬 변경 핸들러
   const handleInternalSortChange = (value) => {
     setSortValue(value);
-    
     const sortParam = value === 'likes' ? 'likesCount,desc' : 'id,desc';
 
     if (onSortChange) {
@@ -148,7 +179,6 @@ function ReviewSection({
 
   // 검색 버튼 클릭 및 엔터키 입력 시 동작
   const handleSearchSubmit = (value) => {
-    console.log("1. ReviewSection에서 검색 버튼 클릭됨! 검색어:", value);
     if (onSearch) {
       onSearch(value.trim());
     } else {
@@ -160,7 +190,21 @@ function ReviewSection({
     <div>
       <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
         <Col>
-          <Title level={4}>모임 후기</Title>
+          <Space size={12} align="center">
+            <Title level={4} style={{ margin: 0 }}>모임 후기</Title>
+            
+            {/* ★ [추가] 개설자(isHost)일 때만 보이는 AI 인사이트 버튼 */}
+            {isHost && (
+              <Button
+                type="dashed"
+                icon={<RobotOutlined style={{ color: '#722ed1' }} />}
+                style={{ borderColor: '#722ed1', color: '#722ed1', fontWeight: 500 }}
+                onClick={handleOpenAiModal}
+              >
+                AI 후기 인사이트
+              </Button>
+            )}
+          </Space>
         </Col>
 
         <Col>
@@ -197,7 +241,7 @@ function ReviewSection({
         </Col>
       </Row>
 
-      {/*평점 통계 카드 */}
+      {/* 평점 통계 카드 */}
       <Card className="review-rating-card">
         <Row gutter={40} align="middle">
           <Col xs={24} sm={8}>
@@ -284,7 +328,7 @@ function ReviewSection({
                       danger
                       onClick={() =>
                         router.push(
-                          `/user/meetup/report/write?type=REVIEW&targetId=${review.id}`,
+                          `/user/meetup/report/write?targetType=REVIEW&targetId=${review.id}`,
                         )
                       }
                     >
@@ -337,6 +381,42 @@ function ReviewSection({
           );
         })}
       </Space>
+
+      {/* ★ [추가] AI 후기 분석 결과 모달 */}
+      <Modal
+        title={
+          <Space>
+            <RobotOutlined style={{ color: '#722ed1' }} />
+            <span>AI 모임 후기 인사이트</span>
+          </Space>
+        }
+        open={isModalOpen}
+        onOk={() => setIsModalOpen(false)}
+        onCancel={() => setIsModalOpen(false)}
+        footer={[
+          <Button key="close" type="primary" onClick={() => setIsModalOpen(false)}>
+            확인
+          </Button>,
+        ]}
+        width={600}
+      >
+        <div style={{ minHeight: '150px', padding: '10px 0' }}>
+          {aiLoading ? (
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <Spin indicator={<LoadingOutlined style={{ fontSize: 36, color: '#722ed1' }} spin />} />
+              <div style={{ marginTop: 16 }}>
+                <Text type="secondary">AI가 모임 후기를 분석하고 있습니다...</Text>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <Paragraph style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                {analysisResult || '분석된 후기 내용이 없거나 결과가 비어있습니다.'}
+              </Paragraph>
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

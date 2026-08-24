@@ -95,20 +95,29 @@ function ReviewWritePage() {
     }
 
    if (error) {
-      console.log('🚨 최종 수신된 에러 값:', error);
+     console.log('🚨 최종 수신된 에러 값:', error);
 
-      // error가 문자열이든 객체든 간에 문자열로 변환하여 체크합니다.
-      const errorStr = typeof error === 'object' ? JSON.stringify(error) : String(error);
+     // 서버가 보낸 실제 응답 메시지를 안전하게 추출
+     let errorMsg = '알 수 없는 오류가 발생했습니다.';
 
-      // 400 에러이거나 Request failed가 포함되어 있다면 백엔드 욕설 필터링 차단으로 간주!
-      if (errorStr.includes('400') || errorStr.includes('Request failed') || errorStr.includes('부적절') || errorStr.includes('비속어')) {
-        alert('부적절한 표현(욕설, 비방 등)이 포함되어 있어 리뷰를 등록할 수 없습니다.');
-      } else {
-        alert(`리뷰 ${isEditMode ? '수정' : '등록'} 실패: ${errorStr}`);
-      }
-      
-      dispatch(resetReviewState());
-    }
+     if (typeof error === 'object') {
+       // axios 에러 응답 구조(error.response.data) 또는 일반 객체 대응
+       const serverData = error.response?.data || error;
+       
+       if (typeof serverData === 'string') {
+         errorMsg = serverData;
+       } else {
+         errorMsg = serverData.error || serverData.message || JSON.stringify(serverData);
+       }
+     } else {
+       errorMsg = String(error);
+     }
+
+     // 💡 추출한 진짜 에러 메시지를 팝업으로 띄움
+     alert(errorMsg);
+     
+     dispatch(resetReviewState());
+   }
   }, [success, error, dispatch, router, queryMeetupId, isEditMode, fromMypage]);
 
   const handleImageChange = ({ fileList: newFileList }) => {
