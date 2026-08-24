@@ -5,11 +5,11 @@ import { useRouter } from "next/router";
 
 const { Text } = Typography;
 
-function MeetupAuthor({ meetup }) {
+function MeetupAuthor({ meetup, meetupId }) {
     const router = useRouter();
 
     const handleQnaClick = () => {
-        router.push(`/user/qna/questionWrite?type=MEETUP&meetupId=${meetup.meetupId}`);
+        router.push(`/user/qna/questionWrite?type=MEETUP&meetupId=${meetupId}`);
     };
     return (
         <Card title="작성자" className="meetup-side-card">

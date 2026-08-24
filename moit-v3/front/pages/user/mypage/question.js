@@ -35,12 +35,12 @@ function UserMyQuestionPage() {
   const { qnaList, loading } = useSelector((state) => state.qna);
 
   // 검색창에 현재 입력 중인 값
-  const [searchType, setSearchType] = useState('title');
+  const [searchType, setSearchType] = useState('all');
   const [keyword, setKeyword] = useState('');
   const [createdAtRange, setCreatedAtRange] = useState(null);
 
   // 실제 검색에 사용되는 값
-  const [searchSearchType, setSearchSearchType] = useState('title');
+  const [searchSearchType, setSearchSearchType] = useState('all');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchStartDate, setSearchStartDate] = useState('');
   const [searchEndDate, setSearchEndDate] = useState('');
@@ -71,13 +71,13 @@ function UserMyQuestionPage() {
     },
     {
       title: '답변 대기',
-      value: list.filter((qna) => qna.qnaStatus === 'PENDING').length,
+      value: qnaList?.pendingCnt || 0,
       suffix: '건',
       icon: ClockCircleOutlined,
     },
     {
       title: '답변 완료',
-      value: list.filter((qna) => qna.qnaStatus === 'ANSWERED').length,
+      value: qnaList?.answeredCnt || 0,
       suffix: '건',
       icon: CheckCircleOutlined,
     },
@@ -186,8 +186,8 @@ function UserMyQuestionPage() {
   const handleReset = () => {
     setKeyword('');
     setSearchKeyword('');
-    setSearchType('title');
-    setSearchSearchType('title');
+    setSearchType('all');
+    setSearchSearchType('all');
     setCreatedAtRange(null);
     setSearchStartDate('');
     setSearchEndDate('');
@@ -208,20 +208,15 @@ function UserMyQuestionPage() {
               style={{ width: '100%' }}
             >
               {/* 제목 / 내용 검색 */}
-              <Space.Compact>
+              <Space size={8}>
                 <Select
                   value={searchType}
                   onChange={setSearchType}
                   style={{ width: 110 }}
                   options={[
-                    {
-                      value: 'title',
-                      label: '제목',
-                    },
-                    {
-                      value: 'content',
-                      label: '내용',
-                    },
+                    { value: 'all', label: '전체' },
+                    { value: 'title', label: '제목' },
+                    { value: 'content', label: '내용' },
                   ]}
                 />
                 <Input
@@ -231,7 +226,7 @@ function UserMyQuestionPage() {
                   allowClear
                   style={{ width: 300 }}
                 />
-              </Space.Compact>
+              </Space>
 
               {/* 등록일 검색 */}
               <RangePicker
