@@ -104,6 +104,17 @@ export const getAdvertiseStatusTabCount = (params) => {
     });
 };
 
+export const getAdvertiseApprovalStats = () => {
+  return axios.get(`${API_URL}/stats/approval`);
+};
+
+export const getAdvertisePaymentStats = () => {
+  return axios.get(`${API_URL}/stats/payment`);
+};
+
+export const getAdvertiseStatusStats = () => {
+  return axios.get(`${API_URL}/stats/status`);
+};
 
 // 광고 상세
 export const getAdvertiseAdminDetail = (adId) => {

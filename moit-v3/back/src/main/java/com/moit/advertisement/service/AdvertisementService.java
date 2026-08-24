@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.moit.advertisement.dto.AdminAdvertisementStatDto;
 import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
@@ -35,6 +36,10 @@ public interface AdvertisementService {
 
 	List<AdvertisementDto> searchStatusTabList(AdvertisementSearchDto dto);
 	long selectStatusTabTotalCnt(AdvertisementSearchDto dto);
+	
+	AdminAdvertisementStatDto.ApprovalStat getApprovalStats();
+	AdminAdvertisementStatDto.PaymentStat getPaymentStats();
+	AdminAdvertisementStatDto.StatusStat getStatusStats();
 	
     // 관리자 결제 내역
     List<AdvertisementPaymentDto> searchPaymentHistory( AdvertisementSearchDto dto );
@@ -71,6 +76,8 @@ public interface AdvertisementService {
     
     // 상태 변경
     int updateAdvertisementStatus(AdvertisementDto.AdvertisementAdminUpdateDto dto);
+    
+    void updateAdvertisementStatus();
 
     // 우선도 설정
 	int updateAdGrade(Long adId, String adGrade);

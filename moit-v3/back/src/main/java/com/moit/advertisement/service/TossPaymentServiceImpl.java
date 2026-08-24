@@ -1,6 +1,7 @@
 package com.moit.advertisement.service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,9 +15,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moit.advertisement.dto.PaymentConfirmRequestDto;
 import com.moit.advertisement.entity.Advertisement;
 import com.moit.advertisement.entity.AdvertisementPayment;
+import com.moit.advertisement.enums.AdStatus;
 // import com.moit.advertisement.enums.PaymentHistoryStatus; // 본인 패키지에 맞게 주석 해제
 // import com.moit.advertisement.enums.PaymentStatus; // 본인 패키지에 맞게 주석 해제
 import com.moit.advertisement.repository.AdvertisementPaymentRepository;
@@ -31,18 +35,22 @@ public class TossPaymentServiceImpl implements TossPaymentService {
     private final AdvertisementPaymentRepository paymentRepository;
     private final AdvertisementRepository advertisementRepository;
 
-    // 🌟 .env -> application.yml을 거쳐 들어온 값
     @Value("${toss.secret-key}")
     private String tossSecretKey;
 
     @Override
     @Transactional
     public void confirmPayment(PaymentConfirmRequestDto requestDto) {
+    	System.out.println("🔥 프론트에서 넘어온 orderId: [" + requestDto.getOrderId() + "]");
+        System.out.println("🔥 프론트에서 넘어온 amount: [" + requestDto.getAmount() + "]");
     	System.out.println("🔥 주입된 토스 시크릿키: [" + tossSecretKey + "]");
         
         // 1. 주문번호로 결제 내역 조회
         AdvertisementPayment payment = paymentRepository.findByOrderId(requestDto.getOrderId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문번호입니다."));
+        		.orElseThrow(() -> {
+                    System.out.println("❌ DB에 이 orderId가 없음!!");
+                    return new IllegalArgumentException("존재하지 않는 주문번호입니다.");
+                });
 
         // 2. 금액 검증 (위변조 방지)
         if (payment.getAmount().compareTo(requestDto.getAmount()) != 0) {
@@ -76,19 +84,40 @@ public class TossPaymentServiceImpl implements TossPaymentService {
             );
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                // 🌟 승인 성공: DB 업데이트 처리
-                // payment.updatePaymentSuccess(requestDto.getPaymentKey()); // Entity에 메서드 구현 필요
+            	ObjectMapper objectMapper = new ObjectMapper();
+                String paymentMethod = "알 수 없음"; // 기본값
+                try {
+                    JsonNode rootNode = objectMapper.readTree(response.getBody());
+                    paymentMethod = rootNode.path("method").asText(); // 예: "카드", "가상계좌", "간편결제"
+                } catch (Exception e) {
+                    System.out.println("결제수단 파싱 실패: " + e.getMessage());
+                }
                 
-                // 광고 본체 상태도 변경
-                // Advertisement advertisement = payment.getAdvertisement();
-                // advertisement.updatePaymentStatus(PaymentStatus.PAID);
+            	// 1. 결제 이력(History) 성공 처리
+                payment.updatePaymentSuccess(requestDto.getPaymentKey(), paymentMethod); 
+                
+                // 2. 광고 본체 가져오기
+                Advertisement advertisement = payment.getAdvertisement();
+                
+                // 3. 광고 결제 완료 상태로 변경 (엔티티에 이미 만들어져 있는 메서드 호출!)
+                advertisement.completeInitialPayment();
+                
+                // 4. 시작 일시 비교 후 상태 결정
+                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime startDateTime = advertisement.getStartDatetime(); // 엔티티의 시작 일시 필드
+
+                if (startDateTime != null && now.isBefore(startDateTime)) {
+                    // 아직 시작 일시 전인 경우 -> 예약/대기 상태 (예: SCHEDULED 또는 READY)
+                    advertisement.changeStatus(AdStatus.PENDING); 
+                } else {
+                    // 시작 일시가 이미 지났거나 현재인 경우 -> 바로 OPEN
+                    advertisement.changeStatus(AdStatus.OPEN);
+                }
             } else {
                 throw new RuntimeException("토스 결제 승인 실패");
             }
         } catch (Exception e) {
-            // 통신 실패나 잔액 부족 등
-            // payment.updatePaymentFailed("승인 실패: " + e.getMessage());
-            throw new RuntimeException("결제 승인 중 오류가 발생했습니다: " + e.getMessage());
+        	throw new RuntimeException("토스 결제 승인 실패");
         }
     }
 }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.moit.advertisement.dto.AdminAdvertisementStatDto;
 import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
@@ -168,6 +169,20 @@ public class AdvertisementAdminController {
         return ResponseEntity.ok(totalCnt);
     }
 
+    @GetMapping("/stats/approval")
+    public ResponseEntity<AdminAdvertisementStatDto.ApprovalStat> getApprovalStats() {
+        return ResponseEntity.ok(advertisementService.getApprovalStats());
+    }
+
+    @GetMapping("/stats/payment")
+    public ResponseEntity<AdminAdvertisementStatDto.PaymentStat> getPaymentStats() {
+        return ResponseEntity.ok(advertisementService.getPaymentStats());
+    }
+
+    @GetMapping("/stats/status")
+    public ResponseEntity<AdminAdvertisementStatDto.StatusStat> getStatusStats() {
+        return ResponseEntity.ok(advertisementService.getStatusStats());
+    }
     
     // =========================================================
     // 광고 상세

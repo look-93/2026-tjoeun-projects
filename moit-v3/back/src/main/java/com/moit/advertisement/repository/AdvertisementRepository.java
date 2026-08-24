@@ -1,5 +1,6 @@
 package com.moit.advertisement.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +16,7 @@ import com.moit.advertisement.entity.Advertisement;
 import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.AdStatus;
 import com.moit.advertisement.enums.ApprovalStatus;
+import com.moit.advertisement.enums.PaymentStatus;
 
 public interface AdvertisementRepository
         extends JpaRepository<Advertisement, Long> {
@@ -97,6 +99,11 @@ public interface AdvertisementRepository
 
 	
 	long count(Specification<Advertisement> spec);
+	
+	long countByDeleteYnAndStatus(Character deleteYn, AdStatus status);
+	
+	// 삭제 안됨 + 결제 상태 + 운영 상태
+	long countByDeleteYnAndPaymentStatusAndStatus(Character deleteYn, PaymentStatus paymentStatus, AdStatus status);
 
 	
 	// =========================================================
@@ -104,15 +111,22 @@ public interface AdvertisementRepository
     // =========================================================
 
     // 1. 승인 관리 탭: 승인 대기(WAITING)이거나, 승인 완료(APPROVED)인데 결제 대기(WAITING)인 경우
-    @Query("""
+	@Query("""
         select a from Advertisement a 
         where a.deleteYn = 'N' 
           and (a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.WAITING 
                or (a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED 
                    and a.paymentStatus = 'WAITING'))
-        order by a.createdAt desc
+          and (:searchText is null or :searchText = '' or a.title like %:searchText%)
+          and (:status is null or :status = '' or 
+               (:status = 'PAYMENT_WAITING' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED and a.paymentStatus = 'WAITING') or
+               (:status != 'PAYMENT_WAITING' and a.approvalStatus = :status))
     """)
-    Page<Advertisement> findApprovalTabList(Pageable pageable);
+    Page<Advertisement> findApprovalTabList(
+        @Param("searchText") String searchText,
+        @Param("status") ApprovalStatus status,
+        Pageable pageable
+    );
 
     @Query("""
         select count(a) from Advertisement a 
@@ -120,8 +134,15 @@ public interface AdvertisementRepository
           and (a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.WAITING 
                or (a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED 
                    and a.paymentStatus = 'WAITING'))
+          and (:searchText is null or :searchText = '' or a.title like %:searchText%)
+          and (:status is null or :status = '' or 
+               (:status = 'PAYMENT_WAITING' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED and a.paymentStatus = 'WAITING') or
+               (:status != 'PAYMENT_WAITING' and a.approvalStatus = :status))
     """)
-    long countApprovalTabList();
+    long countApprovalTabList(
+        @Param("searchText") String searchText,
+        @Param("status") ApprovalStatus status
+    );
 
 
     // 3. 운영 관리 탭: 승인 완료(APPROVED)되고 결제 완료(PAID)된 정상 운영 대상
@@ -130,15 +151,31 @@ public interface AdvertisementRepository
         where a.deleteYn = 'N' 
           and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED 
           and a.paymentStatus = 'PAID'
-        order by a.createdAt desc
+          and (:searchText is null or :searchText = '' or a.title like %:searchText%)
+          and (:status is null or a.status = :status)
     """)
-    Page<Advertisement> findStatusTabList(Pageable pageable);
+    Page<Advertisement> findStatusTabList(
+        @Param("searchText") String searchText,
+        @Param("status") String adStatus,
+        Pageable pageable
+    );
 
     @Query("""
         select count(a) from Advertisement a 
         where a.deleteYn = 'N' 
           and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED 
           and a.paymentStatus = 'PAID'
+          and (:searchText is null or :searchText = '' or a.title like %:searchText%)
+          and (:status is null or a.status = :status)
     """)
-    long countStatusTabList();
+    long countStatusTabList(
+        @Param("searchText") String searchText,
+        @Param("status") String adStatus
+    );
+    
+    // 스케줄러용: 특정 상태이면서 시작시간이 특정 시간(현재) 이전인 광고 조회
+    List<Advertisement> findByStatusAndStartDatetimeLessThanEqual(AdStatus status, LocalDateTime now);
+
+    // 스케줄러용: 특정 상태이면서 종료시간이 특정 시간(현재) 이전인 광고 조회
+    List<Advertisement> findByStatusAndEndDatetimeLessThanEqual(AdStatus status, LocalDateTime now);
 }
