@@ -18,10 +18,13 @@ import {
 } from '../../../reducers/qnaReducer';
 import { useDispatch, useSelector } from "react-redux";
 
-import { fetchMeetupDetailRequest } from "../../../reducers/meetupReducer";
+import {
+    fetchMeetupDetailRequest,
+    resetMeetupState,
+} from "../../../reducers/meetupReducer";
 import { fetchWeatherRequest } from "../../../reducers/commonReducer";
 
-import { Row, Col, Card, Button, Typography, Tag } from "antd";
+import { Row, Col, Card, Button, Typography, Tag, Spin } from "antd";
 import {
     ArrowLeftOutlined,
     ExclamationCircleOutlined,
@@ -40,6 +43,7 @@ function MeetupDetailPage() {
     const { user } = useSelector((state) => state.user);
     const { meetupId } = router.query;
     const isOwner = user?.memberId === meetup?.memberId; //user?.id === meetup?.memberId;
+
     // qna
     const { meetupQnaList, loading: qnaLoading } = useSelector((state) => state.qna);
 
@@ -49,12 +53,13 @@ function MeetupDetailPage() {
     }, [meetup?.meetupId, dispatch]);
     //console.log(isOwner);
     //console.log(user);
+
     // Redux Store에서 reviews 가져오기
     const { reviews: reduxReviews } = useSelector((state) => {
         if (!state) return {};
         return state.review || state.reviewReducer || {};
     });
-
+    //console.log(meetup);
     // 1. 현재 모임 ID 추출
     const currentMeetupId = router.query.meetupId
         ? Number(router.query.meetupId)
@@ -125,8 +130,24 @@ function MeetupDetailPage() {
             return;
         }
 
+        // 이전 상세 데이터 초기화
+        dispatch(resetMeetupState());
+
+        // 새로운 모임 조회
         dispatch(fetchMeetupDetailRequest(meetupId));
     }, [router.isReady, meetupId, dispatch]);
+
+    // 비공개 모임 접근 차단
+    useEffect(() => {
+        if (!meetup || !meetupId) return;
+
+        if (Number(meetup.id) !== Number(meetupId)) return;
+
+        if (meetup.hidden) {
+            alert("모임이 관리자에 의해 비공개 처리되었습니다.");
+            router.back();
+        }
+    }, [meetup, meetupId, router]);
 
     // 이미지
     const images =
@@ -200,7 +221,21 @@ function MeetupDetailPage() {
 
     //로딩처리
     if (!meetup) {
-        return <div>모임 정보를 불러오는 중입니다...</div>;
+        return (
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "300px",
+                    gap: "16px",
+                }}
+            >
+                <Spin size="large" />
+                <span>모임 정보를 불러오는 중입니다...</span>
+            </div>
+        );
     }
 
     // 광고
