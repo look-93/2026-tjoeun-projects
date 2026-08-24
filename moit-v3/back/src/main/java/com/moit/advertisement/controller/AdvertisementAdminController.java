@@ -37,7 +37,7 @@ public class AdvertisementAdminController {
     private final AdvertisementService advertisementService;
     
     // JWT 적용 후 로그인 사용자 ID로 변경
-    private static final Long LOGIN_ADMIN_ID = 1L;
+    private static final Long LOGIN_ADMIN_ID = 99L;
     
     // =========================================================
     // 승인 관리 탭 API (승인 대기 + 승인 완료되었으나 결제 대기인 광고 포함)

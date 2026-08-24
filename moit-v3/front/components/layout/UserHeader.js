@@ -198,6 +198,53 @@ function UserHeader() {
   };
 
   // =========================================================
+  // 프로필 이미지 URL
+  // =========================================================
+  const getProfileImageUrl = (profileUrl) => {
+
+    if (!profileUrl) {
+      return "/images/moit.png";
+    }
+
+    if (profileUrl === "/images/moit.png") {
+      return "/images/moit.png";
+    }
+
+    if (profileUrl.startsWith("http")) {
+      return profileUrl;
+    }
+
+    const imageUrl =
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}${profileUrl}`;
+
+    console.log("===== HEADER PROFILE IMAGE =====");
+    console.log("profileUrl:", profileUrl);
+    console.log("API BASE URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
+    console.log("최종 이미지 URL:", imageUrl);
+
+    return imageUrl;
+  };
+
+  // =========================================================
+  // 프로필 URL
+  // =========================================================
+  const handleProfileClick = () => {
+      if (!user) {
+          router.push("/user/member/login");
+          return;
+      }
+
+      // 관리자
+      if (user.memberTypeId === 3 ||user.memberTypeId === 4) {
+          router.push("/admin/member");
+          return;
+      }
+
+      // 일반 회원
+      router.push("/user/member/mypage");
+  };
+
+  // =========================================================
   // 로딩 중
   // =========================================================
   if (loading) {
@@ -434,7 +481,7 @@ function UserHeader() {
                     {/* 프로필 */}
                     <Col flex="none">
                       <div
-                        onClick={() => router.push('/user/member/mypage')}
+                        onClick={handleProfileClick}
                         style={{
                           cursor: 'pointer',
                         }}
@@ -448,7 +495,7 @@ function UserHeader() {
                           <Col flex="none">
                             <Avatar
                               size={38}
-                              src={user.profileUrl || undefined}
+                              src={getProfileImageUrl(user.profileUrl)}
                               icon={
                                 !user.profileUrl && (
                                   <UserOutlined />
@@ -589,13 +636,21 @@ function UserHeader() {
           {user ? (
 
             <>
-              {/* 마이페이지 */}
-              <Link href="/user/mypage">
-                <a>
+              {/* 관리자 / 일반회원 페이지 */}
+              <a onClick={() => {
+                      setDrawerOpen(false);
+
+                      if (user.memberTypeId === 3 ||user.memberTypeId === 4) {router.push("/admin/member");} 
+                      else {router.push("/user/mypage");}
+                  }}
+                  style={{ cursor: "pointer" }}
+              >
                   <UserOutlined />
-                  &nbsp;마이페이지
-                </a>
-              </Link>
+                  &nbsp;
+                  {user.memberTypeId === 3 || user.memberTypeId === 4
+                      ? "관리자 페이지"
+                      : "마이페이지"}
+              </a>
 
 
               {/* 알림 */}

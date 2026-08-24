@@ -17,41 +17,29 @@ export default function PaymentSuccessPage() {
 
   useEffect(() => {
     if (!router.isReady) return;
+    if (!paymentKey || !orderId || !amount) return;
 
-    if (paymentKey && orderId && amount) {
-      // 이미 승인 요청을 보냈다면(true) 다시 보내지 않음
-      if (confirmCalled.current) return;
-      confirmCalled.current = true;
+    if (confirmCalled.current) return;
+    confirmCalled.current = true;
 
-      console.log('결제 승인 요청 준비 완료:', { paymentKey, orderId, amount });
+    console.log('결제 승인 요청 준비 완료:', { paymentKey, orderId, amount });
 
-      // 실제 백엔드 연동 시 아래 주석 풀기
-      /*
-      axios.post('/api/payment/confirm', { 
-        paymentKey, 
-        orderId, 
-        amount: Number(amount) // 보통 백엔드에서 숫자형을 원하므로 변환
-      })
-      .then((res) => {
-        setIsConfirming(false);
-        setIsSuccess(true);
-        message.success("결제가 최종 완료되었습니다!");
-      })
-      .catch((err) => {
-        setIsConfirming(false);
-        setIsSuccess(false);
-        message.error("결제 승인에 실패했습니다.");
-        console.error(err);
-      });
-      */
-
-      // ⚠️ 임시 테스트용 코드 (백엔드 연결 전까지 결과를 확인하기 위함)
-      // 나중에 실제 API 연결 시 이 setTimeout 부분은 지워주세요!
-      setTimeout(() => {
-        setIsConfirming(false);
-        setIsSuccess(true);
-      }, 1500); // 1.5초 후 성공 처리
-    }
+    axios.post('/api/advertisement/payment/confirm', { 
+      paymentKey, 
+      orderId, 
+      amount: Number(amount) 
+    })
+    .then((res) => {
+      setIsConfirming(false);
+      setIsSuccess(true);
+      message.success("결제가 최종 완료되었습니다!");
+    })
+    .catch((err) => {
+      setIsConfirming(false);
+      setIsSuccess(false);
+      message.error("결제 승인에 실패했습니다.");
+      console.error(err);
+    });
   }, [router.isReady, paymentKey, orderId, amount]);
 
   // 1. 백엔드 승인을 기다리는 중일 때 보여줄 화면

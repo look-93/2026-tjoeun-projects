@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.moit.advertisement.dto.AdvertisementPositionPriceDto;
 import com.moit.advertisement.dto.AdvertisementPriceDto;
 import com.moit.advertisement.service.AdvertisementPriceService;
 
@@ -58,7 +59,7 @@ public class AdvertisementPriceAdminController {
     )
     @GetMapping("/{priceId}")
     public ResponseEntity<AdvertisementPriceDto> findOne(
-            @PathVariable Long priceId) {
+    		@PathVariable("priceId") Long priceId) {
 
         return ResponseEntity.ok(
                 priceService.findOne(priceId)
@@ -94,29 +95,33 @@ public class AdvertisementPriceAdminController {
     )
     @PutMapping("/{priceId}")
     public ResponseEntity<AdvertisementPriceDto> update(
-            @PathVariable Long priceId,
+            @PathVariable("priceId") Long priceId,
             @RequestBody AdvertisementPriceDto dto) {
 
         return ResponseEntity.ok(
                 priceService.update(priceId, dto)
         );
     }
-
+    
+ // =========================================================
+    // 위치별 추가금 목록 조회
+    // GET /api/admin/advertisement/price/position
+    // =========================================================
+    @GetMapping("/position")
+    public ResponseEntity<List<AdvertisementPositionPriceDto>> findAllPositionPrices() {
+        return ResponseEntity.ok(priceService.findAllPositionPrices());
+    }
 
     // =========================================================
-    // 광고 가격 삭제
-    // DELETE /api/admin/advertisement/price/{priceId}
+    // 위치별 추가금 수정
+    // PUT /api/admin/advertisement/price/position/{id}
     // =========================================================
-    @Operation(
-        summary = "광고 가격 삭제",
-        description = "관리자가 등록된 광고 가격 정보를 삭제합니다."
-    )
-    @DeleteMapping("/{priceId}")
-    public ResponseEntity<Void> delete(
-            @PathVariable Long priceId) {
-
-        priceService.delete(priceId);
-
-        return ResponseEntity.noContent().build();
+    @PutMapping("/position/{id}")
+    public ResponseEntity<Void> updatePositionPrice(
+            @PathVariable("id") Long id,
+            @RequestBody AdvertisementPositionPriceDto dto) {
+        
+        priceService.updatePositionPrice(id, dto.getAdditionalPrice());
+        return ResponseEntity.ok().build();
     }
 }
