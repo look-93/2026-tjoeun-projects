@@ -347,7 +347,7 @@ function AdvertiseWritePage() {
 
           {/* 🤖 AI 광고 도우미 */}
           {showAiHelper && !isEdit && (
-            <Card size="small" style={{ marginBottom: 20, background: '#f6ffed', borderColor: '#338cff' }}>
+            <Card size="small" style={{ marginBottom: 20, background: '#e1effd', borderColor: '#338cff' }}>
               <div style={{ marginBottom: 8, color: '#427dfd', fontWeight: 600 }}>
                 <RobotOutlined /> 🤖 AI 광고 작성 도우미
               </div>
