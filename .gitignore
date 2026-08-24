@@ -71,3 +71,6 @@ pnpm-debug.log*
 .vite/
 .cache/
 coverage/
+
+**/.env
+**/.env.local

@@ -15,6 +15,10 @@ public class WebConfig implements WebMvcConfigurer{
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		registry.addResourceHandler(uploadPath)
 				.addResourceLocations("file:" + resourcePath + "/");
+		
+		// 회원 프로필 이미지
+	    registry.addResourceHandler("/images/profile/**")
+	            .addResourceLocations("file:uploads/profile/");
 	}
 	
 	//Cor - 외부에서 접근가능하게 설정 (RestController) ##

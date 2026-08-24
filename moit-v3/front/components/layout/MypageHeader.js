@@ -26,13 +26,32 @@ function MypageHeader({ user }) {
         }
     };
 
+    const getProfileImageUrl = (profileUrl) => {
+        if (!profileUrl) {
+            return "/images/moit.png";
+        }
+
+        // 기본 프로필 이미지
+        if (profileUrl === "/images/moit.png") {
+            return "/images/moit.png";
+        }
+
+        // 이미 전체 URL이면 그대로 사용
+        if (profileUrl.startsWith("http")) {
+            return profileUrl;
+        }
+
+        // Spring Boot에서 제공하는 업로드 이미지
+        return `${process.env.NEXT_PUBLIC_API_BASE_URL}${profileUrl}`;
+    };
+
     return (
         <div className="mypage-profile-card">
 
             {/* 프로필 이미지 */}
             <Avatar
                 size={64}
-                src={user?.profileUrl || "/images/moit.png"}
+                src={getProfileImageUrl(user?.profileUrl)}
             >
                 {!user?.profileUrl &&
                     user?.nickname?.charAt(0)}
