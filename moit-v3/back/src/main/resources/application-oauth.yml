@@ -42,6 +42,7 @@ spring:
             user-name-attribute: response
 
 app:
+  frontend-url: http://localhost:3000
   oauth2:
     redirect-url: http://localhost:3000/oauth2/callback
 
