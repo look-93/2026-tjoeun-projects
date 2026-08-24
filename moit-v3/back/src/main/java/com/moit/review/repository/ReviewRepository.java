@@ -61,7 +61,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     // 특정 모임의 공개된 리뷰 목록 조회 (페이징 + 정렬 적용)
     Page<Review> findByMeetup_IdAndDeleteYnAndIsPublic(Long meetupId, Character deleteYn, String isPublic, Pageable pageable);
 
-    // ★ [추가된 부분] 모임 상세 페이지용 리뷰 목록 조회 (검색어 + 페이징 + 정렬 적용)
+    //모임 상세 페이지용 리뷰 목록 조회 (검색어 + 페이징 + 정렬 적용)
     @Query("SELECT r FROM Review r WHERE r.meetup.id = :meetupId " +
            "AND r.deleteYn = 'N' " +
            "AND r.isPublic = 'Y' " +
@@ -71,4 +71,5 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
         @Param("keyword") String keyword, 
         Pageable pageable
     );
+    boolean existsByMeetup_IdAndMember_IdAndDeleteYn(Long meetupId, Long memberId, Character deleteYn);
 }
