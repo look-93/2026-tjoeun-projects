@@ -27,9 +27,34 @@ import {
 const { Title } = Typography;
 
 function MeetupDetailPage() {
-    const [activeTab, setActiveTab] = useState("detail");
-    const router = useRouter();
-    const dispatch = useDispatch();
+
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const [activeTab, setActiveTab] = useState('detail');
+  //리뷰 추가
+  useEffect(() => {
+    if (router.isReady && router.query.tab) {
+      setActiveTab(router.query.tab);
+    }
+  }, [router.isReady, router.query.tab]);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    if (router.query.tab) {
+      setActiveTab(router.query.tab);
+    }
+
+    if (router.asPath.includes('tab=review')) {
+      const timer = setTimeout(() => {
+        const reviewElement = document.getElementById('review-section');
+        if (reviewElement) {
+          reviewElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 300); 
+      return () => clearTimeout(timer);
+    }
+  }, [router.isReady, router.asPath, router.query.tab]);
 
     // meetup
     const { meetup } = useSelector((state) => state.meetup);
@@ -218,38 +243,6 @@ function MeetupDetailPage() {
           sort: 'id,desc'
       }));
   }, [dispatch, router.isReady, currentMeetupId]);
-
-    // 3. 좋아요 핸들러
-    const handleLikeReview = (reviewId) => {
-      if (!reviewId) return;
-
-      console.log('좋아요 요청 실행! 리뷰 ID:', reviewId);
-      dispatch(toggleReviewLikeRequest(reviewId));
-    };
-    // 정렬 핸들러 추가
-    const handleSortChange = (sortParam) => {
-      console.log('정렬 요청 실행:', sortParam);
-      dispatch(
-        getReviewListRequest({
-          meetupId: currentMeetupId,
-          sort: sortParam, // 예: 'likesCount,desc' 또는 'id,desc'
-        })
-      );
-    };
-
-    // 리뷰 검색 핸들러 추가
-    const handleSearch = (keyword) => {
-      console.log('2. MeetupDetailPage에서 handleSearch 실행됨! 검색어:', keyword);
-      console.log('현재 모임 ID:', currentMeetupId);
-
-      dispatch(
-        getReviewListRequest({
-          meetupId: currentMeetupId,
-          keyword: keyword, 
-        })
-      );
-    };
-
 
     // 광고
     const ad = {
