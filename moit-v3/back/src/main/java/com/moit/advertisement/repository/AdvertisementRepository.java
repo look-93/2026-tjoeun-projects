@@ -110,8 +110,8 @@ public interface AdvertisementRepository
     // 관리자 탭별 전용 쿼리 메서드
     // =========================================================
 
-    // 1. 승인 관리 탭: 승인 대기(WAITING)이거나, 승인 완료(APPROVED)인데 결제 대기(WAITING)인 경우
-	@Query("""
+    // 1. 승인 관리 탭
+    @Query("""
         select a from Advertisement a 
         where a.deleteYn = 'N' 
           and (a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.WAITING 
@@ -120,11 +120,12 @@ public interface AdvertisementRepository
           and (:searchText is null or :searchText = '' or a.title like %:searchText%)
           and (:status is null or :status = '' or 
                (:status = 'PAYMENT_WAITING' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED and a.paymentStatus = 'WAITING') or
-               (:status != 'PAYMENT_WAITING' and a.approvalStatus = :status))
+               (:status = 'WAITING' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.WAITING) or
+               (:status = 'REJECTED' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.REJECTED))
     """)
     Page<Advertisement> findApprovalTabList(
         @Param("searchText") String searchText,
-        @Param("status") ApprovalStatus status,
+        @Param("status") String status, // ✅ ApprovalStatus(Enum) -> String 으로 변경!
         Pageable pageable
     );
 
@@ -137,26 +138,29 @@ public interface AdvertisementRepository
           and (:searchText is null or :searchText = '' or a.title like %:searchText%)
           and (:status is null or :status = '' or 
                (:status = 'PAYMENT_WAITING' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED and a.paymentStatus = 'WAITING') or
-               (:status != 'PAYMENT_WAITING' and a.approvalStatus = :status))
+               (:status = 'WAITING' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.WAITING) or
+               (:status = 'REJECTED' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.REJECTED))
     """)
     long countApprovalTabList(
         @Param("searchText") String searchText,
-        @Param("status") ApprovalStatus status
+        @Param("status") String status // ✅ String 으로 변경!
     );
 
-
-    // 3. 운영 관리 탭: 승인 완료(APPROVED)되고 결제 완료(PAID)된 정상 운영 대상
+    // 3. 운영 관리 탭
     @Query("""
         select a from Advertisement a 
         where a.deleteYn = 'N' 
           and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED 
           and a.paymentStatus = 'PAID'
           and (:searchText is null or :searchText = '' or a.title like %:searchText%)
-          and (:status is null or a.status = :status)
+          and (:status is null or :status = '' or 
+               (:status = 'BEFORE_OPEN' and a.status = com.moit.advertisement.enums.AdStatus.PENDING) or
+               (:status = 'OPEN' and a.status = com.moit.advertisement.enums.AdStatus.OPEN) or
+               (:status = 'CLOSED' and a.status = com.moit.advertisement.enums.AdStatus.CLOSED))
     """)
     Page<Advertisement> findStatusTabList(
         @Param("searchText") String searchText,
-        @Param("status") String adStatus,
+        @Param("status") String status,
         Pageable pageable
     );
 
@@ -166,11 +170,14 @@ public interface AdvertisementRepository
           and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED 
           and a.paymentStatus = 'PAID'
           and (:searchText is null or :searchText = '' or a.title like %:searchText%)
-          and (:status is null or a.status = :status)
+          and (:status is null or :status = '' or 
+               (:status = 'BEFORE_OPEN' and a.status = com.moit.advertisement.enums.AdStatus.PENDING) or
+               (:status = 'OPEN' and a.status = com.moit.advertisement.enums.AdStatus.OPEN) or
+               (:status = 'CLOSED' and a.status = com.moit.advertisement.enums.AdStatus.CLOSED))
     """)
     long countStatusTabList(
         @Param("searchText") String searchText,
-        @Param("status") String adStatus
+        @Param("status") String status
     );
     
     // 스케줄러용: 특정 상태이면서 시작시간이 특정 시간(현재) 이전인 광고 조회

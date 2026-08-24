@@ -18,7 +18,8 @@ public class AdvertisementScheduler {
 
 
     // 1분마다 광고 상태 체크
-    @Scheduled(cron = "0 * * * * *")
+//    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 */5 * * * *")
     public void updateAdvertisementStatus() {
     	
     	System.out.println("광고 상태 체크 실행");

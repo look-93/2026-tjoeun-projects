@@ -69,11 +69,8 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     @Override
     public List<AdvertisementDto> searchApprovalTabList(AdvertisementSearchDto dto) {
     	Pageable pageable = createPageable(dto);
-    	
-    	String searchText = dto.getSearchText();
-        ApprovalStatus approvalStatus = dto.getApprovalStatus();
         
-        return advertisementRepository.findApprovalTabList(searchText, approvalStatus, pageable)
+        return advertisementRepository.findApprovalTabList(dto.getSearchText(), dto.getStatus(), pageable)
                 .getContent().stream()
                 .map(this::toDto)
                 .toList();
@@ -81,10 +78,8 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
     @Override
     public Long selectApprovalTabTotalCnt(AdvertisementSearchDto dto) {
-        String searchText = dto.getSearchText();
-        ApprovalStatus approvalStatus = dto.getApprovalStatus();
         
-        return advertisementRepository.countApprovalTabList(searchText, approvalStatus);
+        return advertisementRepository.countApprovalTabList(dto.getSearchText(), dto.getStatus());
     }
     
     @Override
@@ -328,7 +323,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
 
         if (sortParam != null && !sortParam.isEmpty() && !"all".equals(sortParam)) {
-            switch (sortParam) {
+            switch (sortParam.toLowerCase()) {
                 case "start":
                     sort = Sort.by(Sort.Direction.ASC, "startDatetime"); // 시작 빠른순
                     break;
@@ -336,16 +331,22 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                     sort = Sort.by(Sort.Direction.ASC, "endDatetime"); // 종료 임박순
                     break;
                 case "budget":
-                	sort = Sort.by(Sort.Direction.DESC, "advertisement.totalBudget");
+                	sort = Sort.by(Sort.Direction.DESC, "totalBudget"); // 예산 높은순
                 	break;
                 case "amount":
-                	sort = Sort.by(Sort.Direction.DESC, "amount"); // 예산/금액 높은순
+                	sort = Sort.by(Sort.Direction.DESC, "amount"); // 결제 금액 높은순
                     break;
                 case "impressions":
-                	sort = Sort.by(Sort.Direction.DESC, "advertisement.impressions"); // 노출수순
+                	sort = Sort.by(Sort.Direction.DESC, "impressions"); // 노출수순
                     break;
                 case "clicks":
-                	sort = Sort.by(Sort.Direction.DESC, "advertisement.clicks");
+                	sort = Sort.by(Sort.Direction.DESC, "clicks"); // 클릭수순
+                    break;
+                case "grade":
+                    sort = Sort.by(Sort.Direction.ASC, "adGrade"); // 등급순 (알파벳 오름차순 시 GENERAL -> PREMIUM)
+                    break;
+                case "date": 
+                    sort = Sort.by(Sort.Direction.ASC, "createdAt"); // 결제 예정순 (오래된 순)
                     break;
             }
         }
