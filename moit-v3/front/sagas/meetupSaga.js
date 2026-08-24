@@ -88,9 +88,6 @@ import {
     recommendMeetupFailure,
 
     //하루 모임 3개 제한
-    fetchTodayMeetupCountRequest,
-    fetchTodayMeetupCountSuccess,
-    fetchTodayMeetupCountFailure,
 } from "../reducers/meetupReducer";
 
 const MEETUP_API_BASE = "/api/meetups";

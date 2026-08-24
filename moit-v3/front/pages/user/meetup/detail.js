@@ -13,9 +13,7 @@ import {
     getReviewListRequest,
     toggleReviewLikeRequest,
 } from "../../../reducers/reviewReducer";
-import {
-    qnaMeetupListRequest,
-} from '../../../reducers/qnaReducer';
+import { qnaMeetupListRequest } from "../../../reducers/qnaReducer";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
@@ -45,11 +43,13 @@ function MeetupDetailPage() {
     const isOwner = user?.memberId === meetup?.memberId; //user?.id === meetup?.memberId;
 
     // qna
-    const { meetupQnaList, loading: qnaLoading } = useSelector((state) => state.qna);
+    const { meetupQnaList, loading: qnaLoading } = useSelector(
+        (state) => state.qna,
+    );
 
     useEffect(() => {
-      if (!meetup?.meetupId) return;
-      dispatch(qnaMeetupListRequest(meetup.meetupId));
+        if (!meetup?.meetupId) return;
+        dispatch(qnaMeetupListRequest(meetup.meetupId));
     }, [meetup?.meetupId, dispatch]);
     //console.log(isOwner);
     //console.log(user);
@@ -197,9 +197,7 @@ function MeetupDetailPage() {
     const reviews = rawReviews.filter((review) => review.isPublic === "Y");
 
     // Q&A
-    const qnaLists = Array.isArray(meetupQnaList)
-    ? meetupQnaList
-    : [];
+    const qnaLists = Array.isArray(meetupQnaList) ? meetupQnaList : [];
 
     // 날씨
     useEffect(() => {
