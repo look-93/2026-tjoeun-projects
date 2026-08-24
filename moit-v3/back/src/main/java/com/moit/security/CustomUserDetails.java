@@ -54,6 +54,7 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
                case 1: return List.of( new SimpleGrantedAuthority("ROLE_MEMBER") );
                case 2: return List.of( new SimpleGrantedAuthority("ROLE_PARTNER") );
                case 3: return List.of( new SimpleGrantedAuthority("ROLE_ADMIN") );
+               case 4: return List.of( new SimpleGrantedAuthority("ROLE_SUPERADMIN") );
                default: return List.of( new SimpleGrantedAuthority("ROLE_MEMBER") );
            }
        }

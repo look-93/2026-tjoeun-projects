@@ -13,9 +13,7 @@ import {
     getReviewListRequest,
     toggleReviewLikeRequest,
 } from "../../../reducers/reviewReducer";
-import {
-    qnaMeetupListRequest,
-} from '../../../reducers/qnaReducer';
+import { qnaMeetupListRequest } from "../../../reducers/qnaReducer";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
@@ -33,9 +31,34 @@ import {
 const { Title } = Typography;
 
 function MeetupDetailPage() {
-    const [activeTab, setActiveTab] = useState("detail");
-    const router = useRouter();
-    const dispatch = useDispatch();
+
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const [activeTab, setActiveTab] = useState('detail');
+  //리뷰 추가
+  useEffect(() => {
+    if (router.isReady && router.query.tab) {
+      setActiveTab(router.query.tab);
+    }
+  }, [router.isReady, router.query.tab]);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    if (router.query.tab) {
+      setActiveTab(router.query.tab);
+    }
+
+    if (router.asPath.includes('tab=review')) {
+      const timer = setTimeout(() => {
+        const reviewElement = document.getElementById('review-section');
+        if (reviewElement) {
+          reviewElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 300); 
+      return () => clearTimeout(timer);
+    }
+  }, [router.isReady, router.asPath, router.query.tab]);
 
     // meetup
     const { meetup } = useSelector((state) => state.meetup);
@@ -45,11 +68,13 @@ function MeetupDetailPage() {
     const isOwner = user?.memberId === meetup?.memberId; //user?.id === meetup?.memberId;
 
     // qna
-    const { meetupQnaList, loading: qnaLoading } = useSelector((state) => state.qna);
+    const { meetupQnaList, loading: qnaLoading } = useSelector(
+        (state) => state.qna,
+    );
 
     useEffect(() => {
-      if (!meetup?.meetupId) return;
-      dispatch(qnaMeetupListRequest(meetup.meetupId));
+        if (!meetup?.meetupId) return;
+        dispatch(qnaMeetupListRequest(meetup.meetupId));
     }, [meetup?.meetupId, dispatch]);
     //console.log(isOwner);
     //console.log(user);
@@ -197,9 +222,7 @@ function MeetupDetailPage() {
     const reviews = rawReviews.filter((review) => review.isPublic === "Y");
 
     // Q&A
-    const qnaLists = Array.isArray(meetupQnaList)
-    ? meetupQnaList
-    : [];
+    const qnaLists = Array.isArray(meetupQnaList) ? meetupQnaList : [];
 
     // 날씨
     useEffect(() => {
@@ -237,7 +260,7 @@ function MeetupDetailPage() {
             </div>
         );
     }
-
+    
     // 광고
     const ad = {
         title: "Moit 특별 이벤트",

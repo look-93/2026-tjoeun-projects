@@ -28,33 +28,32 @@ public class ReviewDto {
 	}
 
 	// 리뷰 이미지 응답 DTO
-	@Getter
-	@Setter
-	public static class ReviewImageResponseDto {
-		private Long reviewImageId;
-		private Long imageId;
-		private String imageUrl; // ★ 이미지 실체 URL 경로 필드 추가
+		@Getter
+		@Setter
+		public static class ReviewImageResponseDto {
+			private Long reviewImageId;
+			private Long imageId;
+			private String imageUrl; // 이미지 경로
 
-		public static ReviewImageResponseDto from(ReviewImage reviewImage) {
-			ReviewImageResponseDto response = new ReviewImageResponseDto();
-			response.setReviewImageId(reviewImage.getId());
-			
-			// LazyLoading 에러 방지 및 Null 체크
-			try {
-				if (reviewImage.getImage() != null) {
-					response.setImageId(reviewImage.getImage().getId());
-					
-					// ★ Image 엔티티에 작성된 파일 경로/URL 필드 getter로 교체해주세요!
-					// 예: getFilePath(), getFileUrl(), getStoreFileName() 등
-					// response.setImageUrl(reviewImage.getImage().getFileUrl());
+			public static ReviewImageResponseDto from(ReviewImage reviewImage) {
+				ReviewImageResponseDto response = new ReviewImageResponseDto();
+				response.setReviewImageId(reviewImage.getId());
+				
+				// LazyLoading 에러 방지 및 Null 체크
+				try {
+					if (reviewImage.getImage() != null) {
+						response.setImageId(reviewImage.getImage().getId());
+						
+						// 💡 Image 엔티티의 경로를 가져와서 셋팅해 줍니다!
+						response.setImageUrl(reviewImage.getImage().getImagePath());
+					}
+				} catch (Exception e) {
+					// 지연 로딩 실패 시 예외 흡수
 				}
-			} catch (Exception e) {
-				// 지연 로딩 실패 시 예외를 흡수하여 API 전체 500 에러 방지
+				
+				return response;
 			}
-			
-			return response;
 		}
-	}
 
 	
 	// 리뷰 응답 DTO

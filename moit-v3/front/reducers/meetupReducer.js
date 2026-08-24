@@ -9,6 +9,7 @@ const initialState = {
     meetupApplicants: [], // 내 모임글 신청자 목록
     categories: [], // 카테고리 목록
     sigungus: [], // 시군구 목록
+    popularMeetups: [], // 인기모임
 
     // 마이페이지 통계
     myMeetupCount: {
@@ -397,6 +398,23 @@ const meetupReducer = createSlice({
         },
 
         recommendMeetupFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        //인기모임
+        fetchPopularMeetupsRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        fetchPopularMeetupsSuccess: (state, action) => {
+            state.loading = false;
+            state.popularMeetups = action.payload;
+            state.error = null;
+        },
+
+        fetchPopularMeetupsFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
         },
