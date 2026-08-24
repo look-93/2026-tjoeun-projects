@@ -288,13 +288,27 @@ public class MemberRestController {
 	                 .body(Map.of( "message", "로그인할 수 없는 회원입니다." ));
 	    }
        
-        // 6. 회원 유형 확인
-        if (user.getMemberTypeId() == null || !user.getMemberTypeId().equals(request.getMemberTypeId())) {
+	    // 6. 회원 유형 확인
+	    Long userMemberTypeId = user.getMemberTypeId();
+	    Long requestMemberTypeId = request.getMemberTypeId();
 
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(Map.of( "message", "회원유형이 맞지 않습니다." ));
-        }
+	    // 관리자 로그인
+	    if (requestMemberTypeId == null) {
+
+	        // 관리자(3) 또는 최고관리자(4)만 허용
+	        if (userMemberTypeId == null ||
+	            (userMemberTypeId != 3L && userMemberTypeId != 4L)) {
+
+	            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of( "message", "관리자 계정만 로그인할 수 있습니다." ));
+	        }
+	    }
+	    // 일반회원 / 제휴업체 로그인
+	    else {
+	        if (userMemberTypeId == null || !userMemberTypeId.equals(requestMemberTypeId)) {
+
+	            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of( "message", "회원유형이 맞지 않습니다." ));
+	        }
+	    }
 
         // 7. Access Token 생성
         String accessToken =
