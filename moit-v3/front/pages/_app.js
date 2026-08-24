@@ -14,6 +14,9 @@ import { getMyInfoRequest } from "../reducers/userReducer";
 function MyApp({ Component, pageProps, router }) {
     const dispatch = useDispatch();
 
+    // 새로고침 시 유저 정보 초기화 방지
+    const isAdminPage = router.pathname.startsWith("/admin");
+
     // ## 부품, 초기설정값
     return (
         <>
