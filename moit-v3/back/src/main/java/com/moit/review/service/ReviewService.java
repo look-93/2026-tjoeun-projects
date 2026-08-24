@@ -1,6 +1,9 @@
 package com.moit.review.service;
 
+import java.util.List;
+
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.review.dto.ReviewDto.ReviewListResponseDto;
 import com.moit.review.dto.ReviewDto.ReviewRequestDto;
@@ -34,6 +37,9 @@ public interface ReviewService {
 
     // AI 리뷰 요약/분석
     public String reviewAnalysis(Long meetupId);
+    
+    //리뷰 이미지
+    public List<Long> uploadImages(List<MultipartFile> images, Long memberId);
 
     // -------------------------------------------------------------------
     // 관리자단

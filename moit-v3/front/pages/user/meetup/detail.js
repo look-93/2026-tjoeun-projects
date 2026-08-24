@@ -31,9 +31,34 @@ import {
 const { Title } = Typography;
 
 function MeetupDetailPage() {
-    const [activeTab, setActiveTab] = useState("detail");
-    const router = useRouter();
-    const dispatch = useDispatch();
+
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const [activeTab, setActiveTab] = useState('detail');
+  //리뷰 추가
+  useEffect(() => {
+    if (router.isReady && router.query.tab) {
+      setActiveTab(router.query.tab);
+    }
+  }, [router.isReady, router.query.tab]);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    if (router.query.tab) {
+      setActiveTab(router.query.tab);
+    }
+
+    if (router.asPath.includes('tab=review')) {
+      const timer = setTimeout(() => {
+        const reviewElement = document.getElementById('review-section');
+        if (reviewElement) {
+          reviewElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 300); 
+      return () => clearTimeout(timer);
+    }
+  }, [router.isReady, router.asPath, router.query.tab]);
 
     // meetup
     const { meetup } = useSelector((state) => state.meetup);
@@ -235,7 +260,7 @@ function MeetupDetailPage() {
             </div>
         );
     }
-
+    
     // 광고
     const ad = {
         title: "Moit 특별 이벤트",
