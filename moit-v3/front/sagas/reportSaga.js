@@ -18,7 +18,8 @@ import  {
     fetchMemberReportTrustInfoRequest, fetchMemberReportTrustInfoSuccess, fetchMemberReportTrustInfoFailure,
 
     createAIReportDetailRequest, createAIReportDetailSuccess, createAIReportDetailFailure,
-    aiReportAnalysisRequest, aiReportAnalysisSuccess, aiReportAnalysisFailure
+    aiReportAnalysisRequest, aiReportAnalysisSuccess, aiReportAnalysisFailure,
+    resetAiAnalysisState
 } from '../reducers/reportReducer';
 import api from '../api/axios';
 
@@ -359,7 +360,14 @@ export const aiReportAnalysisAPI = (payload) => {
 export function* aiReportAnalysis(action) {
     try {
         const result = yield call(aiReportAnalysisAPI, action.payload);
-        yield put( aiReportAnalysisSuccess(result.data));
+        yield put(
+            aiReportAnalysisSuccess({
+                // 1. 몇 번 신고인지 → reportId
+                reportId: action.payload.reportId,
+                // 2. AI 결과가 뭔지 → result
+                result: result.data
+            })
+        );
 
     } catch (err) {
         yield put(aiReportAnalysisFailure( err.response?.data?.message || err.message ));

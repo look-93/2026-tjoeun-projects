@@ -16,11 +16,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiEmail {
 	
-	@Value("${naver.host}")
+	@Value("${NAVER_HOST}")
 	public String host;
-	@Value("${naver.user}")
+	@Value("${NAVER_USER}")
 	public String user;
-	@Value("${naver.password}")
+	@Value("${NAVER_PASSWORD}")
 	public String password;
 	
 	// 이메일 보내기			제목				본문내용			받는사람

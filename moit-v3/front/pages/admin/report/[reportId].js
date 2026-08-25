@@ -14,6 +14,7 @@ import {
     deleteAdminReportRequest,
     fetchAdminReportAuditLogsRequest,
     aiReportAnalysisRequest,
+    resetReportState,
 } from '../../../reducers/reportReducer';
 
 import {
@@ -32,23 +33,27 @@ function ReportDetailPage() {
 
     const [processReason, setProcessReason] = useState('');
 
+    
     const { reportId } = router.query; // 동적라우팅
-
+    
     const {
         currentReport,
         adminFetchDetail,
         adminUpdate,
         trustInfoFetch,     // 신뢰도 점수 조회
         adminDelete,
-
+        
         auditLogs,
         auditLogFetch,
-
-        aiAnalysis,         // // AI가 분석해서 보내준 최종 결과
+        
+        aiAnalysis,         // reportId별 전체 AI 결과 객체
         aiAnalysisLoading,
         aiAnalysisError,
 
     } = useSelector((state) => state.report);
+    
+    // 현재 reportId에 해당하는 AI 분석 결과만 가져오기
+    const currentAiAnalysis = aiAnalysis?.[reportId];
 
 
 
@@ -61,17 +66,6 @@ function ReportDetailPage() {
         dispatch( fetchAdminReportsDetailRequest({reportId: Number(reportId)}) );
         dispatch( fetchAdminReportAuditLogsRequest({reportId: Number(reportId)}) );
     }, [router.isReady, dispatch, reportId]);
-
-    // --- 페이지 진입 ---
-    useEffect(() => {
-        if (currentReport?.memberId) {
-            dispatch(
-                fetchMemberReportTrustInfoRequest({
-                    targetMemberId: currentReport.memberId,
-                })
-            );
-        }
-    }, [currentReport?.memberId]);
     
     // --- 신고 처리 후 재조회 ---
     useEffect(() => {
@@ -275,7 +269,7 @@ function ReportDetailPage() {
                         {' '}
                         ({currentReport.memberId ?? '-'}번)
                         {' => '}
-                        {currentReport.trustScore}점{' '}
+                        {currentReport?.trustScore}점{' '}
                         <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
                     </Descriptions.Item>
 
@@ -284,7 +278,7 @@ function ReportDetailPage() {
                         {' '}
                         ({currentReport.targetMemberId ?? '-'}번)
                         {' => '}
-                        {currentReport.targetTrustScore}점{' '}
+                        {currentReport?.targetTrustScore}점{' '}
                         <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
                     </Descriptions.Item>
 
@@ -374,7 +368,7 @@ function ReportDetailPage() {
                         )}
 
                         {/* AI가 분석해서 보내준 최종 결과가 있다면 */}
-                        {aiAnalysis && (
+                        {currentAiAnalysis && (
                             <Card size="small" title="AI 분석 결과">
                                 <div
                                     style={{
@@ -383,7 +377,7 @@ function ReportDetailPage() {
                                         lineHeight: 1.7,
                                     }}
                                 >
-                                    {aiAnalysis}
+                                    {currentAiAnalysis}
                                 </div>
                             </Card>
                         )}

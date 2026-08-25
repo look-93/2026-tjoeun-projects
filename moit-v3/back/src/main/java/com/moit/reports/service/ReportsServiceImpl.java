@@ -493,18 +493,14 @@ public class ReportsServiceImpl implements ReportsService {
 
 	    if (report.getTargetType() == TargetType.MEETUP) {
 	        Meetup meetup = meetupRepository
-	                .findById(report.getTargetId())
-	                .orElseThrow(() ->
-	                        new IllegalArgumentException("모임 조회 실패!")
-	                );
+					.findById(report.getTargetId()).orElseThrow(() -> new IllegalArgumentException("모임 조회 실패!"));
+	        
 	        targetMember = meetup.getMember();
 
 	    } else if (report.getTargetType() == TargetType.REVIEW) {
 	        Review review = reviewRepository
-	                .findById(report.getTargetId())
-	                .orElseThrow(() ->
-	                        new IllegalArgumentException("리뷰 조회 실패!")
-	                );
+					.findById(report.getTargetId()).orElseThrow(() -> new IllegalArgumentException("리뷰 조회 실패!"));
+	      
 	        targetMember = review.getMember();
 	        
 	        // 리뷰가 속한 모임 ID
@@ -519,13 +515,8 @@ public class ReportsServiceImpl implements ReportsService {
 	    responseDto.setTargetMemberNickname(targetMember.getNickname());
 
 	    // 신고 대상 회원의... memberInfo 조회
-	    MemberInfo targetMemberInfo = memberInfoRepository
-	            .findById(targetMember.getId())
-	            .orElseThrow(() ->
-	                    new IllegalArgumentException(
-	                            "신고 대상 회원 MemberInfo 조회 불가!"
-	                    )
-	            );
+		MemberInfo targetMemberInfo = memberInfoRepository.findById(targetMember.getId())
+				.orElseThrow(() -> new IllegalArgumentException("신고 대상 회원 MemberInfo 조회 불가!"));
 
 	    // 신고 대상 회원의... 신뢰도
 	    responseDto.setTargetTrustScore(targetMemberInfo.getTrustScore());

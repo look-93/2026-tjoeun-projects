@@ -139,7 +139,7 @@ const initialState= {
     },
 
     // 관리자 처리 보조 기능 ai 분석
-    aiAnalysis: null,   // AI가 분석해서 보내준 최종 결과
+    aiAnalysis: {},     // AI가 분석해서 보내준 최종 결과
     aiAnalysisLoading: false,
     aiAnalysisError: null,
 };
@@ -149,6 +149,7 @@ const reportReducer = createSlice({
     initialState,
     reducers: {
 
+        // 초기화 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         resetReportState: (state) => {
             state.create.success = false;
             state.create.error = null;
@@ -167,6 +168,13 @@ const reportReducer = createSlice({
 
             state.aiCreate.success = false;
             state.aiCreate.error = null;
+        },
+
+        // AI 분석결과만 초기화 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        resetAiAnalysisState: (state) => {
+            state.aiAnalysis = null;
+            state.aiAnalysisLoading = false;
+            state.aiAnalysisError = null;
         },
 
         // --- 신고글 작성 ---
@@ -406,8 +414,11 @@ const reportReducer = createSlice({
             state.aiAnalysisError = null;
         },
         aiReportAnalysisSuccess: (state, action) => {
+            const { reportId, result } = action.payload;
+
             state.aiAnalysisLoading = false;
-            state.aiAnalysis = action.payload;
+            state.aiAnalysis[reportId] = result;
+            state.aiAnalysisError = null;
         },
         aiReportAnalysisFailure: (state, action) => {
             state.aiAnalysisLoading = false;
@@ -434,7 +445,8 @@ export const {
     fetchMemberReportTrustInfoRequest, fetchMemberReportTrustInfoSuccess, fetchMemberReportTrustInfoFailure,
     
     createAIReportDetailRequest, createAIReportDetailSuccess, createAIReportDetailFailure,
-    aiReportAnalysisRequest, aiReportAnalysisSuccess, aiReportAnalysisFailure
+    aiReportAnalysisRequest, aiReportAnalysisSuccess, aiReportAnalysisFailure,
+    resetAiAnalysisState
 } = reportReducer.actions;
 
 export default reportReducer.reducer;
