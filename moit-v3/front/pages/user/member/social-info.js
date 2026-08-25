@@ -53,6 +53,13 @@ export default function SocialInfo() {
     try {
       setLoading(true);
 
+      const deviceId = localStorage.getItem("deviceId");
+
+      if (!deviceId) {
+        message.error("기기 정보를 확인할 수 없습니다.");
+        return;
+      }
+
       const requestData = {
         nickname: values.nickname,
         mobile: values.mobile,
@@ -61,6 +68,7 @@ export default function SocialInfo() {
           ? values.birth.format("YYYY-MM-DD")
           : null,
         interestIds: values.interestIds || [],
+        deviceId: deviceId,
       };
 
       const response = await api.post("/api/members/social-info",requestData);

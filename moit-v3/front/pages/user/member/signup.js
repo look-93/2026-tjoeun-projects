@@ -18,7 +18,7 @@ import {
     resetDuplicateCheck,
     resetEmailVerification,
     checkPasswordLeakRequest,
-    resetPasswordLeak
+    resetPasswordLeak,resetSignup
 } from "../../../reducers/userReducer";
 
 const {Title,Text} = Typography;      
@@ -122,6 +122,10 @@ const {
     success: signupSuccess,
     error: signupError
 } = signup;
+
+useEffect(() => {
+    dispatch(resetSignup());
+}, [dispatch]);
 
 // 입력된 이메일 
 const [email, setEmail] = useState(""); 

@@ -117,26 +117,23 @@ function UserHeader() {
   // 로그아웃
   // =========================================================
   const handleLogout = () => {
-    // 1. 프론트 토큰 즉시 삭제
-    if (typeof window !== 'undefined') {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-    }
 
-    // 2. 헤더 사용자 상태 즉시 제거
-    setUser(null);
+      if (typeof window === 'undefined') {
+          return;
+      }
 
-    // 3. 모바일 Drawer 닫기
-    setDrawerOpen(false);
+      console.log('===== LOGOUT PROVIDER =====');
+      console.log('현재 로그인 provider:', user?.provider);
 
-    // 4. Redux 로그아웃 요청
-    dispatch(logoutRequest());
+      // 모바일 Drawer 닫기
+      setDrawerOpen(false);
 
-    // 5. 메시지
-    message.success('로그아웃되었습니다.');
-
-    // 6. 로그인 페이지 이동
-    router.push('/user/member/login');
+      // 현재 로그인 사용자의 provider를 Saga로 전달
+      dispatch(
+          logoutRequest({
+              provider: user?.provider,
+          })
+      );
   };
 
   // =========================================================

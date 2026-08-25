@@ -15,6 +15,7 @@ import com.moit.member.entity.Member;
 import com.moit.member.repository.MemberRepository;
 import com.moit.security.CustomUserDetails;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
@@ -24,15 +25,27 @@ public class Oauth2UserService extends DefaultOAuth2UserService {
 
     private final MemberRepository memberRepository;
     private final HttpSession session;
+    private final HttpServletRequest request;
 
     @Transactional(readOnly = true)
     @Override
     public OAuth2User loadUser(
             OAuth2UserRequest userRequest)
             throws OAuth2AuthenticationException {
+    	
+    	// deviceId 저장
+    	String deviceId = request.getParameter("deviceId");
+
+    	if (deviceId != null && !deviceId.isBlank()) {
+    	    session.setAttribute("deviceId", deviceId);
+    	}
 
         // 1. OAuth2 사용자 정보 조회
         OAuth2User oAuth2User = super.loadUser(userRequest);
+        
+        System.out.println("===== NAVER RAW ATTRIBUTES =====");
+        System.out.println(oAuth2User.getAttributes());
+        System.out.println("================================");
 
         // 2. provider 확인
         String provider = userRequest .getClientRegistration() .getRegistrationId();

@@ -13,6 +13,10 @@ function MyPageSidebar() {
       label: '내 정보',
     },
     {
+      key: '/user/mypage/member/loginHistory',
+      label: '로그인 기록',
+    },
+    {
       key: '/user/mypage/meetup',
       label: '내 모임',
     },
