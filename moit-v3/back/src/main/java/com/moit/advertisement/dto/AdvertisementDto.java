@@ -8,6 +8,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import com.moit.advertisement.entity.Advertisement;
 import com.moit.advertisement.enums.AdGrade;
+import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.AdStatus;
 import com.moit.advertisement.enums.ApprovalStatus;
 import com.moit.advertisement.enums.PaymentHistoryStatus;
@@ -120,6 +121,8 @@ public class AdvertisementDto {
         private LocalDateTime endDatetime;
 
         private BigDecimal totalBudget;        
+        
+        private List<AdPosition> positions;
     }
     
     // =========================================================
