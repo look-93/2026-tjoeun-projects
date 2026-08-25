@@ -67,16 +67,25 @@ function MeetupDetailPage() {
     const { user } = useSelector((state) => state.user);
     const { meetupId } = router.query;
     const isOwner = user?.memberId === meetup?.memberId; //user?.id === meetup?.memberId;
-
+    
+    // 1. 현재 모임 ID 추출
+    const currentMeetupId = router.query.meetupId
+        ? Number(router.query.meetupId)
+        : 1;    
+    
     // qna
     const { meetupQnaList, loading: qnaLoading } = useSelector(
         (state) => state.qna,
     );
 
     useEffect(() => {
-        if (!meetup?.meetupId) return;
-        dispatch(qnaMeetupListRequest(meetup.meetupId));
-    }, [meetup?.meetupId, dispatch]);
+        if (!router.isReady || !currentMeetupId) return;
+
+        console.log("===== 모임 Q&A 조회 =====");
+        console.log("currentMeetupId =", currentMeetupId);
+
+        dispatch(qnaMeetupListRequest(currentMeetupId));
+    }, [router.isReady, currentMeetupId, dispatch]);
     //console.log(isOwner);
     //console.log(user);
 
@@ -85,11 +94,6 @@ function MeetupDetailPage() {
         if (!state) return {};
         return state.review || state.reviewReducer || {};
     });
-    //console.log(meetup);
-    // 1. 현재 모임 ID 추출
-    const currentMeetupId = router.query.meetupId
-        ? Number(router.query.meetupId)
-        : 1;
 
     // URL tab 쿼리 파라미터 처리 (탭 변경)
     useEffect(() => {
@@ -343,7 +347,7 @@ function MeetupDetailPage() {
                     {/* 모집 정보 */}
                     <MeetupRecruitInfo meetup={meetup} isOwner={isOwner} />
                     {/* 작성자 */}
-                    <MeetupAuthor meetup={meetup} />
+                    <MeetupAuthor meetup={meetup} meetupId={currentMeetupId} />
                     {/* 추천 모임 */}
                     <RecommendedMeetups
                         recommendedMeetups={recommendedMeetups}
