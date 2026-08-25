@@ -50,6 +50,7 @@ public class QuestionDto {
         // AI 분석 결과
         private String analysisStatus;
         private int aggressionScore;
+        private String aiCategory;
     }
     
     // 관리자 문의 목록 응답 DTO
@@ -83,7 +84,6 @@ public class QuestionDto {
     // 내 문의 목록 응답 DTO
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class QuestionMyResponseDto {
-
         // 문의 목록
         private List<QuestionResponseDto> list;
 
@@ -98,6 +98,10 @@ public class QuestionDto {
         // 검색 조건
         private String type;
         private String keyword;
+
+        // 전체 내 id 문의 기준 통계
+        private int pendingCnt;
+        private int answeredCnt;
     }
     
 }

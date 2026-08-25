@@ -71,6 +71,9 @@ dependencies {
 
     // OpenAI
     implementation 'com.openai:openai-java:2.12.0'
+    
+    // LLM-RAG PDFBox
+    implementation 'org.apache.pdfbox:pdfbox:3.0.8'
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

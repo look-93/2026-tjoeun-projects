@@ -29,7 +29,7 @@ public class JwtTokenProvider {
 	}
 	
 	// Access Token 생성
-	public String createAccessToken(Long memberId,String loginId) {
+	public String createAccessToken(Long memberId,String loginId,String deviceId) {
 		
 		Date now = new Date();
 		Date expiry = new Date(
@@ -39,6 +39,7 @@ public class JwtTokenProvider {
 		return Jwts.builder()
 				.setSubject(String.valueOf(memberId))
 				.claim("loginId", loginId)
+				.claim("deviceId", deviceId)
 				.claim("type", "ACCESS")
 				.setIssuedAt(now)
 				.setExpiration(expiry)
@@ -74,6 +75,16 @@ public class JwtTokenProvider {
 							.getSubject();
 		
 		return Long.valueOf(subject);
+	}
+	
+	public String getDeviceId(String token) {
+
+	    return Jwts.parserBuilder()
+	            .setSigningKey(secretKey)
+	            .build()
+	            .parseClaimsJws(token)
+	            .getBody()
+	            .get("deviceId", String.class);
 	}
 	
 	// JWT 타입 확인

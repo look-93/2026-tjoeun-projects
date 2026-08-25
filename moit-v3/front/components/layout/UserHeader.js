@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { logoutRequest } from '../../reducers/userReducer';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  logoutRequest,
+  getMyInfoRequest,
+} from '../../reducers/userReducer';
 import {
   BellOutlined,
   MessageOutlined,
@@ -37,9 +40,9 @@ function UserHeader() {
   const router = useRouter();
   const dispatch = useDispatch();
 
+  const { user, loading } = useSelector((state) => state.user);
+
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   const [notificationCount, setNotificationCount] = useState(0);
   const [notificationOpen, setNotificationOpen] = useState(false);
@@ -48,47 +51,25 @@ function UserHeader() {
   // =========================================================
   // 로그인 사용자 조회
   // =========================================================
-  const loadUser = async () => {
-    try {
-      // SSR 방지
-      if (typeof window === 'undefined') {
-        return;
-      }
-
-      const accessToken = localStorage.getItem('accessToken');
-
-      console.log('===== HEADER USER CHECK =====');
-      console.log('accessToken 존재:', !!accessToken);
-
-      // 토큰이 없으면 로그인 전
-      if (!accessToken) {
-        setUser(null);
-        return;
-      }
-
-      // 현재 로그인 사용자 조회
-      const response = await api.get('/api/members/me');
-
-      console.log('===== HEADER USER =====');
-      console.log(response.data);
-
-      setUser(response.data);
-
-    } catch (error) {
-      console.error('회원정보 조회 실패:', error);
-
-      setUser(null);
-
-      // 401이면 토큰 삭제
-      if (error.response?.status === 401) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-      }
-
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
     }
-  };
+
+    const accessToken = localStorage.getItem('accessToken');
+
+    console.log('===== HEADER USER CHECK =====');
+    console.log('accessToken 존재:', !!accessToken);
+
+    // 토큰이 없으면 조회하지 않음
+    if (!accessToken) {
+      return;
+    }
+
+    // Redux 사용자 정보 조회
+    dispatch(getMyInfoRequest());
+
+  }, [dispatch]);
 
   const loadNotifications = async () => {
     try {
@@ -165,11 +146,9 @@ function UserHeader() {
   };
 
   // =========================================================
-  // 최초 실행 + 페이지 이동할 때마다 사용자 정보 다시 조회
+  // 최초 실행 + 페이지 이동할 때마다 알림 조회
   // =========================================================
   useEffect(() => {
-    setLoading(true);
-    loadUser();
     loadNotifications();
   }, [router.asPath]);
 
@@ -199,26 +178,24 @@ function UserHeader() {
   // 로그아웃
   // =========================================================
   const handleLogout = () => {
-    // 1. 프론트 토큰 즉시 삭제
-    if (typeof window !== 'undefined') {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-    }
 
-    // 2. 헤더 사용자 상태 즉시 제거
-    setUser(null);
+      if (typeof window === 'undefined') {
+          return;
+      }
 
-    // 3. 모바일 Drawer 닫기
-    setDrawerOpen(false);
+      console.log('===== LOGOUT PROVIDER =====');
+      console.log('현재 로그인 provider:', user?.provider);
 
-    // 4. Redux 로그아웃 요청
-    dispatch(logoutRequest());
+      // 모바일 Drawer 닫기
+      setDrawerOpen(false);
 
-    // 5. 메시지
-    message.success('로그아웃되었습니다.');
+      // 현재 로그인 사용자의 provider를 Saga로 전달
+      dispatch(
+          logoutRequest({
+              provider: user?.provider,
+          })
+      );
 
-    // 6. 로그인 페이지 이동
-    router.push('/user/member/login');
   };
 
   // =========================================================

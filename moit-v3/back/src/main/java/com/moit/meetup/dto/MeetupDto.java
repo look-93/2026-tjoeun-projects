@@ -97,6 +97,10 @@ public class MeetupDto {
 			response.setSigunguName(sigungu.getName());
 			response.setHidden(meetup.getHidden());
 			
+			response.setCategoryId(meetup.getMeetupCategory().getId());
+			response.setCategoryName(
+			        meetup.getMeetupCategory().getCategoryName()
+			);
 			 // 대표 이미지
 		    if (meetup.getMeetupImages() != null
 		            && !meetup.getMeetupImages().isEmpty()) {

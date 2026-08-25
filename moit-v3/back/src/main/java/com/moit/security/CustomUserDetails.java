@@ -25,7 +25,7 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 	private Map<String,Object> attributes = new HashMap<>(); //##
 
 	private Long statusId;
-	
+	private String deviceId;
 
 	////////////////////////////////////// 1. 일반 로그인
 	public CustomUserDetails(UserDto user, AuthUserDto authDto) {
@@ -124,6 +124,17 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 
 	    this.statusId = user.getStatusId();
 	}
+	
+	public CustomUserDetails(UserDto user, String deviceId) {
+	    this.user = user;
+
+	    this.attributes.put("loginId", user.getLoginId());
+	    this.attributes.put("provider", user.getProvider());
+
+	    this.statusId = user.getStatusId();
+	    this.deviceId = deviceId;
+	}
+	
 	
 }
 

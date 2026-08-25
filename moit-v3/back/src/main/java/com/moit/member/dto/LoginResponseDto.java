@@ -17,4 +17,5 @@ public class LoginResponseDto {
 	private String loginId;	
 	private Long memberTypeId;
 	
+	private String deviceId;
 }

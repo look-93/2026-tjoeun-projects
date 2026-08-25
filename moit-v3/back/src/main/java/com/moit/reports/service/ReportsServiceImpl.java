@@ -1,6 +1,8 @@
 package com.moit.reports.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -15,6 +17,7 @@ import com.moit.member.entity.Member;
 import com.moit.member.entity.MemberInfo;
 import com.moit.member.repository.MemberInfoRepository;
 import com.moit.member.repository.MemberRepository;
+import com.moit.reports.api.ApiEmail;
 import com.moit.reports.dto.MemberTrustInfoDto;
 import com.moit.reports.dto.ReportAuditLogDto;
 import com.moit.reports.dto.ReportSearchDto;
@@ -43,7 +46,7 @@ public class ReportsServiceImpl implements ReportsService {
 	private final ReportRepository reportRepository;
 	private final MemberReportStatusRepository memberReportStatusRepository;
 	private final ReportAuditLogRepository reportAuditLogRepository;
-//	private final ApiEmail apiEmail;
+	private final ApiEmail apiEmail;
 	
 	private final MemberRepository memberRepository;
 	private final MemberInfoRepository memberInfoRepository;
@@ -266,23 +269,27 @@ public class ReportsServiceImpl implements ReportsService {
 		
 		reportAuditLogRepository.save(reportAuditLog);
 			
-		// 이메일 조회 및 전송
+		// 이메일 조회 및 제목, 내용 설정
 		String email = report.getMember().getEmail();
 		String subject = "신고 처리되지 않음.";
 		String content = "신고 처리되지 않음.";
 		
 		if(changedStatus == ReportStatus.APPROVED) {
-		subject = "[APPROVED] 신고 처리가 승인 되었습니다.";
-		content = "[APPROVED] 신고 처리가 승인 되었습니다.";
+			subject = "[APPROVED] Moit 신고 처리 결과";
+			content = report.getMember().getNickname()
+    				+ " 님께서 접수하신 신고가 승인 되었습니다.";
 		
 		} else if(changedStatus == ReportStatus.REJECTED) {
-		subject = "[REJECTED] 신고 처리가 반려 되었습니다.";
-		content = "[REJECTED] 신고 처리가 반려 되었습니다.";
+			subject = "[REJECTED] Moit 신고 처리 결과";
+			content = report.getMember().getNickname()
+    				+ " 님께서 접수하신 신고가 반려 되었습니다.";
 		}
 		
 		// 메일 전송 test
-//	    if (email != null && !email.isBlank()) { apiEmail.sendMail(subject, content, email); }
-//	    else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
+	    if (email != null && !email.isBlank()) {
+	    	apiEmail.sendMail(subject, content, email);
+	    }
+	    else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
 		
 		ReportResponseDto responseDto = ReportResponseDto.from(report);
 		setTargetMemberInfo(report, responseDto);
@@ -321,16 +328,20 @@ public class ReportsServiceImpl implements ReportsService {
 		);
 		reportAuditLogRepository.save(reportAuditLog);
 		
+		////////////////////////////////////////////////////////////
 		// 신고 작성자 이메일 조회 (신고 작성자 회원 = Report.member)
 	    String email = report.getMember().getEmail();
 	    
-	    // 삭제 완료 메일 발송
-	    String subject = "[DELETE] Moit 신고 문의 처리";
-	    String content = "신고 글이 삭제 되었습니다.";
+	    // 삭제 완료 메일 제목, 내용 설정
+	    String subject = "[DELETE] Moit 신고 처리 결과";
+	    String content = report.getMember().getNickname()
+	    				+ " 님께서 접수하신 신고가 삭제 되었습니다.";
 
 	    // 메일 전송 test
-//	    if (email != null && !email.isBlank()) { apiEmail.sendMail(subject, content, email); }
-//	    else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
+	    if (email != null && !email.isBlank()) {
+	    	apiEmail.sendMail(subject, content, email);
+	    }
+	    else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
 	}
 
 	// 관리자 신고 목록 조회 + 검색 + 페이징
@@ -431,24 +442,45 @@ public class ReportsServiceImpl implements ReportsService {
 		return memberInfoDto;
 	}
 
-//	신고 처리 3일 후 만족도 조사 이메일 발송
+	// 신고 처리 3일 후 만족도 조사 이메일 발송 (8월 24일 기준 - 8월 21일 00:00 ~ 23:59:59)
 	@Override
 	public void sendThreeDaysAgoReportEmails() {
-//	    for (Report report : reports) {
-//	        String email = report.getMember().getEmail();	// 메일주소 조회
-//	        
-//	        if( email != null && !email.isEmpty() ) {
-//				String subject = "[만족도 참여] Moit 문의 처리 결과는 어떠셨나요?";
-//				String content = "Moit 문의 처리 결과는 어떠셨나요?"
-//								+ "마음에 드셨다면 만족도 참여에 동참해주세요!"
-//								+ "링크첨부...";
-//
-//				//메일 전송 test
-//				try { apiEmail.sendMail(subject, content, email); }
-//				catch (Exception e) { e.printStackTrace(); }
-//
-//	        } else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
-//	    }
+		
+		// 오늘 기준 3일 전 날짜
+		LocalDate targetDate = LocalDate.now().minusDays(3);
+		
+		// 3일 전 00:00:00
+		LocalDateTime start = targetDate.atStartOfDay();
+		// 3일 전 23:59:59.999999999
+		LocalDateTime end = targetDate.atTime(LocalTime.MAX);
+		
+		// 3일 전에 처리된 신고 감사 로그 조회
+		List<ReportAuditLog> logs = reportAuditLogRepository
+				.findByProcessedAtBetweenAndThreeDayEmailSentYn(start, end, 'N');
+		
+	    for (ReportAuditLog log : logs) {
+	    	
+	    	Report report = log.getReport();
+	        String email = report.getMember().getEmail();	// 메일주소 조회
+	        
+	        if( email != null && !email.isEmpty() ) {
+				String subject = "[만족도 참여] Moit 문의 처리 결과는 어떠셨나요?";
+				String content = "Moit 신고 처리 결과는 어떠셨나요?"
+								+ "\n마음에 드셨다면 만족도 참여에 동참해주세요!"
+								+ "\n링크첨부...";
+
+				try {
+					//메일 전송 test
+					apiEmail.sendMail(subject, content, email);
+					
+					// 메일 전송 성공 → 다시 발송되지 않도록 Y 처리
+					log.setThreeDayEmailSentYn('Y');
+					
+				} catch (Exception e) { e.printStackTrace(); }
+
+	        } else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
+	    }
+		
 	}
 	
 	
