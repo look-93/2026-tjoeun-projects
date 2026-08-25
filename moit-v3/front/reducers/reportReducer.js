@@ -137,6 +137,11 @@ const initialState= {
         error: null,
         success: false,
     },
+
+    // 관리자 처리 보조 기능 ai 분석
+    aiAnalysis: null,   // AI가 분석해서 보내준 최종 결과
+    aiAnalysisLoading: false,
+    aiAnalysisError: null,
 };
 
 const reportReducer = createSlice({
@@ -377,7 +382,7 @@ const reportReducer = createSlice({
             state.trustInfoFetch.loading = false;
             state.trustInfoFetch.error = action.payload;
         },
-
+        
         // openAi 기능
         createAIReportDetailRequest: (state) => {
             state.aiCreate.loading = true;
@@ -393,6 +398,20 @@ const reportReducer = createSlice({
             state.aiCreate.loading = false;
             state.aiCreate.success = false;
             state.aiCreate.error = action.payload;
+        },
+
+        // 관리자 처리 보조 기능 openAi 분석
+        aiReportAnalysisRequest: (state) => {
+            state.aiAnalysisLoading = true;
+            state.aiAnalysisError = null;
+        },
+        aiReportAnalysisSuccess: (state, action) => {
+            state.aiAnalysisLoading = false;
+            state.aiAnalysis = action.payload;
+        },
+        aiReportAnalysisFailure: (state, action) => {
+            state.aiAnalysisLoading = false;
+            state.aiAnalysisError = action.payload;
         },
     }
 
@@ -414,7 +433,8 @@ export const {
     fetchAdminReportAuditLogsRequest, fetchAdminReportAuditLogsSuccess, fetchAdminReportAuditLogsFailure,
     fetchMemberReportTrustInfoRequest, fetchMemberReportTrustInfoSuccess, fetchMemberReportTrustInfoFailure,
     
-    createAIReportDetailRequest, createAIReportDetailSuccess, createAIReportDetailFailure
+    createAIReportDetailRequest, createAIReportDetailSuccess, createAIReportDetailFailure,
+    aiReportAnalysisRequest, aiReportAnalysisSuccess, aiReportAnalysisFailure
 } = reportReducer.actions;
 
 export default reportReducer.reducer;

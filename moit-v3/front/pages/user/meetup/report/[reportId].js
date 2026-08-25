@@ -93,7 +93,6 @@ function ReportDetailPage() {
     };
 
 
-
     //////////////////////////////////////////////////////
     // 해당 신고 대상 글 보기
     const handleTargetView = () => {
@@ -108,6 +107,7 @@ function ReportDetailPage() {
 
         // 리뷰 신고
         if (currentReport.targetType === 'REVIEW') {
+
             router.push(
                 // http://localhost:3000/user/meetup/review/detailreview?reviewId=10&meetupId=3
                 `/user/meetup/review/detailreview?reviewId=${currentReport.targetId}&meetupId=${currentReport.meetupId}`
