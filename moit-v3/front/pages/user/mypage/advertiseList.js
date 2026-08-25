@@ -452,7 +452,7 @@ function AdvertiseListPage() {
         />
       </div>
 
-      {/* 🌟 결제 컴포넌트를 담은 모달 추가 (return 영역 제일 아래에 추가) */}
+      {/* 결제 컴포넌트를 담은 모달 추가*/}
       <Modal
         open={isPaymentModalOpen}
         onCancel={() => setIsPaymentModalOpen(false)}

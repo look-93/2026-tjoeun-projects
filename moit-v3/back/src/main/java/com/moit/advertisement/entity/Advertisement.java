@@ -173,6 +173,14 @@ public class Advertisement extends BaseEntity{
     // Y = 발송 / N = 미발송
     @Column(name = "REMINDER_14D_SENT", length = 1, nullable = false)
     private String reminder14dSent;
+    
+    public void markReminder30dSent() {
+        this.reminder30dSent = "Y";
+    }
+
+    public void markReminder14dSent() {
+        this.reminder14dSent = "Y";
+    }
 
 
     // 광고 총 예산

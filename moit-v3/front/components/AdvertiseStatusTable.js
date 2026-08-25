@@ -1,4 +1,4 @@
-import { Button, Table } from 'antd';
+import { Button, Table, Dropdown, Tag } from 'antd';
 
 function AdvertiseStatusTable({
   dataSource,
@@ -57,29 +57,49 @@ function AdvertiseStatusTable({
       dataIndex: 'status',
       key: 'status',
       align: 'center',
-      render: (value, record) => (
-        <select
-          value={value}
-          onChange={(e) =>
-            onStatusChange(
-              record.adId,
-              e.target.value
-            )
-          }
-        >
-          <option value="PENDING">
-            PENDING
-          </option>
+      render: (value, record) => {
+        // 1. 상태별 색상과 텍스트 설정
+        let color = 'orange';
+        let label = '대기';
 
-          <option value="OPEN">
-            OPEN
-          </option>
+        if (value === 'OPEN') {
+          color = 'green';
+          label = '게시 중';
+        } else if (value === 'CLOSED') {
+          color = 'red';
+          label = '종료';
+        }
 
-          <option value="CLOSED">
-            CLOSED
-          </option>
-        </select>
-      ),
+        // 2. 드롭다운에 보여줄 메뉴 항목들
+        const items = [
+          { key: 'PENDING', label: '대기' },
+          { key: 'OPEN', label: '게시 중' },
+          { key: 'CLOSED', label: '종료' },
+        ];
+
+        return (
+          <Dropdown
+            menu={{
+              items,
+              onClick: (e) => onStatusChange(record.adId, e.key),
+            }}
+            trigger={['click']}
+          >
+            {/* 하얀 테두리 박스 없이, 색칠된 네모 상자 자체를 버튼처럼 사용 */}
+            <Tag
+              color={color}
+              style={{
+                cursor: 'pointer',
+                padding: '4px 12px', // 크기를 좀 더 키움
+                fontSize: '13px',
+                margin: 0,
+              }}
+            >
+              {label} ▼
+            </Tag>
+          </Dropdown>
+        );
+      },
     },
     {
       title: '광고 기간',

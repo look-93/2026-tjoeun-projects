@@ -23,6 +23,17 @@ function Login(){
 
     const [form] = Form.useForm();
 
+    const getDeviceId = () => {
+        let deviceId = localStorage.getItem("deviceId");
+
+        if (!deviceId) {
+            deviceId = crypto.randomUUID();
+            localStorage.setItem("deviceId", deviceId);
+        }
+
+        return deviceId;
+    };
+
 
     // =========================
     // Redux 상태
@@ -93,6 +104,13 @@ function Login(){
     // =========================
     const handleLogin = (values) => {
 
+        console.log("========== LOGIN BUTTON CLICK ==========");
+        console.log("현재 Redux login 상태:", {
+            loading,
+            success,
+            error,
+        });
+
         const loginId = values.loginId.trim();
         const password = values.password;
 
@@ -157,25 +175,39 @@ function Login(){
     // 카카오 로그인
     // =========================
     const handleKakaoLogin = () => {
+        const deviceId = getDeviceId();
+
+        localStorage.setItem("socialProvider", "KAKAO");
+
         window.location.href =
-            "http://localhost:8080/oauth2/authorization/kakao";
+            `http://localhost:8080/oauth2/authorization/kakao?deviceId=${encodeURIComponent(deviceId)}`;
     };
+
 
     // =========================
     // 네이버 로그인
     // =========================
     const handleNaverLogin = () => {
-    window.location.href =
-        "http://localhost:8080/oauth2/authorization/naver";
+        const deviceId = getDeviceId();
+
+        localStorage.setItem("socialProvider", "NAVER");
+
+        window.location.href =
+            `http://localhost:8080/oauth2/authorization/naver?deviceId=${encodeURIComponent(deviceId)}`;
     };
+
 
     // =========================
     // 구글 로그인
     // =========================
     const handleGoogleLogin = () => {
-    window.location.href =
-        "http://localhost:8080/oauth2/authorization/google";
-    };      
+        const deviceId = getDeviceId();
+
+        localStorage.setItem("socialProvider", "GOOGLE");
+
+        window.location.href =
+            `http://localhost:8080/oauth2/authorization/google?deviceId=${encodeURIComponent(deviceId)}`;
+    }; 
 
     ///////////////////////////////
     return (

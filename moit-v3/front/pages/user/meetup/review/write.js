@@ -68,12 +68,10 @@ function ReviewWritePage() {
       // 기존 이미지 매핑 (있는 경우)
       if (reviewDetail.images && Array.isArray(reviewDetail.images)) {
         const initialFiles = reviewDetail.images.map((img, idx) => {
-          // 💡 파일명만 올 경우 앞에 백엔드 정적 리소스 주소를 붙여줍니다.
-          // (백엔드 업로드 경로 구조에 맞게 폴더명 수정이 필요할 수 있습니다. 예: /upload/review/ 등)
           const rawUrl = img.imageUrl || '';
           const fullImageUrl = rawUrl.startsWith('http') 
             ? rawUrl 
-            : `http://localhost:8080/upload/review/${rawUrl}`; // 👈 백엔드 이미지 저장 경로에 맞게 확인해주세요!
+            : `http://localhost:8080/upload/review/${rawUrl}`;
 
           return {
             uid: `-${idx}`,
@@ -81,7 +79,7 @@ function ReviewWritePage() {
             status: 'done',
             id: img.reviewImageId || img.imageId || img.id,
             url: fullImageUrl,
-            thumbUrl: fullImageUrl, // 썸네일 미리보기 경로 완성
+            thumbUrl: fullImageUrl,
           };
         });
         setFileList(initialFiles);
@@ -95,17 +93,19 @@ function ReviewWritePage() {
       alert(isEditMode ? '리뷰가 성공적으로 수정되었습니다.' : '리뷰가 성공적으로 등록되었습니다.');
       dispatch(resetReviewState());
 
-      // 1. queryMeetupId가 우선, 없으면 reviewDetail 내부의 meetupId 확인 (그것도 없으면 기본 6)
-      const targetMeetupId = queryMeetupId || (reviewDetail && reviewDetail.meetupId) || 6;
-
-      // 2. 탭 이동과 함께 해시(#review-section)를 붙여서 스크롤 이동 유도
-      router.push(`/user/meetup/detail?meetupId=${targetMeetupId}&tab=review#review-section`);
+      // 💡 마이페이지에서 진입한 경우 원하시는 단독 후기 페이지 경로로 이동
+      if (fromMypage) {
+        router.push('/user/mypage/review'); 
+      } else {
+        const targetMeetupId = queryMeetupId || (reviewDetail && reviewDetail.meetupId) || 6;
+        router.push(`/user/meetup/detail?meetupId=${targetMeetupId}&tab=review#review-section`);
+      }
     }
 
+    
     if (error) {
       console.log('🚨 최종 수신된 에러 값:', error);
 
-      // 서버가 보낸 실제 응답 메시지를 안전하게 추출
       let errorMsg = '알 수 없는 오류가 발생했습니다.';
 
       if (typeof error === 'object') {
@@ -163,10 +163,8 @@ function ReviewWritePage() {
           formData.append('images', file.originFileObj);
         });
 
-        // 💡 1. 로컬 스토리지에서 액세스 토큰을 안전하게 꺼냅니다.
         const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
 
-        // 💡 2. 헤더에 Authorization을 포함하여 백엔드로 전송합니다.
         const imageResponse = await axios.post('http://localhost:8080/api/reviews/images', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -179,8 +177,13 @@ function ReviewWritePage() {
         uploadedImageIds = [...uploadedImageIds, ...newImageIds];
       }
 
+      // 💡 마이페이지 등에서 meetupId가 없을 경우, 이미 조회해 둔 reviewDetail의 meetupId를 사용하여 400 에러 방지
+      const resolvedMeetupId = rawMeetupId 
+        ? Number(rawMeetupId) 
+        : (reviewDetail && reviewDetail.meetupId ? Number(reviewDetail.meetupId) : undefined);
+
       const requestDto = {
-        meetupId: rawMeetupId ? Number(rawMeetupId) : undefined,
+        meetupId: resolvedMeetupId,
         rating,
         isPublic,
         content: content.trim(),

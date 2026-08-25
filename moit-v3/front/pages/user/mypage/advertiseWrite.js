@@ -60,9 +60,9 @@ function AdvertiseWritePage() {
     const fetchPrices = async () => {
       try {
         // 일반/프리미엄 기본 가격 목록 가져오기 
-        const priceRes = await axios.get('http://localhost:8080/api/admin/advertisement/price');
+        const priceRes = await axios.get('/api/admin/advertisement/price');
         // 위치별 추가금 가져오기
-        const positionRes = await axios.get('http://localhost:8080/api/admin/advertisement/price/position');
+        const positionRes = await axios.get('/api/admin/advertisement/price/position');
 
         // ==========================================
         // 🛠️ 기본 가격 (기간별로 일반/프리미엄 묶기)
@@ -179,7 +179,7 @@ function AdvertiseWritePage() {
       message.loading({ content: '🤖 AI가 광고 내용을 작성 중입니다...', key: 'aiLoad', duration: 0 });
 
       // 2차 소스에서 쓰던 백엔드 API 엔드포인트 연동
-      const response = await axios.post('http://localhost:8080/user/advertisement/aiAdvertise', {
+      const response = await axios.post('/user/advertisement/aiAdvertise', {
         keyword: aiKeyword,
       });
       const data = response.data;
@@ -347,7 +347,7 @@ function AdvertiseWritePage() {
 
           {/* 🤖 AI 광고 도우미 */}
           {showAiHelper && !isEdit && (
-            <Card size="small" style={{ marginBottom: 20, background: '#f6ffed', borderColor: '#338cff' }}>
+            <Card size="small" style={{ marginBottom: 20, background: '#e1effd', borderColor: '#338cff' }}>
               <div style={{ marginBottom: 8, color: '#427dfd', fontWeight: 600 }}>
                 <RobotOutlined /> 🤖 AI 광고 작성 도우미
               </div>

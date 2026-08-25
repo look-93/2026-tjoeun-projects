@@ -29,9 +29,9 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
         if (authentication != null &&
             authentication.getPrincipal() instanceof CustomUserDetails user) {
 
-            //String provider = user.getProvider();
+            String provider = user.getProvider();
 
-            if ("kakao".equals(user.getProvider())) {
+            if ("kakao".equals(provider)) {
 
                 String logoutUrl =
                     "https://kauth.kakao.com/oauth/logout"
