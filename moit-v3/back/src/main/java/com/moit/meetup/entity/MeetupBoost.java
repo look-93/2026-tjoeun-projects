@@ -25,7 +25,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name="MEETUP_BOOST")
+@Table(name="MEETUP_BOOSTS")
 public class MeetupBoost extends BaseEntity{
 	
 	@Id
