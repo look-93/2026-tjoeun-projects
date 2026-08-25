@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col } from "antd";
+import { Row, Col, message } from "antd";
 import { useRouter } from "next/router";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -41,6 +41,8 @@ function MeetupListPage() {
     const { meetups, categories, sigungus, totalCount } = useSelector(
         (state) => state.meetup,
     );
+
+    const { user } = useSelector((state) => state.user);
 
     // 최초 한 번만
     useEffect(() => {
@@ -124,6 +126,11 @@ function MeetupListPage() {
 
     // 상세
     const handleMeetupClick = (meetupId) => {
+        if (!user) {
+            message.warning("로그인이 필요한 서비스입니다.");
+            router.push("/user/member/login");
+            return;
+        }
         router.push(`/user/meetup/detail?meetupId=${meetupId}`);
     };
 

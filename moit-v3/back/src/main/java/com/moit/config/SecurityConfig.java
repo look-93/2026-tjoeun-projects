@@ -125,7 +125,8 @@ public class SecurityConfig {
                 "/user/member/checkPassword",
                 "/admin/member/join",
                 "/meetup/list",
-                "/user/advertisement/click"
+                "/user/advertisement/click",
+                "/api/meetups/**"
             ).permitAll()
 
             // -------------------------------------------------

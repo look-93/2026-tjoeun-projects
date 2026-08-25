@@ -14,7 +14,7 @@ function CategoryList({ categories, onCategoryClick }) {
         음악: "☕",
         요리: "🎵",
     };
-    console.log(categories);
+
     return (
         <Row gutter={[12, 12]}>
             <Col span={24}>

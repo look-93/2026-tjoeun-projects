@@ -11,17 +11,14 @@ function MeetupCard({ meetup, onClick, onToggleLike }) {
             onClick={() => onClick?.(meetup.meetupId ?? meetup.id)}
             cover={
                 <div className="meetup-image">
-                    {meetup.imagePath ? (
-                        <img
-                            src={`http://localhost:8080/upload/meetup/${meetup.imagePath}`}
-                            alt={meetup.title}
-                        />
-                    ) : (
-                        <div className="meetup-no-image">
-                            <span className="icon">🖼️</span>
-                            <span>등록된 이미지가 없습니다.</span>
-                        </div>
-                    )}
+                    <img
+                        src={
+                            meetup.imagePath
+                                ? `http://localhost:8080/upload/meetup/${meetup.imagePath}`
+                                : "http://localhost:8080/upload/no-image.png"
+                        }
+                        alt={meetup.title}
+                    />
                 </div>
             }
         >
