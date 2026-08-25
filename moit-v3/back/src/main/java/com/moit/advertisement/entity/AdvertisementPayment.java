@@ -234,9 +234,10 @@ public class AdvertisementPayment {
     }
     
     // 결제 성공 시 상태 변경 메서드 추가
-    public void updatePaymentSuccess(String paymentKey) {
+    public void updatePaymentSuccess(String paymentKey, String paymentMethod) {
         this.paymentStatus = PaymentHistoryStatus.PAID;
         this.paymentKey = paymentKey;
+        this.paymentMethod = paymentMethod;
         this.paidAt = LocalDateTime.now();
     }
 }
