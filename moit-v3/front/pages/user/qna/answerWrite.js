@@ -107,7 +107,6 @@ function answerWrite() {
     : '공개';
 
   const handleSubmit = () => {
-
     if (!questionId) return;
 
     if (!canAnswer) {

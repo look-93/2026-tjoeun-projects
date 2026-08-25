@@ -73,7 +73,6 @@ const qnaReducer = createSlice({
         },
         qnaMeetupListSuccess: (state, action) => {
             state.loading = false;
-            state.qnaList = action.payload;
             state.meetupQnaList = action.payload;
         },
         qnaMeetupListFailure: (state, action) => {

@@ -14,7 +14,6 @@ import {
 } from '../../../reducers/meetupReducer';
 
 import {
-  Breadcrumb,
   Button,
   Card,
   Descriptions,
@@ -178,7 +177,6 @@ function questionDetail() {
 
   const handleDelete = () => {
     if (!questionId) return;
-
     if (!window.confirm('문의를 삭제하시겠습니까?')) return;
 
     dispatch(
@@ -188,7 +186,6 @@ function questionDetail() {
 
   const handleAnswerDelete = () => {
     if (!qna?.questionId || !answer.answerId) return;
-
     if (!window.confirm('답변을 삭제하시겠습니까?')) return;
 
     dispatch(
@@ -201,20 +198,12 @@ function questionDetail() {
 
   const handleSatisfaction = () => {
     if (!answer.answerId) return;
-
     if (!selectedRating) {
-      alert('만족도를 선택해주세요.');
-      return;
+      alert('만족도를 선택해주세요.'); return;
     }
 
     if (answer.rating) {
-      if (
-        !window.confirm(
-          '이미 만족도 평가를 하셨습니다. 수정하시겠습니까?'
-        )
-      ) {
-        return;
-      }
+      if (!window.confirm('이미 만족도 평가를 하셨습니다. 수정하시겠습니까?')) {return;}
     }
 
     dispatch(
@@ -462,7 +451,6 @@ function questionDetail() {
                   답변 만족도
                 </Title>
 
-
                 {/* =================================================
                     등록된 만족도 결과
                 ================================================= */}
@@ -484,13 +472,10 @@ function questionDetail() {
                     </Descriptions.Item>
 
                   </Descriptions>
-
                 ) : (
-
                   <Text type="secondary">
                     아직 등록된 만족도 평가가 없습니다.
                   </Text>
-
                 )}
 
 
@@ -585,16 +570,11 @@ function questionDetail() {
                           >
                             만족도 삭제
                           </Button>
-
                         )}
-
                       </Space>
                     </div>
-
                   </>
-
                 )}
-
 
                 {/* =================================================
                     관리자 삭제 버튼
@@ -611,29 +591,18 @@ function questionDetail() {
                     >
                       만족도 삭제
                     </Button>
-
                   </div>
-
                 )}
-
               </>
-
             )}
-
           </>
-
         ) : (
-
           <>
-
             <Text type="secondary">
               아직 등록된 답변이 없습니다.
             </Text>
-
           </>
-
         )}
-
       </Card>
     </div>
   );
