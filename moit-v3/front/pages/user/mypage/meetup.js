@@ -23,7 +23,7 @@ import {
     updateApplicationStatusRequest,
     fetchMyMeetupCountRequest,
     deleteMeetupRequest,
-    resetMeetupState,
+    resetDeleteSuccess,
 } from "../../../reducers/meetupReducer";
 import MeetupApplicantModal from "../../../components/MeetupApplicantModal";
 import MyPageStatCard from "../../../components/MyPageStatCard";
@@ -106,7 +106,7 @@ function UserMyMeetupPage() {
     const handleDelete = (meetupId) => {
         Modal.confirm({
             title: "모임을 삭제하시겠습니까?",
-            content: "삭제한 모임은 다시 복수할 수 없습니다.",
+            content: "삭제한 모임은 다시 복구할 수 없습니다.",
             okText: "삭제",
             cancelText: "취소",
             okButtonProps: {
@@ -161,7 +161,18 @@ function UserMyMeetupPage() {
         if (!deleteSuccess) return;
 
         message.success("모임이 삭제되었습니다.");
-    }, [deleteSuccess]);
+
+        dispatch(
+            fetchMyMeetupsRequest({
+                page: 0,
+                size: 10,
+            }),
+        );
+
+        dispatch(fetchMyMeetupCountRequest());
+
+        dispatch(resetDeleteSuccess());
+    }, [deleteSuccess, dispatch]);
 
     // 테이블
     const columns = [
@@ -233,34 +244,42 @@ function UserMyMeetupPage() {
             title: "관리",
             key: "manage",
             align: "center",
-            render: (_, record) => (
-                <Space>
-                    <Button
-                        size="small"
-                        onClick={() =>
-                            router.push(
-                                `/user/meetup/write?meetupId=${record.id}`,
-                            )
-                        }
-                    >
-                        수정
-                    </Button>
+            render: (_, record) => {
+                const isCompleted = record.meetupStatus === "COMPLETED";
 
-                    <Button
-                        size="small"
-                        onClick={() => handleApplicantManage(record.id)}
-                    >
-                        신청자 관리
-                    </Button>
-                    <Button
-                        danger
-                        size="small"
-                        onClick={() => handleDelete(record.id)}
-                    >
-                        삭제
-                    </Button>
-                </Space>
-            ),
+                return (
+                    <Space>
+                        <Button
+                            size="small"
+                            disabled={isCompleted}
+                            onClick={() =>
+                                router.push(
+                                    `/user/meetup/write?meetupId=${record.id}`,
+                                )
+                            }
+                        >
+                            수정
+                        </Button>
+
+                        <Button
+                            size="small"
+                            disabled={isCompleted}
+                            onClick={() => handleApplicantManage(record.id)}
+                        >
+                            신청자 관리
+                        </Button>
+
+                        <Button
+                            danger
+                            size="small"
+                            disabled={isCompleted}
+                            onClick={() => handleDelete(record.id)}
+                        >
+                            삭제
+                        </Button>
+                    </Space>
+                );
+            },
         },
     ];
 

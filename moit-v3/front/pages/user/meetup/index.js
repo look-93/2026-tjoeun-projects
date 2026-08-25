@@ -38,10 +38,11 @@ function MeetupListPage() {
         orderType: "createAt",
     });
 
-    const { meetups, categories, sigungus, totalCount, user } = useSelector(
+    const { meetups, categories, sigungus, totalCount } = useSelector(
         (state) => state.meetup,
-        (state) => state.user,
     );
+
+    const { user } = useSelector((state) => state.user);
 
     // 최초 한 번만
     useEffect(() => {

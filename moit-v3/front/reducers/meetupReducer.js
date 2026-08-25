@@ -131,7 +131,7 @@ const meetupReducer = createSlice({
             state.deleteSuccess = false;
         },
 
-        deleteMeetupSuccess: (state) => {
+        deleteMeetupSuccess: (state, action) => {
             state.loading = false;
             state.meetups = state.meetups.filter(
                 (meetup) => meetup.id !== action.payload,
@@ -468,6 +468,10 @@ const meetupReducer = createSlice({
             state.visibilitySuccess = false;
             state.statusSuccess = false;
         },
+
+        resetDeleteSuccess: (state) => {
+            state.deleteSuccess = false;
+        },
     },
 });
 
@@ -569,6 +573,7 @@ export const {
 
     // 상태 초기화
     resetMeetupState,
+    resetDeleteSuccess,
 } = meetupReducer.actions;
 
 export default meetupReducer.reducer;

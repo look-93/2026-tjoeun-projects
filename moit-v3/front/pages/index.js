@@ -14,10 +14,8 @@ import {
 
 export default function Home() {
     const dispatch = useDispatch();
-    const { categories, popularMeetups, user } = useSelector(
-        (state) => state.meetup,
-        (state) => state.user,
-    );
+    const { categories, popularMeetups } = useSelector((state) => state.meetup);
+    const { user } = useSelector((state) => state.user);
     const router = useRouter();
 
     useEffect(() => {
