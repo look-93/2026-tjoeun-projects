@@ -1,7 +1,6 @@
 //전체앱의 공통 설정(Redux Provider, 글로벌 스타일 등)
 import React, { useEffect } from "react"; // React 불러오기
 import Head from "next/head";
-import { useDispatch } from "react-redux";
 import { getMyInfoRequest } from "../reducers/userReducer";
 
 import { wrapper } from "../store/configureStore"; // Redux Store를 연결해주는 객체 ,치킨집(전역상태 + 서버연동)
@@ -11,7 +10,6 @@ import "antd/dist/antd.css"; // ant 디자인
 import "../styles/global.css"; // 전역 css
 import "bootstrap/dist/css/bootstrap.min.css"; // bootstrap css
 import { useDispatch, useSelector } from "react-redux";
-import { getMyInfoRequest } from "../reducers/userReducer";
 
 //부품
 function MyApp({ Component, pageProps, router }) {

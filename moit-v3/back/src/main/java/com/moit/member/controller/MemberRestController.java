@@ -831,8 +831,9 @@ public class MemberRestController {
 	    CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
 	    Long memberId = userDetails.getAppUserId();
+	    String currentDeviceId = userDetails.getDeviceId();
 
-	    List<LoginDeviceDto> devices = loginDeviceService.getLoginDevices(memberId);
+	    List<LoginDeviceDto> devices = loginDeviceService.getLoginDevices(memberId, currentDeviceId);
 
 	    return ResponseEntity.ok(devices);
 	}

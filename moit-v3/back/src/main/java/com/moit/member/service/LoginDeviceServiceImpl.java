@@ -41,7 +41,7 @@ public class LoginDeviceServiceImpl implements LoginDeviceService {
 	
 	// 로그인 기기 조회
 	@Override
-	public List<LoginDeviceDto> getLoginDevices(Long memberId) {
+	public List<LoginDeviceDto> getLoginDevices(Long memberId, String currentDeviceId) {
 		
 		String pattern = "loginDevice:" + memberId + ":*";
 
@@ -64,13 +64,15 @@ public class LoginDeviceServiceImpl implements LoginDeviceService {
             String loginType = hash.get(key, "loginType");
 
             String lastLoginAt = hash.get(key, "lastLoginAt");
-
+            
+            boolean current = deviceId != null && deviceId.equals(currentDeviceId);
+            
             LoginDeviceDto dto = LoginDeviceDto.builder()
 		                            .deviceId(deviceId)
 		                            .ipAddress(ipAddress)
 		                            .userAgent(userAgent)
 		                            .loginType(loginType)
-		                            .lastLoginAt( lastLoginAt != null ? LocalDateTime.parse(lastLoginAt) : null ) .build();
+		                            .lastLoginAt( lastLoginAt != null ? LocalDateTime.parse(lastLoginAt) : null ).current(current).build();
 
             devices.add(dto);
         }

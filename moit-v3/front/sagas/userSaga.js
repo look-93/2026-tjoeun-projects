@@ -21,7 +21,10 @@ import {
     updateMyInfoSuccess,updateMyInfoFailure, resetUpdateMyInfo,
     uploadProfileImageRequest,uploadProfileImageSuccess,uploadProfileImageFailure,
     resetProfileImage, deleteAccountRequest,deleteAccountSuccess,deleteAccountFailure,resetDeleteAccount,
-    getLoginHistoryRequest,getLoginHistorySuccess,getLoginHistoryFailure,resetLoginHistory,resetSignup
+    getLoginHistoryRequest,getLoginHistorySuccess,getLoginHistoryFailure,resetLoginHistory,resetSignup,
+    getLoginDevicesRequest,getLoginDevicesSuccess,getLoginDevicesFailure,resetLoginDevices,
+    deleteLoginDeviceRequest,deleteLoginDeviceSuccess,deleteLoginDeviceFailure,resetDeleteLoginDevice,
+    deleteAllLoginDevicesRequest,deleteAllLoginDevicesSuccess,deleteAllLoginDevicesFailure,resetDeleteAllLoginDevices,  
 } from '../reducers/userReducer';
 
 
@@ -206,6 +209,31 @@ function getLoginHistoryApi() {
   return api.get("/api/members/login-history");
 }
 
+// =========================
+// 로그인 기기 조회 API
+// =========================
+function getLoginDevicesApi() {
+    return api.get("/api/members/login-devices");
+}
+
+// =========================
+// 특정 기기 로그아웃 API
+// =========================
+function deleteLoginDeviceApi(deviceId) {
+    return api.delete(
+        `/api/members/login-devices/${deviceId}`
+    );
+}
+
+// =========================
+// 모든 기기 로그아웃 API
+// =========================
+function deleteAllLoginDevicesApi() {
+    return api.delete(
+        "/api/members/login-devices/all"
+    );
+}
+
 ////////////////////////////////////////////////////
 
 // =========================
@@ -331,6 +359,120 @@ function* getLoginHistorySaga() {
     }
 }
 
+// =========================
+// 특정 기기 로그아웃
+// =========================
+function* deleteLoginDeviceSaga(action) {
+
+    try {
+
+        const deviceId = action.payload;
+
+        console.log("===== 특정 기기 로그아웃 START =====");
+        console.log("deviceId:", deviceId);
+
+        const response = yield call(
+            deleteLoginDeviceApi,
+            deviceId
+        );
+
+        console.log("===== 특정 기기 로그아웃 SUCCESS =====");
+        console.log("response:", response.data);
+
+        yield put(
+            deleteLoginDeviceSuccess()
+        );
+
+        // 삭제 후 기기 목록 다시 조회
+        yield put(
+            getLoginDevicesRequest()
+        );
+
+    } catch (error) {
+
+        console.error("===== 특정 기기 로그아웃 FAILURE =====");
+        console.error(error);
+
+        yield put(
+            deleteLoginDeviceFailure(
+                error.response?.data?.message ||
+                "기기 로그아웃에 실패했습니다."
+            )
+        );
+    }
+}
+
+// =========================
+// 모든 기기 로그아웃
+// =========================
+function* deleteAllLoginDevicesSaga() {
+
+    try {
+
+        console.log("===== 모든 기기 로그아웃 START =====");
+
+        const response = yield call(
+            deleteAllLoginDevicesApi
+        );
+
+        console.log("===== 모든 기기 로그아웃 SUCCESS =====");
+        console.log("response:", response.data);
+
+        yield put(
+            deleteAllLoginDevicesSuccess()
+        );
+
+        // 삭제 후 기기 목록 다시 조회
+        yield put(
+            getLoginDevicesRequest()
+        );
+
+    } catch (error) {
+
+        console.error("===== 모든 기기 로그아웃 FAILURE =====");
+        console.error(error);
+
+        yield put(
+            deleteAllLoginDevicesFailure(
+                error.response?.data?.message ||
+                "모든 기기 로그아웃에 실패했습니다."
+            )
+        );
+    }
+}
+
+// =========================
+// 로그인 기기 조회
+// =========================
+function* getLoginDevicesSaga() {
+
+    try {
+
+        console.log("===== 로그인 기기 조회 START =====");
+
+        const response = yield call(getLoginDevicesApi);
+
+        console.log("===== 로그인 기기 조회 SUCCESS =====");
+        console.log("status:", response.status);
+        console.log("data:", response.data);
+
+        yield put(
+            getLoginDevicesSuccess(response.data)
+        );
+
+    } catch (error) {
+
+        console.error("===== 로그인 기기 조회 FAILURE =====");
+        console.error(error);
+
+        yield put(
+            getLoginDevicesFailure(
+                error.response?.data?.message ||
+                "로그인 기기를 불러오지 못했습니다."
+            )
+        );
+    }
+}
 
 // =========================
 // 회원가입
@@ -854,5 +996,8 @@ export default function* userSaga(){
         takeLatest(uploadProfileImageRequest.type,uploadProfileImage),
         takeLatest(deleteAccountRequest.type, deleteAccount),
         takeLatest(getLoginHistoryRequest.type, getLoginHistorySaga),
+        takeLatest(getLoginDevicesRequest.type,getLoginDevicesSaga),
+        takeLatest(deleteLoginDeviceRequest.type,deleteLoginDeviceSaga),
+        takeLatest(deleteAllLoginDevicesRequest.type,deleteAllLoginDevicesSaga),
     ]);
 }

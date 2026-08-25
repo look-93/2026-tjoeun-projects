@@ -139,6 +139,29 @@ const initialState = {
         error: null,
     },
 
+    // =========================
+    // 로그인 기기 관리
+    // =========================
+    loginDevices: {
+        loading: false,
+        data: [],
+        error: null,
+    },
+
+    // 특정 기기 로그아웃
+    deleteLoginDevice: {
+        loading: false,
+        success: false,
+        error: null,
+    },
+
+    // 모든 기기 로그아웃
+    deleteAllLoginDevices: {
+        loading: false,
+        success: false,
+        error: null,
+    },
+
 };
 
 //2. 상태변화
@@ -421,6 +444,94 @@ const userReducer = createSlice({
         // =========================
         resetLoginHistory: (state) => {
             state.loginHistory = {
+                loading: false,
+                data: [],
+                error: null,
+            };
+        },
+
+        // =========================
+        // 로그인 기기 조회
+        // =========================
+        getLoginDevicesRequest: (state) => {
+            state.loginDevices.loading = true;
+            state.loginDevices.error = null;
+        },
+
+        getLoginDevicesSuccess: (state, action) => {
+            state.loginDevices.loading = false;
+            state.loginDevices.data = action.payload;
+            state.loginDevices.error = null;
+        },
+
+        getLoginDevicesFailure: (state, action) => {
+            state.loginDevices.loading = false;
+            state.loginDevices.error = action.payload;
+        },
+
+        // =========================
+        // 특정 기기 로그아웃
+        // =========================
+        deleteLoginDeviceRequest: (state) => {
+            state.deleteLoginDevice.loading = true;
+            state.deleteLoginDevice.success = false;
+            state.deleteLoginDevice.error = null;
+        },
+
+        deleteLoginDeviceSuccess: (state) => {
+            state.deleteLoginDevice.loading = false;
+            state.deleteLoginDevice.success = true;
+            state.deleteLoginDevice.error = null;
+        },
+
+        deleteLoginDeviceFailure: (state, action) => {
+            state.deleteLoginDevice.loading = false;
+            state.deleteLoginDevice.success = false;
+            state.deleteLoginDevice.error = action.payload;
+        },
+
+        resetDeleteLoginDevice: (state) => {
+            state.deleteLoginDevice = {
+                loading: false,
+                success: false,
+                error: null,
+            };
+        },
+
+        // =========================
+        // 모든 기기 로그아웃
+        // =========================
+        deleteAllLoginDevicesRequest: (state) => {
+            state.deleteAllLoginDevices.loading = true;
+            state.deleteAllLoginDevices.success = false;
+            state.deleteAllLoginDevices.error = null;
+        },
+
+        deleteAllLoginDevicesSuccess: (state) => {
+            state.deleteAllLoginDevices.loading = false;
+            state.deleteAllLoginDevices.success = true;
+            state.deleteAllLoginDevices.error = null;
+        },
+
+        deleteAllLoginDevicesFailure: (state, action) => {
+            state.deleteAllLoginDevices.loading = false;
+            state.deleteAllLoginDevices.success = false;
+            state.deleteAllLoginDevices.error = action.payload;
+        },
+
+        resetDeleteAllLoginDevices: (state) => {
+            state.deleteAllLoginDevices = {
+                loading: false,
+                success: false,
+                error: null,
+            };
+        },
+
+        // =========================
+        // 로그인 기기 조회 상태 초기화
+        // =========================
+        resetLoginDevices: (state) => {
+            state.loginDevices = {
                 loading: false,
                 data: [],
                 error: null,
@@ -733,7 +844,10 @@ export const {
     updateMyInfoSuccess,updateMyInfoFailure, resetUpdateMyInfo,
     uploadProfileImageRequest,uploadProfileImageSuccess,uploadProfileImageFailure,
     resetProfileImage, deleteAccountRequest,deleteAccountSuccess,deleteAccountFailure,resetDeleteAccount,
-    getLoginHistoryRequest,getLoginHistorySuccess,getLoginHistoryFailure,resetLoginHistory,resetSignup
+    getLoginHistoryRequest,getLoginHistorySuccess,getLoginHistoryFailure,resetLoginHistory,resetSignup,
+    getLoginDevicesRequest,getLoginDevicesSuccess,getLoginDevicesFailure,resetLoginDevices,
+    deleteLoginDeviceRequest,deleteLoginDeviceSuccess,deleteLoginDeviceFailure,resetDeleteLoginDevice,
+    deleteAllLoginDevicesRequest,deleteAllLoginDevicesSuccess,deleteAllLoginDevicesFailure,resetDeleteAllLoginDevices,  
 } = userReducer.actions;
 
 //4. export
