@@ -257,12 +257,14 @@ public class MeetupController {
 	}
 	
 	 // 관리자 통계
+	@Operation(summary = "관리자 통계데이터", description = "관리자 모임 통계 조회합니다.")
     @GetMapping("/count")
     public ResponseEntity<MeetupCountResponseDto> getMeetupCount() {
         return ResponseEntity.ok(meetupService.getMeetupCount());
     }
 	
     //인기모임
+	@Operation(summary = "인기모임 조회", description = "main 페이지 인기모임을 조회합니다.")
     @GetMapping("/popular")
     public ResponseEntity<List<PopularMeetupResponseDto>> getPopularMeetups(Authentication authentication) {
         Long memberId = null;
@@ -283,6 +285,7 @@ public class MeetupController {
     }
     
     // 추천 모임
+	@Operation(summary = "추천모임 조회", description = "detail 페이지 추천모임을 조회합니다.")
     @GetMapping("/{meetupId}/recommended")
     public ResponseEntity<List<MeetupResponseDto>> getRecommendedMeetups(
             @PathVariable("meetupId") Long meetupId,
@@ -307,6 +310,8 @@ public class MeetupController {
     }
     
     // 끌어올리기
+	@Operation(summary = "모임 끌어올리기", description = "7일동안 상단에 노출될 수 있도록 끌어올려 줍니다.")
+    @PostMapping("/{meetupId}/boost")
     public ResponseEntity<Void> boostMeetup(@PathVariable("meetupId") Long meetupId, Authentication authentication){
     	
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();

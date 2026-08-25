@@ -96,6 +96,11 @@ import {
     fetchRecommendedMeetupsRequest,
     fetchRecommendedMeetupsSuccess,
     fetchRecommendedMeetupsFailure,
+
+    // 모임 끌어올리기
+    boostMeetupRequest,
+    boostMeetupSuccess,
+    boostMeetupFailure,
 } from "../reducers/meetupReducer";
 
 const MEETUP_API_BASE = "/api/meetups";
@@ -613,10 +618,7 @@ export function* fetchRecommendedMeetups(action) {
     try {
         // console.log("추천모임 요청 meetupId:", action.payload);
 
-        const response = yield call(
-            fetchRecommendedMeetupsAPI,
-            action.payload
-        );
+        const response = yield call(fetchRecommendedMeetupsAPI, action.payload);
 
         // console.log("추천모임 API 응답:", response.data);
 
@@ -631,8 +633,30 @@ export function* fetchRecommendedMeetups(action) {
         yield put(
             fetchRecommendedMeetupsFailure(
                 error.response?.data?.message ||
-                    "추천모임을 불러오지 못했습니다."
-            )
+                    "추천모임을 불러오지 못했습니다.",
+            ),
+        );
+    }
+}
+
+// ==================================================
+// 모임 끌어올리기
+// POST /api/meetups/{meetupId}/boost
+// ==================================================
+const boostMeetupAPI = (meetupId) => {
+    return api.post(`${MEETUP_API_BASE}/${meetupId}/boost`);
+};
+
+export function* boostMeetup(action) {
+    try {
+        yield call(boostMeetupAPI, action.payload);
+        yield put(boostMeetupSuccess());
+    } catch (err) {
+        yield put(
+            boostMeetupFailure(
+                err.response?.data?.message ||
+                    "모임 끌어올리기에 실패했습니다.",
+            ),
         );
     }
 }
@@ -684,7 +708,12 @@ export function* watchMeetupSaga() {
 
     yield takeLatest(fetchPopularMeetupsRequest.type, fetchPopularMeetups);
 
-    yield takeLatest(fetchRecommendedMeetupsRequest.type, fetchRecommendedMeetups);
+    yield takeLatest(
+        fetchRecommendedMeetupsRequest.type,
+        fetchRecommendedMeetups,
+    );
+
+    yield takeLatest(boostMeetupRequest.type, boostMeetup);
 }
 
 // ==================================================

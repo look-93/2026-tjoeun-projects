@@ -44,6 +44,7 @@ const initialState = {
     likeSuccess: false, // 좋아요 성공 여부
     visibilitySuccess: false, // 공개/비공개 성공 여부
     statusSuccess: false, // 신청자 신청 상태 변경 성공 여부
+    boostSuccess: false, // 모임 끌어올리기 성공 여부
 };
 
 const meetupReducer = createSlice({
@@ -453,6 +454,24 @@ const meetupReducer = createSlice({
             state.error = action.payload;
         },
 
+        // --- 모임 끌어올리기 ---
+        boostMeetupRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.boostSuccess = false;
+        },
+
+        boostMeetupSuccess: (state) => {
+            state.loading = false;
+            state.boostSuccess = true;
+        },
+
+        boostMeetupFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.boostSuccess = false;
+        },
+
         // --- 상태조기화 ---
         resetMeetupState: (state) => {
             state.loading = false;
@@ -471,6 +490,10 @@ const meetupReducer = createSlice({
 
         resetDeleteSuccess: (state) => {
             state.deleteSuccess = false;
+        },
+
+        resetBoostSuccess: (state) => {
+            state.boostSuccess = false;
         },
     },
 });
@@ -570,6 +593,11 @@ export const {
     fetchRecommendedMeetupsRequest,
     fetchRecommendedMeetupsSuccess,
     fetchRecommendedMeetupsFailure,
+
+    // 모임 끌어올리기
+    boostMeetupRequest,
+    boostMeetupSuccess,
+    boostMeetupFailure,
 
     // 상태 초기화
     resetMeetupState,
