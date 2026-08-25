@@ -35,6 +35,8 @@ public class UserRequestDto {
 	private MultipartFile profileImage;
 	private List<Integer> interestIds;
 	
+	private String deviceId;
+	
 	// requestDto -> 기존 UserDto로 반환
 	public UserDto toUserDto() {
 		UserDto dto = new UserDto();

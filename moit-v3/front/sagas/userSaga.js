@@ -9,7 +9,7 @@ import {
     checkEmailRequest,checkEmailSuccess,checkEmailFailure,
     checkNicknameRequest,checkNicknameSuccess,checkNicknameFailure,
     checkMobileRequest,checkMobileSuccess,checkMobileFailure,
-    logout, logoutRequest, resetDuplicateCheck,resetEmailVerification,
+    logoutRequest,logoutSuccess,logoutFailure, resetDuplicateCheck,resetEmailVerification,
     checkPasswordLeakRequest,checkPasswordLeakSuccess,checkPasswordLeakFailure,
     resetPasswordLeak,findMembersRequest,findMembersSuccess,findMembersFailure,
     getMyInfoRequest, getMyInfoSuccess, getMyInfoFailure,
@@ -21,6 +21,7 @@ import {
     updateMyInfoSuccess,updateMyInfoFailure, resetUpdateMyInfo,
     uploadProfileImageRequest,uploadProfileImageSuccess,uploadProfileImageFailure,
     resetProfileImage, deleteAccountRequest,deleteAccountSuccess,deleteAccountFailure,resetDeleteAccount,
+    getLoginHistoryRequest,getLoginHistorySuccess,getLoginHistoryFailure,resetLoginHistory,resetSignup
 } from '../reducers/userReducer';
 
 
@@ -29,6 +30,28 @@ import {
 // =========================
 function loginApi(loginData){
     return api.post("/api/members/login",loginData);
+}
+
+// =========================
+// Device ID 조회/생성
+// =========================
+function getDeviceId() {
+    if (typeof window === "undefined") {return null;}
+
+    let deviceId = localStorage.getItem("deviceId");
+
+    if (!deviceId) {
+        deviceId = crypto.randomUUID();
+        localStorage.setItem("deviceId", deviceId);
+
+        console.log("===== DEVICE ID 생성 =====");
+        console.log("deviceId:", deviceId);
+    } else {
+        console.log("===== DEVICE ID 기존값 사용 =====");
+        console.log("deviceId:", deviceId);
+    }
+
+    return deviceId;
 }
 
 // =========================
@@ -112,7 +135,20 @@ function findMembersApi() {
 // 로그아웃 API
 // =========================
 function logoutApi() {
-    return api.post("/api/members/logout");
+    const refreshToken =
+        typeof window !== "undefined"
+            ? localStorage.getItem("refreshToken")
+            : null;
+
+    const deviceId =
+        typeof window !== "undefined"
+            ? localStorage.getItem("deviceId")
+            : null;
+
+    return api.post("/api/members/logout", {
+        refreshToken,
+        deviceId,
+    });
 }
 
 // =========================
@@ -163,51 +199,62 @@ function deleteAccountApi(data) {
     return api.delete("/api/members/me", {data: data,});
 }
 
+// =========================
+// 로그인 기록 조회 API
+// =========================
+function getLoginHistoryApi() {
+  return api.get("/api/members/login-history");
+}
+
 ////////////////////////////////////////////////////
 
 // =========================
 // 로그인
 // =========================
-function* login(action){
-    try{
-        const response = yield call(loginApi, action.payload);
+function* login(action){ 
+    try{ 
+        // =========================
+        // Device ID 생성/조회
+        // =========================
+        const deviceId = getDeviceId();
+        const loginData = {...action.payload,deviceId,};
+
+        console.log("===== 로그인 요청 =====");
+        console.log("loginData:", loginData);
+        console.log("deviceId:", deviceId);
+
+        const response = yield call(loginApi, loginData);
 
         console.log("===== 일반 로그인 응답 =====");
         console.log("status:", response.status);
         console.log("response.data:", response.data);
         console.log("accessToken:", response.data?.accessToken);
         console.log("refreshToken:", response.data?.refreshToken);
-
-        console.log("로그인 성공:",response.data);
+        console.log("deviceId:", response.data?.deviceId);
 
         // Access Token 저장
         if (typeof window !== "undefined") {
 
             localStorage.setItem("accessToken",response.data.accessToken);
             localStorage.setItem("refreshToken",response.data.refreshToken);
+            localStorage.setItem("socialProvider", "NORMAL");
+
+            // 백엔드 응답에 deviceId가 있으면 저장
+            if (response.data?.deviceId) {localStorage.setItem("deviceId",response.data.deviceId); }
         }
 
         yield put(loginSuccess(response.data));
+    } catch(err){ 
+        console.error("로그인 실패:",err); 
 
-    }catch(err){
-        console.error("로그인 실패:",err);
+        let message = "로그인에 실패했습니다."; 
 
-        let message = "로그인에 실패했습니다.";
+        if(err.response?.status == 401){ message = err.response?.data?.message || "아이디 또는 비밀번호가 올바르지 않습니다."; } 
 
-        if(err.response?.status == 401){
-            message = err.response?.data?.message ||
-                "아이디 또는 비밀번호가 올바르지 않습니다.";
-        }
-
-        // 회원 유형 오류
-        if(err.response?.status === 403){
-            message =
-                err.response?.data?.message ||
-                "회원유형이 맞지 않습니다.";
-        }
-
-        yield put(loginFailure(message));
-    }
+        if(err.response?.status === 403){ message =  err.response?.data?.message || "회원유형이 맞지 않습니다."; } 
+        
+        yield put(loginFailure(message)); 
+    } 
 }
 
 // =========================
@@ -253,10 +300,37 @@ function* getMyPageSaga() {
 
         yield put(getMyPageSuccess(response.data));
     } catch (error) {
-
         yield put( getMyPageFailure( error.response?.data?.message || "마이페이지 정보를 불러오지 못했습니다."));
     }
 }
+
+// =========================
+// 로그인 기록 조회 
+// =========================
+function* getLoginHistorySaga() {
+    try {
+        console.log("===== 로그인 기록 조회 START =====");
+
+        const response = yield call(getLoginHistoryApi);
+
+        console.log("===== 로그인 기록 조회 SUCCESS =====");
+        console.log("status:", response.status);
+        console.log("response:", response);
+        console.log("response.data:", response.data);
+
+        yield put(getLoginHistorySuccess(response.data));
+    } catch (error) {
+        console.error("===== 로그인 기록 조회 FAILURE =====");
+        console.error("error:", error);
+        console.error("status:", error.response?.status);
+        console.error("data:", error.response?.data);
+        console.error("message:", error.response?.data?.message);
+        console.error("error message:", error.message);
+
+        yield put(getLoginHistoryFailure(error.response?.data?.message || "로그인 기록을 불러오지 못했습니다."));
+    }
+}
+
 
 // =========================
 // 회원가입
@@ -454,19 +528,68 @@ function* findMembers() {
 // =========================
 // 로그아웃
 // =========================
-function* logoutSaga() {
+function* logoutSaga(action) {
     try {
+
+        // Header에서 전달받은 로그인 provider
+        const loginProvider =
+            action.payload?.provider || null;
+
+        console.log("===== LOGOUT SAGA =====");
+        console.log("loginProvider:", loginProvider);
+
+        // 1. 백엔드 로그아웃
         yield call(logoutApi);
-        console.log("로그아웃 성공");
-    } catch (err) {
-        console.error("로그아웃 API 실패:", err);
-    } finally {
+
+        // 2. 프론트 토큰 삭제
         if (typeof window !== "undefined") {
             localStorage.removeItem("accessToken");
             localStorage.removeItem("refreshToken");
         }
-        // Redux 로그인 상태 초기화
-        yield put(logout());
+
+        // 3. Redux 로그아웃 상태 변경
+        yield put(logoutSuccess());
+
+        // 4. 카카오 로그인 사용자
+        if (
+            typeof window !== "undefined" &&
+            loginProvider === "kakao"
+        ) {
+
+            console.log("===== KAKAO LOGOUT =====");
+
+            const kakaoLogoutUrl =
+                "https://kauth.kakao.com/oauth/logout" +
+                "?client_id=d1065db6fa6b99aa2d26a3d28c80143a" +
+                "&logout_redirect_uri=" +
+                encodeURIComponent(
+                    "http://localhost:8080/user/member/kakaologout"
+                );
+
+            window.location.href = kakaoLogoutUrl;
+
+            return;
+        }
+
+        // 5. 일반 / 네이버 / 구글
+        if (typeof window !== "undefined") {
+            window.location.href =
+                "/user/member/login";
+        }
+
+    } catch (err) {
+
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+        }
+
+        yield put(
+            logoutFailure(
+                err.response?.data?.message ||
+                "로그아웃 처리 중 문제가 발생했습니다."
+            )
+        );
     }
 }
 
@@ -730,5 +853,6 @@ export default function* userSaga(){
         takeLatest(updateMyInfoRequest.type,updateMyInfo),
         takeLatest(uploadProfileImageRequest.type,uploadProfileImage),
         takeLatest(deleteAccountRequest.type, deleteAccount),
+        takeLatest(getLoginHistoryRequest.type, getLoginHistorySaga),
     ]);
 }

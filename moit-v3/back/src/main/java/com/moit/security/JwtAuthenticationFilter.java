@@ -22,10 +22,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberService service;
 
-    public JwtAuthenticationFilter(
-        JwtTokenProvider jwtTokenProvider,
-        MemberService memberService
-    ) {
+    public JwtAuthenticationFilter( JwtTokenProvider jwtTokenProvider, MemberService memberService ) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.service = memberService;
     }
@@ -53,8 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // =====================================================
         // 1. Authorization Header 확인
         // =====================================================
-        String authorization =
-            request.getHeader("Authorization");
+        String authorization = request.getHeader("Authorization");
 
         System.out.println("===== JWT FILTER =====");
         System.out.println("요청 URI : " + request.getRequestURI());
@@ -121,6 +117,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // =================================================
             Long memberId =
                 jwtTokenProvider.getMemberId(token);
+            
+            String deviceId =
+            	    jwtTokenProvider.getDeviceId(token);
 
             System.out.println(
                 "JWT memberId : " + memberId
@@ -161,7 +160,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // CustomUserDetails 생성
                 // ---------------------------------------------
                 CustomUserDetails userDetails =
-                    new CustomUserDetails(user);
+                    new CustomUserDetails(user, deviceId);
 
                 // ---------------------------------------------
                 // Authentication 생성

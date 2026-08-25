@@ -126,7 +126,9 @@ public class SecurityConfig {
                 "/admin/member/join",
                 "/meetup/list",
                 "/user/advertisement/click",
+                "/user/member/kakaologout"
                 "/api/meetups/**"
+
             ).permitAll()
 
             // -------------------------------------------------
@@ -259,7 +261,8 @@ public class SecurityConfig {
             List.of(
                 "Authorization",
                 "Content-Type",
-                "Accept"
+                "Accept",
+                "X-Device-Id"
             )
         );
 

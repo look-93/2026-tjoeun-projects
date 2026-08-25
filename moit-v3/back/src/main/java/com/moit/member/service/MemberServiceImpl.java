@@ -219,6 +219,9 @@ public class MemberServiceImpl implements MemberService{
 	    dto.setNickname(member.getNickname());
 	    dto.setMobile(member.getMobile());
 	    dto.setProfileUrl(member.getProfileUrl());
+	    
+	    dto.setProvider(member.getProvider());
+	    dto.setProviderId(member.getProviderId());
 
 	    dto.setMemberTypeId(member.getMemberType().getMemberTypeId());
 	    dto.setStatusId(member.getMemberStatus().getStatusId());

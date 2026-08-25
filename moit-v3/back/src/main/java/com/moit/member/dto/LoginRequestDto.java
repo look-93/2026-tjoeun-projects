@@ -18,5 +18,7 @@ public class LoginRequestDto {
 	
 	@NotNull
     private Long memberTypeId;
-
+	
+	@NotBlank
+    private String deviceId;
 }
