@@ -50,7 +50,14 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 	@Query("""
 		    SELECT m
 		    FROM Meetup m
-
+			LEFT JOIN MeetupBoost mb ON mb.meetup = m AND mb.createdAt = (
+													        SELECT MAX(mb2.createdAt)
+													        FROM MeetupBoost mb2
+													        WHERE mb2.meetup = m
+														    ) 
+												      AND mb.startDate <= CURRENT_DATE
+													  AND mb.endDate >= CURRENT_DATE	
+														    
 		    WHERE m.deleteYn = :deleteYn
 
 		      AND m.meetupStatus IN (
@@ -95,15 +102,25 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 			  )
 
 		      ORDER BY
-		          CASE
-		              WHEN :orderType = 'createAt'
-		              THEN m.createdAt
-		          END DESC,
-
-		          CASE
-		              WHEN :orderType = 'meetupAt'
-		              THEN m.meetupAt
-		          END ASC
+			    CASE
+			        WHEN mb.createdAt IS NOT NULL THEN 0
+			        ELSE 1
+			    END ASC,
+			
+			    CASE
+			        WHEN mb.createdAt IS NOT NULL THEN mb.createdAt
+			        ELSE m.createdAt
+			    END DESC,
+				  
+				CASE
+				    WHEN :orderType = 'createAt'
+				    THEN m.createdAt
+				END DESC,
+				
+				CASE
+				    WHEN :orderType = 'meetupAt'
+				    THEN m.meetupAt
+				END ASC
 		""")
 	Page<Meetup> findByDeleteYn(
 	        @Param("deleteYn") Character deleteYn,

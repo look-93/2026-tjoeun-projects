@@ -1,5 +1,10 @@
 package com.moit.meetup.entity;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.moit.member.entity.PointHistory;
 import com.moit.util.BaseEntity;
 
@@ -40,4 +45,11 @@ public class MeetupBoost extends BaseEntity{
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "history_id", nullable = false)
 	private PointHistory pointHistory;
+	
+	@CreationTimestamp
+	@Column(nullable = false, updatable = false)
+    private LocalDate startDate;
+	
+	@Column(nullable = false)
+    private LocalDate endDate;
 }
