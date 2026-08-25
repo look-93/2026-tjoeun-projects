@@ -86,7 +86,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     public List<AdvertisementPaymentDto> searchPaymentTabList(
             AdvertisementSearchDto dto) {
 
-    	Pageable pageable = createPageable(dto);
+    	Pageable pageable = createPaymentPageable(dto);
         String searchText = dto.getSearchText();
         String status = dto.getStatus(); 
 
@@ -134,11 +134,12 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     public List<AdvertisementPaymentDto> searchPaymentHistory(
             AdvertisementSearchDto dto) {
 
-    	Pageable pageable = createPageable(dto);
+    	Pageable pageable = createPaymentPageable(dto);
         String searchText = dto.getSearchText();
+        String status = dto.getStatus();
 
         return advertisementPaymentRepository
-        		.findByAdvertisement_DeleteYn('N', searchText, null, pageable)
+        		.findByAdvertisement_DeleteYn('N', searchText, status, pageable)
                 .getContent()
                 .stream()
                 .map(this::toPaymentDto)
@@ -353,6 +354,36 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         
         return PageRequest.of(dto.getPage() - 1, dto.getSize(), sort);
     }
+    
+    // 결제 탭 정렬
+    private Pageable createPaymentPageable(AdvertisementSearchDto dto) {
+        String sortParam = dto.getSort();
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+
+        if (sortParam != null && !sortParam.isEmpty() && !"all".equals(sortParam)) {
+            switch (sortParam.toLowerCase()) {
+                case "budget":
+                    sort = Sort.by(Sort.Direction.DESC, "advertisement.totalBudget"); // 앞에 advertisement. 추가!
+                    break;
+                case "amount":
+                    sort = Sort.by(Sort.Direction.DESC, "amount");
+                    break;
+                case "impressions":
+                    sort = Sort.by(Sort.Direction.DESC, "advertisement.impressions"); // 앞에 advertisement. 추가!
+                    break;
+                case "clicks":
+                    sort = Sort.by(Sort.Direction.DESC, "advertisement.clicks");      // 앞에 advertisement. 추가!
+                    break;
+                case "grade":
+                    sort = Sort.by(Sort.Direction.ASC, "advertisement.adGrade");
+                    break;
+                case "date": 
+                    sort = Sort.by(Sort.Direction.ASC, "createdAt");
+                    break;
+            }
+        }
+        return PageRequest.of(dto.getPage() - 1, dto.getSize(), sort);
+    }
 
     // =========================================================
     // 광고 상세
@@ -498,6 +529,17 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         );
 
         advertisement.resetApprovalStatusForUpdate();
+        
+        // 반려 후 수정하면 기존 결제대기 내역 제거
+        List<AdvertisementPayment> requestedPayments =
+                advertisementPaymentRepository
+                        .findAllByAdvertisement_AdIdAndPaymentStatus(
+                                adId,
+                                PaymentHistoryStatus.REQUESTED
+                        );
+
+        advertisementPaymentRepository.deleteAll(requestedPayments);
+        advertisementPaymentRepository.flush();
 
         // -----------------------------------------------------
         // 이미지 수정 처리 (위치별 개별 갱신)
@@ -638,7 +680,23 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                                     )
                             );
 
+            // 광고 승인
             advertisement.approve(admin);
+
+            // 광고주 결제 요청 메일 발송
+            Member advertiser = advertisement.getAdvertiser();
+
+            if (advertiser != null) {
+
+                String advertiserEmail = advertiser.getEmail();
+
+                AdvertisementDto adDto = toDto(advertisement);
+
+                mailService.sendAdvertisementPaymentRequestMail(
+                        adDto,
+                        advertiserEmail
+                );
+            }
 
             return 1;
         }
@@ -1095,7 +1153,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
         if (ad.getAdvertiser() != null) {
             dto.setAdvertiserId(ad.getAdvertiser().getId()); 
-            dto.setAdvertiserNickname(ad.getAdvertiser().getNickname()); 
+            dto.setAdvertiserNickname(ad.getAdvertiser().getNickname());
         }
 
         dto.setImpressions( ad.getImpressions() );  
@@ -1280,5 +1338,86 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         
         // flush를 통해 DB에 즉시 반영 (선택사항이나 스케줄러 작업 시 권장)
         advertisementRepository.flush();
+    }
+    
+    // =========================================================
+    // 30일, 14일 연장메일 발송 (스케줄러용)
+    // =========================================================
+    @Override
+    @Transactional
+    public void sendReminderMail() {
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // D-30
+        LocalDateTime day30Start =
+                now.plusDays(30).withHour(0).withMinute(0).withSecond(0).withNano(0);
+
+        LocalDateTime day30End = day30Start.plusDays(1);
+
+        List<Advertisement> ads30 =
+                advertisementRepository.findReminder30Advertisements(
+                        day30Start,
+                        day30End
+                );
+
+        for (Advertisement ad : ads30) {
+
+            AdvertisementDto dto = toDto(ad);
+
+            Member advertiser = ad.getAdvertiser();
+
+            if (advertiser == null || advertiser.getEmail() == null
+                    || advertiser.getEmail().isBlank()) {
+
+                System.out.println( "광고주 이메일 없음 - 광고 ID : " + ad.getAdId() );
+
+                continue;
+            }
+
+            mailService.sendAdvertisementReminderMail(
+                    dto,
+                    advertiser.getEmail(),
+                    30
+            );
+
+            ad.markReminder30dSent();
+        }
+
+
+        // D-14
+        LocalDateTime day14Start =
+                now.plusDays(14).withHour(0).withMinute(0).withSecond(0).withNano(0);
+
+        LocalDateTime day14End = day14Start.plusDays(1);
+
+        List<Advertisement> ads14 =
+                advertisementRepository.findReminder14Advertisements(
+                        day14Start,
+                        day14End
+                );
+
+        for (Advertisement ad : ads14) {
+
+            AdvertisementDto dto = toDto(ad);
+
+            Member advertiser = ad.getAdvertiser();
+
+            if (advertiser == null || advertiser.getEmail() == null
+                    || advertiser.getEmail().isBlank()) {
+
+                System.out.println( "광고주 이메일 없음 - 광고 ID : " + ad.getAdId() );
+
+                continue;
+            }
+
+            mailService.sendAdvertisementReminderMail(
+                    dto,
+                    advertiser.getEmail(),
+                    14
+            );
+
+            ad.markReminder14dSent();
+        }
     }
 }

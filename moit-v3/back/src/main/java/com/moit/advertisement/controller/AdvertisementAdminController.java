@@ -18,7 +18,7 @@ import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
-//import com.moit.advertisement.dto.DashboardAiDto;
+import com.moit.advertisement.dto.DashboardAiDto;
 import com.moit.advertisement.enums.ApprovalStatus;
 import com.moit.advertisement.service.AdvertisementService;
 
@@ -66,7 +66,7 @@ public class AdvertisementAdminController {
     @Operation(summary = "승인 관리 탭 개수 조회")
     @GetMapping("/approval-tab/count")
     public ResponseEntity<Long> approvalTabCount(AdvertisementSearchDto dto) {
-        return ResponseEntity.ok(advertisementService.selectApprovalTabTotalCnt(dto));
+        return ResponseEntity.ok((long)advertisementService.selectApprovalTabTotalCnt(dto));
     }
     
 
@@ -84,11 +84,8 @@ public class AdvertisementAdminController {
 	     dto.setPage(dto.getPage() <= 0 ? 1 : dto.getPage());
 	     dto.setSize(dto.getSize() <= 0 ? 10 : dto.getSize());
 	
-	     List<AdvertisementPaymentDto> list =
-	             advertisementService.searchPaymentHistory(dto);
-	
-	     long totalCnt =
-	             advertisementService.selectPaymentTabTotalCnt(dto);
+	     List<AdvertisementPaymentDto> list = advertisementService.searchPaymentHistory(dto);
+	     long totalCnt = advertisementService.selectPaymentTabTotalCnt(dto);
 	
 	     return ResponseEntity.ok(
 	             new AdvertisementDto.AdvertisementPaymentPageResponseDto(
@@ -103,7 +100,7 @@ public class AdvertisementAdminController {
     @Operation(summary = "결제 확인 탭 개수 조회")
     @GetMapping("/payment-tab/count")
     public ResponseEntity<Long> paymentTabCount(AdvertisementSearchDto dto) {
-        return ResponseEntity.ok(advertisementService.selectPaymentTabTotalCnt(dto));
+        return ResponseEntity.ok((long)advertisementService.selectPaymentTabTotalCnt(dto));
     }
 
     // =========================================================
@@ -132,7 +129,7 @@ public class AdvertisementAdminController {
     @Operation(summary = "운영 관리 탭 개수 조회")
     @GetMapping("/status-tab/count")
     public ResponseEntity<Long> statusTabCount(AdvertisementSearchDto dto) {
-        return ResponseEntity.ok(advertisementService.selectStatusTabTotalCnt(dto));
+        return ResponseEntity.ok((long)advertisementService.selectStatusTabTotalCnt(dto));
     }
 
 
@@ -406,10 +403,10 @@ public class AdvertisementAdminController {
     }
 
 
-//    // =========================================================
-//    // AI 통계 요약
-//    // =========================================================
-//
+    // =========================================================
+    // AI 통계 요약
+    // =========================================================
+
 //    @GetMapping("/statistics/ai-summary")
 //    public ResponseEntity<DashboardAiDto> aiSummary() {
 //

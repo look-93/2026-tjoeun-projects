@@ -110,40 +110,44 @@ public interface AdvertisementRepository
     // 관리자 탭별 전용 쿼리 메서드
     // =========================================================
 
-    // 1. 승인 관리 탭
+	// 1. 승인 관리 탭 
     @Query("""
         select a from Advertisement a 
         where a.deleteYn = 'N' 
-          and (a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.WAITING 
-               or (a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED 
-                   and a.paymentStatus = 'WAITING'))
+          and (
+              (:status is null or :status = 'all' or :status = '') and (
+                  a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.WAITING 
+                  or (a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED and a.paymentStatus = 'WAITING')
+              )
+              or (:status = 'WAITING' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.WAITING)
+              or (:status = 'PAYMENT_WAITING' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED and a.paymentStatus = 'WAITING')
+              or (:status = 'REJECTED' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.REJECTED)
+          )
           and (:searchText is null or :searchText = '' or a.title like %:searchText%)
-          and (:status is null or :status = '' or 
-               (:status = 'PAYMENT_WAITING' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED and a.paymentStatus = 'WAITING') or
-               (:status = 'WAITING' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.WAITING) or
-               (:status = 'REJECTED' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.REJECTED))
     """)
     Page<Advertisement> findApprovalTabList(
         @Param("searchText") String searchText,
-        @Param("status") String status, // ✅ ApprovalStatus(Enum) -> String 으로 변경!
+        @Param("status") String status, 
         Pageable pageable
     );
 
     @Query("""
         select count(a) from Advertisement a 
         where a.deleteYn = 'N' 
-          and (a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.WAITING 
-               or (a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED 
-                   and a.paymentStatus = 'WAITING'))
+          and (
+              (:status is null or :status = 'all' or :status = '') and (
+                  a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.WAITING 
+                  or (a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED and a.paymentStatus = 'WAITING')
+              )
+              or (:status = 'WAITING' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.WAITING)
+              or (:status = 'PAYMENT_WAITING' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED and a.paymentStatus = 'WAITING')
+              or (:status = 'REJECTED' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.REJECTED)
+          )
           and (:searchText is null or :searchText = '' or a.title like %:searchText%)
-          and (:status is null or :status = '' or 
-               (:status = 'PAYMENT_WAITING' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED and a.paymentStatus = 'WAITING') or
-               (:status = 'WAITING' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.WAITING) or
-               (:status = 'REJECTED' and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.REJECTED))
     """)
     long countApprovalTabList(
         @Param("searchText") String searchText,
-        @Param("status") String status // ✅ String 으로 변경!
+        @Param("status") String status
     );
 
     // 3. 운영 관리 탭
@@ -185,4 +189,41 @@ public interface AdvertisementRepository
 
     // 스케줄러용: 특정 상태이면서 종료시간이 특정 시간(현재) 이전인 광고 조회
     List<Advertisement> findByStatusAndEndDatetimeLessThanEqual(AdStatus status, LocalDateTime now);
+    
+    // 스케줄러용: 종료시간이 30일, 14일 남은 광고 조회
+    List<Advertisement> findByDeleteYnAndPaymentStatusAndStatusAndEndDatetimeBetween(
+            Character deleteYn,
+            PaymentStatus paymentStatus,
+            AdStatus status,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+    
+    @Query("""
+	    select a
+	    from Advertisement a
+	    where a.deleteYn = 'N'
+	      and a.paymentStatus = com.moit.advertisement.enums.PaymentStatus.PAID
+	      and a.status = com.moit.advertisement.enums.AdStatus.OPEN
+	      and a.endDatetime between :start and :end
+	      and a.reminder30dSent = 'N'
+	""")
+	List<Advertisement> findReminder30Advertisements(
+	        @Param("start") LocalDateTime start,
+	        @Param("end") LocalDateTime end
+	);
+
+	@Query("""
+	    select a
+	    from Advertisement a
+	    where a.deleteYn = 'N'
+	      and a.paymentStatus = com.moit.advertisement.enums.PaymentStatus.PAID
+	      and a.status = com.moit.advertisement.enums.AdStatus.OPEN
+	      and a.endDatetime between :start and :end
+	      and a.reminder14dSent = 'N'
+	""")
+	List<Advertisement> findReminder14Advertisements(
+	        @Param("start") LocalDateTime start,
+	        @Param("end") LocalDateTime end
+	);
 }

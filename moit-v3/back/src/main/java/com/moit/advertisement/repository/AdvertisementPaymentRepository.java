@@ -21,7 +21,13 @@ public interface AdvertisementPaymentRepository
     Optional<AdvertisementPayment> findByOrderId(String orderId);
 
     // 광고 ID와 결제 상태(REQUESTED 등)로 orderId 가져오기
-    Optional<AdvertisementPayment> findByAdvertisement_AdIdAndPaymentStatus(Long adId, PaymentHistoryStatus paymentStatus);
+    Optional<AdvertisementPayment> findByAdvertisement_AdIdAndPaymentStatus(
+    		Long adId, PaymentHistoryStatus paymentStatus);
+    
+    List<AdvertisementPayment> findAllByAdvertisement_AdIdAndPaymentStatus(
+            Long adId,
+            PaymentHistoryStatus paymentStatus
+    );
     
     // 관리자 결제 내역
     Page<AdvertisementPayment> findAllByOrderByCreatedAtDesc( Pageable pageable );
@@ -33,8 +39,10 @@ public interface AdvertisementPaymentRepository
         where a.deleteYn = :deleteYn 
           and (:searchText is null or :searchText = '' or a.title like %:searchText% or m.nickname like %:searchText%)
           and (:status is null or :status = '' or 
-               (:status = 'NEW' and p.paymentType = com.moit.advertisement.enums.PaymentType.INITIAL) or
-               (:status = 'EXTENSION' and p.paymentType = com.moit.advertisement.enums.PaymentType.EXTENSION) or
+               (:status = 'NEW' and p.paymentType = com.moit.advertisement.enums.PaymentType.INITIAL
+               and p.paymentStatus = com.moit.advertisement.enums.PaymentHistoryStatus.PAID) or
+               (:status = 'EXTENSION' and p.paymentType = com.moit.advertisement.enums.PaymentType.EXTENSION
+               and p.paymentStatus = com.moit.advertisement.enums.PaymentHistoryStatus.PAID) or
                (:status = 'WAITING' and p.paymentStatus = com.moit.advertisement.enums.PaymentHistoryStatus.REQUESTED))
     """)
     Page<AdvertisementPayment> findByAdvertisement_DeleteYn(
@@ -51,8 +59,10 @@ public interface AdvertisementPaymentRepository
         where a.deleteYn = :deleteYn 
           and (:searchText is null or :searchText = '' or a.title like %:searchText% or m.nickname like %:searchText%)
           and (:status is null or :status = '' or 
-               (:status = 'NEW' and p.paymentType = com.moit.advertisement.enums.PaymentType.INITIAL) or
-               (:status = 'EXTENSION' and p.paymentType = com.moit.advertisement.enums.PaymentType.EXTENSION) or
+               (:status = 'NEW' and p.paymentType = com.moit.advertisement.enums.PaymentType.INITIAL
+	           and p.paymentStatus = com.moit.advertisement.enums.PaymentHistoryStatus.PAID) or
+               (:status = 'EXTENSION' and p.paymentType = com.moit.advertisement.enums.PaymentType.EXTENSION
+               and p.paymentStatus = com.moit.advertisement.enums.PaymentHistoryStatus.PAID) or
                (:status = 'WAITING' and p.paymentStatus = com.moit.advertisement.enums.PaymentHistoryStatus.REQUESTED))
     """)
     long countByAdvertisement_DeleteYnAndSearchTextAndStatus(

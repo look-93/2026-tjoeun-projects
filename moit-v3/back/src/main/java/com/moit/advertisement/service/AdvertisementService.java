@@ -11,6 +11,8 @@ import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
+import com.moit.advertisement.dto.AdvertisementStatisticsDto;
+import com.moit.advertisement.dto.DashboardAiDto;
 
 
 public interface AdvertisementService {
@@ -146,7 +148,7 @@ public interface AdvertisementService {
 	double selectExtensionRate();	
 	// 위치별 ctr 차트
 	List<AdvertisementChartDto> selectPositionCtrChart();
-//	// AI 통계 요약
+	// AI 통계 요약
 //	DashboardAiDto getDashboardAiData();
 //	DashboardAiDto getLatestAiSummary(); 
 //    void saveAiSummary(String summary); 
@@ -156,7 +158,7 @@ public interface AdvertisementService {
 //    AdvertisementStatisticsDto getAdvertisementStatistics(Long adId);
 
 	// 메일 발송
-//	void sendReminderMail();
+	void sendReminderMail();
 
 	// 스케쥴러 돌리는건 일단 주석처리함
 }
