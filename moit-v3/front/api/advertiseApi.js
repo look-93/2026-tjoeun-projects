@@ -42,3 +42,10 @@ export const updateAdvertise = (adId, formData) => {
 export const deleteAdvertise = (adId) => {
     return axios.delete(`${API_URL}/${adId}`);
 };
+
+// 결제 요청(결제 정보 생성)
+export const createInitialPayment = (adId) => {
+  return axios.post(
+    `${API_URL}/payment/initial/${adId}`
+  );
+};

@@ -13,6 +13,7 @@ import com.moit.advertisement.dto.AdvertisementPaymentDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.AdvertisementStatisticsDto;
 import com.moit.advertisement.dto.DashboardAiDto;
+import com.moit.advertisement.entity.AdvertisementPayment;
 
 
 public interface AdvertisementService {
@@ -159,6 +160,8 @@ public interface AdvertisementService {
 
 	// 메일 발송
 	void sendReminderMail();
+
+	AdvertisementPaymentDto createInitialPayment(Long adId, Long memberId);
 
 	// 스케쥴러 돌리는건 일단 주석처리함
 }

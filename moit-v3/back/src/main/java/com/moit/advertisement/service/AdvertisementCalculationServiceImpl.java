@@ -148,4 +148,19 @@ public class AdvertisementCalculationServiceImpl implements AdvertisementCalcula
 
         return totalExtra;
     }
+    
+    @Override
+    public int calculateTotalDays(
+            LocalDateTime startDatetime,
+            LocalDateTime endDatetime) {
+
+        if (startDatetime == null || endDatetime == null) {
+            return 0;
+        }
+
+        long diffHours =
+                Duration.between(startDatetime, endDatetime).toHours();
+
+        return (int) Math.ceil((double) diffHours / 24.0);
+    }
 }

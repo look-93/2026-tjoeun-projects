@@ -232,12 +232,6 @@ function AdvertiseDetailPage() {
             {formatDateTime(advertise.endDatetime)}
           </Descriptions.Item>
 
-          <Descriptions.Item label="광고 기간">
-            {formatDateTime(advertise.startDatetime)}
-            {' ~ '}
-            {formatDateTime(advertise.endDatetime)}
-          </Descriptions.Item>
-
           <Descriptions.Item label="가격 계산">
             <div>
               <div>
