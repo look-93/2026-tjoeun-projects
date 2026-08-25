@@ -19,6 +19,7 @@ import com.moit.meetup.dto.PopularMeetupResponseDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.meetup.entity.Meetup;
+import com.moit.meetup.enums.ApplyStatus;
 import com.moit.meetup.enums.MeetupStatus;
 
 public interface MeetupService {
@@ -85,6 +86,9 @@ public interface MeetupService {
 
     //추천모임
     public List<MeetupResponseDto> getRecommendedMeetups(Long memberId, Long meetupId);
+    
+    //끌어올리기
+    public void boostMeetup(Long memberId, Long meetupId);
     
 	// ################### open api ###################
 	//ai 제목/카테고리/컨텐츠 추가

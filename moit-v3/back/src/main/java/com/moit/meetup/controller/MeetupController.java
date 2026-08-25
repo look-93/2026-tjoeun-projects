@@ -306,6 +306,18 @@ public class MeetupController {
         );
     }
     
+    // 끌어올리기
+    public ResponseEntity<Void> boostMeetup(@PathVariable("meetupId") Long meetupId, Authentication authentication){
+    	
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        Long memberId = userDetails.getAppUserId();
+        
+        meetupService.boostMeetup(memberId, meetupId);
+        
+        return ResponseEntity.ok().build();
+    }
+    
 	// ################### open api ###################
 
 	@Operation(summary = "AI 모임 제목/카테고리/내용 추천", description = "사용자가 입력한 키워드를 기반으로 AI가 모임 제목, 카테고리, 내용을 추천합니다.")
