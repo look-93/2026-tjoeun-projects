@@ -86,7 +86,7 @@ import {
     recommendMeetupRequest,
     recommendMeetupSuccess,
     recommendMeetupFailure,
-
+  
     //인기모임
     fetchPopularMeetupsRequest,
     fetchPopularMeetupsSuccess,
@@ -101,6 +101,7 @@ import {
     boostMeetupRequest,
     boostMeetupSuccess,
     boostMeetupFailure,
+
 } from "../reducers/meetupReducer";
 
 const MEETUP_API_BASE = "/api/meetups";

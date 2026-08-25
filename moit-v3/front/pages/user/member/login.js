@@ -103,7 +103,7 @@ function Login(){
 
         if(loginTab === "admin"){
             // 관리자
-            memberTypeId = 3;
+            memberTypeId = null;
         }else{
             // 일반회원 / 제휴업체
             memberTypeId = Number(values.memberTypeId);
