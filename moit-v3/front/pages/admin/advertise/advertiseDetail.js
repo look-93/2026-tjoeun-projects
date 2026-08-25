@@ -215,9 +215,36 @@ function AdvertiseDetailPage() {
       {/* 결제 정보 */}
       <Card title="결제 정보" style={{ marginBottom: 20 }}>
         <Descriptions bordered column={2}>
+          <Descriptions.Item label="주문 번호(토스)">
+            {advertise.orderId || '-'}
+          </Descriptions.Item>
+
+          <Descriptions.Item label="결제 키(토스)">
+            {advertise.paymentKey || '-'}
+          </Descriptions.Item>
+
+          <Descriptions.Item label="결제 수단">
+            {advertise.paymentMethod || '-'}
+          </Descriptions.Item>
+
+          <Descriptions.Item label="기본 / 추가 금액">
+            {formatPrice(advertise.baseAmount)} / {formatPrice(advertise.positionAmount)}
+          </Descriptions.Item>
+
+          {/* 취소된 결제인 경우에만 취소 정보 표시 */}
+          {advertise.paymentHistoryStatus === 'CANCELLED' && (
+            <>
+              <Descriptions.Item label="취소 일시">
+                {formatDateTime(advertise.cancelledAt)}
+              </Descriptions.Item>
+              <Descriptions.Item label="취소 사유">
+                {advertise.cancelReason || '-'}
+              </Descriptions.Item>
+            </>
+          )}
 
           <Descriptions.Item label="결제 유형">
-            {advertise.paymentType || '-'}
+            {formatPaymentType(advertise.paymentType)}
           </Descriptions.Item>
 
           <Descriptions.Item label="결제 상태">
@@ -306,6 +333,12 @@ function calculateCtr(impressions, clicks) {
   const clickCount = Number(clicks || 0);
   if (impressionCount === 0) return '0.00%';
   return ((clickCount / impressionCount) * 100).toFixed(2) + '%';
+}
+
+function formatPaymentType(value) {
+  if (value === 'INITIAL') return '신규 결제'; // '최초 결제', '신규 등록' 등으로 자유롭게 변경 가능
+  if (value === 'EXTENSION') return '기간 연장';
+  return value || '-';
 }
 
 export default AdvertiseDetailPage;

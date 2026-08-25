@@ -8,4 +8,5 @@ import lombok.NoArgsConstructor;
 public class RefreshRequestDto {
 	
 	private String refreshToken;
+	private String deviceId;
 }

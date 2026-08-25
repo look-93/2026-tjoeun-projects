@@ -3,6 +3,7 @@ package com.moit.advertisement.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.PaymentHistoryStatus;
 import com.moit.advertisement.enums.PaymentType;
@@ -18,6 +19,9 @@ public class AdvertisementPaymentDto {
     private String adTitle;
 
     private Long advertiserId;
+    
+    private String advertiserNickname;
+    private AdGrade adGrade;
 
     private PaymentType paymentType;
 

@@ -13,7 +13,7 @@ public class AdvertisementSearchDto {
     // 검색 조건
     private String searchText;   // 제목 검색
 
-    private AdStatus status;          // OPEN / PENDING / CLOSED
+    private String status;          // OPEN / PENDING / CLOSED
     private ApprovalStatus approvalStatus;  // WAITING / APPROVED / REJECTED
     
     // 광고주
@@ -27,9 +27,13 @@ public class AdvertisementSearchDto {
     @Max(value = 100, message = "페이지 크기는 100 이하로 설정해주세요.")
     private int size = 10;  // 기본 10개
 
-    // 정렬 (선택)
-    private String orderType;  
-    // latest / priority / popular
+    // 정렬
+    private String sort;        
+    private String orderType;   // 기존 호환용
+
+    public String getSort() {
+        return sort != null ? sort : orderType;
+    }
     
     // 자동 계산용
     public int getOffset() {

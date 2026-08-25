@@ -80,6 +80,10 @@ public class ReportAuditLog {
     // 변화한 신뢰도 점수
     @Column(name = "TRUST_SCORE_CHANGE", nullable = false)
     private Integer trustScoreChange;
+    
+    // 3일 전 이메일 전송 여부 확인
+    @Column(name = "THREE_DAYS_EMAIL_SENT_YN")
+    private Character threeDayEmailSentYn = 'N';
 
 	
 	// 승인/반려 감사 로그
@@ -99,7 +103,7 @@ public class ReportAuditLog {
 	    log.changedStatus = changedStatus;
 	    log.processReason = processReason;
 	    log.trustScoreChange = trustScoreChange;
-
+	    
 	    return log;
 	}
 	
@@ -117,7 +121,7 @@ public class ReportAuditLog {
 	    log.changedStatus = null;					// 삭제는 상태변경이 아니므로 null
 	    log.processReason = processReason;
 	    log.trustScoreChange = 0;
-
+	    
 	    return log;
 	}
 }

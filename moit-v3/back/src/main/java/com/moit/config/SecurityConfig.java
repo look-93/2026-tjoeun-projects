@@ -126,7 +126,9 @@ public class SecurityConfig {
                 "/admin/member/join",
                 "/meetup/list",
                 "/user/advertisement/click",
+                "/user/member/kakaologout",
                 "/api/meetups/**"
+
             ).permitAll()
 
             // -------------------------------------------------
@@ -150,17 +152,20 @@ public class SecurityConfig {
             ).authenticated()
 
             // -------------------------------------------------
+            // 제휴업체 광고
+            // -------------------------------------------------
+            .requestMatchers(
+            		"/user/advertisement/aiAdvertise", 
+            		"/api/admin/advertisement/price/**")
+            .hasRole("PARTNER")
+
+            // -------------------------------------------------
             // 관리자
             // -------------------------------------------------
             // 추후 활성화
              .requestMatchers("/api/admin/**", "/api/reports/admin/**")
              .hasAnyRole("ADMIN", "SUPERADMIN")
 
-            // -------------------------------------------------
-            // 제휴업체 광고
-            // -------------------------------------------------
-            .requestMatchers("/user/advertisement/aiAdvertise")
-            .hasRole("PARTNER")
 
             // -------------------------------------------------
             // 나머지
@@ -256,7 +261,8 @@ public class SecurityConfig {
             List.of(
                 "Authorization",
                 "Content-Type",
-                "Accept"
+                "Accept",
+                "X-Device-Id"
             )
         );
 

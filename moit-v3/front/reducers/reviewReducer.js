@@ -8,6 +8,10 @@ const initialState = {
     totalCount: 0,
     totalPage: 0,
     analysisResult: "",
+    // --댓글 관련 상태--
+    comments: [],      // 댓글 목록
+    commentLoadingMap: {},
+    commentError: null,
 
     loading: false,
     error: null,
@@ -129,7 +133,6 @@ const reviewReducer = createSlice({
             const targetId = action.payload; // reviewId
 
             // 1) 목록(reviews) 데이터 업데이트
-
             const review = state.reviews.find(r => r.id === targetId || r.reviewId === targetId);
 
             if (review) {
@@ -142,9 +145,7 @@ const reviewReducer = createSlice({
             }
 
             // 2) 상세화면(reviewDetail) 데이터 업데이트
-
             if (state.reviewDetail && (state.reviewDetail.id === targetId || state.reviewDetail.reviewId === targetId)) {
-
                 if (state.reviewDetail.isLiked === undefined) state.reviewDetail.isLiked = false;
                 
                 state.reviewDetail.likesCount = state.reviewDetail.isLiked 
@@ -185,10 +186,50 @@ const reviewReducer = createSlice({
                 state.reviewDetail.isPublic = state.reviewDetail.isPublic === "Y" ? "N" : "Y";
             }
         },
+
+        // 댓글 목록 조회
+        getCommentsRequest: (state) => {
+            state.commentLoading = true;
+            state.commentError = null;
+        },
+        getCommentsSuccess: (state, action) => {           
+            const { reviewId, comments } = action.payload;
+            state.commentLoadingMap[reviewId] = false;
+            state.commentsMap[reviewId] = comments || [];
+        },
+        getCommentsFailure: (state, action) => {           
+            state.commentError = action.payload;
+        },
+
+        // 댓글 작성
+        createCommentRequest: (state) => {
+            state.commentLoading = true;
+            state.commentError = null;
+        },
+        createCommentSuccess: (state) => {
+            state.commentLoading = false;
+        },
+        createCommentFailure: (state, action) => {
+            state.commentLoading = false;
+            state.commentError = action.payload;
+        },
+
+        // --댓글 삭제--
+        deleteCommentRequest: (state) => {
+            state.commentLoading = true;
+            state.commentError = null;
+        },
+        deleteCommentSuccess: (state) => {
+            state.commentLoading = false;
+        },
+        deleteCommentFailure: (state, action) => {
+            state.commentLoading = false;
+            state.commentError = action.payload;
+        },
     },
 });
 
-// Action 내보내기
+// Action 내보내기 (존재하는 액션들만 정확히 내보내기)
 export const {
     resetReviewState,
     createReviewRequest,
@@ -213,6 +254,15 @@ export const {
     analyzeReviewsSuccess,
     analyzeReviewsFailure,
     changeVisibilitySuccess,
+    getCommentsRequest,
+    getCommentsSuccess,
+    getCommentsFailure,
+    createCommentRequest,
+    createCommentSuccess,
+    createCommentFailure,
+    deleteCommentRequest,
+    deleteCommentSuccess,
+    deleteCommentFailure,
 } = reviewReducer.actions;
 
 // Export Default

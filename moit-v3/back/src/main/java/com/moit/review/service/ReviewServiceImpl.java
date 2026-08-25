@@ -91,22 +91,22 @@ public class ReviewServiceImpl implements ReviewService {
 	}
 
 	// 리뷰 상세 조회
-	@Override
-	@Transactional
-	public ReviewResponseDto detail(Long reviewId) {
-		Review review = reviewRepository.findById(reviewId)
-				.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 리뷰입니다. REVIEW ID : " + reviewId));
+		@Override
+		@Transactional
+		public ReviewResponseDto detail(Long reviewId) {
+			Review review = reviewRepository.findById(reviewId)
+					.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 리뷰입니다. REVIEW ID : " + reviewId));
 
-		if ("N".equals(review.getIsPublic())) {
-			throw new IllegalArgumentException("비공개 처리된 리뷰입니다.");
+			if ("N".equals(review.getIsPublic())) {
+				throw new IllegalArgumentException("비공개 처리된 리뷰입니다.");
+			}
+
+			// review.getViewsCount() NPE 방지
+			int currentViews = (review.getViewsCount() != null) ? review.getViewsCount() : 0;
+			review.setViewsCount(currentViews + 1);
+
+			return ReviewResponseDto.detailFrom(review);
 		}
-
-		// review.getViewsCount() NPE 방지
-		int currentViews = (review.getViewsCount() != null) ? review.getViewsCount() : 0;
-		review.setViewsCount(currentViews + 1);
-
-		return ReviewResponseDto.detailFrom(review);
-	}
 
 	
 	// 리뷰 수정

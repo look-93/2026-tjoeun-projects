@@ -7,6 +7,7 @@ const initialState = {
 
     accessToken: null,
     refreshToken: null,
+    deviceId: null,
 
     // =========================
     // 로그인 상태
@@ -126,10 +127,18 @@ const initialState = {
 
     // 로그아웃
     logout: {
-    loading: false,
-    success: false,
-    error: null,
-},
+        loading: false,
+        success: false,
+        error: null,
+    },
+
+    // 로그인 기록 조회
+    loginHistory: {
+        loading: false,
+        data: [],
+        error: null,
+    },
+
 };
 
 //2. 상태변화
@@ -154,6 +163,7 @@ const userReducer = createSlice({
 
             state.accessToken = action.payload.accessToken;
             state.refreshToken = action.payload.refreshToken;
+            state.deviceId = action.payload.deviceId || null;
 
             state.user = {
                 memberId: action.payload.memberId,
@@ -223,6 +233,13 @@ const userReducer = createSlice({
             state.signup.loading = false;
             state.signup.success = false;
             state.signup.error = action.payload;
+        },
+        resetSignup: (state) => {
+            state.signup = {
+                loading: false,
+                success: false,
+                error: null,
+            };
         },
 
         // =========================
@@ -365,6 +382,7 @@ const userReducer = createSlice({
             state.error = action.payload;
             state.duplicateCheck.mobile = null;
         },
+
         // =========================
         // 전체 회원 조회
         // =========================
@@ -380,6 +398,33 @@ const userReducer = createSlice({
         findMembersFailure: (state, action) => {
             state.membersLoading = false;
             state.membersError = action.payload;
+        },
+
+        // =========================
+        // 로그인 기록 조회
+        // =========================
+        getLoginHistoryRequest: (state) => {
+            state.loginHistory.loading = true;
+            state.loginHistory.error = null;
+        },
+        getLoginHistorySuccess: (state, action) => {
+            state.loginHistory.loading = false;
+            state.loginHistory.data = action.payload;
+            state.loginHistory.error = null;
+        },
+        getLoginHistoryFailure: (state, action) => {
+            state.loginHistory.loading = false;
+            state.loginHistory.error = action.payload;
+        },
+        // =========================
+        // 로그인 기록 조회 상태 초기화
+        // =========================
+        resetLoginHistory: (state) => {
+            state.loginHistory = {
+                loading: false,
+                data: [],
+                error: null,
+            };
         },
 
         // =========================
@@ -604,16 +649,22 @@ const userReducer = createSlice({
         // 로그아웃
         // =========================
         logoutRequest: (state) => {
-            state.loading = true;
+            // 로그아웃 자체의 loading
+            state.logout.loading = true;
+            state.logout.success = false;
+            state.logout.error = null;
 
-            // 로그인 성공 상태 초기화
+            // 기존 전역 loading은 사용하지 않음
+            state.loading = false;
+
+            // 로그인 상태 초기화
             state.login = {
                 loading: false,
                 success: false,
                 error: null,
             };
 
-            // 로그인 관련 사용자 정보 초기화
+            // 사용자 정보 초기화
             state.user = null;
             state.accessToken = null;
             state.refreshToken = null;
@@ -623,6 +674,9 @@ const userReducer = createSlice({
             state.logout.loading = false;
             state.logout.success = true;
             state.logout.error = null;
+
+            // 전역 loading도 반드시 해제
+            state.loading = false;
 
             state.user = null;
             state.accessToken = null;
@@ -639,6 +693,20 @@ const userReducer = createSlice({
             state.logout.loading = false;
             state.logout.success = false;
             state.logout.error = action.payload;
+
+            state.loading = false;
+
+            // 로그아웃 실패하더라도
+            // 프론트 로그인 상태는 초기화
+            state.user = null;
+            state.accessToken = null;
+            state.refreshToken = null;
+
+            state.login = {
+                loading: false,
+                success: false,
+                error: null,
+            };
         },
     }
 });
@@ -653,7 +721,7 @@ export const {
     checkEmailRequest,checkEmailSuccess,checkEmailFailure,
     checkNicknameRequest,checkNicknameSuccess,checkNicknameFailure,
     checkMobileRequest,checkMobileSuccess,checkMobileFailure,
-    logout, logoutRequest, resetDuplicateCheck,resetEmailVerification,
+    logoutRequest,logoutSuccess,logoutFailure, resetDuplicateCheck,resetEmailVerification,
     checkPasswordLeakRequest,checkPasswordLeakSuccess,checkPasswordLeakFailure,
     resetPasswordLeak,findMembersRequest,findMembersSuccess,findMembersFailure,
     getMyInfoRequest, getMyInfoSuccess, getMyInfoFailure,
@@ -665,6 +733,7 @@ export const {
     updateMyInfoSuccess,updateMyInfoFailure, resetUpdateMyInfo,
     uploadProfileImageRequest,uploadProfileImageSuccess,uploadProfileImageFailure,
     resetProfileImage, deleteAccountRequest,deleteAccountSuccess,deleteAccountFailure,resetDeleteAccount,
+    getLoginHistoryRequest,getLoginHistorySuccess,getLoginHistoryFailure,resetLoginHistory,resetSignup
 } = userReducer.actions;
 
 //4. export
