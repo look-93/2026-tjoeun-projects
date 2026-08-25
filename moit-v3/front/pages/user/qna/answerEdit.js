@@ -11,7 +11,6 @@ import {
 } from '../../../reducers/meetupReducer';
 
 import {
-  Breadcrumb,
   Button,
   Card,
   Descriptions,
@@ -28,18 +27,9 @@ function answerEdit() {
   const dispatch = useDispatch();
 
   const { answerId, questionId } = router.query;
-
-  const { qna, loading, success } = useSelector(
-    (state) => state.qna
-  );
-
-  const { user } = useSelector(
-    (state) => state.user
-  );
-
-  const { meetup } = useSelector(
-    (state) => state.meetup
-  );
+  const { qna, loading, success } = useSelector((state) => state.qna);
+  const { user } = useSelector((state) => state.user);
+  const { meetup } = useSelector((state) => state.meetup);
 
   const [content, setContent] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -61,11 +51,7 @@ function answerEdit() {
     dispatch(
       fetchMeetupDetailRequest(Number(qna.parentId))
     );
-  }, [
-    qna?.parentId,
-    qna?.category,
-    dispatch
-  ]);
+  }, [qna?.parentId, qna?.category, dispatch]);
 
   // 답변 수정 권한
   const canAnswer =
@@ -99,9 +85,7 @@ function answerEdit() {
 
     if (!hasPermission) {
       alert('답변 수정 권한이 없습니다.');
-      router.replace(
-        `/user/qna/questionDetail?questionId=${questionId}`
-      );
+      router.replace(`/user/qna/questionDetail?questionId=${questionId}`);
     }
   }, [
     router.isReady,
@@ -123,15 +107,8 @@ function answerEdit() {
   useEffect(() => {
     if (!submitted || !success) return;
 
-    router.push(
-      `/user/qna/questionDetail?questionId=${questionId}`
-    );
-  }, [
-    submitted,
-    success,
-    router,
-    questionId,
-  ]);
+    router.push(`/user/qna/questionDetail?questionId=${questionId}`);
+  }, [submitted, success, router, questionId,]);
 
   const isMeetup = qna?.category === 'MEETUP';
 
@@ -152,7 +129,7 @@ function answerEdit() {
     }
 
     if (!answerId) return;
-    if (!content.trim()) {alert('답변 내용을 입력해주세요.');return;}
+    if (!content.trim()) {alert('답변 내용을 입력해주세요.'); return;}
     if (!window.confirm('답변을 수정하시겠습니까?')) {return;}
 
     setSubmitted(true);
@@ -297,11 +274,8 @@ function answerEdit() {
             </Button>
 
           </Space>
-
         </div>
-
       </Card>
-
     </div>
   );
 }

@@ -69,6 +69,15 @@ public class AdvertisementDto {
     private PaymentHistoryStatus paymentHistoryStatus;
     private BigDecimal paymentAmount;
     private LocalDateTime paidAt;
+    
+    // 추가할 필드들
+    private String orderId;
+    private String paymentKey;
+    private String paymentMethod;
+    private BigDecimal baseAmount;
+    private BigDecimal positionAmount;
+    private LocalDateTime cancelledAt;
+    private String cancelReason;
 
     private BigDecimal fatigueScore;
 

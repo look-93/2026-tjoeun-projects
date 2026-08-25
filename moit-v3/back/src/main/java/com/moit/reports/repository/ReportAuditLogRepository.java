@@ -13,6 +13,10 @@ public interface ReportAuditLogRepository extends JpaRepository<ReportAuditLog, 
 	// 관리자 처리 로그 조회
 	List<ReportAuditLog> findByReport_ReportIdOrderByProcessedAtDesc(Long reportId);
 	
-	// 관리자 처리 기간 조회 (3일)
-	List<ReportAuditLog> findByProcessedAtBetween(LocalDateTime start, LocalDateTime end);
+	// 관리자 처리 기간 조회 (3일 전)
+	List<ReportAuditLog> findByProcessedAtBetweenAndThreeDayEmailSentYn(
+	        LocalDateTime start,
+	        LocalDateTime end,
+	        Character threeDayEmailSentYn
+	);
 }

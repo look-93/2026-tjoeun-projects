@@ -1,6 +1,6 @@
 // sagas/reportSaga.js
 
-import { actionChannel, all, call, put, takeLatest } from 'redux-saga/effects';
+import { all, call, put, takeLatest } from 'redux-saga/effects';
 import  {
     createReportRequest, createReportSuccess, createReportFailure,
     updateReportRequest, updateReportSuccess, updateReportFailure,
@@ -17,7 +17,8 @@ import  {
     fetchAdminReportAuditLogsRequest, fetchAdminReportAuditLogsSuccess, fetchAdminReportAuditLogsFailure,
     fetchMemberReportTrustInfoRequest, fetchMemberReportTrustInfoSuccess, fetchMemberReportTrustInfoFailure,
 
-    createAIReportDetailRequest, createAIReportDetailSuccess, createAIReportDetailFailure
+    createAIReportDetailRequest, createAIReportDetailSuccess, createAIReportDetailFailure,
+    aiReportAnalysisRequest, aiReportAnalysisSuccess, aiReportAnalysisFailure
 } from '../reducers/reportReducer';
 import api from '../api/axios';
 
@@ -348,6 +349,22 @@ export function* createAIReportDetail(action) {
     }
 }
 
+// 관리자 처리 보조 기능 openAi 분석
+export const aiReportAnalysisAPI = (payload) => {
+    const { reportId } = payload;
+    
+    // @PathVariable("reportId") Long reportId
+    return api.post( `${POST_API_BASE}/admin/${reportId}/ai-analysis` );
+};
+export function* aiReportAnalysis(action) {
+    try {
+        const result = yield call(aiReportAnalysisAPI, action.payload);
+        yield put( aiReportAnalysisSuccess(result.data));
+
+    } catch (err) {
+        yield put(aiReportAnalysisFailure( err.response?.data?.message || err.message ));
+    }
+}
 
 
 
@@ -371,6 +388,7 @@ function* watchFetchAdminReportAuditLogs() { yield takeLatest( fetchAdminReportA
 function* watchFetchMemberReportTrustInfo() { yield takeLatest( fetchMemberReportTrustInfoRequest.type, fetchMemberReportTrustInfo ); }
 
 function* watchCreateAIReportDetail() { yield takeLatest( createAIReportDetailRequest.type, createAIReportDetail ); }
+function* watchAiReportAnalysis() { yield takeLatest( aiReportAnalysisRequest.type, aiReportAnalysis ); }
 
 
 export default function* reportSaga() {
@@ -391,5 +409,6 @@ export default function* reportSaga() {
         call(watchFetchMemberReportTrustInfo),
         
         call(watchCreateAIReportDetail),
+        call(watchAiReportAnalysis),
     ]);
 }

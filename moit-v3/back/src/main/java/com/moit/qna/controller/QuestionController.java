@@ -115,7 +115,9 @@ public class QuestionController {
         int startPage = ((page - 1) / pageBlock) * pageBlock + 1;
         int endPage = startPage + pageBlock - 1;
         if (endPage > totalPage) { endPage = totalPage; }
-
+        int pendingCnt = questionService.getMyPendingCnt(memberId);
+        int answeredCnt = questionService.getMyAnsweredCnt(memberId);
+        
         QuestionMyResponseDto response = new QuestionMyResponseDto();
 
         response.setList(list);
@@ -126,7 +128,8 @@ public class QuestionController {
         response.setEndPage(endPage);
         response.setType(type);
         response.setKeyword(keyword);
-
+        response.setPendingCnt(pendingCnt);
+        response.setAnsweredCnt(answeredCnt);
         return ResponseEntity.ok(response);
     }
     
@@ -138,13 +141,14 @@ public class QuestionController {
             @RequestParam(value = "type", required = false) String type,
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "aiCategory", required = false) String aiCategory,
             @RequestParam(value = "startDate", required = false) String startDate,
             @RequestParam(value = "endDate", required = false) String endDate) {
         int pageSize = 10;
         int start = (page - 1) * pageSize;
 
-        List<QuestionResponseDto> list = questionService.getList( start, pageSize, type, keyword, status, startDate, endDate );
-        int totalCnt = questionService.getSearchCnt( type, keyword, status, startDate, endDate );
+        List<QuestionResponseDto> list = questionService.getList( start, pageSize, type, keyword, status, aiCategory, startDate, endDate );
+        int totalCnt = questionService.getSearchCnt( type, keyword, status, aiCategory, startDate, endDate );
         int totalPage = (int) Math.ceil((double) totalCnt / pageSize);
         int pageBlock = 10;
         int startPage = ((page - 1) / pageBlock) * pageBlock + 1;

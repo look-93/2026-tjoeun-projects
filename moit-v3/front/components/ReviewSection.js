@@ -25,7 +25,7 @@ import {
 } from '@ant-design/icons';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
-import { analyzeReviewsRequest } from '../reducers/reviewReducer'; // 경로에 맞게 확인해주세요!
+import { analyzeReviewsRequest,resetReviewState } from '../reducers/reviewReducer'; 
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -34,23 +34,33 @@ const BACKEND_URL = 'http://localhost:8080'; // 본인 백엔드 주소
 const getImageUrl = (imgItem) => {
   if (imgItem === null || imgItem === undefined) return null;
 
-  if (typeof imgItem === 'number') {
-    return `${BACKEND_URL}/api/images/${imgItem}`;
+  // 1. 만약 백엔드 엔티티 구조상 imgItem 안에 image 객체가 포함되어 있다면 추출
+  const target = imgItem.image || imgItem;
+
+  if (typeof target === 'number') {
+    return `${BACKEND_URL}/api/images/${target}`;
   }
 
-  if (typeof imgItem === 'string') {
-    if (imgItem.startsWith('http')) return imgItem;
-    if (!isNaN(imgItem)) return `${BACKEND_URL}/api/images/${imgItem}`;
-    return `${BACKEND_URL}${imgItem.startsWith('/') ? '' : '/'}${imgItem}`;
+  if (typeof target === 'string') {
+    if (target.startsWith('http')) return target;
+    if (!isNaN(target)) return `${BACKEND_URL}/api/images/${target}`;
+    return `${BACKEND_URL}${target.startsWith('/') ? '' : '/'}${target}`;
   }
 
-  const url = imgItem.imageUrl || imgItem.url || imgItem.path;
+  // 2. 객체 안에서 파일 경로를 나타내는 다양한 필드명 체크 (filePath 추가!)
+  const url = target.filePath || target.imageUrl || target.url || target.path || target.imagePath;
   if (url) {
     if (url.startsWith('http')) return url;
-    return `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+    const cleanPath = url.startsWith('/') ? url : `/${url}`;
+    // upload 경로가 이미 포함되어 있는지 확인
+    if (cleanPath.startsWith('/upload')) {
+      return `${BACKEND_URL}${cleanPath}`;
+    }
+    return `${BACKEND_URL}/upload/review${cleanPath}`;
   }
 
-  const id = imgItem.imageId || imgItem.id || imgItem.reviewImageId;
+  // 3. 경로가 없고 아이디만 있는 경우
+  const id = target.imageId || target.id || target.reviewImageId;
   if (id) {
     return `${BACKEND_URL}/api/images/${id}`;
   }
@@ -61,7 +71,7 @@ const getImageUrl = (imgItem) => {
 function ReviewSection({ 
   reviews = [], 
   meetupId, 
-  isHost = false, // 👈 [추가] 개설자 여부 prop (기본값 false)
+  isHost = false, 
   onWriteReview, 
   onLikeReview,
   onSortChange,
@@ -135,17 +145,19 @@ function ReviewSection({
 
   // 후기 작성 이동
   const handleWriteClick = () => {
-    if (onWriteReview) {
-      onWriteReview();
-      return;
-    }
+  dispatch(resetReviewState()); // ★ 작성 페이지로 넘어가기 전 Redux 상태(success 등)를 깨끗하게 리셋!
 
-    if (targetMeetupId) {
-      router.push(`/user/meetup/review/write?meetupId=${targetMeetupId}`);
-    } else {
-      alert('모임 정보(meetupId)를 찾을 수 없습니다.');
-    }
-  };
+  if (onWriteReview) {
+    onWriteReview();
+    return;
+  }
+
+  if (targetMeetupId) {
+    router.push(`/user/meetup/review/write?meetupId=${targetMeetupId}`);
+  } else {
+    alert('모임 정보(meetupId)를 찾을 수 없습니다.');
+  }
+};
 
   // 후기 상세보기 이동
   const handleDetailClick = (reviewId) => {
@@ -187,7 +199,7 @@ function ReviewSection({
   };
 
   return (
-    <div>
+    <div id="review-section">
       <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
         <Col>
           <Space size={12} align="center">
