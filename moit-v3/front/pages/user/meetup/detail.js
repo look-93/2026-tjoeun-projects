@@ -13,15 +13,16 @@ import {
     getReviewListRequest,
     toggleReviewLikeRequest,
 } from "../../../reducers/reviewReducer";
-import {
-    qnaMeetupListRequest,
-} from '../../../reducers/qnaReducer';
+import { qnaMeetupListRequest } from "../../../reducers/qnaReducer";
 import { useDispatch, useSelector } from "react-redux";
 
-import { fetchMeetupDetailRequest } from "../../../reducers/meetupReducer";
+import {
+    fetchMeetupDetailRequest,
+    resetMeetupState,
+} from "../../../reducers/meetupReducer";
 import { fetchWeatherRequest } from "../../../reducers/commonReducer";
 
-import { Row, Col, Card, Button, Typography, Tag } from "antd";
+import { Row, Col, Card, Button, Typography, Tag, Spin } from "antd";
 import {
     ArrowLeftOutlined,
     ExclamationCircleOutlined,
@@ -30,9 +31,34 @@ import {
 const { Title } = Typography;
 
 function MeetupDetailPage() {
-    const [activeTab, setActiveTab] = useState("detail");
-    const router = useRouter();
-    const dispatch = useDispatch();
+
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const [activeTab, setActiveTab] = useState('detail');
+  //리뷰 추가
+  useEffect(() => {
+    if (router.isReady && router.query.tab) {
+      setActiveTab(router.query.tab);
+    }
+  }, [router.isReady, router.query.tab]);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    if (router.query.tab) {
+      setActiveTab(router.query.tab);
+    }
+
+    if (router.asPath.includes('tab=review')) {
+      const timer = setTimeout(() => {
+        const reviewElement = document.getElementById('review-section');
+        if (reviewElement) {
+          reviewElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 300); 
+      return () => clearTimeout(timer);
+    }
+  }, [router.isReady, router.asPath, router.query.tab]);
 
     // meetup
     const { meetup } = useSelector((state) => state.meetup);
@@ -47,7 +73,9 @@ function MeetupDetailPage() {
         : 1;    
     
     // qna
-    const { meetupQnaList, loading: qnaLoading } = useSelector((state) => state.qna);
+    const { meetupQnaList, loading: qnaLoading } = useSelector(
+        (state) => state.qna,
+    );
 
     useEffect(() => {
         if (!router.isReady || !currentMeetupId) return;
@@ -59,6 +87,7 @@ function MeetupDetailPage() {
     }, [router.isReady, currentMeetupId, dispatch]);
     //console.log(isOwner);
     //console.log(user);
+
     // Redux Store에서 reviews 가져오기
     const { reviews: reduxReviews } = useSelector((state) => {
         if (!state) return {};
@@ -130,8 +159,24 @@ function MeetupDetailPage() {
             return;
         }
 
+        // 이전 상세 데이터 초기화
+        dispatch(resetMeetupState());
+
+        // 새로운 모임 조회
         dispatch(fetchMeetupDetailRequest(meetupId));
     }, [router.isReady, meetupId, dispatch]);
+
+    // 비공개 모임 접근 차단
+    useEffect(() => {
+        if (!meetup || !meetupId) return;
+
+        if (Number(meetup.id) !== Number(meetupId)) return;
+
+        if (meetup.hidden) {
+            alert("모임이 관리자에 의해 비공개 처리되었습니다.");
+            router.back();
+        }
+    }, [meetup, meetupId, router]);
 
     // 이미지
     const images =
@@ -181,9 +226,7 @@ function MeetupDetailPage() {
     const reviews = rawReviews.filter((review) => review.isPublic === "Y");
 
     // Q&A
-    const qnaLists = Array.isArray(meetupQnaList)
-    ? meetupQnaList
-    : [];
+    const qnaLists = Array.isArray(meetupQnaList) ? meetupQnaList : [];
 
     // 날씨
     useEffect(() => {
@@ -205,9 +248,23 @@ function MeetupDetailPage() {
 
     //로딩처리
     if (!meetup) {
-        return <div>모임 정보를 불러오는 중입니다...</div>;
+        return (
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "300px",
+                    gap: "16px",
+                }}
+            >
+                <Spin size="large" />
+                <span>모임 정보를 불러오는 중입니다...</span>
+            </div>
+        );
     }
-
+    
     // 광고
     const ad = {
         title: "Moit 특별 이벤트",
@@ -262,8 +319,9 @@ function MeetupDetailPage() {
                                     danger
                                     onClick={() =>
                                         router.push(
+                                            `/user/meetup/report/write?targetType=MEETUP&targetId=${meetup.id}`,
                                             // `/user/meetup/report/write?targetType=MEETUP&targetId=${meetup.meetupId}`,
-                                            `/user/meetup/report/write?targetType=MEETUP&targetId=2`,
+                                            // `/user/meetup/report/write?targetType=MEETUP&targetId=2`,
                                         )
                                     }
                                 >

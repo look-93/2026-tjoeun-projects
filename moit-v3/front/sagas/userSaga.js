@@ -20,7 +20,7 @@ import {
     changePasswordFailure,resetChangePassword, updateMyInfoRequest,
     updateMyInfoSuccess,updateMyInfoFailure, resetUpdateMyInfo,
     uploadProfileImageRequest,uploadProfileImageSuccess,uploadProfileImageFailure,
-    resetProfileImage,
+    resetProfileImage, deleteAccountRequest,deleteAccountSuccess,deleteAccountFailure,resetDeleteAccount,
 } from '../reducers/userReducer';
 
 
@@ -145,15 +145,22 @@ function changePasswordApi(data) {
 // =========================
 // 회원정보 수정 API
 // =========================
-function updateMyInfoApi(data) {
-    return api.put("/api/members/me", data);
+function updateMyInfoApi(formData) {
+    return api.put("/api/members/me",formData);
 }
 
 // =========================
 // 프로필 이미지 업로드 API
 // =========================
 function uploadProfileImageApi(formData) {
-    return api.post("/api/members/me/profile-image", formData,{headers: {"Content-Type": undefined}});
+    return api.post("/api/members/me/profile-image", formData);
+}
+
+// =========================
+// 회원 탈퇴 API
+// =========================
+function deleteAccountApi(data) {
+    return api.delete("/api/members/me", {data: data,});
 }
 
 ////////////////////////////////////////////////////
@@ -353,25 +360,31 @@ function* checkPasswordLeak(action){
 // =========================
 // 이메일 중복검사 
 // =========================
-function* checkEmail(action){ 
-    try{ 
-        const response = yield call(checkEmailApi, action.payload); 
+function* checkEmail(action) {
+    try {
+        const response = yield call(checkEmailApi, action.payload);
+
+        console.log("===== 이메일 중복검사 =====");
+        console.log("입력 이메일:", action.payload);
+        console.log("response:", response);
+        console.log("response.data:", response.data);
+        console.log("response.data 타입:", typeof response.data);
 
         const available = !response.data;
 
-        console.log("이메일 사용 가능 여부:", available); 
- 
+        console.log("이메일 사용 가능 여부:", available);
+
         yield put(checkEmailSuccess(available));
 
-    }catch(err){ 
-        console.error("이메일 중복검사 실패:",err); 
- 
+    } catch (err) {
+        console.error("이메일 중복검사 실패:", err);
+
         yield put(
             checkEmailFailure(
                 err.response?.data?.message || err.message
             )
-        ); 
-    } 
+        );
+    }
 }
 
 // =========================
@@ -616,7 +629,10 @@ function* updateMyInfo(action) {
     } catch (err) {
 
         console.error("===== 회원정보 수정 FAILURE =====");
-        console.error(err);
+        console.error("status:", err.response?.status);
+        console.error("data:", err.response?.data);
+        console.error("message:", err.response?.data?.message);
+        console.error("error:", err);
 
         yield put(updateMyInfoFailure(err.response?.data?.message ||"회원정보 수정에 실패했습니다."));
     }
@@ -650,6 +666,44 @@ function* uploadProfileImage(action) {
     }
 }
 
+// =========================
+// 회원 탈퇴
+// =========================
+function* deleteAccount(action) {
+
+    try {
+
+        console.log("===== 회원 탈퇴 START =====");
+        console.log("request:", action.payload);
+
+        const response = yield call(
+            deleteAccountApi,
+            action.payload
+        );
+
+        console.log("===== 회원 탈퇴 SUCCESS =====");
+        console.log("response:", response.data);
+
+        // localStorage 토큰 삭제
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+        }
+
+        // Redux 상태 초기화
+        yield put(deleteAccountSuccess());
+
+    } catch (err) {
+
+        console.error("===== 회원 탈퇴 FAILURE =====");
+        console.error("status:", err.response?.status);
+        console.error("data:", err.response?.data);
+        console.error("message:", err.response?.data?.message);
+
+        yield put(deleteAccountFailure(err.response?.data?.message || "회원 탈퇴에 실패했습니다."));
+    }
+}
+
 export default function* userSaga(){
 
     console.log("===== USER SAGA STARTED =====");
@@ -675,5 +729,6 @@ export default function* userSaga(){
         takeLatest(changePasswordRequest.type, changePassword),
         takeLatest(updateMyInfoRequest.type,updateMyInfo),
         takeLatest(uploadProfileImageRequest.type,uploadProfileImage),
+        takeLatest(deleteAccountRequest.type, deleteAccount),
     ]);
 }

@@ -5,9 +5,9 @@ import {
   updateMyInfoRequest,
   resetUpdateMyInfo,
   getMyInfoRequest,
-  uploadProfileImageRequest,
-  uploadProfileImageSuccess,
-  resetProfileImage
+  // uploadProfileImageRequest,
+  // uploadProfileImageSuccess,
+  // resetProfileImage
 } from '../../../../reducers/userReducer';
 
 import {
@@ -41,17 +41,17 @@ function UserMyMemberEditPage() {
   const router = useRouter();
 
   // Redux user
-  const {user,updateMyInfo,profileImage} = useSelector((state) => state.user);
+  const {user,updateMyInfo} = useSelector((state) => state.user);
 
   const loading = updateMyInfo.loading;
   const updateSuccess = updateMyInfo.success;
   const updateError = updateMyInfo.error;
-  const profileImageLoading = profileImage.loading;
-  const profileImageSuccess = profileImage.success;
-  const profileImageError = profileImage.error;
+  // const profileImageLoading = profileImage.loading;
+  // const profileImageSuccess = profileImage.success;
+  // const profileImageError = profileImage.error;
 
   const [profilePreview, setProfilePreview] = useState(null);
-  const [pendingUpdateData, setPendingUpdateData] = useState(null);
+  //const [pendingUpdateData, setPendingUpdateData] = useState(null);
 
   // 관심사
   const interests = [
@@ -67,14 +67,19 @@ function UserMyMemberEditPage() {
 
   // 회원정보 조회
   useEffect(() => {
-    if (!user) {
       dispatch(getMyInfoRequest());
-    }
-  }, [user, dispatch]);
+    
+  }, [dispatch]);
 
   // 회원정보 Redux -> Form
   useEffect(() => {
-    if (!user) {return;}
+    if (!user) return;
+
+    console.log("===== EDIT USER =====");
+    console.log("user:", user);
+    console.log("interestIds:", user.interestIds);
+
+    const interestIds = (user.interestIds || []).map(Number);
 
     form.setFieldsValue({
       loginId: user.loginId,
@@ -82,15 +87,30 @@ function UserMyMemberEditPage() {
       email: user.email,
       mobile: user.mobile,
       gender: user.gender,
+
       birth: user.birth
         ? moment(user.birth, 'YYYY-MM-DD')
         : null,
-      interests: user.interests
-        ? user.interests.map((interest) => interest.interestId)
-        : [],
+
+      interests: interestIds,
     });
 
-    setProfilePreview(user.profileUrl || null);
+    console.log("===== FORM 관심사 세팅 =====");
+    console.log("interestIds:", interestIds);
+
+    const profileUrl = user.profileUrl;
+
+    if (profileUrl) {
+      if (profileUrl.startsWith('/images/profile/')) {
+        setProfilePreview(
+          `http://localhost:8080${profileUrl}`
+        );
+      } else {
+        setProfilePreview(profileUrl);
+      }
+    } else {
+      setProfilePreview(null);
+    }
   }, [user, form]);
 
   // 수정 성공
@@ -116,82 +136,111 @@ function UserMyMemberEditPage() {
   // 프로필 이미지 미리보기
   const [profileFile, setProfileFile] = useState(null);
 
-  const handleProfileChange = ({ file }) => {
-    if (!file.originFileObj) return;
+  const handleProfileChange = (file) => {
+    if (!file) return false;
 
-    const selectedFile = file.originFileObj;
-
-    if (!selectedFile.type.startsWith('image/')) {
+    if (!file.type.startsWith('image/')) {
       message.error('이미지 파일만 선택해주세요.');
-      return;
+      return false;
     }
 
-    const url = URL.createObjectURL(selectedFile);
+    // 기존 blob URL 정리
+    if (profilePreview && profilePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(profilePreview);
+    }
 
-    setProfilePreview((prev) => {
-      if (prev && prev.startsWith('blob:')) {
-        URL.revokeObjectURL(prev);
-      }
+    // 미리보기 URL 생성
+    const previewUrl = URL.createObjectURL(file);
 
-      return url;
-    });
+    // 화면 미리보기 변경
+    setProfilePreview(previewUrl);
 
-    setProfileFile(selectedFile);
+    // 실제 업로드할 파일 저장
+    setProfileFile(file);
+
+    return false;
   };
 
   // 회원정보 수정
   const handleSubmit = (values) => {
-    const requestData = {
-      nickname: values.nickname,
-      mobile: values.mobile,
-      email: values.email,
-      gender: values.gender,
-      birth: values.birth
-        ? values.birth.format('YYYY-MM-DD')
-        : null,
-      interestIds: values.interests || [],
-    };
 
-    console.log('===== 회원정보 수정 =====');
-    console.log('requestData:', requestData);
-    console.log('profileFile:', profileFile);
+    const formData = new FormData();
 
-    // 프로필 이미지가 있으면
+    // =========================
+    // 기본 회원정보
+    // =========================
+    formData.append("nickname", values.nickname);
+    formData.append("mobile", values.mobile);
+    formData.append("gender", values.gender || "");
+
+    // =========================
+    // 생년월일
+    // =========================
+    if (values.birth) {
+      formData.append(
+        "birth",
+        values.birth.format("YYYY-MM-DD")
+      );
+    }
+
+    // =========================
+    // 관심사
+    // =========================
+    if (values.interests && values.interests.length > 0) {
+
+      values.interests.forEach((id) => {
+        formData.append(
+          "interestIds",
+          String(id)
+        );
+      });
+
+    }
+
+    // =========================
+    // 프로필 이미지
+    // =========================
     if (profileFile) {
-
-      console.log('===== 프로필 이미지 업로드 요청 =====');
-      console.log('file:', profileFile);
-
-      // 이미지 업로드 후 이어서 수정할 회원정보 저장
-      setPendingUpdateData(requestData);
-
-      dispatch(uploadProfileImageRequest(profileFile));
-
-      return;
+      formData.append(
+        "profileImage",
+        profileFile
+      );
     }
 
-    // 이미지가 없으면 바로 회원정보 수정
-    dispatch(updateMyInfoRequest(requestData));
+    // =========================
+    // 확인
+    // =========================
+    console.log("===== 회원정보 수정 =====");
+
+    for (const [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+
+    // =========================
+    // Redux Saga
+    // =========================
+    dispatch(
+      updateMyInfoRequest(formData)
+    );
   };
+  // // 이미지 업로드
+  // useEffect(() => {
+  //   if (!profileImageSuccess) return;
 
-  // 이미지 업로드
-  useEffect(() => {
-    if (!profileImageSuccess) return;
+  //   console.log('===== 프로필 이미지 업로드 성공 =====');
 
-    console.log('===== 프로필 이미지 업로드 성공 =====');
+  //   if (pendingUpdateData) {
+  //     console.log('===== 이미지 업로드 후 회원정보 수정 =====');
 
-    if (pendingUpdateData) {
-      console.log('===== 이미지 업로드 후 회원정보 수정 =====');
+  //     dispatch(updateMyInfoRequest(pendingUpdateData));
+  //   }
 
-      dispatch(updateMyInfoRequest(pendingUpdateData));
-    }
+  //   setProfileFile(null);
+  //   setPendingUpdateData(null);
 
-    setProfileFile(null);
-    setPendingUpdateData(null);
+  //   dispatch(resetProfileImage());
 
-    dispatch(resetProfileImage());
-
-  }, [profileImageSuccess, pendingUpdateData, dispatch]);
+  // }, [profileImageSuccess, pendingUpdateData, dispatch]);
 
   if (!user) {return null;}
 
@@ -217,8 +266,7 @@ function UserMyMemberEditPage() {
 
             <Upload
               showUploadList={false}
-              beforeUpload={() => false}
-              onChange={handleProfileChange}
+              beforeUpload={handleProfileChange}
               accept="image/*"
             >
               <Button
@@ -365,8 +413,16 @@ function UserMyMemberEditPage() {
                 <Select
                   mode="multiple"
                   placeholder="관심사를 선택해주세요."
-                  options={interests}
-                />
+                >
+                  {interests.map((interest) => (
+                    <Select.Option
+                      key={interest.value}
+                      value={interest.value}
+                    >
+                      {interest.label}
+                    </Select.Option>
+                  ))}
+                </Select>
               </Form.Item>
             </Col>
           </Row>

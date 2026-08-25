@@ -96,21 +96,27 @@ function ReportWritePage() {
         message.error('신고 대상 ID가 없습니다.');
         return;
     }
+   
+    if (!targetType) {
+      message.error('신고 대상 유형이 없습니다.');
+      return;
+    }
+   
     if (!reasonCode) {
       message.warning('신고 사유를 선택해주세요.');
       return;
     }
-    dispatch(
-      createReportRequest({
-        memberId: 2,  // 로그인 하드코딩
-        dto: {
-          targetType: targetType,
-          targetId: Number(targetId),
-          reasonCode: reasonCode,
-          reasonDetail: reasonDetail || '',
-        }
-      })
-    );
+   
+    const dto = {
+      targetType,
+      targetId: Number(targetId),
+      reasonCode,
+      reasonDetail: reasonDetail || '',
+    };
+
+    console.log('신고 등록 요청:', dto);
+
+    dispatch(createReportRequest(dto));
   };
 
   return (

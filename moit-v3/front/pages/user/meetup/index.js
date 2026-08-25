@@ -64,6 +64,23 @@ function MeetupListPage() {
         );
     }, [currentPage, searchParams, dispatch]);
 
+    useEffect(() => {
+        if (!router.isReady) return;
+
+        const queryCategoryId = router.query.categoryId;
+
+        if (queryCategoryId) {
+            const id = Number(queryCategoryId);
+
+            setCategoryId(id);
+
+            setSearchParams((prev) => ({
+                ...prev,
+                categoryId: id,
+            }));
+        }
+    }, [router.isReady, router.query.categoryId]);
+
     const sidoList = [
         ...new Map(
             sigungus.map((sigungu) => [sigungu.sido.sidoId, sigungu.sido]),

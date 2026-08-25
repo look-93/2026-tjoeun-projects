@@ -68,7 +68,11 @@ public class SecurityConfig {
                 "/api/reports",
                 "/api/admin/advertisement/**",
                 "/api/advertisement/**",
-                "/api/reviews/**"
+                "/api/reviews/**",
+                "/api/admin/**",
+                "/api/payment/**",
+                "/user/advertisement/aiAdvertise"
+
             )
         );
 
@@ -148,8 +152,8 @@ public class SecurityConfig {
             // 관리자
             // -------------------------------------------------
             // 추후 활성화
-            // .requestMatchers("/admin/**", "/api/reports/admin/**")
-            // .hasRole("ADMIN")
+             .requestMatchers("/api/admin/**", "/api/reports/admin/**")
+             .hasAnyRole("ADMIN", "SUPERADMIN")
 
             // -------------------------------------------------
             // 제휴업체 광고

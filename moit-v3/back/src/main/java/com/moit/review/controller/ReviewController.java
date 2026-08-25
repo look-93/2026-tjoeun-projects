@@ -1,5 +1,7 @@
 package com.moit.review.controller;
 
+import java.util.List;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.review.dto.ReviewDto.ReviewListResponseDto;
 import com.moit.review.dto.ReviewDto.ReviewRequestDto;
@@ -146,5 +149,24 @@ public class ReviewController {
         String result = reviewService.reviewAnalysis(meetupId);
         System.out.println("===== 🤖 AI 분석 완료 결과: " + result + " =====");
         return ResponseEntity.ok(result);
+    }
+    
+    @Operation(summary = "리뷰 이미지 업로드", description = "리뷰 작성에 사용할 이미지들을 업로드하고 ID 목록을 반환합니다.")
+    @PostMapping(value = "/images", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadImages( // 👈 응답 타입을 List<Long> 대신 ? 로 해두면 에러 메시지(문자열)도 같이 보낼 수 있습니다.
+            @RequestParam("images") List<MultipartFile> images,
+            Authentication authentication) {
+        try {
+            Long memberId = extractMemberId(authentication);
+            List<Long> imageIds = reviewService.uploadImages(images, memberId);
+            return ResponseEntity.ok(imageIds);
+        } catch (Exception e) {
+            // 💡 1. 콘솔에 빨간색으로 에러 스택트레이스를 전체 출력합니다!
+            e.printStackTrace(); 
+            System.out.println("❌ 이미지 업로드 중 발생한 에러 메시지: " + e.getMessage());
+            
+            // 💡 2. 프론트엔드에서도 에러 원인을 알 수 있게 body에 메시지를 담아 보냅니다.
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 }

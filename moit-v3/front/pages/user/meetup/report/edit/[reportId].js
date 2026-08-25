@@ -47,7 +47,6 @@ function ReportEditPage() {
     dispatch(
       fetchReportsDetailRequest({
         reportId: Number(reportId),
-        memberId: 2, // 로그인 임시 하드코딩
       })
     );
   }, [router.isReady, reportId, dispatch]);

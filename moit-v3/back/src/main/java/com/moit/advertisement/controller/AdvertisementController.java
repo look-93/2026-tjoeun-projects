@@ -30,8 +30,11 @@ import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.PaymentConfirmRequestDto;
+import com.moit.advertisement.entity.AdvertisementPayment;
 import com.moit.advertisement.enums.AdPosition;
+import com.moit.advertisement.enums.PaymentHistoryStatus;
 import com.moit.advertisement.enums.PaymentType;
+import com.moit.advertisement.repository.AdvertisementPaymentRepository;
 import com.moit.advertisement.service.AdvertisementCalculationService;
 import com.moit.advertisement.service.AdvertisementService;
 import com.moit.advertisement.service.TossPaymentService;
@@ -53,6 +56,7 @@ public class AdvertisementController {
     private final AdvertisementService advertisementService;
     private final AdvertisementCalculationService calculationService;
     private final TossPaymentService tossPaymentService;
+    private final AdvertisementPaymentRepository advertisementPaymentRepository;
 
     private static final String UPLOAD_PATH = "C:/upload/ad/";
     
@@ -325,6 +329,20 @@ public class AdvertisementController {
     }
     
     // =========================================================
+    // 결제 정보(주문번호) 조회
+    // =========================================================
+    @Operation(summary = "결제 대기 중인 주문번호 조회", description = "광고 ID로 결제에 사용할 orderId를 조회합니다.")
+    @GetMapping("/payment/orderId/{adId}")
+    public ResponseEntity<String> getOrderIdByAdId(@PathVariable("adId") Long adId, Authentication authentication) {
+        // DB에서 해당 adId에 묶인 결제 대기(REQUESTED) 상태의 orderId를 찾아옵니다.
+        AdvertisementPayment payment = advertisementPaymentRepository
+                .findByAdvertisement_AdIdAndPaymentStatus(adId, PaymentHistoryStatus.REQUESTED)
+                .orElseThrow(() -> new IllegalArgumentException("결제 대기 중인 주문 정보를 찾을 수 없습니다."));
+
+        return ResponseEntity.ok(payment.getOrderId());
+    }
+    
+    // =========================================================
     // 토스 결제 최종 승인
     // =========================================================
     @Operation(summary = "결제 승인 (Confirm)", description = "프론트엔드 결제 성공 후 토스 서버에 최종 승인을 요청합니다.")
@@ -376,20 +394,5 @@ public class AdvertisementController {
 //
 //
 //        return "redirect:" + dto.getLandingUrl();
-//    }
-    
-//    // 광고 기간 연장 요청
-//    @PostMapping("/extensionRequest")
-//    public ResponseEntity<?> extensionRequest(
-//            @RequestBody AdvertisementExtensionRequestDto dto) {
-//
-//        Long memberId = LOGIN_MEMBER_ID;
-//
-//        advertisementService.requestExtension(
-//                dto,
-//                memberId
-//        );
-//
-//        return ResponseEntity.ok().build();
 //    }
 }

@@ -304,9 +304,9 @@ function write() {
         const files = fileList
             .map((file) => file.originFileObj)
             .filter(Boolean);
-        console.log("🔥 fileList:", fileList);
-        console.log("🔥 existingImagePaths:", existingImagePaths);
-        console.log("🔥 files:", files);
+        //console.log("🔥 fileList:", fileList);
+        //console.log("🔥 existingImagePaths:", existingImagePaths);
+        //console.log("🔥 files:", files);
         if (isEdit) {
             dispatch(
                 updateMeetupRequest({
@@ -340,7 +340,7 @@ function write() {
         }
 
         if (error) {
-            message.error("저장 중 오류가 발생했습니다.");
+            message.error(error);
         }
     }, [createSuccess, updateSuccess, error, dispatch, router]);
 

@@ -100,6 +100,7 @@ function ReportDetailPage() {
         // 모임 신고
         if (currentReport.targetType === 'MEETUP') {
             router.push(
+                // http://localhost:3000/user/meetup/detail?meetupId=3
                 `/user/meetup/detail?meetupId=${currentReport.targetId}`
             );
             return;
@@ -108,7 +109,8 @@ function ReportDetailPage() {
         // 리뷰 신고
         if (currentReport.targetType === 'REVIEW') {
             router.push(
-                `/user/meetup/review/detail?reviewId=${currentReport.targetId}`
+                // http://localhost:3000/user/meetup/review/detailreview?reviewId=10&meetupId=3
+                `/user/meetup/review/detailreview?reviewId=${currentReport.targetId}&meetupId=${currentReport.meetupId}`
             );
         }
     };
@@ -164,25 +166,21 @@ function ReportDetailPage() {
                         {currentReport.reportId}번 신고글
                     </Descriptions.Item>
 
-                    <Descriptions.Item label="신고자 (memberId)">
-                        {currentReport.memberNickname}
+                    <Descriptions.Item label="신고자 (memberId) (test 나중에 빼야함!!!!!!!!!!!!!!!!!!!!!!!!!~~~~~~~~)">
+                        {currentReport.memberNickname ?? '-'}
                         {' '}
-                        ({currentReport.memberId}번)
-                    </Descriptions.Item>
-
-                    <Descriptions.Item label="신고자의 신뢰도점수 & 뱃지">
-                        {currentReport.trustScore}점
-                        <ReportStatusCodeTag statusCode={currentReport.StatusCode} />
+                        ({currentReport.memberId ?? '-'}번)
+                        {' => '}
+                        {currentReport.trustScore}점{' '}
+                        <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
                     </Descriptions.Item>
 
                     <Descriptions.Item label="신고 대상 회원 (targetMemberId)">
                         {currentReport.targetMemberNickname ?? '-'}
                         {' '}
                         ({currentReport.targetMemberId ?? '-'}번)
-                    </Descriptions.Item>
-
-                    <Descriptions.Item label="신고 대상 회원의 신뢰도점수 & 뱃지">
-                        {currentReport.targetTrustScore}점
+                        {' => '}
+                        {currentReport.targetTrustScore}점{' '}
                         <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
                     </Descriptions.Item>
 
@@ -221,15 +219,14 @@ function ReportDetailPage() {
                     {/* 신고 작성일 */}
                     <Descriptions.Item label="신고일">
                         {/* {currentReport.createdAt} */}
-                        {currentReport.createdAt?.slice(0, 10)}
+                        {currentReport.createdAt?.replace('T', ' ').slice(0, 19)}
                     </Descriptions.Item>
 
                     {/* 수정일이 있을 때만 표시 */}
                     {
-                        currentReport.updatedAt && (
+                        currentReport.userUpdatedAt && (
                             <Descriptions.Item label="수정일자">
-                                {/* {currentReport.updatedAt} */}
-                                {currentReport.updatedAt?.slice(0, 10)}
+                                {currentReport.userUpdatedAt?.replace('T', ' ').slice(0, 19)}
                             </Descriptions.Item>
                         )
                     }
