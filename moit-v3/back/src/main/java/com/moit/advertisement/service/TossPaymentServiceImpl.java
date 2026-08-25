@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moit.advertisement.dto.PaymentConfirmRequestDto;
 import com.moit.advertisement.entity.Advertisement;
 import com.moit.advertisement.entity.AdvertisementPayment;
@@ -77,21 +76,55 @@ public class TossPaymentServiceImpl implements TossPaymentService {
 
         try {
             // 4. API 통신
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    "https://api.tosspayments.com/v1/payments/confirm",
-                    requestEntity,
-                    String.class
-            );
+        	ResponseEntity<JsonNode> response = restTemplate.postForEntity(
+        	        "https://api.tosspayments.com/v1/payments/confirm",
+        	        requestEntity,
+        	        JsonNode.class
+        	);
 
-            if (response.getStatusCode().is2xxSuccessful()) {
-            	ObjectMapper objectMapper = new ObjectMapper();
-                String paymentMethod = "알 수 없음"; // 기본값
-                try {
-                    JsonNode rootNode = objectMapper.readTree(response.getBody());
-                    paymentMethod = rootNode.path("method").asText(); // 예: "카드", "가상계좌", "간편결제"
-                } catch (Exception e) {
-                    System.out.println("결제수단 파싱 실패: " + e.getMessage());
-                }
+        	if (response.getStatusCode().is2xxSuccessful()) {
+
+        	    JsonNode rootNode = response.getBody();
+
+        	    String tossMethod = rootNode.path("method").asText();
+
+        	    System.out.println("🔥 Toss 결제수단: [" + tossMethod + "]");
+
+        	    String paymentMethod;
+
+        	    switch (tossMethod) {
+
+        	        case "카드":
+        	            paymentMethod = "CARD";
+        	            break;
+
+        	        case "간편결제":
+        	            paymentMethod = "EASY_PAY";
+        	            break;
+
+        	        case "가상계좌":
+        	            paymentMethod = "VIRTUAL_ACCOUNT";
+        	            break;
+
+        	        case "계좌이체":
+        	            paymentMethod = "TRANSFER";
+        	            break;
+
+        	        case "휴대폰":
+        	            paymentMethod = "MOBILE";
+        	            break;
+
+        	        default:
+        	            paymentMethod = "OTHER";
+        	            break;
+        	    }
+
+        	    System.out.println("🔥 DB 저장용 결제수단: [" + paymentMethod + "]");
+
+        	    payment.updatePaymentSuccess(
+        	            requestDto.getPaymentKey(),
+        	            paymentMethod
+        	    );
                 
             	// 1. 결제 이력(History) 성공 처리
                 payment.updatePaymentSuccess(requestDto.getPaymentKey(), paymentMethod); 

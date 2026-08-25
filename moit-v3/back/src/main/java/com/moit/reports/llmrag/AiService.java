@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
+//import org.apache.pdfbox.Loader;
+//import org.apache.pdfbox.pdmodel.PDDocument;
+//import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -32,13 +32,13 @@ public class AiService {	// PDFBox / OpenAI API 호출
 	
 	
 	// resources/docs 같은 고정 PDF 읽기
-	public String extractTextFromPdf(InputStream inputStream) throws IOException {
-		try (PDDocument document = Loader.loadPDF(inputStream.readAllBytes())) {
-			PDFTextStripper stripper = new PDFTextStripper();
-			return stripper.getText(document);
-		}
-	}
-	
+//	public String extractTextFromPdf(InputStream inputStream) throws IOException {
+//		try (PDDocument document = Loader.loadPDF(inputStream.readAllBytes())) {
+//			PDFTextStripper stripper = new PDFTextStripper();
+//			return stripper.getText(document);
+//		}
+//	}
+//	
 	// 임베딩(글자를 검색용 숫자로 변환)
 	public List<Double> createEmbedding(String text) {
 		EmbeddingRequest request = new EmbeddingRequest("text-embedding-3-small", text);
