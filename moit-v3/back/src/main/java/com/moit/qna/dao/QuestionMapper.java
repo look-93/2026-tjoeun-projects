@@ -21,7 +21,7 @@ public interface QuestionMapper {
     List<QuestionResponseDto> findAll(Map<String, Object> map);
 
     // 문의 상세 조회
-    QuestionResponseDto findById(Long questionId);
+    QuestionResponseDto findById(@Param("questionId") Long questionId);
 
     // 문의 등록
     void insertQuestion(QuestionRequestDto dto);
@@ -106,6 +106,13 @@ public interface QuestionMapper {
     int unreadCount(Long memberId);
     void insertNotification(NotificationDto dto);
     void readNotification(
+    	    @Param("notificationId") Long notificationId,
+    	    @Param("memberId") Long memberId
+    	);
+    void readAllNotifications(
+    	    @Param("memberId") Long memberId
+    	);
+    void deleteNotification(
     	    @Param("notificationId") Long notificationId,
     	    @Param("memberId") Long memberId
     	);

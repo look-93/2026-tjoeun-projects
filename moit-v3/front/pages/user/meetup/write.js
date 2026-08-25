@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
 import {
@@ -31,6 +31,8 @@ import {
     createMeetupRequest,
     updateMeetupRequest,
     fetchMeetupDetailRequest,
+    resetMeetupState,
+    recommendMeetupRequest,
 } from "../../../reducers/meetupReducer";
 import { searchAddressRequest } from "../../../reducers/commonReducer";
 
@@ -50,6 +52,12 @@ function write() {
     const [previewImages, setPreviewImages] = useState([]);
     const [currentImage, setCurrentImage] = useState(0);
 
+    //ai
+    const [aiLoading, setAiLoading] = useState(false);
+    const titleValue = Form.useWatch("title", form);
+    const [showAiGuide, setShowAiGuide] = useState(false);
+    const aiRequestedRef = useRef(false);
+
     //주소
     const [addressModalOpen, setAddressModalOpen] = useState(false);
     const [addressKeyword, setAddressKeyword] = useState("");
@@ -68,11 +76,27 @@ function write() {
         createSuccess,
         updateSuccess,
         error,
+        aiRecommendation,
     } = useSelector((state) => state.meetup);
 
     useEffect(() => {
         if (!isEdit || !meetup) {
             return;
+        }
+        //console.log("🔥 수정할 meetup:", meetup);
+        // 기존 이미지
+        if (meetup.imagePaths?.length > 0) {
+            const existingImages = meetup.imagePaths.map(
+                (imagePath, index) => ({
+                    uid: `existing-${index}`,
+                    name: imagePath,
+                    status: "done",
+                    url: `http://localhost:8080/upload/meetup/${imagePath}`,
+                }),
+            );
+
+            setFileList(existingImages);
+            setPreviewImages(existingImages.map((image) => image.url));
         }
 
         form.setFieldsValue({
@@ -80,9 +104,11 @@ function write() {
             content: meetup.content,
             minParticipants: meetup.minParticipants,
             maxParticipants: meetup.maxParticipants,
+            meetupStatus: meetup.meetupStatus,
             address: meetup.address,
             addressDetail: meetup.addressDetail,
             sigunguId: meetup.sigunguId,
+            categoryId: meetup.categoryId,
             nx: meetup.nx,
             ny: meetup.ny,
             latitude: meetup.latitude,
@@ -101,6 +127,66 @@ function write() {
         });
     }, [isEdit, meetup, form]);
 
+    //ai추천
+    useEffect(() => {
+        if (isEdit) return;
+
+        const timer = setTimeout(() => {
+            const title = form.getFieldValue("title");
+
+            // 10초가 지났을 때 제목이 이미 있으면 안내 X
+            if (title?.trim()) return;
+
+            setShowAiGuide(true);
+        }, 10000);
+
+        return () => clearTimeout(timer);
+    }, [isEdit, form]);
+
+    // AI 호출
+    useEffect(() => {
+        if (isEdit) return;
+        if (!showAiGuide) return;
+
+        // 제목이 없으면 계속 기다림
+        if (!titleValue?.trim()) return;
+
+        // 이미 요청했다면 다시 요청하지 않음
+        if (aiRequestedRef.current) return;
+
+        const timer = setTimeout(() => {
+            const currentTitle = form.getFieldValue("title");
+
+            if (!currentTitle?.trim()) return;
+
+            // 혹시 입력 중이라면 최신값으로 요청
+            aiRequestedRef.current = true;
+
+            console.log("🤖 AI 요청:", currentTitle);
+
+            dispatch(
+                recommendMeetupRequest({
+                    keyword: currentTitle,
+                }),
+            );
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [titleValue, showAiGuide, isEdit, dispatch, form]);
+
+    //ai 응답 값 셋팅
+    useEffect(() => {
+        if (!aiRecommendation) return;
+
+        console.log("🤖 AI 추천 결과:", aiRecommendation);
+
+        form.setFieldsValue({
+            title: aiRecommendation.title,
+            categoryId: aiRecommendation.categoryId,
+            content: aiRecommendation.content,
+        });
+    }, [aiRecommendation, form]);
+
     //카테고리
     const categoriesOptions = categories
         .filter((cate) => cate.parentId != null)
@@ -112,9 +198,13 @@ function write() {
 
         setFileList(limitedList);
 
-        const previews = limitedList
-            .filter((file) => file.originFileObj)
-            .map((file) => URL.createObjectURL(file.originFileObj));
+        const previews = limitedList.map((file) => {
+            if (file.originFileObj) {
+                return URL.createObjectURL(file.originFileObj);
+            }
+
+            return file.url;
+        });
 
         setPreviewImages(previews);
         setCurrentImage(0);
@@ -207,16 +297,23 @@ function write() {
             meetupAt: values.meetupAt?.format("YYYY-MM-DDTHH:mm:ss"),
         };
 
-        // 이미지 파일만 추출
+        const existingImagePaths = fileList
+            .filter((file) => !file.originFileObj)
+            .map((file) => file.name);
+
         const files = fileList
             .map((file) => file.originFileObj)
             .filter(Boolean);
-
+        //console.log("🔥 fileList:", fileList);
+        //console.log("🔥 existingImagePaths:", existingImagePaths);
+        //console.log("🔥 files:", files);
         if (isEdit) {
             dispatch(
                 updateMeetupRequest({
                     meetupId,
                     data,
+                    files,
+                    existingImagePaths,
                 }),
             );
         } else {
@@ -232,19 +329,20 @@ function write() {
     useEffect(() => {
         if (createSuccess) {
             message.success("모임이 등록되었습니다.");
+            dispatch(resetMeetupState());
             router.push("/user/meetup");
-            //dispatch(resetMeetupState());
         }
 
         if (updateSuccess) {
             message.success("모임이 수정되었습니다.");
+            dispatch(resetMeetupState());
             router.push("/user/meetup");
         }
 
         if (error) {
-            message.error("저장 중 오류가 발생했습니다.");
+            message.error(error);
         }
-    }, [createSuccess, updateSuccess, error]);
+    }, [createSuccess, updateSuccess, error, dispatch, router]);
 
     return (
         <div className="mypage-main-content">
@@ -276,7 +374,10 @@ function write() {
                             </Text>
                         </Card>
 
-                        <MeetupInfoForm categoriesOptions={categoriesOptions} />
+                        <MeetupInfoForm
+                            categoriesOptions={categoriesOptions}
+                            showAiGuide={showAiGuide}
+                        />
                     </Col>
 
                     <Col xs={24} lg={8}>

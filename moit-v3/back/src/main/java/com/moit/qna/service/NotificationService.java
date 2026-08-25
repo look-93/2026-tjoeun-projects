@@ -26,7 +26,19 @@ public class NotificationService {
         questionMapper.readNotification(notificationId, memberId);
     }
 
+    public void readAllNotifications(Long memberId) {
+        questionMapper.readAllNotifications(memberId);
+    }
+    
     public int unreadCount(Long memberId) {
         return questionMapper.unreadCount(memberId);
     }
+    
+    public void deleteNotification(Long notificationId,Long memberId) {
+        questionMapper.deleteNotification(
+            notificationId,
+            memberId
+        );
+    }
+    
 }

@@ -30,6 +30,14 @@ function MeetupListPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 9;
 
+    // 실제 조회에 사용하는 조건
+    const [searchParams, setSearchParams] = useState({
+        searchText: "",
+        sidoId: 0,
+        categoryId: 0,
+        orderType: "createAt",
+    });
+
     const { meetups, categories, sigungus, totalCount } = useSelector(
         (state) => state.meetup,
     );
@@ -41,14 +49,37 @@ function MeetupListPage() {
     }, [dispatch]);
 
     // 페이지가 바뀔 때마다
+    // 모임 조회
     useEffect(() => {
         dispatch(
             fetchMeetupsRequest({
                 page: currentPage - 1,
                 size: pageSize,
+                searchType: searchParams.searchText ? "title" : null,
+                searchText: searchParams.searchText || null,
+                sidoId: searchParams.sidoId || null,
+                categoryId: searchParams.categoryId || null,
+                orderType: searchParams.orderType,
             }),
         );
-    }, [currentPage, pageSize, dispatch]);
+    }, [currentPage, searchParams, dispatch]);
+
+    useEffect(() => {
+        if (!router.isReady) return;
+
+        const queryCategoryId = router.query.categoryId;
+
+        if (queryCategoryId) {
+            const id = Number(queryCategoryId);
+
+            setCategoryId(id);
+
+            setSearchParams((prev) => ({
+                ...prev,
+                categoryId: id,
+            }));
+        }
+    }, [router.isReady, router.query.categoryId]);
 
     const sidoList = [
         ...new Map(
@@ -71,13 +102,24 @@ function MeetupListPage() {
         });
 
         setCurrentPage(1);
+
+        setSearchParams({
+            searchText,
+            sidoId,
+            categoryId,
+            orderType,
+        });
     };
 
     // 카테고리
     const handleCategoryChange = (id) => {
-        //console.log(id)
         setCategoryId(id);
         setCurrentPage(1);
+
+        setSearchParams((prev) => ({
+            ...prev,
+            categoryId: id,
+        }));
     };
 
     // 상세

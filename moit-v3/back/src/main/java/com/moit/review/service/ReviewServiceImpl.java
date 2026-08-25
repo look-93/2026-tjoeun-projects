@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.moit.common.entity.Image;
 import com.moit.exception.ResourceNotFoundException;
 import com.moit.meetup.entity.Meetup;
+import com.moit.meetup.enums.MeetupStatus;
 import com.moit.meetup.repository.MeetupRepository;
 import com.moit.member.entity.Member;
 import com.moit.member.repository.MemberRepository;
@@ -46,18 +47,27 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	@Transactional
 	public void create(ReviewRequestDto requestDto, Long memberId) {
-
-		// api 욕설 비방 필터링 연동
-		System.out.println("=== 필터링 검사할 내용: " + requestDto.getContent());
-		boolean isFlagged = moderationClientService.checkContent(requestDto.getContent());
-		System.out.println("=== 필터링 결과(isFlagged): " + isFlagged);
-		if (isFlagged) {
-			throw new IllegalArgumentException("부적절한 내용(비속어/유해 콘텐츠)이 포함되어 있어 리뷰를 등록할 수 없습니다.");
+		// 1. 모임 상태 체크
+		Meetup meetup = meetupRepository.findById(requestDto.getMeetupId())
+				.orElseThrow(() -> new ResourceNotFoundException("모임을 찾을 수 없습니다."));
+		
+		if (meetup.getMeetupStatus() != MeetupStatus.COMPLETED) {
+		    throw new IllegalStateException("모임이 완료된 상태에서만 후기를 작성할 수 있습니다.");
 		}
 
-		Meetup meetup = meetupRepository.getReferenceById(requestDto.getMeetupId());
-		Member member = memberRepository.getReferenceById(memberId);
+		// 2. 중복 작성 체크
+		boolean hasWritten = reviewRepository.existsByMeetup_IdAndMember_IdAndDeleteYn(
+				requestDto.getMeetupId(), memberId, 'N');
+		if (hasWritten) {
+			throw new IllegalStateException("이미 이 모임에 작성한 후기가 존재합니다.");
+		}
 
+		// 3. 필터링 검사
+		if (moderationClientService.checkContent(requestDto.getContent())) {
+			throw new IllegalArgumentException("부적절한 내용이 포함되어 있어 등록할 수 없습니다.");
+		}
+
+		Member member = memberRepository.getReferenceById(memberId);
 		Review review = Review.builder().meetup(meetup).member(member).content(requestDto.getContent())
 				.rating(requestDto.getRating())
 				.isPublic(requestDto.getIsPublic() != null ? requestDto.getIsPublic() : "Y").viewsCount(0).build();
@@ -67,9 +77,7 @@ public class ReviewServiceImpl implements ReviewService {
 		if (requestDto.getImageIds() != null && !requestDto.getImageIds().isEmpty()) {
 			for (Long imageId : requestDto.getImageIds()) {
 				Image image = Image.builder().id(imageId).build();
-
 				ReviewImage reviewImage = ReviewImage.builder().review(savedReview).image(image).build();
-
 				reviewImageRepository.save(reviewImage);
 			}
 		}
@@ -94,43 +102,40 @@ public class ReviewServiceImpl implements ReviewService {
 	}
 
 	// 리뷰 수정
-	@Override
-	@Transactional
-	public void update(ReviewRequestDto requestDto, Long memberId, Long reviewId) {
-		
-		boolean isFlagged = moderationClientService.checkContent(requestDto.getContent());
-		if (isFlagged) {
-			throw new IllegalArgumentException("부적절한 내용(비속어/유해 콘텐츠)이 포함되어 있어 리뷰를 수정할 수 없습니다.");
-		}
-		
-		Review review = reviewRepository.findById(reviewId)
-				.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 리뷰입니다. REVIEW ID : " + reviewId));
+		@Override
+		@Transactional
+		public void update(ReviewRequestDto requestDto, Long memberId, Long reviewId) {
+			Review review = reviewRepository.findById(reviewId)
+					.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 리뷰입니다."));
 
-		if (!review.getMember().getId().equals(memberId)) {
-			throw new IllegalArgumentException("본인이 작성한 리뷰만 수정할 수 있습니다.");
-		}
+			if (!review.getMember().getId().equals(memberId)) {
+				throw new IllegalArgumentException("본인이 작성한 리뷰만 수정할 수 있습니다.");
+			}
 
-		review.setContent(requestDto.getContent());
-		review.setRating(requestDto.getRating());
-		if (requestDto.getIsPublic() != null) {
-			review.setIsPublic(requestDto.getIsPublic());
-		}
+			// 🛠️ [수정] 내용이 변경되었을 때만 필터링 API 검사 (수정 시 에러 방지)
+			if (requestDto.getContent() != null && !requestDto.getContent().equals(review.getContent())) {
+				if (moderationClientService.checkContent(requestDto.getContent())) {
+					throw new IllegalArgumentException("부적절한 내용이 포함되어 있어 수정할 수 없습니다.");
+				}
+			}
 
-		// ★ [수정] 이미지 업데이트 부분
-		if (requestDto.getImageIds() != null) {
-			// 1) 기존 DB 연결 정보 완전히 삭제
-			reviewImageRepository.deleteByReview_Id(reviewId);
-			review.getReviewImages().clear();
+			review.setContent(requestDto.getContent());
+			review.setRating(requestDto.getRating());
+			if (requestDto.getIsPublic() != null) {
+				review.setIsPublic(requestDto.getIsPublic());
+			}
 
-			// 2) 새로 넘어온 이미지들 매핑 저장
-			for (Long imageId : requestDto.getImageIds()) {
-				Image image = Image.builder().id(imageId).build();
-				ReviewImage reviewImage = ReviewImage.builder().review(review).image(image).build();
-				
-				reviewImageRepository.save(reviewImage); // DB에 직접 저장
+			if (requestDto.getImageIds() != null) {
+				reviewImageRepository.deleteByReview_Id(reviewId);
+				review.getReviewImages().clear();
+
+				for (Long imageId : requestDto.getImageIds()) {
+					Image image = Image.builder().id(imageId).build();
+					ReviewImage reviewImage = ReviewImage.builder().review(review).image(image).build();
+					reviewImageRepository.save(reviewImage);
+				}
 			}
 		}
-	}
 
 	// 리뷰 삭제
 	@Override
@@ -219,18 +224,29 @@ public class ReviewServiceImpl implements ReviewService {
 				reviewRepository.incrementLikesCount(reviewId);
 			}
 
-	// AI 리뷰 분석
-	@Override
-	public String reviewAnalysis(Long meetupId) {
-		// [수정] "N" (String) -> 'N' (Character) 로 전달
-		List<Review> reviewList = reviewRepository.findByMeetup_IdAndDeleteYnAndIsPublicOrderByIdDesc(meetupId, 'N', "Y");
+			// AI 리뷰 분석
+			@Override
+			public String reviewAnalysis(Long meetupId) {
+				
+				List<Review> reviewList = reviewRepository.findByMeetup_IdAndDeleteYnAndIsPublicOrderByIdDesc(meetupId, 'N', "Y");
 
-		List<ReviewResponseDto> dtoList = reviewList.stream()
-				.map(ReviewResponseDto::listFrom)
-				.toList();
-		
-		return openAiReviewService.reviewAnalysis(dtoList);
-	}
+				// 👉 디버깅을 위해 조회된 후기 개수와 내용이 콘솔에 찍히도록 추가해보세요!
+				System.out.println("===== 🤖 AI 분석용 조회된 후기 개수: " + reviewList.size() + " =====");
+				for (Review r : reviewList) {
+					System.out.println("- 후기 내용: " + r.getContent());
+				}
+
+				// 만약 후기가 비어있다면 AI에게 빈 내용을 보내지 않고 안내 문구 반환
+				if (reviewList.isEmpty()) {
+					return "분석할 수 있는 공개된 후기가 없습니다.";
+				}
+
+				List<ReviewResponseDto> dtoList = reviewList.stream()
+						.map(ReviewResponseDto::listFrom)
+						.toList();
+				
+				return openAiReviewService.reviewAnalysis(dtoList);
+			}
 
 	// 관리자 - 전체 리뷰 목록 조회
 	@Override

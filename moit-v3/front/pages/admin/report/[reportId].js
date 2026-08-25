@@ -2,19 +2,24 @@
 // 관리자 신고 상세 페이지
 // 신고 상세 조회 + 승인/반려 + 삭제
 
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
+
 import {
-    fetchReportsDetailRequest,
-    deleteReportRequest,
-    deleteReportSuccess,
-    resetReportState
-} from '../../../../reducers/reportReducer';
+    fetchAdminReportsDetailRequest,
+    updateAdminReportRequest,
+    fetchMemberReportTrustInfoRequest,
+    deleteAdminReportRequest,
+    fetchAdminReportAuditLogsRequest,
+} from '../../../reducers/reportReducer';
 import {
     Card, Radio, Input, Button, Typography, Space, Divider, message,
     Descriptions, Tag, Modal, Spin
 } from 'antd';
+
+import ReportStatusTag from '../../../components/ReportStatusTag';
+import ReportStatusCodeTag from '../../../components/ReportStatusCodeTag';
 
 const { Title } = Typography;
 
@@ -22,12 +27,22 @@ function ReportDetailPage() {
     const router = useRouter();
     const dispatch = useDispatch();
 
+    const [processReason, setProcessReason] = useState('');
+
     const { reportId } = router.query; // 동적라우팅
+
     const {
         currentReport,
-        fetchDetail,
-        delete: deleteState
+        adminFetchDetail,
+        adminUpdate,
+        trustInfoFetch,     // 신뢰도 점수 조회
+        adminDelete,
+
+        auditLogs,
+        auditLogFetch,
+
     } = useSelector((state) => state.report);
+
 
 
 
@@ -36,25 +51,79 @@ function ReportDetailPage() {
         if (!router.isReady) {
             return;
         }
-        dispatch( fetchReportsDetailRequest({reportId: Number(reportId)}) );
-    }, [router.isReady, reportId]);
-    
-    // --- 오류 ---
+        dispatch( fetchAdminReportsDetailRequest({reportId: Number(reportId)}) );
+        dispatch( fetchAdminReportAuditLogsRequest({reportId: Number(reportId)}) );
+    }, [router.isReady, dispatch, reportId]);
+
+    // --- 페이지 진입 ---
     useEffect(() => {
-        if (fetchDetail.error) {
-            message.error(fetchDetail.error);
+        if (currentReport?.memberId) {
+            dispatch(
+                fetchMemberReportTrustInfoRequest({
+                    targetMemberId: currentReport.memberId,
+                })
+            );
         }
-    }, [fetchDetail.error]);
+    }, [currentReport?.memberId]);
+    
+    // --- 신고 처리 후 재조회 ---
+    useEffect(() => {
+        if (adminUpdate.success) {
+            message.success('신고 처리가 완료되었습니다.');
+
+            // 신고 상세 재조회
+            dispatch(
+                fetchAdminReportsDetailRequest({
+                    reportId: router.query.reportId,
+                })
+            );
+
+            // 신고당한 사람의 신뢰도점수 재조회
+            if (currentReport?.memberId) {
+                dispatch(
+                    fetchMemberReportTrustInfoRequest({
+                        targetMemberId: currentReport.memberId,
+                    })
+                );
+            }
+
+            // 관리자 처리 감사 로그 재조회
+            dispatch(
+                fetchAdminReportAuditLogsRequest({
+                    reportId: Number(reportId),
+                })
+            );
+        }
+    }, [adminUpdate.success]);
     
     // --- 신고 삭제 성공 ---
     useEffect(() => {
-        if (deleteState.success) {
+        if (adminDelete.success) {
             message.success('신고 내역이 삭제되었습니다.');
-            router.push('/user/meetup/report');
+            router.push('/admin/report');
         }
-    }, [deleteState.success, router]);
+    }, [adminDelete.success, router]);
     
+    // --- adminFetchDetail 오류 ---
+    useEffect(() => {
+        if (adminFetchDetail.error) {
+            message.error(adminFetchDetail.error);
+        }
+    }, [adminFetchDetail.error]);
+
+    // --- adminUpdate 오류 ---
+    useEffect(() => {
+        if (adminUpdate.error) {
+            message.error(adminUpdate.error);
+        }
+    }, [adminUpdate.error]);
     
+
+
+
+
+
+
     // --- 신고 대상 한글 표시 ---
     const getTargetTypeText = (targetType) => {
         if (targetType === 'MEETUP') {
@@ -88,55 +157,8 @@ function ReportDetailPage() {
         }
     };
 
-    // 처리 상태
-    const getStatusTag = (status) => {
-        if (status === 'PENDING') {
-            return (
-                <Tag color="orange">
-                    처리 대기
-                </Tag>
-            );
-        }
-        if (status === 'APPROVED') {
-            return (
-                <Tag color="green">
-                    승인
-                </Tag>
-            );
-        }
-        if (status === 'REJECTED') {
-            return (
-                <Tag color="red">
-                    반려
-                </Tag>
-            );
-        }
-    };
 
-    // 뱃지
-    const getStatusCodeTag = (statusCode) => {
-        if (statusCode === 'ACTIVE') {
-            return (
-                <Tag color="green">
-                    정상
-                </Tag>
-            );
-        }
-        if (statusCode === 'WARNING') {
-            return (
-                <Tag color="orange">
-                    주의
-                </Tag>
-            );
-        }
-        if (statusCode === 'DANGER') {
-            return (
-                <Tag color="red">
-                    위험
-                </Tag>
-            );
-        }
-    };
+    
 
 
     //////////////////////////////////////////////////////
@@ -158,11 +180,41 @@ function ReportDetailPage() {
         }
     };
 
-    // 신고 수정 페이지 이동
-    const handleUpdate = () => {
-        router.push(
-            `/user/meetup/report/edit/${reportId}`
-        );
+    // 신고 수정 - 승인 (신뢰도점수/뱃지/처리상태 변경)
+    const handleApproved = () => {
+        if (!processReason.trim()) {
+            message.warning('처리 사유를 입력해주세요.');
+            return;
+        }
+
+        dispatch(
+            updateAdminReportRequest({
+                reportId: Number(reportId),
+                processDto: {
+                    status: 'APPROVED',
+		            processReason: processReason,
+                }
+            })
+        )
+    };
+
+    // 신고 수정 - 반려 (처리상태 변경)
+    const handleRejected = () => {
+        if (!processReason.trim()) {
+            message.warning('처리 사유를 입력해주세요.');
+            return;
+        }
+
+        dispatch(
+            updateAdminReportRequest({
+                reportId: Number(reportId),
+                processDto: {
+                    status: 'REJECTED',
+                    processReason: processReason,
+                }
+            })
+        )
+
     };
     
     // 신고 삭제 요청
@@ -177,55 +229,57 @@ function ReportDetailPage() {
                 danger: true
             },
             onOk: ()=> {
-                dispatch(
-                    deleteReportRequest({
-                        reportId: Number(reportId)
-                    })
-                );
+                dispatch( deleteAdminReportRequest({reportId: Number(reportId)}) );
             }
         });
     };
     
     // 로딩
-    if (fetchDetail.loading || !currentReport) {
+    if (adminFetchDetail.loading || !currentReport) {
         return (
             <Spin size="large" />
         );
     }
 
+    if (!currentReport) {
+        return <div>로딩중...</div>;
+    }
+
     return (
         <div className="report-detail-page">
             <Card>
-                <Title level={2}>
-                    신고 상세보기
-                </Title>
+                <Title level={2}>관리자 신고 상세보기</Title>
 
-                <Descriptions
-                    bordered
-                    column={1}
-                >
+                <Descriptions bordered column={1}>
                     {/* 신고 번호 */}
-                    <Descriptions.Item label="신고번호">
-                        {currentReport.reportId}번 신고글
+                    <Descriptions.Item label="신고번호 (reportId)">
+                        {currentReport?.reportId}번 신고글
                     </Descriptions.Item>
 
-                    <Descriptions.Item label="신고자">
-                        {currentReport.memberNickname}
-                    </Descriptions.Item>
-
-                    <Descriptions.Item label="신뢰도점수 & 뱃지">
-                        {currentReport.trustScore}점
+                    <Descriptions.Item label="신고자 (memberId)">
+                        {currentReport.memberNickname ?? '-'}
                         {' '}
-                        {getStatusCodeTag(
-                            currentReport.statusCode
-                        )}
+                        ({currentReport.memberId ?? '-'}번)
+                        {' => '}
+                        {currentReport.trustScore}점{' '}
+                        <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
+                    </Descriptions.Item>
+
+                    <Descriptions.Item label="신고 대상 회원 (targetMemberId)">
+                        {currentReport.targetMemberNickname ?? '-'}
+                        {' '}
+                        ({currentReport.targetMemberId ?? '-'}번)
+                        {' => '}
+                        {currentReport.targetTrustScore}점{' '}
+                        <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
                     </Descriptions.Item>
 
                     {/* 신고 대상 & 신고 대상 ID */}
-                    <Descriptions.Item label="신고 대상 ID">
+                    <Descriptions.Item label="게시글 번호">
                         {getTargetTypeText(
                             currentReport.targetType
                         )}
+                        ({currentReport.targetType})
                         {' '}
                         {currentReport.targetId}번 게시글
                     </Descriptions.Item>
@@ -235,6 +289,7 @@ function ReportDetailPage() {
                         {getReasonCodeText(
                             currentReport.reasonCode
                         )}
+                        ({currentReport.reasonCode})
                     </Descriptions.Item>
 
                     {/* 신고 상세 내용 */}
@@ -248,43 +303,51 @@ function ReportDetailPage() {
 
                     {/* 신고 처리 상태 */}
                     <Descriptions.Item label="처리 상태">
-                        {getStatusTag(
-                            currentReport.status
-                        )}
+                        <ReportStatusTag status={currentReport.status} />
                     </Descriptions.Item>
 
                     {/* 신고 작성일 */}
                     <Descriptions.Item label="신고일">
                         {/* {currentReport.createdAt} */}
-                        {currentReport.createdAt?.slice(0, 10)}
+                        {currentReport.createdAt?.replace('T', ' ').slice(0, 19)}
                     </Descriptions.Item>
 
                     {/* 수정일이 있을 때만 표시 */}
                     {
-                        currentReport.updatedAt && (
+                        currentReport.userUpdatedAt && (
                             <Descriptions.Item label="수정일자">
-                                {/* {currentReport.updatedAt} */}
-                                {currentReport.updatedAt?.slice(0, 10)}
+                                {currentReport.userUpdatedAt?.replace('T', ' ').slice(0, 19)}
                             </Descriptions.Item>
                         )
                     }
                 </Descriptions>
 
 
+                {/* 관리자 처리 사유 */}
+                {currentReport.status === 'PENDING' && (
+                    <div style={{ marginTop: 20 }}>
+                        <Title level={5}>처리 사유</Title>
+
+                        <Input.TextArea
+                            rows={4}
+                            placeholder="승인 또는 반려 사유를 입력하세요."
+                            value={processReason}
+                            onChange={(e) => {
+                                setProcessReason(e.target.value);
+                            }}
+                        />
+                    </div>
+                )}
+
+
                 <Space style={{marginTop:20}}>
                     {/* 신고 목록 */}
-                    <Button
-                        onClick={() =>
-                            router.push('/user/meetup/report')
-                        }
-                    >
+                    <Button onClick={() => router.push('/admin/report')}>
                         목록
                     </Button>
 
                     {/* 신고당한 원본 글 */}
-                    <Button
-                        onClick={handleTargetView}
-                    >
+                    <Button onClick={handleTargetView}>
                         해당 글 보기
                     </Button>
 
@@ -292,16 +355,70 @@ function ReportDetailPage() {
                     {
                         currentReport.status === 'PENDING' && (
                             <Space>
-                                <Button type="primary" onClick={handleUpdate}>수정</Button>
+                                <Button type="primary" onClick={handleApproved}>승인</Button>
+                                <Button danger onClick={handleRejected}>반려</Button>
                                 <Button type="danger" onClick={handleDelete}>삭제</Button>
                             </Space>
                         )
                     }
-
-                  
-
                 </Space>
             </Card>
+
+
+
+            <Card style={{ marginTop: 20 }}>
+            <Title level={4}>관리자 처리 이력</Title>
+
+            {auditLogFetch.loading ? (
+                <Spin />
+            ) : auditLogs && auditLogs.length > 0 ? (
+
+                auditLogs.map((log) => (
+                    <Descriptions
+                        key={log.auditLogId}
+                        bordered
+                        column={1}
+                        size="small"
+                        style={{ marginBottom: 12 }}
+                    >
+                        <Descriptions.Item label="처리 일시">
+                            {log.processedAt
+                                ? log.processedAt.replace('T', ' ').slice(0, 19)
+                                : '-'}
+                        </Descriptions.Item>
+
+                        <Descriptions.Item label="처리 관리자 (adminMemberId)">
+                            {log.adminNickname || '-'}
+                            {' '}
+                            ({log.adminMemberId || '-'})
+                        </Descriptions.Item>
+
+                        <Descriptions.Item label="처리 상태">
+                            <Space>
+                                <ReportStatusTag status={log.previousStatus} />
+                                <span> → </span>
+                                <ReportStatusTag status={log.changedStatus} />
+                            </Space>
+                        </Descriptions.Item>
+
+                        <Descriptions.Item label="관리자 처리 사유">
+                            {log.processReason || '-'}
+                        </Descriptions.Item>
+
+                        <Descriptions.Item label="신뢰도 점수 변동">
+                            {log.trustScoreChange != null
+                                ? `${log.trustScoreChange > 0 ? '+' : ''}${log.trustScoreChange}점`
+                                : '-'}
+                        </Descriptions.Item>
+                    </Descriptions>
+                ))
+
+            ) : (
+                <div>
+                    처리 이력이 없습니다.
+                </div>
+            )}
+        </Card>
         </div>
     );
 }

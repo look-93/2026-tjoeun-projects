@@ -3,12 +3,11 @@ import { all, fork } from "redux-saga/effects";
 import userSaga from "./userSaga";
 import meetupSaga from "./meetupSaga";
 ///// 추가되는 saga ////////
-import advertiseSaga from './advertiseSaga';
-import reviewSaga from './reviewSaga';
-import reportSaga from './reportSaga';
+import advertiseSaga from "./advertiseSaga";
+import reviewSaga from "./reviewSaga";
+import reportSaga from "./reportSaga";
 import commonSaga from "./commonSaga";
-import qnaSaga  from './qnaSaga';
-
+import qnaSaga from "./qnaSaga";
 
 export default function* rootSaga() {
     yield all([
@@ -22,4 +21,3 @@ export default function* rootSaga() {
         fork(qnaSaga),
     ]);
 }
-

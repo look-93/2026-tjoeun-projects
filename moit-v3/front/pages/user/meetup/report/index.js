@@ -6,8 +6,10 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import { fetchReportsRequest } from '../../../../reducers/reportReducer';
-import { Card, Table, Tag, Button, Typography, Space, Spin, message } from 'antd';
-import { render } from 'react-dom';
+import { Card, Table, Button, Typography, Spin, message } from 'antd';
+
+import ReportStatusTag from '../../../../components/ReportStatusTag';
+import ReportStatusCodeTag from '../../../../components/ReportStatusCodeTag';
 
 
 const { Title } = Typography;
@@ -44,7 +46,6 @@ function ReportListPage() {
 
         dispatch(
             fetchReportsRequest({
-                memberId: 2,        // 로그인 미완성 -> 테스트 하드코딩
                 page: page - 1,     // Spring Pageable은 0부터
                 size: 10
             })
@@ -104,70 +105,27 @@ function ReportListPage() {
             case 'NOSHOW':
                 return '노쇼';
 
-            case 'ETC':
-                return '기타';
-
             default:
-                return reasonCode;
+                return '기타';
         }
     };
+    
 
+    // const ReportStatusCodeTag = ({ statusCode }) => {
+    //     if (statusCode === 'ACTIVE') {
+    //         return <Tag color="green">정상</Tag>;
+    //     }
 
-    // =====================================================
-    // 처리 상태
-    // =====================================================
-    const getStatusTag = (status) => {
-        if (status === 'PENDING') {
-            return (
-                <Tag color="orange">
-                    처리 대기
-                </Tag>
-            );
-        }
-        if (status === 'APPROVED') {
-            return (
-                <Tag color="green">
-                    승인
-                </Tag>
-            );
-        }
-        if (status === 'REJECTED') {
-            return (
-                <Tag color="red">
-                    반려
-                </Tag>
-            );
-        }
-    }
+    //     if (statusCode === 'WARNING') {
+    //         return <Tag color="orange">주의</Tag>;
+    //     }
 
-    // =====================================================
-    // 뱃지 statusCode, statusName
-    // =====================================================
-    const getStatusCodeTag = (statusCode) => {
-        if (statusCode === 'ACTIVE') {
-            return (
-                <Tag color="green">
-                    정상
-                </Tag>
-            );
-        }
-        if (statusCode === 'WARNING') {
-            return (
-                <Tag color="orange">
-                    주의
-                </Tag>
-            );
-        }
-        if (statusCode === 'DANGER') {
-            return (
-                <Tag color="red">
-                    위험
-                </Tag>
-            );
-        }
+    //     if (statusCode === 'DANGER') {
+    //         return <Tag color="red">위험</Tag>;
+    //     }
 
-        return '-';
-    };
+    //     return null;
+    // };
 
 
     // =====================================================
@@ -192,24 +150,30 @@ function ReportListPage() {
         },
 
         {
-            title: '신고자',
+            title: '신고자 (test 나중에 빼야함!~!!~~!!~!!!)',
             dataIndex: 'memberNickname',
             key: 'memberNickname'
         },
 
         {
+            title: '신고 대상',
+            dataIndex: 'targetMemberNickname',
+            key: 'targetMemberNickname'
+        },
+
+        {
             title: '신뢰도 점수',
-            dataIndex: 'trustScore',
-            key: 'trustScore'
+            dataIndex: 'targetTrustScore',
+            key: 'targetTrustScore'
         },
 
         {
             title: '뱃지',
-            dataIndex: 'statusCode',
-            key: 'statusCode',
+            dataIndex: 'targetStatusCode',
+            key: 'targetStatusCode',
 
-            render: (statusCode) => (
-                getStatusCodeTag(statusCode)
+            render: (targetStatusCode) => (
+                <ReportStatusCodeTag statusCode={targetStatusCode} />
             )
         },
 
@@ -224,7 +188,7 @@ function ReportListPage() {
         },
 
         {
-            title: '대상 ID',
+            title: '글 번호',
             dataIndex: 'targetId',
             key: 'targetId'
         },
@@ -245,7 +209,7 @@ function ReportListPage() {
             key: 'status',
 
             render: (status) => (
-                getStatusTag(status)
+                <ReportStatusTag status={status} />
             )
         },
 

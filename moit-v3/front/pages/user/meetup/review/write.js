@@ -44,6 +44,9 @@ function ReviewWritePage() {
   const queryReviewId = router.isReady ? router.query.reviewId : null;
   const queryMeetupId = router.isReady ? (router.query.meetupId || router.query.id || router.query.meetup_id) : null;
   
+  // 마이페이지에서 왔는지 여부 파악
+  const fromMypage = router.isReady ? router.query.from === 'mypage' : false;
+
   // 수정 모드 여부 판단
   const isEditMode = Boolean(queryReviewId);
 
@@ -81,18 +84,41 @@ function ReviewWritePage() {
       alert(isEditMode ? '리뷰가 성공적으로 수정되었습니다.' : '리뷰가 성공적으로 등록되었습니다.');
       dispatch(resetReviewState());
 
-      if (queryMeetupId) {
+      // ★ 마이페이지 리뷰 목록 페이지로 정확히 이동
+      if (fromMypage) {
+        router.push('/user/mypage/review');
+      } else if (queryMeetupId) {
         router.push(`/user/meetup/detail?meetupId=${queryMeetupId}&tab=review`);
       } else {
         router.back();
       }
     }
 
-    if (error) {
-      alert(`리뷰 ${isEditMode ? '수정' : '등록'} 실패: ${error}`);
-      dispatch(resetReviewState());
-    }
-  }, [success, error, dispatch, router, queryMeetupId, isEditMode]);
+   if (error) {
+     console.log('🚨 최종 수신된 에러 값:', error);
+
+     // 서버가 보낸 실제 응답 메시지를 안전하게 추출
+     let errorMsg = '알 수 없는 오류가 발생했습니다.';
+
+     if (typeof error === 'object') {
+       // axios 에러 응답 구조(error.response.data) 또는 일반 객체 대응
+       const serverData = error.response?.data || error;
+       
+       if (typeof serverData === 'string') {
+         errorMsg = serverData;
+       } else {
+         errorMsg = serverData.error || serverData.message || JSON.stringify(serverData);
+       }
+     } else {
+       errorMsg = String(error);
+     }
+
+     // 💡 추출한 진짜 에러 메시지를 팝업으로 띄움
+     alert(errorMsg);
+     
+     dispatch(resetReviewState());
+   }
+  }, [success, error, dispatch, router, queryMeetupId, isEditMode, fromMypage]);
 
   const handleImageChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);

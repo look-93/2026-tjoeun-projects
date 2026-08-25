@@ -28,42 +28,81 @@ public class ReportsDto {
 		private Long reportId;
 		private TargetType targetType;	// MEETUP/REVIEW
 		private Long targetId;			// 모임글번호/리뷰글번호
+		
+		// 신고자 정보
 		private Long memberId;
 		private String memberNickname;
 		private Integer trustScore;		// 신뢰도 점수
 		private String statusCode;		// 뱃지 statusCode (영)
 		private String statusName;		// 뱃지 statusName (한)
+
+		// 신고 대상 회원 정보
+		private Long targetMemberId;			// 하... 신고대상id...
+		private String targetMemberNickname;	// 신고대상nickname
+		private Integer targetTrustScore;
+		private String targetStatusCode;
+		private String targetStatusName;
+		
 		private ReasonCode reasonCode;
 		private String reasonDetail;
 		private ReportStatus status;
 		private Character deleteYn;
 		private LocalDateTime createdAt;
 		private LocalDateTime updatedAt;
+		private LocalDateTime userUpdatedAt;
+		
+		private Long meetupId;
 		
 		// Report Entity -> ReportResponseDto 변환
 	    public static ReportResponseDto from(Report report) {
 	        ReportResponseDto dto = new ReportResponseDto();
+	        
 	        dto.setReportId(report.getReportId());
 	        dto.setTargetType(report.getTargetType());
 	        dto.setTargetId(report.getTargetId());
-	        // memberId, memberNickname, trustScore, statusCode, statusName
-	        if (report.getMember() != null) {
-	            dto.setMemberId(report.getMember().getId());
-	            dto.setMemberNickname(report.getMember().getNickname());
-	            if (report.getMember().getMemberInfo() != null) {
-	                dto.setTrustScore(report.getMember().getMemberInfo().getTrustScore());
-		            if (report.getMember().getMemberInfo().getMemberReportStatus() != null) {
-			            dto.setStatusCode(report.getMember().getMemberInfo().getMemberReportStatus().getStatusCode());
-			            dto.setStatusName(report.getMember().getMemberInfo().getMemberReportStatus().getStatusName());
-		            }
-	            }
-	        }
+	        
 	        dto.setReasonCode(report.getReasonCode());
 	        dto.setReasonDetail(report.getReasonDetail());
 	        dto.setStatus(report.getStatus());
 	        dto.setDeleteYn(report.getDeleteYn());
+	        
 	        dto.setCreatedAt(report.getCreatedAt());
 	        dto.setUpdatedAt(report.getUpdatedAt());
+	        dto.setUserUpdatedAt(report.getUserUpdatedAt());
+	        
+	        
+	        // 신고 대상 회원 정보는 Service 에 ...
+	        // 신고자 정보 ////////////////////////////////////////////////////////////
+	        // 신고자 정보 memberId, memberNickname, trustScore, statusCode, statusName
+	        if (report.getMember() != null) {
+	            dto.setMemberId(report.getMember().getId());
+	            dto.setMemberNickname(report.getMember().getNickname());
+	            
+	            if (report.getMember().getMemberInfo() != null) {
+	                // 신뢰도 점수
+	            	dto.setTrustScore(
+	                        report.getMember().getMemberInfo().getTrustScore()
+	                );
+
+	                // 뱃지
+	                if (report.getMember().getMemberInfo().getMemberReportStatus() != null) {
+	                    dto.setStatusCode(
+	                            report.getMember()
+	                                    .getMemberInfo()
+	                                    .getMemberReportStatus()
+	                                    .getStatusCode()
+	                    );
+
+	                    dto.setStatusName(
+	                            report.getMember()
+	                                    .getMemberInfo()
+	                                    .getMemberReportStatus()
+	                                    .getStatusName()
+	                    );
+	                }
+	            }
+	        }
+	        
 	        return dto;
 	    }
 	}

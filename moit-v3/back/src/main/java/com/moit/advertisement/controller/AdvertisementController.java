@@ -1,13 +1,17 @@
 package com.moit.advertisement.controller;
 
 import java.io.File;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -23,12 +27,18 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.moit.advertisement.dto.AdvertisementDto;
-import com.moit.advertisement.dto.AdvertisementExtensionRequestDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
+import com.moit.advertisement.dto.PaymentConfirmRequestDto;
+import com.moit.advertisement.entity.AdvertisementPayment;
+import com.moit.advertisement.enums.AdPosition;
+import com.moit.advertisement.enums.PaymentHistoryStatus;
+import com.moit.advertisement.enums.PaymentType;
+import com.moit.advertisement.repository.AdvertisementPaymentRepository;
+import com.moit.advertisement.service.AdvertisementCalculationService;
 import com.moit.advertisement.service.AdvertisementService;
-//import com.moit.member.dto.UserDto;
-//import com.moit.security.CustomUserDetails;
+import com.moit.advertisement.service.TossPaymentService;
+import com.moit.security.CustomUserDetails;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,19 +54,21 @@ import lombok.RequiredArgsConstructor;
 public class AdvertisementController {
 
     private final AdvertisementService advertisementService;
+    private final AdvertisementCalculationService calculationService;
+    private final TossPaymentService tossPaymentService;
+    private final AdvertisementPaymentRepository advertisementPaymentRepository;
 
     private static final String UPLOAD_PATH = "C:/upload/ad/";
     
-    private static final Long LOGIN_MEMBER_ID = 1L; // 로그인끼면 변경 (하드로 박는중)
     
     // 사용자 id
-//    private Long getLoginMemberId(Authentication authentication) {
-//
-//        CustomUserDetails user =
-//                (CustomUserDetails) authentication.getPrincipal();
-//
-//        return user.getUser().getMemberId();
-//    }
+    private Long getLoginMemberId(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+        return user.getUser().getMemberId(); 
+    }
 
     // 내 광고 목록
     @Operation(
@@ -65,9 +77,10 @@ public class AdvertisementController {
 	)
     @GetMapping
     public ResponseEntity<AdvertisementDto.AdvertisementPageResponseDto> list(
-            AdvertisementSearchDto dto) {
+            AdvertisementSearchDto dto,
+            Authentication authentication) {
 
-        Long memberId = LOGIN_MEMBER_ID;
+    	Long memberId = getLoginMemberId(authentication);
 
         dto.setAdvertiserId(memberId);
 
@@ -109,13 +122,34 @@ public class AdvertisementController {
 	    List<MultipartFile> imageFiles,
 
 	    @RequestParam(value = "imageTypes", required = false)
-	    List<String> imageTypes	) {
+	    List<String> imageTypes,
+	    Authentication authentication) {
 
         try {
-
-        	Long memberId = LOGIN_MEMBER_ID;
+        	Long memberId = getLoginMemberId(authentication);
 
             // 광고 등록
+        	List<AdPosition> positions = new ArrayList<>();
+            if (imageTypes != null && !imageTypes.isEmpty()) {
+                positions = imageTypes.stream()
+                        .map(String::toUpperCase)
+                        .map(AdPosition::valueOf)
+                        .collect(Collectors.toList());
+            }
+
+            // 백엔드 로직으로 총 예산(Total Budget) 계산
+            BigDecimal calculatedBudget = calculationService.calculateTotalAmount(
+                    dto.getStartDatetime(),
+                    dto.getEndDatetime(),
+                    dto.getAdGrade(),
+                    PaymentType.INITIAL, // 최초 등록
+                    positions
+            );
+
+            // DTO에 계산된 예산 꽂아넣기
+            dto.setTotalBudget(calculatedBudget);
+
+            // 광고 DB 등록
             Long adId = advertisementService.insertAdvertisement(dto, memberId);
 
             // 이미지 등록
@@ -142,8 +176,7 @@ public class AdvertisementController {
 
                     file.transferTo(new File(dir, saveName));
 
-                    AdvertisementImageDto imageDto =
-                            new AdvertisementImageDto();
+                    AdvertisementImageDto imageDto = new AdvertisementImageDto();
                     
                     imageDto.setAdId(adId);
                     imageDto.setImageType(imageTypes.get(i));
@@ -166,10 +199,11 @@ public class AdvertisementController {
 	)
 	@GetMapping("/{adId}")
 	public ResponseEntity<AdvertisementDto> detail(
-			@PathVariable("adId") Long adId) {
+			@PathVariable("adId") Long adId,
+            Authentication authentication) {
 
-	    AdvertisementDto dto =
-	            advertisementService.selectAdvertisementOne(adId);
+    	Long memberId = getLoginMemberId(authentication);
+	    AdvertisementDto dto = advertisementService.selectAdvertisementOne(adId);
 
 	    if (dto == null) {
 	        throw new ResponseStatusException(
@@ -178,7 +212,7 @@ public class AdvertisementController {
 	        );
 	    }
 
-	    if (!LOGIN_MEMBER_ID.equals(dto.getAdvertiserId())) {
+	    if (!Objects.equals(memberId, dto.getAdvertiserId())) {
 	        throw new ResponseStatusException(
 	                HttpStatus.FORBIDDEN,
 	                "본인의 광고만 조회할 수 있습니다."
@@ -208,11 +242,12 @@ public class AdvertisementController {
             List<MultipartFile> imageFiles,
 
             @RequestParam(value = "imageTypes", required = false)
-            List<String> imageTypes
+            List<String> imageTypes,
+            
+            Authentication authentication
         ) {
 
-    	Long memberId = LOGIN_MEMBER_ID;
-
+    	Long memberId = getLoginMemberId(authentication);
         AdvertisementDto origin = advertisementService.selectAdvertisementOne(adId);
 
 		if (origin == null) {
@@ -230,6 +265,26 @@ public class AdvertisementController {
 		    );
 		}
 
+		// 수정 시에도 금액이 변동될 수 있으므로 다시 계산
+        List<AdPosition> positions = new ArrayList<>();
+        if (imageTypes != null && !imageTypes.isEmpty()) {
+            positions = imageTypes.stream()
+                    .map(String::toUpperCase)
+                    .map(AdPosition::valueOf)
+                    .collect(Collectors.toList());
+        }
+
+        BigDecimal calculatedBudget = calculationService.calculateTotalAmount(
+                dto.getStartDatetime(),
+                dto.getEndDatetime(),
+                dto.getAdGrade(),
+                PaymentType.INITIAL, // 결제 전 수정이므로 여전히 INITIAL 성격
+                positions
+        );
+
+        dto.setTotalBudget(calculatedBudget); // 수정된 금액 세팅
+
+        // DB 업데이트 처리
 		advertisementService.updateAdvertisement(
 	            adId,
 	            memberId,
@@ -251,18 +306,19 @@ public class AdvertisementController {
 	)
     @DeleteMapping("/{adId}")
     public ResponseEntity<Void> delete(
-    		@PathVariable("adId") Long adId
+    		@PathVariable("adId") Long adId,
+            Authentication authentication
         ) {
-
-        AdvertisementDto dto =
-                advertisementService.selectAdvertisementOne(adId);
+    	
+    	Long memberId = getLoginMemberId(authentication);
+        AdvertisementDto dto = advertisementService.selectAdvertisementOne(adId);
 
         // 권한 체크
         if (dto == null) {
             return ResponseEntity.notFound().build();
         }
 
-        if (!LOGIN_MEMBER_ID.equals(dto.getAdvertiserId())) {
+        if (!Objects.equals(memberId, dto.getAdvertiserId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -270,6 +326,40 @@ public class AdvertisementController {
         advertisementService.deleteAdvertisement(adId);
 
         return ResponseEntity.noContent().build();
+    }
+    
+    // =========================================================
+    // 결제 정보(주문번호) 조회
+    // =========================================================
+    @Operation(summary = "결제 대기 중인 주문번호 조회", description = "광고 ID로 결제에 사용할 orderId를 조회합니다.")
+    @GetMapping("/payment/orderId/{adId}")
+    public ResponseEntity<String> getOrderIdByAdId(@PathVariable("adId") Long adId, Authentication authentication) {
+        // DB에서 해당 adId에 묶인 결제 대기(REQUESTED) 상태의 orderId를 찾아옵니다.
+        AdvertisementPayment payment = advertisementPaymentRepository
+                .findByAdvertisement_AdIdAndPaymentStatus(adId, PaymentHistoryStatus.REQUESTED)
+                .orElseThrow(() -> new IllegalArgumentException("결제 대기 중인 주문 정보를 찾을 수 없습니다."));
+
+        return ResponseEntity.ok(payment.getOrderId());
+    }
+    
+    // =========================================================
+    // 토스 결제 최종 승인
+    // =========================================================
+    @Operation(summary = "결제 승인 (Confirm)", description = "프론트엔드 결제 성공 후 토스 서버에 최종 승인을 요청합니다.")
+    @PostMapping("/payment/confirm")
+    public ResponseEntity<?> confirmPayment(@RequestBody PaymentConfirmRequestDto requestDto) {
+        try {
+            // 결제 승인 서비스 호출
+            tossPaymentService.confirmPayment(requestDto);
+            return ResponseEntity.ok().body("결제가 성공적으로 완료되었습니다.");
+            
+        } catch (IllegalArgumentException e) {
+            // 금액 불일치 등 클라이언트 측 예외
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            // 토스 서버 응답 실패 등 서버 측 예외
+            return ResponseEntity.internalServerError().body("결제 승인 실패: " + e.getMessage());
+        }
     }
 
 
@@ -304,20 +394,5 @@ public class AdvertisementController {
 //
 //
 //        return "redirect:" + dto.getLandingUrl();
-//    }
-    
-//    // 광고 기간 연장 요청
-//    @PostMapping("/extensionRequest")
-//    public ResponseEntity<?> extensionRequest(
-//            @RequestBody AdvertisementExtensionRequestDto dto) {
-//
-//        Long memberId = LOGIN_MEMBER_ID;
-//
-//        advertisementService.requestExtension(
-//                dto,
-//                memberId
-//        );
-//
-//        return ResponseEntity.ok().build();
 //    }
 }

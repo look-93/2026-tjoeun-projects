@@ -87,8 +87,11 @@ function UserMyReviewPage() {
     });
   };
 
-  const handleEdit = (reviewId) => {
-    router.push(`/user/mypage/review/edit/${reviewId}`);
+  // ★ 수정 버튼: 마이페이지에서 왔음을 알리는 `from=mypage` 파라미터 추가
+  const handleEdit = (reviewId, meetupId) => {
+    router.push(
+      `/user/meetup/review/write?reviewId=${reviewId}&meetupId=${meetupId}&edit=true&from=mypage`
+    );
   };
 
   const columns = [
@@ -154,25 +157,30 @@ function UserMyReviewPage() {
       key: 'action',
       width: '20%',
       align: 'center',
-      render: (_, record) => (
-        <Space size={6}>
-          <Button
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record.reviewId || record.id)}
-          >
-            수정
-          </Button>
-          <Button
-            size="small"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.reviewId || record.id)}
-          >
-            삭제
-          </Button>
-        </Space>
-      ),
+      render: (_, record) => {
+        const currentReviewId = record.reviewId || record.id;
+        const currentMeetupId = record.meetupId;
+        
+        return (
+          <Space size={6}>
+            <Button
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(currentReviewId, currentMeetupId)}
+            >
+              수정
+            </Button>
+            <Button
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(currentReviewId)}
+            >
+              삭제
+            </Button>
+          </Space>
+        );
+      },
     },
   ];
 

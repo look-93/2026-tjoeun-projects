@@ -5,11 +5,20 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
-import { fetchReportsDetailRequest, deleteReportRequest, deleteReportSuccess } from '../../../../reducers/reportReducer';
+import {
+    fetchReportsDetailRequest,
+    deleteReportRequest,
+    deleteReportSuccess
+} from '../../../../reducers/reportReducer';
 import {
     Card, Radio, Input, Button, Typography, Space, Divider, message,
     Descriptions, Tag, Modal, Spin
- } from 'antd';
+} from 'antd';
+
+import ReportStatusTag from '../../../../components/ReportStatusTag';
+import ReportStatusCodeTag from '../../../../components/ReportStatusCodeTag';
+
+
 
 const { Title } = Typography;
 
@@ -83,55 +92,6 @@ function ReportDetailPage() {
         }
     };
 
-    // 처리 상태
-    const getStatusTag = (status) => {
-        if (status === 'PENDING') {
-            return (
-                <Tag color="orange">
-                    처리 대기
-                </Tag>
-            );
-        }
-        if (status === 'APPROVED') {
-            return (
-                <Tag color="green">
-                    승인
-                </Tag>
-            );
-        }
-        if (status === 'REJECTED') {
-            return (
-                <Tag color="red">
-                    반려
-                </Tag>
-            );
-        }
-    };
-
-    // 뱃지
-    const getStatusCodeTag = (statusCode) => {
-        if (statusCode === 'ACTIVE') {
-            return (
-                <Tag color="green">
-                    정상
-                </Tag>
-            );
-        }
-        if (statusCode === 'WARNING') {
-            return (
-                <Tag color="orange">
-                    주의
-                </Tag>
-            );
-        }
-        if (statusCode === 'DANGER') {
-            return (
-                <Tag color="red">
-                    위험
-                </Tag>
-            );
-        }
-    };
 
 
     //////////////////////////////////////////////////////
@@ -140,6 +100,7 @@ function ReportDetailPage() {
         // 모임 신고
         if (currentReport.targetType === 'MEETUP') {
             router.push(
+                // http://localhost:3000/user/meetup/detail?meetupId=3
                 `/user/meetup/detail?meetupId=${currentReport.targetId}`
             );
             return;
@@ -148,7 +109,8 @@ function ReportDetailPage() {
         // 리뷰 신고
         if (currentReport.targetType === 'REVIEW') {
             router.push(
-                `/user/meetup/review/detail?reviewId=${currentReport.targetId}`
+                // http://localhost:3000/user/meetup/review/detailreview?reviewId=10&meetupId=3
+                `/user/meetup/review/detailreview?reviewId=${currentReport.targetId}&meetupId=${currentReport.meetupId}`
             );
         }
     };
@@ -200,27 +162,35 @@ function ReportDetailPage() {
                     column={1}
                 >
                     {/* 신고 번호 */}
-                    <Descriptions.Item label="신고번호">
+                    <Descriptions.Item label="신고번호 (reportId)">
                         {currentReport.reportId}번 신고글
                     </Descriptions.Item>
 
-                    <Descriptions.Item label="신고자">
-                        {currentReport.memberNickname}
+                    <Descriptions.Item label="신고자 (memberId) (test 나중에 빼야함!!!!!!!!!!!!!!!!!!!!!!!!!~~~~~~~~)">
+                        {currentReport.memberNickname ?? '-'}
+                        {' '}
+                        ({currentReport.memberId ?? '-'}번)
+                        {' => '}
+                        {currentReport.trustScore}점{' '}
+                        <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
                     </Descriptions.Item>
 
-                    <Descriptions.Item label="신뢰도점수 & 뱃지">
-                        {currentReport.trustScore}점
+                    <Descriptions.Item label="신고 대상 회원 (targetMemberId)">
+                        {currentReport.targetMemberNickname ?? '-'}
                         {' '}
-                        {getStatusCodeTag(
-                            currentReport.statusCode
-                        )}
+                        ({currentReport.targetMemberId ?? '-'}번)
+                        {' => '}
+                        {currentReport.targetTrustScore}점{' '}
+                        <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
                     </Descriptions.Item>
 
                     {/* 신고 대상 & 신고 대상 ID */}
-                    <Descriptions.Item label="신고 대상 ID">
+                    <Descriptions.Item label="게시글 번호">
                         {getTargetTypeText(
                             currentReport.targetType
                         )}
+                        {' '}
+                        ({currentReport.targetType})
                         {' '}
                         {currentReport.targetId}번 게시글
                     </Descriptions.Item>
@@ -243,23 +213,20 @@ function ReportDetailPage() {
 
                     {/* 신고 처리 상태 */}
                     <Descriptions.Item label="처리 상태">
-                        {getStatusTag(
-                            currentReport.status
-                        )}
+                        <ReportStatusTag status={currentReport.status} />
                     </Descriptions.Item>
 
                     {/* 신고 작성일 */}
                     <Descriptions.Item label="신고일">
                         {/* {currentReport.createdAt} */}
-                        {currentReport.createdAt?.slice(0, 10)}
+                        {currentReport.createdAt?.replace('T', ' ').slice(0, 19)}
                     </Descriptions.Item>
 
                     {/* 수정일이 있을 때만 표시 */}
                     {
-                        currentReport.updatedAt && (
+                        currentReport.userUpdatedAt && (
                             <Descriptions.Item label="수정일자">
-                                {/* {currentReport.updatedAt} */}
-                                {currentReport.updatedAt?.slice(0, 10)}
+                                {currentReport.userUpdatedAt?.replace('T', ' ').slice(0, 19)}
                             </Descriptions.Item>
                         )
                     }

@@ -23,7 +23,7 @@ public class AnswerService {
     // 답변 등록 + 문의 상태 업데이트
     public void register(AnswerRequestDto dto, Long memberId) {
     	dto.setMemberId(memberId);
-        AnswerResponseDto oldAnswer = questionMapper.findByQuestionId(dto.getQuestionId());
+        AnswerResponseDto oldAnswer = questionMapper.findByQuestionIdAll(dto.getQuestionId());
         if (oldAnswer == null) {
             questionMapper.insertAnswer(dto);
         } else {
@@ -40,6 +40,7 @@ public class AnswerService {
     }
 
     // 답변 삭제
+    @Transactional
     public void delete(Long answerId, Long questionId) {
         questionMapper.deleteAnswer(answerId);
         questionMapper.updateStatusPending(questionId);

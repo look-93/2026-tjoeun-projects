@@ -55,11 +55,11 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 		ORDER BY r.reportId DESC
 	""")
 	Page<Report> findAdminReports(
-			@Param("status")		 ReportStatus status,
-			@Param("deleteYn")		 Character deleteYn,
-			@Param("targetType")	 TargetType targetType,
-			@Param("memberNickname") String memberNickname,
-			@Param("reasonCode")	 ReasonCode reasonCode,
+			@Param("targetType")		TargetType targetType,
+			@Param("status")			ReportStatus status,
+			@Param("reasonCode")		ReasonCode reasonCode,
+			@Param("deleteYn")			Character deleteYn,
+			@Param("memberNickname")	String memberNickname,
 			Pageable pageable
 	);
 	

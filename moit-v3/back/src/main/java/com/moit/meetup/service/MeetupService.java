@@ -10,24 +10,38 @@ import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplyMemberListResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MyApplicationListResponseDto;
 import com.moit.meetup.dto.MeetupCategoryDto;
+import com.moit.meetup.dto.MeetupCountResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
+import com.moit.meetup.dto.MyMeetupCountResponseDto;
+import com.moit.meetup.dto.PopularMeetupResponseDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
+import com.moit.meetup.enums.MeetupStatus;
 
 public interface MeetupService {
+	
 	//목록조회
-	public MeetupListResponseDto search(Pageable pageable, Long memberId);
+	public MeetupListResponseDto search(
+	        Pageable pageable,
+	        Long memberId,
+	        MeetupStatus status,
+	        String searchType,
+	        String searchText,
+	        Long sidoId,
+	        Long categoryId,
+	        String orderType
+	);
 	
 	//상세조회
-	public MeetupResponseDto detail(Long meetupId);
+	public MeetupResponseDto detail(Long meetupId, Long memberId);
 	
 	//저장
 	public void create(MeetupRequestDto meetupRequest, Long memberId, List<MultipartFile> files);
 	
 	//수정
-	public void update(MeetupRequestDto meetupRequest, Long meetupId);
+	public void update(MeetupRequestDto meetupRequest, Long meetupId, List<MultipartFile> files, List<String> existingImagePaths);
 	
 	//삭제
 	public void delete(Long meetupId);	
@@ -59,6 +73,15 @@ public interface MeetupService {
 	//시군구 조회
 	public List<SigunguDto> getSigungu();
 	
+	//마이페이지-통계
+	public MyMeetupCountResponseDto getMyMeetupCount(Long memberId);
+	
+	// 관리자 통계
+    public MeetupCountResponseDto getMeetupCount();
+	
+    //인기모임 
+    public List<PopularMeetupResponseDto> getPopularMeetups();
+    
 	// ################### open api ###################
 	//ai 제목/카테고리/컨텐츠 추가
 	public RecommendMeetupResponseDto meetupWriteAiRecommended(RecommendMeetupRequestDto request);

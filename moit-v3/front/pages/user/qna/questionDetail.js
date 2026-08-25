@@ -9,6 +9,10 @@ import {
 } from '../../../reducers/qnaReducer';
 
 import {
+  fetchMeetupDetailRequest,
+} from '../../../reducers/meetupReducer';
+
+import {
   Breadcrumb,
   Button,
   Card,
@@ -26,15 +30,57 @@ function questionDetail() {
   const dispatch = useDispatch();
 
   const { questionId } = router.query;
-  const { qna } = useSelector((state) => state.qna);
+  const { qna, deleteSuccess, answerDeleteSuccess, error } = useSelector((state) => state.qna);
 
+  const { user } = useSelector((state) => state.user);
+  const { meetup } = useSelector((state) => state.meetup);
+
+  // 상세 조회
   useEffect(() => {
     if (!router.isReady || !questionId) return;
-
     dispatch(qnaDetailRequest(Number(questionId)));
   }, [router.isReady, questionId, dispatch]);
 
+  // 모임 문의인 경우 모임 상세 조회
+  useEffect(() => {
+    if (!qna?.parentId) return;
+    if (qna?.category !== 'MEETUP') return;
+
+    dispatch(
+      fetchMeetupDetailRequest(Number(qna.parentId))
+    );
+  }, [qna?.parentId, qna?.category, dispatch]);
+  
+  // 삭제 성공 시 알림 후 목록 이동
+  useEffect(() => {
+    if (!deleteSuccess) return;
+
+    alert('문의가 삭제되었습니다.');
+    router.push('/user/mypage/question');
+  }, [deleteSuccess, router]);
+
+  // 답변 삭제 성공
+  useEffect(() => {
+    if (!answerDeleteSuccess) return;
+
+    alert('답변이 삭제되었습니다.');
+    dispatch(qnaDetailRequest(Number(questionId)));
+  }, [answerDeleteSuccess, questionId, dispatch]);
+
+  useEffect(() => {
+    if (error) { alert(error); }
+  }, [error]);
+
   const isMeetup = qna?.category === 'MEETUP';
+
+  // 답변 등록/수정/삭제 권한
+  const canAnswer =
+    user?.memberTypeId === 3 ||
+    user?.memberTypeId === 4 ||
+    (
+      user?.memberTypeId === 1 &&
+      meetup?.memberId === user?.memberId
+    );
 
   const title = isMeetup ? '모임 1:1 문의 상세' : '관리자 1:1 문의 상세';
 
@@ -52,21 +98,36 @@ function questionDetail() {
     ? '비공개 🔒'
     : '공개';
 
-  const createdAt = qna?.createdAt
-    ? new Date(qna.createdAt).toLocaleString()
-    : '-';
-
   const answer = qna?.answer || {};
 
+  const createdAt = qna?.createdAt
+  ? new Date(qna.createdAt).toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    })
+  : '-';
+
   const answerCreatedAt = answer.createdAt
-    ? new Date(answer.createdAt).toLocaleString()
+    ? new Date(answer.createdAt).toLocaleString('ko-KR', {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      })
     : '-';
 
   const handleDelete = () => {
     if (!questionId) return;
     if (!window.confirm('문의를 삭제하시겠습니까?')) return;
     dispatch(qnaDeleteRequest(Number(questionId)));
-    router.back();
   };
 
   const handleAnswerDelete = () => {
@@ -78,7 +139,6 @@ function questionDetail() {
         answerId: Number(answer.answerId),
       })
     );
-    router.reload();
   };
 
   const handleSatisfaction = (score) => {
@@ -114,14 +174,14 @@ function questionDetail() {
         <div className="qna-write-actions">
           <Space>
 
-              {!qna?.answer && (
+              {status === 'PENDING' && canAnswer && (
                 <Button type="primary" onClick={() =>
-                    router.push(`/user/qna/answerWrite?question=${qna?.questionId}`)}>
+                    router.push(`/user/qna/answerWrite?questionId=${qna?.questionId}`)}>
                   답변 등록
                 </Button>
               )}
             
-            <Button onClick={() => router.push(`/user/qna/questionEdit?question=${qna?.questionId}`)}>
+            <Button onClick={() => router.push(`/user/qna/questionEdit?questionId=${qna?.questionId}`)}>
               수정
             </Button>
 
@@ -234,20 +294,24 @@ function questionDetail() {
 
             <div className="qna-write-actions">
               <Space>
-                <Button
-                  type="primary"
-                  onClick={() =>
-                    router.push(
-                      `/user/qna/answerEdit?answerId=${answer.answerId}&questionId=${qna?.questionId}`
-                    )
-                  }
-                >
-                  답변 수정
-                </Button>
+                {canAnswer && (
+                  <Button
+                    type="primary"
+                    onClick={() =>
+                      router.push(
+                        `/user/qna/answerEdit?answerId=${answer.answerId}&questionId=${qna?.questionId}`
+                      )
+                    }
+                  >
+                    답변 수정
+                  </Button>
+                )}
 
-                <Button danger onClick={handleAnswerDelete}>
-                  답변 삭제
-                </Button>
+                {canAnswer && (
+                  <Button danger onClick={handleAnswerDelete}>
+                    답변 삭제
+                  </Button>
+                )}
               </Space>
             </div>
 

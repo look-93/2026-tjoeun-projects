@@ -10,6 +10,7 @@ import com.moit.advertisement.entity.Advertisement;
 import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.AdStatus;
 import com.moit.advertisement.enums.ApprovalStatus;
+import com.moit.advertisement.enums.PaymentHistoryStatus;
 import com.moit.advertisement.enums.PaymentStatus;
 import com.moit.advertisement.enums.PaymentType;
 import com.moit.advertisement.enums.TargetGender;
@@ -29,6 +30,7 @@ public class AdvertisementDto {
     private Long adId;
 
     private Long advertiserId;
+    private String advertiserNickname;
 
     private String title;
     private String content;
@@ -46,6 +48,8 @@ public class AdvertisementDto {
     private PaymentStatus paymentStatus;
     private AdGrade adGrade;
     private PaymentType pendingPaymentType;
+    
+    private String rejectReason;
 
     private Long impressions;
     private Long clicks;
@@ -53,6 +57,18 @@ public class AdvertisementDto {
     private Integer priorityScore;
 
     private BigDecimal totalBudget;
+    
+    // 가격 계산 상세
+    private Integer totalDays;
+    private BigDecimal basePrice;
+    private BigDecimal positionPrice;
+    private BigDecimal calculatedAmount;
+    
+    // 결제 정보
+    private PaymentType paymentType;
+    private PaymentHistoryStatus paymentHistoryStatus;
+    private BigDecimal paymentAmount;
+    private LocalDateTime paidAt;
 
     private BigDecimal fatigueScore;
 
@@ -85,13 +101,16 @@ public class AdvertisementDto {
         private Integer targetAgeMin;
         private Integer targetAgeMax;
         private TargetGender targetGender;
+        
+        private AdGrade adGrade;
+        private PaymentType paymentType;
 
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime startDatetime;
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime endDatetime;
 
-        private BigDecimal totalBudget;
+        private BigDecimal totalBudget;        
     }
     
     // =========================================================
@@ -110,8 +129,12 @@ public class AdvertisementDto {
         private Integer targetAgeMin;
         private Integer targetAgeMax;
         private TargetGender targetGender;
+        
+        private AdGrade adGrade;
 
+        @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime startDatetime;
+        @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime endDatetime;
 
         private BigDecimal totalBudget;
@@ -189,12 +212,27 @@ public class AdvertisementDto {
 
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
+        
+        
+     // 프론트엔드 화면 표출을 위해 추가할 필드들
+        private String advertiserNickname; // 광고주 닉네임
+        
+        // 결제 관련 추가
+        private String paymentType;        // 프론트가 찾는 이름
+        private BigDecimal amount;         // 실 결제 금액
+        private LocalDateTime paymentAt;   // 결제일
 
 
         public static AdvertisementResponseDto fromEntity(
                 Advertisement ad
         ) {
 
+        	// 💡 1. 닉네임 추출 (Member 엔티티에 닉네임 필드가 있다고 가정)
+            String nickname = null;
+            if (ad.getAdvertiser() != null) {
+                nickname = ad.getAdvertiser().getNickname(); // Member 엔티티의 닉네임 Getter
+            }
+            
             return AdvertisementResponseDto.builder()
                     .adId(ad.getAdId())
                     .title(ad.getTitle())
@@ -224,7 +262,8 @@ public class AdvertisementDto {
                     .clicks(ad.getClicks())
                     .priorityScore(ad.getPriorityScore())
 
-                    .totalBudget(ad.getTotalBudget())
+                    .totalBudget(ad.getTotalBudget())                    
+                    
                     .fatigueScore(ad.getFatigueScore())
 
                     .reminder30dSent(ad.getReminder30dSent())
@@ -234,6 +273,12 @@ public class AdvertisementDto {
 
                     .createdAt(ad.getCreatedAt())
                     .updatedAt(ad.getUpdatedAt())
+                    
+                    .advertiserNickname(nickname)
+                    
+                    .paymentType(ad.getPendingPaymentType() != null ? ad.getPendingPaymentType().name() : null)
+                    .amount(ad.getTotalBudget()) // 일단 예산을 결제금액 쪽에 맵핑
+                    // .paymentAt(...) // 결제일은 Payment 엔티티를 조회해야 하므로, 우선 제외
 
                     .build();
         }
