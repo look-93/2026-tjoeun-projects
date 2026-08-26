@@ -362,10 +362,8 @@ export function* aiReportAnalysis(action) {
         const result = yield call(aiReportAnalysisAPI, action.payload);
         yield put(
             aiReportAnalysisSuccess({
-                // 1. 몇 번 신고인지 → reportId
-                reportId: action.payload.reportId,
-                // 2. AI 결과가 뭔지 → result
-                result: result.data
+                reportId: action.payload.reportId,  // 1. 몇 번 신고인지 → reportId
+                result: result.data                 // 2. AI 결과가 뭔지 → result
             })
         );
 
