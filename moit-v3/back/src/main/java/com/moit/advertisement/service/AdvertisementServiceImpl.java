@@ -1119,7 +1119,6 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	 // =========================================================
 	 // 클릭 로그
 	 // =========================================================
-	
     @Override
     @Transactional
     public boolean insertClickLog(
@@ -1137,15 +1136,35 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                                 )
                         );
 
+        AdPosition adPosition = AdPosition.valueOf(position);
+
+        // 최근 1시간 내 동일 광고 + IP + 위치 클릭 여부 확인
+        LocalDateTime oneHourAgo =
+                LocalDateTime.now().minusHours(1);
+
+        boolean alreadyClicked =
+                clickLogRepository
+                        .existsByAdvertisement_AdIdAndIpAddressAndPositionAndClickedAtAfter(
+                                adId,
+                                ip,
+                                adPosition,
+                                oneHourAgo
+                        );
+
+        // 1시간 이내 이미 클릭한 경우
+        // 로그 저장 X
+        // 포인트 적립 X
+        // 클릭 수 증가 X
+        if (alreadyClicked) {
+            return false;
+        }
+
         Member member = null;
 
         if (memberId != null) {
             member = memberRepository.findById(memberId)
                     .orElse(null);
         }
-
-        AdPosition adPosition =
-                AdPosition.valueOf(position);
 
         AdvertisementClickLog clickLog =
                 AdvertisementClickLog.builder()
@@ -1195,7 +1214,6 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	        String userAgent) {
 
 	    // 노출 로그 저장 로직
-	    // TODO: AdvertisementImpressionLog Entity + Repository 연결
 		Advertisement advertisement =
                 advertisementRepository.findById(adId)
                         .orElseThrow(() ->
@@ -1203,6 +1221,23 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                                         "광고를 찾을 수 없습니다."
                                 )
                         );
+		
+		AdPosition adPosition = AdPosition.valueOf(position);
+
+	    // 최근 10분 이내 동일 광고 + IP + 위치 노출 여부 확인
+	    LocalDateTime tenMinutesAgo = LocalDateTime.now().minusMinutes(10);
+
+	    boolean alreadyViewed =
+	            impressionLogRepository
+	                    .existsByAdvertisement_AdIdAndIpAddressAndPositionAndViewedAtAfter(
+	                            adId,
+	                            ip,
+	                            adPosition,
+	                            tenMinutesAgo
+	                    );
+
+	    // 10분 이내 이미 노출됨
+	    if (alreadyViewed) { return false; }
 
         Member member = null;
 
@@ -1210,9 +1245,6 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             member = memberRepository.findById(memberId)
                     .orElse(null);
         }
-
-        AdPosition adPosition =
-                AdPosition.valueOf(position);
 		
 		AdvertisementImpressionLog impressionLog =
 		        AdvertisementImpressionLog.builder()

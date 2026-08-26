@@ -31,9 +31,7 @@ import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.PaymentConfirmRequestDto;
-import com.moit.advertisement.entity.AdvertisementPayment;
 import com.moit.advertisement.enums.AdPosition;
-import com.moit.advertisement.enums.PaymentHistoryStatus;
 import com.moit.advertisement.enums.PaymentType;
 import com.moit.advertisement.repository.AdvertisementPaymentRepository;
 import com.moit.advertisement.service.AdvertisementCalculationService;
@@ -43,6 +41,7 @@ import com.moit.security.CustomUserDetails;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -373,36 +372,94 @@ public class AdvertisementController {
     }
 
 
-//    // 광고 클릭
-//    @GetMapping("/click")
-//    public String click(
-//            @RequestParam Long adId,
-//            @RequestParam String position,
-//            HttpServletRequest request,
-//            HttpSession session) {
-//
-//
-//    	// 클릭 로그 확인 (1시간에 한번만 +1 인정)
-//    	boolean counted = advertisementService.insertClickLog(
-//    	        adId,
-//    	        position,
-//    	        request,
-//    	        session
-//    	);
-//    	// 한시간 내에 기록 x면 증가
-//    	if (counted) {
-//    	    advertisementService.updateAdvertisementClick(adId);
-//    	}
-//
-//        AdvertisementDto dto =
-//                advertisementService.selectAdvertisementOne(adId);
-//
-//
-//        if(dto == null || dto.getLandingUrl() == null){
-//            return "redirect:/";
-//        }
-//
-//
-//        return "redirect:" + dto.getLandingUrl();
-//    }
+    // 광고 클릭
+    @PostMapping("/click")
+    public ResponseEntity<Void> increaseClick(
+            @RequestParam Long adId,
+            @RequestParam String position,
+            Authentication authentication,
+            HttpServletRequest request) {
+
+        Long memberId = null;
+
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getPrincipal() instanceof CustomUserDetails) {
+
+            CustomUserDetails user =
+                    (CustomUserDetails) authentication.getPrincipal();
+
+            memberId = user.getUser().getMemberId();
+        }
+
+        String ip = request.getRemoteAddr();
+        String userAgent = request.getHeader("User-Agent");
+
+        boolean counted =
+                advertisementService.insertClickLog(
+                        adId,
+                        position,
+                        memberId,
+                        ip,
+                        userAgent
+                );
+
+        if (counted) {
+            advertisementService.updateAdvertisementClick(adId);
+        }
+
+        return ResponseEntity.ok().build();
+    }
+    
+    @PostMapping("/impression")
+    public ResponseEntity<Void> increaseImpression(
+            @RequestParam Long adId,
+            @RequestParam String position,
+            Authentication authentication,
+            HttpServletRequest request) {
+
+        Long memberId = null;
+
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getPrincipal() instanceof CustomUserDetails) {
+
+            CustomUserDetails user =
+                    (CustomUserDetails) authentication.getPrincipal();
+
+            memberId = user.getUser().getMemberId();
+        }
+
+        String ip = request.getRemoteAddr();
+        String userAgent = request.getHeader("User-Agent");
+
+        boolean counted =
+                advertisementService.insertImpressionLog(
+                        adId,
+                        position,
+                        memberId,
+                        ip,
+                        userAgent
+                );
+
+        if (counted) {
+            advertisementService.updateImpressions(adId);
+        }
+
+        return ResponseEntity.ok().build();
+    }
+    
+    @GetMapping("/top")
+    public ResponseEntity<AdvertisementDto> getTopAdvertisement(
+            @RequestParam String position) {
+
+        AdvertisementDto advertisement =
+                advertisementService.selectTopAdvertisement(position);
+
+        if (advertisement == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(advertisement);
+    }
 }
