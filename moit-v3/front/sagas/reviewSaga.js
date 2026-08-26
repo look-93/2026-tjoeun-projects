@@ -234,9 +234,27 @@ export function* changeReviewVisibility(action) {
 // ★ [추가] 댓글 Saga 처리 함수들
 export function* fetchComments(action) {
     try {
-        const reviewId = action.payload;
+        // 💡 [수정] action.payload가 객체({ reviewId: 15 })이든 단일 값(15)이든 모두 안전하게 추출합니다.
+        const reviewId = typeof action.payload === 'object' && action.payload !== null
+            ? action.payload.reviewId || action.payload.id
+            : action.payload;
+
+        if (!reviewId) {
+            console.error("❌ 댓글 조회 실패: reviewId가 존재하지 않습니다.", action.payload);
+            return;
+        }
+
         const result = yield call(fetchCommentsApi, reviewId);
-        yield put(getCommentsSuccess(result.data));
+        
+        // 백엔드 반환값이 배열일 때와 객체({ content: [...] })일 때 모두 안전하게 지원
+        const commentsData = Array.isArray(result.data) 
+            ? result.data 
+            : (result.data?.content || result.data?.comments || []);
+
+        yield put(getCommentsSuccess({
+            reviewId: reviewId,
+            comments: commentsData
+        }));
     } catch (err) {
         const errorMsg = typeof err.response?.data === 'string'
             ? err.response.data
@@ -244,6 +262,24 @@ export function* fetchComments(action) {
         yield put(getCommentsFailure(errorMsg));
     }
 }
+
+// export function* fetchComments(action) {
+//     try {
+//         const reviewId = action.payload;
+//         const result = yield call(fetchCommentsApi, reviewId);
+        
+//         // ★ [수정] reviewId와 댓글 목록을 객체로 묶어서 리듀서로 전달
+//         yield put(getCommentsSuccess({
+//             reviewId: reviewId,
+//             comments: result.data.content || result.data.comments || result.data
+//         }));
+//     } catch (err) {
+//         const errorMsg = typeof err.response?.data === 'string'
+//             ? err.response.data
+//             : err.response?.data?.message || err.message;
+//         yield put(getCommentsFailure(errorMsg));
+//     }
+// }
 
 export function* createComment(action) {
     try {
@@ -310,8 +346,11 @@ function* watchChangeReviewVisibility() { yield takeLatest('review/changeVisibil
 // ★ [추가] 댓글 Watcher 함수들
 function* watchFetchComments() { yield takeLatest(getCommentsRequest, fetchComments); }
 function* watchCreateComment() { yield takeLatest(createCommentRequest, createComment); }
-// function* watchUpdateComment() { yield takeLatest(updateCommentRequest, updateComment); }
 function* watchDeleteComment() { yield takeLatest(deleteCommentRequest, deleteComment); }
+// function* watchFetchComments() { yield takeLatest(getCommentsRequest, fetchComments); }
+// function* watchCreateComment() { yield takeLatest(createCommentRequest, createComment); }
+// // function* watchUpdateComment() { yield takeLatest(updateCommentRequest, updateComment); }
+// function* watchDeleteComment() { yield takeLatest(deleteCommentRequest, deleteComment); }
 
 export default function* reviewSaga() {
     yield all([
