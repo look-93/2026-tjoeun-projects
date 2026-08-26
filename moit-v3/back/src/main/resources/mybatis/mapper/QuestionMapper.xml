@@ -4,7 +4,7 @@
 
 	<!-- 관리자측 페이징 -->
 	<select id="findAll" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto" parameterType="map">
-	    SELECT q.*, m.nickname, qa.analysis_status, qa.aggression_score
+	    SELECT q.*, m.nickname, qa.analysis_status, qa.aggression_score, qa.ai_category
 	    FROM questions q
 	    LEFT JOIN members m ON q.member_id = m.member_id
 	    LEFT JOIN question_ai_analysis qa ON q.question_id = qa.question_id
@@ -22,6 +22,9 @@
 	        <if test="status != null and status != '' and status != 'all'">
 	            AND q.qna_status = #{status}
 	        </if>
+	        <if test="aiCategory != null and aiCategory != '' and aiCategory != 'all'">
+			    AND qa.ai_category = #{aiCategory}
+			</if>
 	        <if test="startDate != null and startDate != ''">
 	            AND q.created_at >= TO_DATE(#{startDate}, 'YYYY-MM-DD')
 	        </if>
@@ -46,7 +49,8 @@
 	    SELECT COUNT(*)
 	    FROM questions q
 	    LEFT JOIN members m ON q.member_id = m.member_id
-	    <where>>
+	    LEFT JOIN question_ai_analysis qa ON q.question_id = qa.question_id
+	    <where>
 	        q.delete_yn = 'N'
 	        <if test="type == 'title' and keyword != null and keyword != ''">
 	            AND q.title LIKE '%' || #{keyword} || '%'
@@ -60,27 +64,14 @@
 	        <if test="status != null and status != '' and status != 'all'">
 	            AND q.qna_status = #{status}
 	        </if>
+	        <if test="aiCategory != null and aiCategory != '' and aiCategory != 'all'">
+			    AND qa.ai_category = #{aiCategory}
+			</if>
 	        <if test="startDate != null and startDate != ''">
 	            AND q.created_at >= TO_DATE(#{startDate}, 'YYYY-MM-DD')
 	        </if>
 	        <if test="endDate != null and endDate != ''">
 	            AND q.created_at <![CDATA[ < ]]> TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
-	        </if>
-	    </where>
-	</select>
-	
-	<!-- 내 문의 총 개수 -->
-	<select id="findMyQuestionCnt" parameterType="map" resultType="int">
-	    SELECT COUNT(*)
-	    FROM questions
-	    <where>
-	        member_id = #{memberId}
-	        AND delete_yn = 'N'
-	        <if test="type == 'title' and keyword != null and keyword != ''">
-	            AND title LIKE '%' || #{keyword} || '%'
-	        </if>
-	        <if test="type == 'content' and keyword != null and keyword != ''">
-	            AND content LIKE '%' || #{keyword} || '%'
 	        </if>
 	    </where>
 	</select>
@@ -106,6 +97,40 @@
 	    SELECT COUNT(*)
 	    FROM questions
 	    WHERE TRUNC(created_at) = TRUNC(SYSDATE)
+	      AND delete_yn = 'N'
+	</select>
+		
+	<!-- 내 문의 총 개수 -->
+	<select id="findMyQuestionCnt" parameterType="map" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    <where>
+	        member_id = #{memberId}
+	        AND delete_yn = 'N'
+	        <if test="type == 'title' and keyword != null and keyword != ''">
+	            AND title LIKE '%' || #{keyword} || '%'
+	        </if>
+	        <if test="type == 'content' and keyword != null and keyword != ''">
+	            AND content LIKE '%' || #{keyword} || '%'
+	        </if>
+	    </where>
+	</select>
+
+	<!-- 내 문의 답변 대기 전체 건수 -->
+	<select id="findMyPendingCnt" parameterType="long" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    WHERE member_id = #{memberId}
+	      AND qna_status = 'PENDING'
+	      AND delete_yn = 'N'
+	</select>
+	
+	<!-- 내 문의 답변 완료 전체 건수 -->
+	<select id="findMyAnsweredCnt" parameterType="long" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    WHERE member_id = #{memberId}
+	      AND qna_status = 'ANSWERED'
 	      AND delete_yn = 'N'
 	</select>
 
@@ -330,9 +355,9 @@
 	        FROM dual
 	    </selectKey>
 		    INSERT INTO notifications
-		    ( notification_id, question_id, member_id, type, message, created_at, updated_at )
+		    ( notification_id, question_id, member_id, type, message, is_read, created_at, updated_at )
 		    VALUES
-		    ( #{notificationId}, #{questionId}, #{memberId}, #{type}, #{message}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP )
+		    ( #{notificationId}, #{questionId}, #{memberId}, #{type}, #{message}, 'N', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP )
 	</insert>
 	
 	<select id="selectUnread" parameterType="long" resultType="com.moit.qna.dto.NotificationDto">
@@ -356,6 +381,22 @@
 	    WHERE notification_id=#{notificationId}
 	    AND member_id = #{memberId}
 	</update>
+	
+	<!-- 회원의 읽지 않은 알림 전체 읽음 처리 -->
+	<update id="readAllNotifications" parameterType="long">
+	    UPDATE notifications
+	    SET
+	        is_read = 'Y',
+	        updated_at = CURRENT_TIMESTAMP
+	    WHERE member_id = #{memberId}
+	      AND is_read = 'N'
+	</update>
+	
+	<delete id="deleteNotification">
+	    DELETE FROM notifications
+	    WHERE notification_id = #{notificationId}
+	      AND member_id = #{memberId}
+	</delete>
 	
 	<select id="unreadCount" parameterType="long" resultType="int">
 		SELECT COUNT(*)

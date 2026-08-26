@@ -63,11 +63,16 @@ public class SecurityConfig {
                 "/api/meetups/**",
                 "/api/members/**",
                 "/api/questions/**",
+                "/api/notifications/**",
                 "/api/reports/**",
                 "/api/reports",
                 "/api/admin/advertisement/**",
                 "/api/advertisement/**",
-                "/api/reviews/**"
+                "/api/reviews/**",
+                "/api/admin/**",
+                "/api/payment/**",
+                "/user/advertisement/aiAdvertise"
+
             )
         );
 
@@ -120,7 +125,10 @@ public class SecurityConfig {
                 "/user/member/checkPassword",
                 "/admin/member/join",
                 "/meetup/list",
-                "/user/advertisement/click"
+                "/user/advertisement/click",
+                "/user/member/kakaologout",
+                "/api/meetups/**"
+
             ).permitAll()
 
             // -------------------------------------------------
@@ -144,17 +152,20 @@ public class SecurityConfig {
             ).authenticated()
 
             // -------------------------------------------------
+            // 제휴업체 광고
+            // -------------------------------------------------
+            .requestMatchers(
+            		"/user/advertisement/aiAdvertise", 
+            		"/api/admin/advertisement/price/**")
+            .hasRole("PARTNER")
+
+            // -------------------------------------------------
             // 관리자
             // -------------------------------------------------
             // 추후 활성화
-            // .requestMatchers("/admin/**", "/api/reports/admin/**")
-            // .hasRole("ADMIN")
+             .requestMatchers("/api/admin/**", "/api/reports/admin/**")
+             .hasAnyRole("ADMIN", "SUPERADMIN")
 
-            // -------------------------------------------------
-            // 제휴업체 광고
-            // -------------------------------------------------
-            .requestMatchers("/user/advertisement/aiAdvertise")
-            .hasRole("PARTNER")
 
             // -------------------------------------------------
             // 나머지
@@ -250,7 +261,8 @@ public class SecurityConfig {
             List.of(
                 "Authorization",
                 "Content-Type",
-                "Accept"
+                "Accept",
+                "X-Device-Id"
             )
         );
 

@@ -20,13 +20,14 @@ public class QuestionService {
     private final QuestionMapper questionMapper;
     private final QuestionAiAnalysisService questionAiAnalysisService;
 
-    // 전체 문의 목록 조회 (페이징)
+    // 관리자 전체 문의 목록 조회 (페이징)
     public List<QuestionResponseDto> getList(
             int start,
             int end,
             String type,
             String keyword,
             String status,
+            String aiCategory,
             String startDate,
             String endDate) {
 
@@ -38,6 +39,7 @@ public class QuestionService {
         map.put("type", type);
         map.put("keyword", keyword);
         map.put("status", status);
+        map.put("aiCategory", aiCategory);
         map.put("startDate", startDate);
         map.put("endDate", endDate);
 
@@ -110,6 +112,7 @@ public class QuestionService {
             String type,
             String keyword,
             String status,
+            String aiCategory,
             String startDate,
             String endDate) {
 
@@ -118,6 +121,7 @@ public class QuestionService {
         map.put("type", type);
         map.put("keyword", keyword);
         map.put("status", status);
+        map.put("aiCategory", aiCategory);
         map.put("startDate", startDate);
         map.put("endDate", endDate);
 
@@ -175,6 +179,16 @@ public class QuestionService {
         map.put("keyword", keyword);
 
         return questionMapper.findMyQuestionCnt(map);
+    }
+    
+    // 내 문의 전체 답변 대기 건수
+    public int getMyPendingCnt(Long memberId) {
+        return questionMapper.findMyPendingCnt(memberId);
+    }
+
+    // 내 문의 전체 답변 완료 건수
+    public int getMyAnsweredCnt(Long memberId) {
+        return questionMapper.findMyAnsweredCnt(memberId);
     }
 
     //관리자용 선택 삭제

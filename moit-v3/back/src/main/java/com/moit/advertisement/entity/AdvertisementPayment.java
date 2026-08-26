@@ -22,13 +22,17 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "ADVERTISEMENT_PAYMENT")
 @Getter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class AdvertisementPayment {
 
     // 결제 이력 PK
@@ -227,5 +231,33 @@ public class AdvertisementPayment {
     @PreUpdate
     void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+    
+    // 결제 성공 시 상태 변경 메서드 추가
+    public void updatePaymentSuccess(String paymentKey, String paymentMethod) {
+        this.paymentStatus = PaymentHistoryStatus.PAID;
+        this.paymentKey = paymentKey;
+        this.paymentMethod = paymentMethod;
+        this.paidAt = LocalDateTime.now();
+    }
+    
+    public void updateAmount(
+            BigDecimal baseAmount,
+            BigDecimal positionAmount,
+            BigDecimal amount) {
+
+        this.baseAmount = baseAmount;
+        this.positionAmount = positionAmount;
+        this.amount = amount;
+    }
+    
+    public void updatePeriod(
+            int periodDays,
+            LocalDateTime startDatetime,
+            LocalDateTime endDatetime) {
+
+        this.periodDays = periodDays;
+        this.startDatetime = startDatetime;
+        this.endDatetime = endDatetime;
     }
 }

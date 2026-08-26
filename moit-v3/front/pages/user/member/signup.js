@@ -18,7 +18,7 @@ import {
     resetDuplicateCheck,
     resetEmailVerification,
     checkPasswordLeakRequest,
-    resetPasswordLeak
+    resetPasswordLeak,resetSignup
 } from "../../../reducers/userReducer";
 
 const {Title,Text} = Typography;      
@@ -111,13 +111,21 @@ function Signup(){
 
 // rudux 상태
 const {
-    loading,
-    error,
-    success,
+    signup,
     emailVerification,
     duplicateCheck,
     passwordLeak
 } = useSelector((state) => state.user);
+
+const {
+    loading: signupLoading,
+    success: signupSuccess,
+    error: signupError
+} = signup;
+
+useEffect(() => {
+    dispatch(resetSignup());
+}, [dispatch]);
 
 // 입력된 이메일 
 const [email, setEmail] = useState(""); 
@@ -134,11 +142,11 @@ const [password, setPassword] = useState("");
 
 // 회원가입 성공처리
 useEffect(()=>{
-    if(success){
+    if(signupSuccess){
         message.success("회원가입이 완료되었습니다.");
         router.push("/user/member/login");
     }
-},[success,router]);
+},[signupSuccess,router]);
 
 // 아이디 입력변경 시
 const handleLoginIdChange = (e)=>{
@@ -788,7 +796,7 @@ return (
                             htmlType="submit"
                             size="large"
                             block
-                            loading={loading}
+                            loading={signupLoading}
                     >
                     회원가입
                     </Button>
@@ -806,9 +814,9 @@ return (
                     </Button>
                 </div> 
 
-                {error && (
+                {signupError && (
                     <div style={{marginTop:"20px", textAlign:"center", color:"#ff4d4f"}}>
-                        {error}
+                        {signupError}
                     </div>
                 )}    
 

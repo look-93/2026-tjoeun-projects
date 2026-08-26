@@ -8,8 +8,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import com.moit.advertisement.entity.Advertisement;
 import com.moit.advertisement.enums.AdGrade;
+import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.AdStatus;
 import com.moit.advertisement.enums.ApprovalStatus;
+import com.moit.advertisement.enums.PaymentHistoryStatus;
 import com.moit.advertisement.enums.PaymentStatus;
 import com.moit.advertisement.enums.PaymentType;
 import com.moit.advertisement.enums.TargetGender;
@@ -29,6 +31,7 @@ public class AdvertisementDto {
     private Long adId;
 
     private Long advertiserId;
+    private String advertiserNickname;
 
     private String title;
     private String content;
@@ -46,6 +49,8 @@ public class AdvertisementDto {
     private PaymentStatus paymentStatus;
     private AdGrade adGrade;
     private PaymentType pendingPaymentType;
+    
+    private String rejectReason;
 
     private Long impressions;
     private Long clicks;
@@ -53,6 +58,27 @@ public class AdvertisementDto {
     private Integer priorityScore;
 
     private BigDecimal totalBudget;
+    
+    // 가격 계산 상세
+    private Integer totalDays;
+    private BigDecimal basePrice;
+    private BigDecimal positionPrice;
+    private BigDecimal calculatedAmount;
+    
+    // 결제 정보
+    private PaymentType paymentType;
+    private PaymentHistoryStatus paymentHistoryStatus;
+    private BigDecimal paymentAmount;
+    private LocalDateTime paidAt;
+    
+    // 추가할 필드들
+    private String orderId;
+    private String paymentKey;
+    private String paymentMethod;
+    private BigDecimal baseAmount;
+    private BigDecimal positionAmount;
+    private LocalDateTime cancelledAt;
+    private String cancelReason;
 
     private BigDecimal fatigueScore;
 
@@ -87,13 +113,16 @@ public class AdvertisementDto {
         private TargetGender targetGender;
         
         private AdGrade adGrade;
+        private PaymentType paymentType;
 
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime startDatetime;
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime endDatetime;
 
-        private BigDecimal totalBudget;
+        private BigDecimal totalBudget;        
+        
+        private List<AdPosition> positions;
     }
     
     // =========================================================
@@ -245,7 +274,8 @@ public class AdvertisementDto {
                     .clicks(ad.getClicks())
                     .priorityScore(ad.getPriorityScore())
 
-                    .totalBudget(ad.getTotalBudget())
+                    .totalBudget(ad.getTotalBudget())                    
+                    
                     .fatigueScore(ad.getFatigueScore())
 
                     .reminder30dSent(ad.getReminder30dSent())

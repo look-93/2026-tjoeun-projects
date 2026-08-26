@@ -1,61 +1,73 @@
-import React from 'react';
-import CategoryList from '../components/CategoryList';
-import AdBanner from '../components/AdBanner';
-import PopularMeetupList from '../components/PopularMeetupList';
-import Hero from '../components/Hero';
+import React, { useState, useEffect } from "react";
+import { message } from "antd";
+import CategoryList from "../components/CategoryList";
+import AdBanner from "../components/AdBanner";
+import PopularMeetupList from "../components/PopularMeetupList";
+import Hero from "../components/Hero";
+import { useRouter } from "next/router";
+import { useSelector, useDispatch } from "react-redux";
+import {
+    fetchCategoriesRequest,
+    fetchPopularMeetupsRequest,
+    meetupLikeRequest,
+} from "../reducers/meetupReducer";
 
 export default function Home() {
-  const categories = [
-    { icon: '🏃', name: '운동' },
-    { icon: '📚', name: '스터디' },
-    { icon: '🎮', name: '취미' },
-    { icon: '🎨', name: '문화' },
-    { icon: '☕', name: '맛집' },
-    { icon: '✈️', name: '여행' },
-    { icon: '☕', name: '카페' },
-    { icon: '🎵', name: '음악' },
-  ];
+    const dispatch = useDispatch();
+    const { categories, popularMeetups } = useSelector((state) => state.meetup);
+    const { user } = useSelector((state) => state.user);
+    const router = useRouter();
 
-  const popularMeetups = [
-    {
-      id: 1,
-      title: '러닝 크루 모집',
-      participants: '8 / 10',
-      location: '서울',
-    },
-    {
-      id: 2,
-      title: '독서 스터디',
-      participants: '6 / 8',
-      location: '인천',
-    },
-    {
-      id: 3,
-      title: '보드게임 모임',
-      participants: '7 / 10',
-      location: '경기',
-    },
-    {
-      id: 4,
-      title: '영화 같이 볼 사람',
-      participants: '5 / 10',
-      location: '서울',
-    },
-  ];
+    useEffect(() => {
+        dispatch(fetchCategoriesRequest());
+        dispatch(fetchPopularMeetupsRequest());
+    }, [dispatch]);
 
-  return (
-    <div className="main-page">
-      {/* Hero */}
-      <Hero />
+    // 카테고리 클릭
+    const handleCategoryClick = (category) => {
+        router.push(`/user/meetup?categoryId=${category.id}`);
+    };
 
-      {/* Category */}
-      <CategoryList categories={categories} />
+    // 인기모임 클릭
+    const handlePopularMeetupClick = (meetupId) => {
+        if (!user) {
+            message.warning("로그인이 필요한 서비스입니다.");
+            router.push("/user/member/login");
+            return;
+        }
+        router.push(`/user/meetup/detail?meetupId=${meetupId}`);
+    };
 
-      {/* 광고 */}
-      <AdBanner />
+    // 인기모임 좋아요
+    const handlePopularMeetupLike = (meetupId) => {
+        if (!user) {
+            message.warning("로그인이 필요한 서비스입니다.");
+            router.push("/user/member/login");
+            return;
+        }
+        dispatch(meetupLikeRequest(meetupId));
+    };
 
-      {/* 인기 모임 */}
-      <PopularMeetupList popularMeetups={popularMeetups} />
-    </div>
-  );
+    return (
+        <div className="main-page">
+            {/* Hero */}
+            <Hero />
+
+            {/* Category */}
+            <CategoryList
+                categories={categories.filter((cate) => cate.parentId === null)}
+                onCategoryClick={handleCategoryClick}
+            />
+
+            {/* 광고 */}
+            <AdBanner />
+
+            {/* 인기 모임 */}
+            <PopularMeetupList
+                popularMeetups={popularMeetups}
+                onMeetupClick={handlePopularMeetupClick}
+                onToggleLike={handlePopularMeetupLike}
+            />
+        </div>
+    );
 }

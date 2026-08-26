@@ -72,7 +72,7 @@ export function* qnaDetail(action){
 export const qnaUpdateAPI = ({questionId, data}) => api.put(`${QNA_API_BASE}/${questionId}`, data);
 export function* qnaUpdate(action){
     try {
-        const result = yield call(qnaUpdateAPI, action.payload);
+        yield call(qnaUpdateAPI, action.payload);
         yield put(qnaUpdateSuccess());
     }catch(err){
         if (err.response?.status === 403) {
@@ -87,7 +87,7 @@ export function* qnaUpdate(action){
 export const qnaDeleteAPI = (questionId) => api.delete(`${QNA_API_BASE}/delete/${questionId}`);
 export function* qnaDelete(action){
     try {
-        const result = yield call(qnaDeleteAPI, action.payload);
+        yield call(qnaDeleteAPI, action.payload);
         yield put(qnaDeleteSuccess());
     }catch(err){
         if (err.response?.status === 403) {
@@ -114,7 +114,7 @@ export function* qnaAdminList(action){
 export const qnaAnswerCreateAPI = (payload) => api.post(`${QNA_API_BASE}/answer`, payload);
 export function* qnaAnswerCreate(action){
     try {
-        const result = yield call(qnaAnswerCreateAPI, action.payload);
+        yield call(qnaAnswerCreateAPI, action.payload);
         yield put(qnaAnswerCreateSuccess());
     }catch(err){
         if (err.response?.status === 403) {
@@ -129,7 +129,7 @@ export function* qnaAnswerCreate(action){
 export const qnaAnswerUpdateAPI = ({answerId, data}) => api.put(`${QNA_API_BASE}/answer/${answerId}`, data);
 export function* qnaAnswerUpdate(action){
     try {
-        const result = yield call(qnaAnswerUpdateAPI, action.payload);
+        yield call(qnaAnswerUpdateAPI, action.payload);
         yield put(qnaAnswerUpdateSuccess());
     }catch(err){
         if (err.response?.status === 403) {
@@ -144,7 +144,7 @@ export function* qnaAnswerUpdate(action){
 export const qnaAnswerDeleteAPI = ({questionId, answerId}) => api.delete(`${QNA_API_BASE}/${questionId}/answer/${answerId}`);
 export function* qnaAnswerDelete(action){
     try {
-        const result = yield call(qnaAnswerDeleteAPI, action.payload);
+        yield call(qnaAnswerDeleteAPI, action.payload);
         yield put(qnaAnswerDeleteSuccess());
     }catch(err){
         if (err.response?.status === 403) {
@@ -159,7 +159,7 @@ export function* qnaAnswerDelete(action){
 export const qnaSatisfactionAPI = ({answerId, data}) => api.patch(`${QNA_API_BASE}/answer/${answerId}/satisfaction`, data);
 export function* qnaSatisfaction(action){
     try {
-        const result = yield call(qnaSatisfactionAPI, action.payload);
+        yield call(qnaSatisfactionAPI, action.payload);
         yield put(qnaSatisfactionSuccess());
     }catch(err){
         yield put(qnaSatisfactionFailure(err.response?.data?.message || err.message));
@@ -171,7 +171,7 @@ export const qnaAdminDeleteSelectedAPI = (ids) => api.delete(`${QNA_API_BASE}/de
         data: ids,});
 export function* qnaAdminDeleteSelected(action){
     try {
-        const result = yield call(qnaAdminDeleteSelectedAPI, action.payload);
+        yield call(qnaAdminDeleteSelectedAPI, action.payload);
         yield put(qnaAdminDeleteSelectedSuccess());
     }catch(err){
         yield put(qnaAdminDeleteSelectedFailure(err.response?.data?.message || err.message));
@@ -182,7 +182,7 @@ export function* qnaAdminDeleteSelected(action){
 export const qnaAiNormalAPI = (ids) => api.patch(`${QNA_API_BASE}/ai/normal`, ids);
 export function* qnaAiNormal(action){
     try {
-        const result = yield call(qnaAiNormalAPI, action.payload);
+        yield call(qnaAiNormalAPI, action.payload);
         yield put(qnaAiNormalSuccess());
     }catch(err){
         yield put(qnaAiNormalFailure(err.response?.data?.message || err.message));

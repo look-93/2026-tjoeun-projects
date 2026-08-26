@@ -2,17 +2,46 @@ import { createSlice } from "@reduxjs/toolkit";
 
 //1. 초기화 상태(공용)
 const initialState = {
-    user: null,     //단건 조회된 사용자 정보
-    members: [],    // 전체 조회
+    user: null,
+    members: [],
+
     accessToken: null,
     refreshToken: null,
-    loading:false,  //로딩상태
-    error: null,    //에러메시지
-    success:false,   //성공여부
+    deviceId: null,
+
+    // =========================
+    // 로그인 상태
+    // =========================
+    login: {
+        loading: false,
+        success: false,
+        error: null,
+    },
+
+    // =========================
+    // 회원가입 상태
+    // =========================
+    signup: {
+        loading: false,
+        success: false,
+        error: null,
+    },
+
+    // =========================
+    // 공통 사용자 조회 상태
+    // =========================
+    loading: false,
+    error: null,
+
+    // =========================
+    // 전체 회원 조회
+    // =========================
     membersLoading: false,
     membersError: null,
 
+    // =========================
     // 중복확인
+    // =========================
     duplicateCheck: {
         loginId: null,
         email: null,
@@ -20,7 +49,9 @@ const initialState = {
         mobile: null,
     },
 
+    // =========================
     // 이메일 인증
+    // =========================
     emailVerification: {
         sending: false,
         verifying: false,
@@ -29,7 +60,9 @@ const initialState = {
         error: null,
     },
 
+    // =========================
     // 비밀번호 유출 검사
+    // =========================
     passwordLeak: {
         checking: false,
         checked: false,
@@ -38,32 +71,42 @@ const initialState = {
         error: null,
     },
 
+    // =========================
     // 아이디 찾기
+    // =========================
     findId: {
         loading: false,
         result: null,
         error: null,
     },
 
+    // =========================
     // 비밀번호 찾기
+    // =========================
     findPassword: {
         loading: false,
         success: false,
         error: null,
     },
 
+    // =========================
     // 마이페이지 비밀번호 변경
+    // =========================
     changePassword: {
         loading: false,
         success: false,
         error: null,
     },
+
+    // =========================
     // 회원정보 수정
+    // =========================
     updateMyInfo: {
         loading: false,
         success: false,
         error: null,
     },
+
     // =========================
     // 프로필 이미지 업로드
     // =========================
@@ -72,7 +115,30 @@ const initialState = {
         success: false,
         error: null,
     },
-    
+
+    // =========================
+    // 회원 탈퇴
+    // =========================
+    deleteAccount: {
+        loading: false,
+        success: false,
+        error: null,
+    },
+
+    // 로그아웃
+    logout: {
+        loading: false,
+        success: false,
+        error: null,
+    },
+
+    // 로그인 기록 조회
+    loginHistory: {
+        loading: false,
+        data: [],
+        error: null,
+    },
+
 };
 
 //2. 상태변화
@@ -81,33 +147,37 @@ const userReducer = createSlice({
     initialState,
     reducers: {
 
-        // =========================
+        // =================================================
         // 로그인
-        // =========================
-        loginRequest: (state)=>{
-            state.loading = true;
-            state.success = false;
-            state.error = null;            
+        // =================================================
+        loginRequest: (state) => {
+            state.login.loading = true;
+            state.login.success = false;
+            state.login.error = null;
         },
-        loginSuccess: (state,action)=>{
-            state.loading = false;
-            state.success = true;
-            state.error = null;
+
+        loginSuccess: (state, action) => {
+            state.login.loading = false;
+            state.login.success = true;
+            state.login.error = null;
 
             state.accessToken = action.payload.accessToken;
             state.refreshToken = action.payload.refreshToken;
+            state.deviceId = action.payload.deviceId || null;
 
             state.user = {
-                memberId : action.payload.memberId,
-                loginId : action.payload.loginId,
+                memberId: action.payload.memberId,
+                loginId: action.payload.loginId,
                 memberTypeId: action.payload.memberTypeId,
             };
         },
-        loginFailure: (state,action)=>{
-            state.loading = false;
-            state.success = false;
-            state.error = action.payload;
+
+        loginFailure: (state, action) => {
+            state.login.loading = false;
+            state.login.success = false;
+            state.login.error = action.payload;
         },
+
         // =========================
         // 내 정보 조회
         // =========================
@@ -144,23 +214,32 @@ const userReducer = createSlice({
             state.error = action.payload;
         },
 
-        // =========================
+        // =================================================
         // 회원가입
-        // =========================
-        signupRequest: (state)=>{
-            state.loading = true;
-            state.success = false;
-            state.error = null;
+        // =================================================
+        signupRequest: (state) => {
+            state.signup.loading = true;
+            state.signup.success = false;
+            state.signup.error = null;
         },
-        signupSuccess: (state)=>{
-            state.loading = false;
-            state.success = true;
-            state.error = null;
+
+        signupSuccess: (state) => {
+            state.signup.loading = false;
+            state.signup.success = true;
+            state.signup.error = null;
         },
-        signupFailure: (state,action)=>{
-            state.loading = false;
-            state.success = false;
-            state.error = action.payload;
+
+        signupFailure: (state, action) => {
+            state.signup.loading = false;
+            state.signup.success = false;
+            state.signup.error = action.payload;
+        },
+        resetSignup: (state) => {
+            state.signup = {
+                loading: false,
+                success: false,
+                error: null,
+            };
         },
 
         // =========================
@@ -303,6 +382,7 @@ const userReducer = createSlice({
             state.error = action.payload;
             state.duplicateCheck.mobile = null;
         },
+
         // =========================
         // 전체 회원 조회
         // =========================
@@ -318,6 +398,33 @@ const userReducer = createSlice({
         findMembersFailure: (state, action) => {
             state.membersLoading = false;
             state.membersError = action.payload;
+        },
+
+        // =========================
+        // 로그인 기록 조회
+        // =========================
+        getLoginHistoryRequest: (state) => {
+            state.loginHistory.loading = true;
+            state.loginHistory.error = null;
+        },
+        getLoginHistorySuccess: (state, action) => {
+            state.loginHistory.loading = false;
+            state.loginHistory.data = action.payload;
+            state.loginHistory.error = null;
+        },
+        getLoginHistoryFailure: (state, action) => {
+            state.loginHistory.loading = false;
+            state.loginHistory.error = action.payload;
+        },
+        // =========================
+        // 로그인 기록 조회 상태 초기화
+        // =========================
+        resetLoginHistory: (state) => {
+            state.loginHistory = {
+                loading: false,
+                data: [],
+                error: null,
+            };
         },
 
         // =========================
@@ -435,6 +542,43 @@ const userReducer = createSlice({
                 error: null,
             };
         },
+        // =========================
+        // 회원 탈퇴
+        // =========================
+        deleteAccountRequest: (state) => {
+            state.deleteAccount.loading = true;
+            state.deleteAccount.success = false;
+            state.deleteAccount.error = null;
+        },
+        deleteAccountSuccess: (state) => {
+            state.deleteAccount.loading = false;
+            state.deleteAccount.success = true;
+            state.deleteAccount.error = null;
+
+            // 회원 정보 초기화
+            state.user = null;
+            state.accessToken = null;
+            state.refreshToken = null;
+
+            // 로그인 상태도 초기화
+            state.login = {
+                loading: false,
+                success: false,
+                error: null,
+            };
+        },
+        deleteAccountFailure: (state, action) => {
+            state.deleteAccount.loading = false;
+            state.deleteAccount.success = false;
+            state.deleteAccount.error = action.payload;
+        },
+        resetDeleteAccount: (state) => {
+            state.deleteAccount = {
+                loading: false,
+                success: false,
+                error: null,
+            };
+        },
 
         // =========================
         // 프로필 이미지 업로드
@@ -505,22 +649,63 @@ const userReducer = createSlice({
         // 로그아웃
         // =========================
         logoutRequest: (state) => {
-            state.loading = true;
-        },
-        logout: (state)=>{
+            // 로그아웃 자체의 loading
+            state.logout.loading = true;
+            state.logout.success = false;
+            state.logout.error = null;
+
+            // 기존 전역 loading은 사용하지 않음
+            state.loading = false;
+
+            // 로그인 상태 초기화
+            state.login = {
+                loading: false,
+                success: false,
+                error: null,
+            };
+
+            // 사용자 정보 초기화
             state.user = null;
             state.accessToken = null;
             state.refreshToken = null;
-            state.loading = false;
-            state.error = null;
-            state.success = false;
+        },
 
-            // 중복확인 상태 초기화
-            state.duplicateCheck = {
-                loginId: null,
-                email: null,
-                nickname: null,
-                mobile: null,
+        logoutSuccess: (state) => {
+            state.logout.loading = false;
+            state.logout.success = true;
+            state.logout.error = null;
+
+            // 전역 loading도 반드시 해제
+            state.loading = false;
+
+            state.user = null;
+            state.accessToken = null;
+            state.refreshToken = null;
+
+            state.login = {
+                loading: false,
+                success: false,
+                error: null,
+            };
+        },
+
+        logoutFailure: (state, action) => {
+            state.logout.loading = false;
+            state.logout.success = false;
+            state.logout.error = action.payload;
+
+            state.loading = false;
+
+            // 로그아웃 실패하더라도
+            // 프론트 로그인 상태는 초기화
+            state.user = null;
+            state.accessToken = null;
+            state.refreshToken = null;
+
+            state.login = {
+                loading: false,
+                success: false,
+                error: null,
             };
         },
     }
@@ -536,7 +721,7 @@ export const {
     checkEmailRequest,checkEmailSuccess,checkEmailFailure,
     checkNicknameRequest,checkNicknameSuccess,checkNicknameFailure,
     checkMobileRequest,checkMobileSuccess,checkMobileFailure,
-    logout, logoutRequest, resetDuplicateCheck,resetEmailVerification,
+    logoutRequest,logoutSuccess,logoutFailure, resetDuplicateCheck,resetEmailVerification,
     checkPasswordLeakRequest,checkPasswordLeakSuccess,checkPasswordLeakFailure,
     resetPasswordLeak,findMembersRequest,findMembersSuccess,findMembersFailure,
     getMyInfoRequest, getMyInfoSuccess, getMyInfoFailure,
@@ -547,7 +732,8 @@ export const {
     changePasswordFailure,resetChangePassword, updateMyInfoRequest,
     updateMyInfoSuccess,updateMyInfoFailure, resetUpdateMyInfo,
     uploadProfileImageRequest,uploadProfileImageSuccess,uploadProfileImageFailure,
-    resetProfileImage,
+    resetProfileImage, deleteAccountRequest,deleteAccountSuccess,deleteAccountFailure,resetDeleteAccount,
+    getLoginHistoryRequest,getLoginHistorySuccess,getLoginHistoryFailure,resetLoginHistory,resetSignup
 } = userReducer.actions;
 
 //4. export

@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { logoutRequest } from '../../reducers/userReducer';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  logoutRequest,
+  getMyInfoRequest,
+} from '../../reducers/userReducer';
 import {
   BellOutlined,
   MessageOutlined,
@@ -19,6 +22,9 @@ import {
   Drawer,
   message,
   Grid,
+  Dropdown,
+  List,
+  Empty,
 } from 'antd';
 
 import Link from 'next/link';
@@ -34,61 +40,116 @@ function UserHeader() {
   const router = useRouter();
   const dispatch = useDispatch();
 
+  const { user, loading } = useSelector((state) => state.user);
+
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
   // =========================================================
   // 로그인 사용자 조회
   // =========================================================
-  const loadUser = async () => {
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const accessToken = localStorage.getItem('accessToken');
+
+    console.log('===== HEADER USER CHECK =====');
+    console.log('accessToken 존재:', !!accessToken);
+
+    // 토큰이 없으면 조회하지 않음
+    if (!accessToken) {
+      return;
+    }
+
+    // Redux 사용자 정보 조회
+    dispatch(getMyInfoRequest());
+
+  }, [dispatch]);
+
+  const loadNotifications = async () => {
     try {
-      // SSR 방지
-      if (typeof window === 'undefined') {
-        return;
-      }
+      if (typeof window === 'undefined') return;
 
       const accessToken = localStorage.getItem('accessToken');
 
-      console.log('===== HEADER USER CHECK =====');
-      console.log('accessToken 존재:', !!accessToken);
-
-      // 토큰이 없으면 로그인 전
       if (!accessToken) {
-        setUser(null);
+        setNotificationCount(0);
+        setNotifications([]);
         return;
       }
 
-      // 현재 로그인 사용자 조회
-      const response = await api.get('/api/members/me');
+      // 읽지 않은 알림 개수
+      const countResponse = await api.get('/api/notifications/count');
+      setNotificationCount(countResponse.data);
 
-      console.log('===== HEADER USER =====');
-      console.log(response.data);
-
-      setUser(response.data);
+      // 읽지 않은 알림 목록
+      const listResponse = await api.get('/api/notifications/unread');
+      setNotifications(listResponse.data || []);
 
     } catch (error) {
-      console.error('회원정보 조회 실패:', error);
+      console.error('알림 조회 실패:', error);
+      setNotificationCount(0);
+      setNotifications([]);
+    }
+  };
 
-      setUser(null);
+  const handleNotificationOpen = async () => {
+    try {
+      // 전체 알림 목록 조회
+      const response = await api.get('/api/notifications');
 
-      // 401이면 토큰 삭제
-      if (error.response?.status === 401) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+      setNotifications(response.data || []);
+
+      // 읽지 않은 알림이 있으면 전체 읽음 처리
+      if (notificationCount > 0) {
+        await api.patch('/api/notifications/read-all');
+
+        // 종 옆 숫자 즉시 제거
+        setNotificationCount(0);
+
+        // 화면의 알림도 읽음 상태로 변경
+        setNotifications((prev) =>
+          prev.map((notification) => ({
+            ...notification,
+            isRead: 'Y',
+          }))
+        );
       }
+      setNotificationOpen(true);
 
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('알림 처리 실패:', error);
+    }
+  };
+
+  const handleDeleteNotification = async (notificationId) => {
+    try {
+      await api.delete(
+        `/api/notifications/${notificationId}`
+      );
+
+      setNotifications((prev) =>
+        prev.filter(
+          (notification) =>
+            notification.notificationId !== notificationId
+        )
+      );
+
+    } catch (error) {
+      console.error('알림 삭제 실패:', error);
     }
   };
 
   // =========================================================
-  // 최초 실행 + 페이지 이동할 때마다 사용자 정보 다시 조회
+  // 최초 실행 + 페이지 이동할 때마다 알림 조회
   // =========================================================
   useEffect(() => {
-    setLoading(true);
-    loadUser();
+    loadNotifications();
   }, [router.asPath]);
 
   // =========================================================
@@ -117,26 +178,71 @@ function UserHeader() {
   // 로그아웃
   // =========================================================
   const handleLogout = () => {
-    // 1. 프론트 토큰 즉시 삭제
-    if (typeof window !== 'undefined') {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+
+      if (typeof window === 'undefined') {
+          return;
+      }
+
+      console.log('===== LOGOUT PROVIDER =====');
+      console.log('현재 로그인 provider:', user?.provider);
+
+      // 모바일 Drawer 닫기
+      setDrawerOpen(false);
+
+      // 현재 로그인 사용자의 provider를 Saga로 전달
+      dispatch(
+          logoutRequest({
+              provider: user?.provider,
+          })
+      );
+
+  };
+
+  // =========================================================
+  // 프로필 이미지 URL
+  // =========================================================
+  const getProfileImageUrl = (profileUrl) => {
+
+    if (!profileUrl) {
+      return "/images/moit.png";
     }
 
-    // 2. 헤더 사용자 상태 즉시 제거
-    setUser(null);
+    if (profileUrl === "/images/moit.png") {
+      return "/images/moit.png";
+    }
 
-    // 3. 모바일 Drawer 닫기
-    setDrawerOpen(false);
+    if (profileUrl.startsWith("http")) {
+      return profileUrl;
+    }
 
-    // 4. Redux 로그아웃 요청
-    dispatch(logoutRequest());
+    const imageUrl =
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}${profileUrl}`;
 
-    // 5. 메시지
-    message.success('로그아웃되었습니다.');
+    console.log("===== HEADER PROFILE IMAGE =====");
+    console.log("profileUrl:", profileUrl);
+    console.log("API BASE URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
+    console.log("최종 이미지 URL:", imageUrl);
 
-    // 6. 로그인 페이지 이동
-    router.push('/user/member/login');
+    return imageUrl;
+  };
+
+  // =========================================================
+  // 프로필 URL
+  // =========================================================
+  const handleProfileClick = () => {
+      if (!user) {
+          router.push("/user/member/login");
+          return;
+      }
+
+      // 관리자
+      if (user.memberTypeId === 3 ||user.memberTypeId === 4) {
+          router.push("/admin/member");
+          return;
+      }
+
+      // 일반 회원
+      router.push("/user/member/mypage");
   };
 
   // =========================================================
@@ -253,12 +359,117 @@ function UserHeader() {
 
                 {/* 알림 */}
                 <Col flex="none">
-                  <Badge
-                    count={3}
-                    size="small"
+                  <Dropdown
+                    open={notificationOpen}
+                    onOpenChange={(open) => {
+                      if (open) {
+                        handleNotificationOpen();
+                      } else {
+                        setNotificationOpen(false);
+                      }
+                    }}
+                    trigger={['click']}
+                    dropdownRender={() => (
+                      <div
+                        style={{
+                          width: 360,
+                          maxHeight: 400,
+                          overflowY: 'auto',
+                          background: '#fff',
+                          padding: 16,
+                          borderRadius: 8,
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 16,
+                            fontWeight: 'bold',
+                            marginBottom: 12,
+                          }}
+                        >
+                          알림
+                        </div>
+
+                        {notifications.length === 0 ? (
+                          <Empty
+                            description="새로운 알림이 없습니다."
+                            image={Empty.PRESENTED_IMAGE_SIMPLE}
+                          />
+                        ) : (
+                          <List
+                            dataSource={notifications}
+                            renderItem={(notification) => (
+                              <List.Item
+                                actions={[
+                                  <Button
+                                    key="delete"
+                                    type="text"
+                                    danger
+                                    size="small"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteNotification(notification.notificationId);
+                                    }}
+                                  >
+                                    X
+                                  </Button>
+                                ]}
+                                style={{
+                                  cursor: 'pointer',
+                                  padding: '12px 8px',
+                                }}
+                              >
+                                <div>
+                                  <div
+                                    style={{
+                                      fontSize: 14,
+                                      fontWeight: 500,
+                                    }}
+                                  >
+                                    {notification.message}
+                                  </div>
+
+                                  <div
+                                    style={{
+                                      fontSize: 12,
+                                      color: '#999',
+                                      marginTop: 6,
+                                    }}
+                                  >
+                                    {new Date(
+                                      notification.createdAt
+                                    ).toLocaleString('ko-KR', {
+                                      year: 'numeric',
+                                      month: 'numeric',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                      second: '2-digit',
+                                      hour12: false,
+                                    })}
+                                  </div>
+                                </div>
+                              </List.Item>
+                            )}
+                          />
+                        )}
+                      </div>
+                    )}
                   >
-                    <BellOutlined className="moit-alarm-icon" />
-                  </Badge>
+                    <Badge
+                      count={notificationCount}
+                      size="small"
+                    >
+                      <BellOutlined
+                        className="moit-alarm-icon"
+                        style={{
+                          cursor: 'pointer',
+                          fontSize: 20,
+                        }}
+                      />
+                    </Badge>
+                  </Dropdown>
                 </Col>
 
 
@@ -271,7 +482,7 @@ function UserHeader() {
                     {/* 프로필 */}
                     <Col flex="none">
                       <div
-                        onClick={() => router.push('/user/member/mypage')}
+                        onClick={handleProfileClick}
                         style={{
                           cursor: 'pointer',
                         }}
@@ -285,7 +496,7 @@ function UserHeader() {
                           <Col flex="none">
                             <Avatar
                               size={38}
-                              src={user.profileUrl || undefined}
+                              src={getProfileImageUrl(user.profileUrl)}
                               icon={
                                 !user.profileUrl && (
                                   <UserOutlined />
@@ -426,13 +637,21 @@ function UserHeader() {
           {user ? (
 
             <>
-              {/* 마이페이지 */}
-              <Link href="/user/mypage">
-                <a>
+              {/* 관리자 / 일반회원 페이지 */}
+              <a onClick={() => {
+                      setDrawerOpen(false);
+
+                      if (user.memberTypeId === 3 ||user.memberTypeId === 4) {router.push("/admin/member");} 
+                      else {router.push("/user/mypage");}
+                  }}
+                  style={{ cursor: "pointer" }}
+              >
                   <UserOutlined />
-                  &nbsp;마이페이지
-                </a>
-              </Link>
+                  &nbsp;
+                  {user.memberTypeId === 3 || user.memberTypeId === 4
+                      ? "관리자 페이지"
+                      : "마이페이지"}
+              </a>
 
 
               {/* 알림 */}

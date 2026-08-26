@@ -9,6 +9,8 @@ const initialState = {
     meetupApplicants: [], // 내 모임글 신청자 목록
     categories: [], // 카테고리 목록
     sigungus: [], // 시군구 목록
+    popularMeetups: [], //인기모임
+    recommendedMeetups: [], // 추천모임
 
     // 마이페이지 통계
     myMeetupCount: {
@@ -16,6 +18,14 @@ const initialState = {
         applicationCount: 0,
         reviewCount: 0,
         favoriteCount: 0,
+    },
+
+    //관리자 통계
+    meetupCount: {
+        totalMeetupCount: 0,
+        recruitingCount: 0,
+        closedCount: 0,
+        weatherCanceledCount: 0,
     },
 
     aiRecommendation: null, // ai 모임글 추천
@@ -34,6 +44,7 @@ const initialState = {
     likeSuccess: false, // 좋아요 성공 여부
     visibilitySuccess: false, // 공개/비공개 성공 여부
     statusSuccess: false, // 신청자 신청 상태 변경 성공 여부
+    boostSuccess: false, // 모임 끌어올리기 성공 여부
 };
 
 const meetupReducer = createSlice({
@@ -121,11 +132,11 @@ const meetupReducer = createSlice({
             state.deleteSuccess = false;
         },
 
-        deleteMeetupSuccess: (state) => {
+        deleteMeetupSuccess: (state, action) => {
             state.loading = false;
-            // state.meetups = state.meetups.filter(
-            //     (meetup) => meetup.id !== action.payload,
-            // );
+            state.meetups = state.meetups.filter(
+                (meetup) => meetup.id !== action.payload,
+            );
             state.deleteSuccess = true;
         },
 
@@ -206,6 +217,23 @@ const meetupReducer = createSlice({
                 }
                 return meetup;
             });
+
+            // 인기 모임
+            state.popularMeetups = state.popularMeetups.map((meetup) => {
+                if (meetup.id === meetupId) {
+                    const hasLike = !meetup.hasLike;
+
+                    return {
+                        ...meetup,
+                        hasLike,
+                        likeCount: hasLike
+                            ? meetup.likeCount + 1
+                            : meetup.likeCount - 1,
+                    };
+                }
+
+                return meetup;
+            });
         },
 
         meetupLikeFailure: (state, action) => {
@@ -221,9 +249,22 @@ const meetupReducer = createSlice({
             state.visibilitySuccess = false;
         },
 
-        changeMeetupVisibilitySuccess: (state) => {
+        changeMeetupVisibilitySuccess: (state, action) => {
             state.loading = false;
             state.visibilitySuccess = true;
+
+            const meetupId = action.payload;
+
+            const meetup = state.meetups.find(
+                (meetup) => meetup.id === meetupId,
+            );
+
+            console.log("Reducer meetupId:", meetupId);
+            console.log("Reducer meetup:", meetup);
+
+            if (meetup) {
+                meetup.hidden = !meetup.hidden;
+            }
         },
 
         changeMeetupVisibilityFailure: (state, action) => {
@@ -348,6 +389,22 @@ const meetupReducer = createSlice({
             state.error = action.payload;
         },
 
+        // --- 관리자 통계 ---
+        fetchMeetupCountRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        fetchMeetupCountSuccess: (state, action) => {
+            state.loading = false;
+            state.meetupCount = action.payload;
+        },
+
+        fetchMeetupCountFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
         // --- AI 모임 추천 ---
         recommendMeetupRequest: (state) => {
             state.loading = true;
@@ -364,10 +421,63 @@ const meetupReducer = createSlice({
             state.error = action.payload;
         },
 
+        // 인기모임
+        fetchPopularMeetupsRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        fetchPopularMeetupsSuccess: (state, action) => {
+            state.loading = false;
+            state.popularMeetups = action.payload;
+            state.error = null;
+        },
+
+        fetchPopularMeetupsFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // 추천모임 조회
+        fetchRecommendedMeetupsRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        fetchRecommendedMeetupsSuccess: (state, action) => {
+            state.loading = false;
+            state.recommendedMeetups = action.payload;
+        },
+
+        fetchRecommendedMeetupsFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
+        // --- 모임 끌어올리기 ---
+        boostMeetupRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.boostSuccess = false;
+        },
+
+        boostMeetupSuccess: (state) => {
+            state.loading = false;
+            state.boostSuccess = true;
+        },
+
+        boostMeetupFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.boostSuccess = false;
+        },
+
         // --- 상태조기화 ---
         resetMeetupState: (state) => {
             state.loading = false;
             state.error = null;
+
+            state.meetup = null; // 이전 상세 모임 데이터 초기화
 
             state.createSuccess = null;
             state.updateSuccess = null;
@@ -376,6 +486,14 @@ const meetupReducer = createSlice({
             state.likeSuccess = false;
             state.visibilitySuccess = false;
             state.statusSuccess = false;
+        },
+
+        resetDeleteSuccess: (state) => {
+            state.deleteSuccess = false;
+        },
+
+        resetBoostSuccess: (state) => {
+            state.boostSuccess = false;
         },
     },
 });
@@ -456,13 +574,34 @@ export const {
     fetchMyMeetupCountSuccess,
     fetchMyMeetupCountFailure,
 
+    // 관리자 통계
+    fetchMeetupCountRequest,
+    fetchMeetupCountSuccess,
+    fetchMeetupCountFailure,
+
     // AI 추천
     recommendMeetupRequest,
     recommendMeetupSuccess,
     recommendMeetupFailure,
 
+    // 인기모임
+    fetchPopularMeetupsRequest,
+    fetchPopularMeetupsSuccess,
+    fetchPopularMeetupsFailure,
+
+    //추천모임
+    fetchRecommendedMeetupsRequest,
+    fetchRecommendedMeetupsSuccess,
+    fetchRecommendedMeetupsFailure,
+
+    // 모임 끌어올리기
+    boostMeetupRequest,
+    boostMeetupSuccess,
+    boostMeetupFailure,
+
     // 상태 초기화
     resetMeetupState,
+    resetDeleteSuccess,
 } = meetupReducer.actions;
 
 export default meetupReducer.reducer;

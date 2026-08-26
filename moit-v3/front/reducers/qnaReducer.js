@@ -23,8 +23,11 @@ const initialState = {
     error: null,             // 에러메시지 
     success: false,          // 성공여부 
 
-    deleteSuccess: false,    // 삭제성공여부
+    deleteSuccess: false,        // 삭제성공여부
     answerDeleteSuccess: false,  // 답변 삭제 성공
+
+    adminDeleteSuccess: false,   // 관리자 선택 삭제 성공
+    aiNormalSuccess: false,      // AI 정상 처리 성공
 };
 
 //2. 상태변화
@@ -70,7 +73,6 @@ const qnaReducer = createSlice({
         },
         qnaMeetupListSuccess: (state, action) => {
             state.loading = false;
-            state.qnaList = action.payload;
             state.meetupQnaList = action.payload;
         },
         qnaMeetupListFailure: (state, action) => {
@@ -82,6 +84,7 @@ const qnaReducer = createSlice({
         qnaDetailRequest: (state) => {
             state.loading = true;
             state.error = null;
+            state.success = false;
         },
         qnaDetailSuccess: (state, action) => {
             state.loading = false;
@@ -161,6 +164,7 @@ const qnaReducer = createSlice({
         qnaAnswerCreateSuccess: (state) => {
             state.loading = false;
             state.success = true;
+            state.answerDeleteSuccess = false;
         },
         qnaAnswerCreateFailure: (state, action) => {
             state.loading = false;
@@ -177,6 +181,7 @@ const qnaReducer = createSlice({
         qnaAnswerUpdateSuccess: (state) => {
             state.loading = false;
             state.success = true;
+            state.answerDeleteSuccess = false;
         },
         qnaAnswerUpdateFailure: (state, action) => {
             state.loading = false;
@@ -224,15 +229,18 @@ const qnaReducer = createSlice({
             state.loading = true;
             state.error = null;
             state.success = false;
+            state.adminDeleteSuccess = false;
         },
         qnaAdminDeleteSelectedSuccess: (state) => {
             state.loading = false;
             state.success = true;
+            state.adminDeleteSuccess = true;
         },
         qnaAdminDeleteSelectedFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
             state.success = false;
+            state.adminDeleteSuccess = false;
         },
 
         // --- AI 정상 처리 ---
@@ -240,15 +248,28 @@ const qnaReducer = createSlice({
             state.loading = true;
             state.error = null;
             state.success = false;
+            state.aiNormalSuccess = false;
         },
         qnaAiNormalSuccess: (state) => {
             state.loading = false;
             state.success = true;
+            state.aiNormalSuccess = true;
         },
         qnaAiNormalFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
             state.success = false;
+            state.aiNormalSuccess = false;
+        },
+
+        // --- 관리자 선택 삭제 성공 상태 초기화 ---
+        qnaAdminDeleteSelectedReset: (state) => {
+            state.adminDeleteSuccess = false;
+        },
+
+        // --- AI 정상 처리 성공 상태 초기화 ---
+        qnaAiNormalReset: (state) => {
+            state.aiNormalSuccess = false;
         },
 
         // --- 상태 초기화 ---
@@ -260,6 +281,8 @@ const qnaReducer = createSlice({
             state.success = false;
             state.deleteSuccess = false;
             state.answerDeleteSuccess = false;
+            state.adminDeleteSuccess = false;
+            state.aiNormalSuccess = false;
         },
     },
 });
@@ -283,6 +306,9 @@ export const {
     qnaSatisfactionRequest, qnaSatisfactionSuccess, qnaSatisfactionFailure,
     qnaAdminDeleteSelectedRequest, qnaAdminDeleteSelectedSuccess, qnaAdminDeleteSelectedFailure,
     qnaAiNormalRequest, qnaAiNormalSuccess, qnaAiNormalFailure,
+
+    qnaAdminDeleteSelectedReset,
+    qnaAiNormalReset,
 
     qnaReset,
 } = qnaReducer.actions;

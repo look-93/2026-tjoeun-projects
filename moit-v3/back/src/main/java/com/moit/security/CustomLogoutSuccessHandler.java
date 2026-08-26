@@ -2,6 +2,7 @@ package com.moit.security;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,12 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
 
+	@Value("${app.oauth2.kakao-client-id}")
+	private String kakaoClientId;
+
+	@Value("${app.oauth2.kakao-logout-redirect-url}")
+	private String kakaoLogoutRedirectUrl;
+	
     @Override
     public void onLogoutSuccess(HttpServletRequest request,
                                 HttpServletResponse response,
@@ -24,12 +31,12 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
 
             String provider = user.getProvider();
 
-            if ("kakao".equals(user.getProvider())) {
+            if ("kakao".equals(provider)) {
 
                 String logoutUrl =
                     "https://kauth.kakao.com/oauth/logout"
-                    + "?client_id=d1065db6fa6b99aa2d26a3d28c80143a"
-                    + "&logout_redirect_uri=http://localhost:8080/user/member/kakaologout";
+                    + "?client_id=" + kakaoClientId
+                    + "&logout_redirect_uri=" + kakaoLogoutRedirectUrl;
 
                 response.sendRedirect(logoutUrl);
                 return;

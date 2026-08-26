@@ -3,6 +3,7 @@ import { Card, Radio, Input, Button, Typography, Divider, Space, Upload, Modal }
 import { StarFilled, PlusOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
+import axios from 'axios';
 import { 
   createReviewRequest, 
   updateReviewRequest, 
@@ -66,13 +67,21 @@ function ReviewWritePage() {
       
       // 기존 이미지 매핑 (있는 경우)
       if (reviewDetail.images && Array.isArray(reviewDetail.images)) {
-        const initialFiles = reviewDetail.images.map((img, idx) => ({
-          uid: `-${idx}`,
-          name: `image-${idx}.png`,
-          status: 'done',
-          id: img.imageId || img.id,
-          url: img.imageUrl,
-        }));
+        const initialFiles = reviewDetail.images.map((img, idx) => {
+          const rawUrl = img.imageUrl || '';
+          const fullImageUrl = rawUrl.startsWith('http') 
+            ? rawUrl 
+            : `http://localhost:8080/upload/review/${rawUrl}`;
+
+          return {
+            uid: `-${idx}`,
+            name: rawUrl.substring(rawUrl.lastIndexOf('_') + 1) || `image-${idx}.png`,
+            status: 'done',
+            id: img.reviewImageId || img.imageId || img.id,
+            url: fullImageUrl,
+            thumbUrl: fullImageUrl,
+          };
+        });
         setFileList(initialFiles);
       }
     }
@@ -84,41 +93,37 @@ function ReviewWritePage() {
       alert(isEditMode ? '리뷰가 성공적으로 수정되었습니다.' : '리뷰가 성공적으로 등록되었습니다.');
       dispatch(resetReviewState());
 
-      // ★ 마이페이지 리뷰 목록 페이지로 정확히 이동
+      // 💡 마이페이지에서 진입한 경우 원하시는 단독 후기 페이지 경로로 이동
       if (fromMypage) {
-        router.push('/user/mypage/review');
-      } else if (queryMeetupId) {
-        router.push(`/user/meetup/detail?meetupId=${queryMeetupId}&tab=review`);
+        router.push('/user/mypage/review'); 
       } else {
-        router.back();
+        const targetMeetupId = queryMeetupId || (reviewDetail && reviewDetail.meetupId) || 6;
+        router.push(`/user/meetup/detail?meetupId=${targetMeetupId}&tab=review#review-section`);
       }
     }
 
-   if (error) {
-     console.log('🚨 최종 수신된 에러 값:', error);
+    
+    if (error) {
+      console.log('🚨 최종 수신된 에러 값:', error);
 
-     // 서버가 보낸 실제 응답 메시지를 안전하게 추출
-     let errorMsg = '알 수 없는 오류가 발생했습니다.';
+      let errorMsg = '알 수 없는 오류가 발생했습니다.';
 
-     if (typeof error === 'object') {
-       // axios 에러 응답 구조(error.response.data) 또는 일반 객체 대응
-       const serverData = error.response?.data || error;
-       
-       if (typeof serverData === 'string') {
-         errorMsg = serverData;
-       } else {
-         errorMsg = serverData.error || serverData.message || JSON.stringify(serverData);
-       }
-     } else {
-       errorMsg = String(error);
-     }
+      if (typeof error === 'object') {
+        const serverData = error.response?.data || error;
+        
+        if (typeof serverData === 'string') {
+          errorMsg = serverData;
+        } else {
+          errorMsg = serverData.error || serverData.message || JSON.stringify(serverData);
+        }
+      } else {
+        errorMsg = String(error);
+      }
 
-     // 💡 추출한 진짜 에러 메시지를 팝업으로 띄움
-     alert(errorMsg);
-     
-     dispatch(resetReviewState());
-   }
-  }, [success, error, dispatch, router, queryMeetupId, isEditMode, fromMypage]);
+      alert(errorMsg);
+      dispatch(resetReviewState());
+    }
+  }, [success, error, dispatch, router, queryMeetupId, isEditMode, fromMypage, reviewDetail]);
 
   const handleImageChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);
@@ -133,47 +138,71 @@ function ReviewWritePage() {
     setPreviewTitle(file.name || file.url?.substring(file.url.lastIndexOf('/') + 1));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!content.trim()) {
       alert('리뷰 내용을 입력해주세요.');
       return;
     }
 
-    // 안전하게 meetupId 추출
     const rawMeetupId = router.query.meetupId || router.query.id || router.query.meetup_id;
 
     if (!isEditMode && !rawMeetupId) {
-      console.error('현재 router 쿼리 상태:', router.query);
-      alert('모임 정보(meetupId)를 찾을 수 없습니다. 페이지를 다시 로드해 주세요.');
+      alert('모임 정보(meetupId)를 찾을 수 없습니다.');
       return;
     }
 
-    const imageIds = fileList
-      .map((file) => file.id || file.response?.id)
-      .filter((id) => id !== undefined);
+    try {
+      const newFiles = fileList.filter((file) => file.originFileObj && !file.id);
+      let uploadedImageIds = fileList
+        .filter((file) => file.id)
+        .map((file) => file.id);
 
-    const requestDto = {
-      meetupId: rawMeetupId ? Number(rawMeetupId) : undefined,
-      rating,
-      isPublic,
-      content: content.trim(),
-      imageIds,
-    };
+      if (newFiles.length > 0) {
+        const formData = new FormData();
+        newFiles.forEach((file) => {
+          formData.append('images', file.originFileObj);
+        });
 
-    // 전송 직전 데이터 확인용 로그
-    console.log('🚀 서버로 전송할 최종 requestDto:', requestDto);
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
 
-    if (isEditMode) {
-      console.log('수정 요청 실행 (reviewId):', queryReviewId, requestDto);
-      dispatch(
-        updateReviewRequest({
-          reviewId: Number(queryReviewId),
-          ...requestDto,
-        })
-      );
-    } else {
-      console.log('등록 요청 실행:', requestDto);
-      dispatch(createReviewRequest(requestDto));
+        const imageResponse = await axios.post('http://localhost:8080/api/reviews/images', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': token ? `Bearer ${token}` : '', 
+          },
+          withCredentials: true,
+        });
+
+        const newImageIds = imageResponse.data;
+        uploadedImageIds = [...uploadedImageIds, ...newImageIds];
+      }
+
+      // 💡 마이페이지 등에서 meetupId가 없을 경우, 이미 조회해 둔 reviewDetail의 meetupId를 사용하여 400 에러 방지
+      const resolvedMeetupId = rawMeetupId 
+        ? Number(rawMeetupId) 
+        : (reviewDetail && reviewDetail.meetupId ? Number(reviewDetail.meetupId) : undefined);
+
+      const requestDto = {
+        meetupId: resolvedMeetupId,
+        rating,
+        isPublic,
+        content: content.trim(),
+        imageIds: uploadedImageIds, 
+      };
+
+      if (isEditMode) {
+        dispatch(
+          updateReviewRequest({
+            reviewId: Number(queryReviewId),
+            ...requestDto,
+          })
+        );
+      } else {
+        dispatch(createReviewRequest(requestDto));
+      }
+    } catch (e) {
+      console.error('이미지 업로드 또는 리뷰 전송 실패:', e);
+      alert('이미지 업로드 중 오류가 발생했습니다.');
     }
   };
 

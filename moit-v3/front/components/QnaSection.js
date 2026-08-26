@@ -1,54 +1,61 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Card, Typography, Space, Avatar } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
-import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
-
-import { qnaMeetupListRequest } from '../reducers/qnaReducer';
 
 const { Title, Text, Paragraph } = Typography;
 
 function QnaSection({ qnaLists = [], meetupId }) {
-  const dispatch = useDispatch();
-  const router = useRouter();
+    const router = useRouter();
 
-  // Redux의 특정 모임 Q&A 목록
-  const reduxQnaLists = useSelector((state) => state.qna.qnaList || []);
+    return (
+        <div>
+            <Title level={4}>Q&A</Title>
 
-  // 특정 모임 Q&A 조회
-  useEffect(() => {
-    if(!meetupId) return;
-    dispatch(qnaMeetupListRequest(meetupId));
-  }, [dispatch, meetupId]);
+            <Space direction="vertical" style={{ width: '100%' }}>
+                {qnaLists.length === 0 ? (
+                    <Card>
+                        <Text type="secondary">
+                            아직 등록된 Q&A가 없습니다.
+                        </Text>
+                    </Card>
+                ) : (
+                    qnaLists.map((qna) => (
+                        <Card
+                            key={qna.questionId}
+                            hoverable
+                            className="qna-card"
+                            onClick={() =>
+                                router.push(
+                                    `/user/qna/questionDetail?questionId=${qna.questionId}`
+                                )
+                            }
+                        >
+                            <Space>
+                                <Avatar icon={<UserOutlined />} />
 
-  return (
-    <div>
-      <Title level={4}>Q&A</Title>
+                                <div>
+                                    <Text strong>
+                                        {qna.nickname || '익명'}
+                                    </Text>
 
-      <Space direction="vertical" style={{ width: '100%' }}>
-        {reduxQnaLists.map((qna) => (
-          <Card key={qna.questionId} hoverable className="qna-card"
-            onClick={() => router.push(`/user/qna/detail/${qna.questionId}`)}
-          >
-            <Space>
-              <Avatar icon={<UserOutlined />} />
+                                    <div>
+                                        <Text type="secondary">
+                                            {qna.title}
+                                        </Text>
+                                    </div>
+                                </div>
+                            </Space>
 
-              <div>
-                <Text strong>{qna.nickname}</Text>
-
-                <div>
-                  <Text type="secondary">{qna.title}</Text>
-                </div>
-              </div>
+                            <Paragraph style={{ marginTop: 16 }}>
+                                {qna.content}
+                            </Paragraph>
+                        </Card>
+                    ))
+                )}
             </Space>
-
-            <Paragraph style={{ marginTop: 16 }}>{qna.content}</Paragraph>
-
-          </Card>
-        ))}
-      </Space>
-    </div>
-  );
+        </div>
+    );
 }
 
 export default QnaSection;

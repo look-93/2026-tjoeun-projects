@@ -5,11 +5,15 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.moit.advertisement.dto.AdminAdvertisementStatDto;
 import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
+import com.moit.advertisement.dto.AdvertisementStatisticsDto;
+import com.moit.advertisement.dto.DashboardAiDto;
+import com.moit.advertisement.entity.AdvertisementPayment;
 
 
 public interface AdvertisementService {
@@ -35,6 +39,10 @@ public interface AdvertisementService {
 
 	List<AdvertisementDto> searchStatusTabList(AdvertisementSearchDto dto);
 	long selectStatusTabTotalCnt(AdvertisementSearchDto dto);
+	
+	AdminAdvertisementStatDto.ApprovalStat getApprovalStats();
+	AdminAdvertisementStatDto.PaymentStat getPaymentStats();
+	AdminAdvertisementStatDto.StatusStat getStatusStats();
 	
     // 관리자 결제 내역
     List<AdvertisementPaymentDto> searchPaymentHistory( AdvertisementSearchDto dto );
@@ -71,6 +79,8 @@ public interface AdvertisementService {
     
     // 상태 변경
     int updateAdvertisementStatus(AdvertisementDto.AdvertisementAdminUpdateDto dto);
+    
+    void updateAdvertisementStatus();
 
     // 우선도 설정
 	int updateAdGrade(Long adId, String adGrade);
@@ -139,7 +149,7 @@ public interface AdvertisementService {
 	double selectExtensionRate();	
 	// 위치별 ctr 차트
 	List<AdvertisementChartDto> selectPositionCtrChart();
-//	// AI 통계 요약
+	// AI 통계 요약
 //	DashboardAiDto getDashboardAiData();
 //	DashboardAiDto getLatestAiSummary(); 
 //    void saveAiSummary(String summary); 
@@ -149,7 +159,9 @@ public interface AdvertisementService {
 //    AdvertisementStatisticsDto getAdvertisementStatistics(Long adId);
 
 	// 메일 발송
-//	void sendReminderMail();
+	void sendReminderMail();
+
+	AdvertisementPaymentDto createInitialPayment(Long adId, Long memberId);
 
 	// 스케쥴러 돌리는건 일단 주석처리함
 }

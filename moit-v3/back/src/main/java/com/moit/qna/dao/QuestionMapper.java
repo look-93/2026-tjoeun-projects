@@ -58,6 +58,12 @@ public interface QuestionMapper {
 
     // 내 문의 총 개수 조회
     int findMyQuestionCnt(Map<String, Object> map);
+    
+    // 내 문의 답변 대기 전체 건수
+    int findMyPendingCnt(Long memberId);
+    
+    // 내 문의 답변 완료 전체 건수
+    int findMyAnsweredCnt(Long memberId);
 
     // 답변 삭제 시 문의 상태 변경
     void updateStatusPending(Long questionId);
@@ -106,6 +112,13 @@ public interface QuestionMapper {
     int unreadCount(Long memberId);
     void insertNotification(NotificationDto dto);
     void readNotification(
+    	    @Param("notificationId") Long notificationId,
+    	    @Param("memberId") Long memberId
+    	);
+    void readAllNotifications(
+    	    @Param("memberId") Long memberId
+    	);
+    void deleteNotification(
     	    @Param("notificationId") Long notificationId,
     	    @Param("memberId") Long memberId
     	);

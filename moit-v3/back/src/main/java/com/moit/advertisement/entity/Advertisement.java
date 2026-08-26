@@ -173,6 +173,14 @@ public class Advertisement extends BaseEntity{
     // Y = 발송 / N = 미발송
     @Column(name = "REMINDER_14D_SENT", length = 1, nullable = false)
     private String reminder14dSent;
+    
+    public void markReminder30dSent() {
+        this.reminder30dSent = "Y";
+    }
+
+    public void markReminder14dSent() {
+        this.reminder14dSent = "Y";
+    }
 
 
     // 광고 총 예산
@@ -371,6 +379,16 @@ public class Advertisement extends BaseEntity{
     
     public void delete() {
         this.setDeleteYn('Y');
+    }
+    
+    // 광고 수정 시 승인 상태를 다시 대기로 변경
+    public void resetApprovalStatusForUpdate() {
+        this.approvalStatus = ApprovalStatus.WAITING;
+        this.rejectReason = null; // 수정했으므로 기존 반려 사유 초기화
+    }
+    
+    public void updateTotalBudget(BigDecimal totalBudget) {
+        this.totalBudget = totalBudget;
     }
 
 }

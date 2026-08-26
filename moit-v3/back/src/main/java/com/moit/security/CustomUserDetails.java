@@ -25,7 +25,7 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 	private Map<String,Object> attributes = new HashMap<>(); //##
 
 	private Long statusId;
-	
+	private String deviceId;
 
 	////////////////////////////////////// 1. 일반 로그인
 	public CustomUserDetails(UserDto user, AuthUserDto authDto) {
@@ -54,6 +54,7 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
                case 1: return List.of( new SimpleGrantedAuthority("ROLE_MEMBER") );
                case 2: return List.of( new SimpleGrantedAuthority("ROLE_PARTNER") );
                case 3: return List.of( new SimpleGrantedAuthority("ROLE_ADMIN") );
+               case 4: return List.of( new SimpleGrantedAuthority("ROLE_SUPERADMIN") );
                default: return List.of( new SimpleGrantedAuthority("ROLE_MEMBER") );
            }
        }
@@ -123,6 +124,17 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 
 	    this.statusId = user.getStatusId();
 	}
+	
+	public CustomUserDetails(UserDto user, String deviceId) {
+	    this.user = user;
+
+	    this.attributes.put("loginId", user.getLoginId());
+	    this.attributes.put("provider", user.getProvider());
+
+	    this.statusId = user.getStatusId();
+	    this.deviceId = deviceId;
+	}
+	
 	
 }
 

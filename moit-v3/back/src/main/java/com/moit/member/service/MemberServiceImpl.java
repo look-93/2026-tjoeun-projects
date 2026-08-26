@@ -203,7 +203,7 @@ public class MemberServiceImpl implements MemberService{
 	@Override
 	public UserDto findByMemberId(Long memberId) {
 		
-		Member member = memberRepository.findById(memberId).orElse(null);
+		Member member = memberRepository.findByIdAndDeleteYn(memberId, 'N').orElse(null);
 		
 		if (member == null) { return null; }
 		
@@ -219,6 +219,9 @@ public class MemberServiceImpl implements MemberService{
 	    dto.setNickname(member.getNickname());
 	    dto.setMobile(member.getMobile());
 	    dto.setProfileUrl(member.getProfileUrl());
+	    
+	    dto.setProvider(member.getProvider());
+	    dto.setProviderId(member.getProviderId());
 
 	    dto.setMemberTypeId(member.getMemberType().getMemberTypeId());
 	    dto.setStatusId(member.getMemberStatus().getStatusId());
@@ -365,7 +368,7 @@ public class MemberServiceImpl implements MemberService{
 	@Override
 	public void deleteMember(Long memberId) {
 		//1. 회원조회
-		Member member = memberRepository.findById(memberId)
+		Member member = memberRepository.findByIdAndDeleteYn(memberId, 'N')
 							.orElseThrow(()->new IllegalArgumentException("존재하지 않는 회원입니다."));
 		
 		//2. delete 상태 조회

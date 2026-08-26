@@ -8,6 +8,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.moit.advertisement.dto.AdvertisementCalculationResultDto;
 import com.moit.advertisement.entity.AdvertisementPositionPrice;
 import com.moit.advertisement.entity.AdvertisementPrice;
 import com.moit.advertisement.enums.AdGrade;
@@ -28,34 +29,78 @@ public class AdvertisementCalculationServiceImpl implements AdvertisementCalcula
 
     @Override
     public BigDecimal calculateTotalAmount(
-            LocalDateTime startDatetime, 
-            LocalDateTime endDatetime, 
-            AdGrade adGrade, 
-            PaymentType paymentType, 
+            LocalDateTime startDatetime,
+            LocalDateTime endDatetime,
+            AdGrade adGrade,
+            PaymentType paymentType,
+            List<AdPosition> positions) {
+
+        return calculate(
+                startDatetime,
+                endDatetime,
+                adGrade,
+                paymentType,
+                positions
+        ).getTotalAmount();
+    }
+
+    @Override
+    public AdvertisementCalculationResultDto calculate(
+            LocalDateTime startDatetime,
+            LocalDateTime endDatetime,
+            AdGrade adGrade,
+            PaymentType paymentType,
             List<AdPosition> positions) {
 
         if (startDatetime == null || endDatetime == null) {
-            return BigDecimal.ZERO;
+            return AdvertisementCalculationResultDto.builder()
+                    .totalDays(0)
+                    .basePrice(BigDecimal.ZERO)
+                    .positionPrice(BigDecimal.ZERO)
+                    .totalAmount(BigDecimal.ZERO)
+                    .build();
         }
 
-        // 1. 기간(일수) 계산 (올림 처리)
-        long diffHours = Duration.between(startDatetime, endDatetime).toHours();
-        int totalDays = (int) Math.ceil((double) diffHours / 24.0);
+        // 기간 계산
+        long diffHours =
+                Duration.between(startDatetime, endDatetime).toHours();
+
+        int totalDays =
+                (int) Math.ceil((double) diffHours / 24.0);
 
         if (totalDays <= 0) {
-            return BigDecimal.ZERO;
+            return AdvertisementCalculationResultDto.builder()
+                    .totalDays(0)
+                    .basePrice(BigDecimal.ZERO)
+                    .positionPrice(BigDecimal.ZERO)
+                    .totalAmount(BigDecimal.ZERO)
+                    .build();
         }
 
-        // 2. 기본 광고비 계산
-        BigDecimal basePrice = calculateBasePrice(totalDays, adGrade, paymentType);
+        // 기본 광고비
+        BigDecimal basePrice =
+                calculateBasePrice(
+                        totalDays,
+                        adGrade,
+                        paymentType
+                );
 
-        // 3. 위치 추가금 합산
-        BigDecimal positionPrice = calculatePositionExtra(positions);
+        // 위치 추가금
+        BigDecimal positionPrice =
+                calculatePositionExtra(positions);
 
-        // 4. 최종 금액 반환 (기본요금 + 위치요금)
-        return basePrice.add(positionPrice);
+        // 최종 금액
+        BigDecimal totalAmount =
+                basePrice.add(positionPrice);
+
+        return AdvertisementCalculationResultDto.builder()
+                .totalDays(totalDays)
+                .basePrice(basePrice)
+                .positionPrice(positionPrice)
+                .totalAmount(totalAmount)
+                .build();
     }
-
+    
     /**
      * 기본 광고비 계산 로직 (일수가 큰 것부터 차감)
      */
@@ -102,5 +147,20 @@ public class AdvertisementCalculationServiceImpl implements AdvertisementCalcula
         }
 
         return totalExtra;
+    }
+    
+    @Override
+    public int calculateTotalDays(
+            LocalDateTime startDatetime,
+            LocalDateTime endDatetime) {
+
+        if (startDatetime == null || endDatetime == null) {
+            return 0;
+        }
+
+        long diffHours =
+                Duration.between(startDatetime, endDatetime).toHours();
+
+        return (int) Math.ceil((double) diffHours / 24.0);
     }
 }

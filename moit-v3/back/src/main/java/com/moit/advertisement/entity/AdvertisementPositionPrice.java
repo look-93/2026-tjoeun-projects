@@ -19,11 +19,11 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "ADVERTISEMENT_POSITION_PRICE")
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter @Setter
 public class AdvertisementPositionPrice {
 
     // 광고 위치 추가요금 PK

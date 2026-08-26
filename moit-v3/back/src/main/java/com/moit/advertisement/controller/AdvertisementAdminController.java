@@ -13,11 +13,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.moit.advertisement.dto.AdminAdvertisementStatDto;
 import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
-//import com.moit.advertisement.dto.DashboardAiDto;
+import com.moit.advertisement.dto.DashboardAiDto;
 import com.moit.advertisement.enums.ApprovalStatus;
 import com.moit.advertisement.service.AdvertisementService;
 
@@ -37,7 +38,7 @@ public class AdvertisementAdminController {
     private final AdvertisementService advertisementService;
     
     // JWT 적용 후 로그인 사용자 ID로 변경
-    private static final Long LOGIN_ADMIN_ID = 1L;
+    private static final Long LOGIN_ADMIN_ID = 99L;
     
     // =========================================================
     // 승인 관리 탭 API (승인 대기 + 승인 완료되었으나 결제 대기인 광고 포함)
@@ -65,7 +66,7 @@ public class AdvertisementAdminController {
     @Operation(summary = "승인 관리 탭 개수 조회")
     @GetMapping("/approval-tab/count")
     public ResponseEntity<Long> approvalTabCount(AdvertisementSearchDto dto) {
-        return ResponseEntity.ok(advertisementService.selectApprovalTabTotalCnt(dto));
+        return ResponseEntity.ok((long)advertisementService.selectApprovalTabTotalCnt(dto));
     }
     
 
@@ -83,11 +84,8 @@ public class AdvertisementAdminController {
 	     dto.setPage(dto.getPage() <= 0 ? 1 : dto.getPage());
 	     dto.setSize(dto.getSize() <= 0 ? 10 : dto.getSize());
 	
-	     List<AdvertisementPaymentDto> list =
-	             advertisementService.searchPaymentHistory(dto);
-	
-	     long totalCnt =
-	             advertisementService.selectPaymentTabTotalCnt(dto);
+	     List<AdvertisementPaymentDto> list = advertisementService.searchPaymentHistory(dto);
+	     long totalCnt = advertisementService.selectPaymentTabTotalCnt(dto);
 	
 	     return ResponseEntity.ok(
 	             new AdvertisementDto.AdvertisementPaymentPageResponseDto(
@@ -102,7 +100,7 @@ public class AdvertisementAdminController {
     @Operation(summary = "결제 확인 탭 개수 조회")
     @GetMapping("/payment-tab/count")
     public ResponseEntity<Long> paymentTabCount(AdvertisementSearchDto dto) {
-        return ResponseEntity.ok(advertisementService.selectPaymentTabTotalCnt(dto));
+        return ResponseEntity.ok((long)advertisementService.selectPaymentTabTotalCnt(dto));
     }
 
     // =========================================================
@@ -131,7 +129,7 @@ public class AdvertisementAdminController {
     @Operation(summary = "운영 관리 탭 개수 조회")
     @GetMapping("/status-tab/count")
     public ResponseEntity<Long> statusTabCount(AdvertisementSearchDto dto) {
-        return ResponseEntity.ok(advertisementService.selectStatusTabTotalCnt(dto));
+        return ResponseEntity.ok((long)advertisementService.selectStatusTabTotalCnt(dto));
     }
 
 
@@ -168,6 +166,20 @@ public class AdvertisementAdminController {
         return ResponseEntity.ok(totalCnt);
     }
 
+    @GetMapping("/stats/approval")
+    public ResponseEntity<AdminAdvertisementStatDto.ApprovalStat> getApprovalStats() {
+        return ResponseEntity.ok(advertisementService.getApprovalStats());
+    }
+
+    @GetMapping("/stats/payment")
+    public ResponseEntity<AdminAdvertisementStatDto.PaymentStat> getPaymentStats() {
+        return ResponseEntity.ok(advertisementService.getPaymentStats());
+    }
+
+    @GetMapping("/stats/status")
+    public ResponseEntity<AdminAdvertisementStatDto.StatusStat> getStatusStats() {
+        return ResponseEntity.ok(advertisementService.getStatusStats());
+    }
     
     // =========================================================
     // 광고 상세
@@ -391,10 +403,10 @@ public class AdvertisementAdminController {
     }
 
 
-//    // =========================================================
-//    // AI 통계 요약
-//    // =========================================================
-//
+    // =========================================================
+    // AI 통계 요약
+    // =========================================================
+
 //    @GetMapping("/statistics/ai-summary")
 //    public ResponseEntity<DashboardAiDto> aiSummary() {
 //

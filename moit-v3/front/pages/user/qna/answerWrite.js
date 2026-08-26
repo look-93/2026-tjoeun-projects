@@ -11,11 +11,9 @@ import {
 } from '../../../reducers/meetupReducer';
 
 import {
-  Breadcrumb,
   Button,
   Card,
   Descriptions,
-  Divider,
   Input,
   Space,
   Typography,
@@ -83,6 +81,7 @@ function answerWrite() {
   useEffect(() => {
     if (!submitted || !success) return;
 
+    alert('답변이 등록되었습니다.');
     router.push(`/user/qna/questionDetail?questionId=${questionId}`);
   }, [submitted, success, router, questionId]);
 
@@ -108,7 +107,6 @@ function answerWrite() {
     : '공개';
 
   const handleSubmit = () => {
-
     if (!questionId) return;
 
     if (!canAnswer) {

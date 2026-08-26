@@ -27,10 +27,12 @@ import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplyMemberListResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MyApplicationListResponseDto;
 import com.moit.meetup.dto.MeetupCategoryDto;
+import com.moit.meetup.dto.MeetupCountResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupListResponseDto;
 import com.moit.meetup.dto.MeetupDto.MeetupRequestDto;
 import com.moit.meetup.dto.MeetupDto.MeetupResponseDto;
 import com.moit.meetup.dto.MyMeetupCountResponseDto;
+import com.moit.meetup.dto.PopularMeetupResponseDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.meetup.enums.MeetupStatus;
@@ -77,11 +79,19 @@ public class MeetupController {
 	        Authentication authentication
 	) {
 
-	    CustomUserDetails userDetails =
-	            (CustomUserDetails) authentication.getPrincipal();
+	    Long memberId = null;
 
-	    Long memberId = userDetails.getAppUserId();
+	    // 로그인한 경우에만 memberId 가져오기
+	    if (authentication != null
+	            && authentication.isAuthenticated()
+	            && authentication.getPrincipal() instanceof CustomUserDetails) {
 
+	        CustomUserDetails userDetails =
+	                (CustomUserDetails) authentication.getPrincipal();
+
+	        memberId = userDetails.getAppUserId();
+	    }
+	    
 	    MeetupListResponseDto listResponseDto =
 	            meetupService.search(
 	                    pageable,
@@ -155,7 +165,14 @@ public class MeetupController {
 	@Operation(summary = "좋아요", description = "모임 좋아요.")
 	@PatchMapping("/{meetupId}/like")
 	public ResponseEntity<Void> meetupLike(@PathVariable("meetupId") Long meetupId, Authentication authentication){
-    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
+    	
+	    if (authentication == null || !authentication.isAuthenticated()) {
+	        return ResponseEntity
+	                .status(HttpStatus.UNAUTHORIZED)
+	                .build();
+	    }
+		
+		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
     	Long memberId = userDetails.getAppUserId();
 		//Long memberId = 1L;
 		meetupService.meetupLike(memberId, meetupId);
@@ -239,6 +256,73 @@ public class MeetupController {
 	    );
 	}
 	
+	 // 관리자 통계
+	@Operation(summary = "관리자 통계데이터", description = "관리자 모임 통계 조회합니다.")
+    @GetMapping("/count")
+    public ResponseEntity<MeetupCountResponseDto> getMeetupCount() {
+        return ResponseEntity.ok(meetupService.getMeetupCount());
+    }
+	
+    //인기모임
+	@Operation(summary = "인기모임 조회", description = "main 페이지 인기모임을 조회합니다.")
+    @GetMapping("/popular")
+    public ResponseEntity<List<PopularMeetupResponseDto>> getPopularMeetups(Authentication authentication) {
+        Long memberId = null;
+
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getPrincipal() instanceof CustomUserDetails) {
+
+            CustomUserDetails userDetails =
+                    (CustomUserDetails) authentication.getPrincipal();
+
+            memberId = userDetails.getAppUserId();
+        }
+
+        return ResponseEntity.ok(
+                meetupService.getPopularMeetups(memberId)
+        );
+    }
+    
+    // 추천 모임
+	@Operation(summary = "추천모임 조회", description = "detail 페이지 추천모임을 조회합니다.")
+    @GetMapping("/{meetupId}/recommended")
+    public ResponseEntity<List<MeetupResponseDto>> getRecommendedMeetups(
+            @PathVariable("meetupId") Long meetupId,
+            Authentication authentication
+    ) {
+
+        Long memberId = null;
+
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getPrincipal() instanceof CustomUserDetails) {
+
+            CustomUserDetails userDetails =
+                    (CustomUserDetails) authentication.getPrincipal();
+
+            memberId = userDetails.getAppUserId();
+        }
+
+        return ResponseEntity.ok(
+                meetupService.getRecommendedMeetups(memberId, meetupId)
+        );
+    }
+    
+    // 끌어올리기
+	@Operation(summary = "모임 끌어올리기", description = "7일동안 상단에 노출될 수 있도록 끌어올려 줍니다.")
+    @PostMapping("/{meetupId}/boost")
+    public ResponseEntity<Void> boostMeetup(@PathVariable("meetupId") Long meetupId, Authentication authentication){
+    	
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        Long memberId = userDetails.getAppUserId();
+        
+        meetupService.boostMeetup(memberId, meetupId);
+        
+        return ResponseEntity.ok().build();
+    }
+    
 	// ################### open api ###################
 
 	@Operation(summary = "AI 모임 제목/카테고리/내용 추천", description = "사용자가 입력한 키워드를 기반으로 AI가 모임 제목, 카테고리, 내용을 추천합니다.")

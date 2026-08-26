@@ -28,10 +28,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
+import com.moit.advertisement.dto.AdvertisementPaymentDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.PaymentConfirmRequestDto;
+import com.moit.advertisement.entity.AdvertisementPayment;
 import com.moit.advertisement.enums.AdPosition;
+import com.moit.advertisement.enums.PaymentHistoryStatus;
 import com.moit.advertisement.enums.PaymentType;
+import com.moit.advertisement.repository.AdvertisementPaymentRepository;
 import com.moit.advertisement.service.AdvertisementCalculationService;
 import com.moit.advertisement.service.AdvertisementService;
 import com.moit.advertisement.service.TossPaymentService;
@@ -53,6 +57,7 @@ public class AdvertisementController {
     private final AdvertisementService advertisementService;
     private final AdvertisementCalculationService calculationService;
     private final TossPaymentService tossPaymentService;
+    private final AdvertisementPaymentRepository advertisementPaymentRepository;
 
     private static final String UPLOAD_PATH = "C:/upload/ad/";
     
@@ -324,6 +329,29 @@ public class AdvertisementController {
         return ResponseEntity.noContent().build();
     }
     
+	 // =========================================================
+	 // 최초 결제 생성
+	 // =========================================================
+	 @Operation(
+	     summary = "광고 최초 결제 생성",
+	     description = "결제하기 요청 시 광고 결제 정보를 생성하고 Toss 결제에 사용할 주문번호를 반환합니다."
+	 )
+	 @PostMapping("/payment/initial/{adId}")
+	 public ResponseEntity<AdvertisementPaymentDto> createInitialPayment(
+	         @PathVariable("adId") Long adId,
+	         Authentication authentication) {
+	
+	     Long memberId = getLoginMemberId(authentication);
+	
+	     AdvertisementPaymentDto payment =
+	             advertisementService.createInitialPayment(
+	                     adId,
+	                     memberId
+	             );
+	
+	     return ResponseEntity.ok(payment);
+	 }
+    
     // =========================================================
     // 토스 결제 최종 승인
     // =========================================================
@@ -376,20 +404,5 @@ public class AdvertisementController {
 //
 //
 //        return "redirect:" + dto.getLandingUrl();
-//    }
-    
-//    // 광고 기간 연장 요청
-//    @PostMapping("/extensionRequest")
-//    public ResponseEntity<?> extensionRequest(
-//            @RequestBody AdvertisementExtensionRequestDto dto) {
-//
-//        Long memberId = LOGIN_MEMBER_ID;
-//
-//        advertisementService.requestExtension(
-//                dto,
-//                memberId
-//        );
-//
-//        return ResponseEntity.ok().build();
 //    }
 }

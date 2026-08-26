@@ -2,9 +2,12 @@ package com.moit.security;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+
+import com.moit.member.service.LoginHistoryService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,7 +20,14 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler{
 	
 	private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
+    private final LoginHistoryService loginHistoryService;
 	
+    @Value("${app.oauth2.redirect-url}")
+    private String frontendRedirectUrl;
+    
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
+    
 	@Override
     public void onAuthenticationSuccess(
             HttpServletRequest request,
@@ -25,12 +35,14 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler{
             Authentication authentication)
             throws IOException {
 		
-		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();		
+		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();	
+		
+		HttpSession session = request.getSession();
+		
+		String deviceId = (String) session.getAttribute("deviceId");
 		
 		// 신규 소셜 회원
         if (user.getAppUserId() == 0L) {
-        	
-        	HttpSession session = request.getSession();
 
             // 소셜 회원정보 세션 저장
             session.setAttribute("socialUser", user.getUser());
@@ -42,25 +54,38 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler{
             System.out.println("providerId : " + user.getProviderId());
             System.out.println("socialUser 세션 저장 완료");
         	
-            response.sendRedirect( "http://localhost:3000/user/member/social-info" );
+            response.sendRedirect( frontendUrl + "/user/member/social-info" );
             return;
         }
         
+        // 기존 소셜 회원
         Long memberId = user.getAppUserId();
         String loginId = user.getUsername();
-
+        
+        // 로그인 정보
+        String ipAddress = request.getRemoteAddr();
+        String userAgent = request.getHeader("User-Agent");
+        
+        // 로그인 기록 저장
+        loginHistoryService.saveLoginHistory(
+                memberId,
+                ipAddress,
+                userAgent,
+                "SOCIAL"
+        );
+              
         // Access Token
-        String accessToken =jwtTokenProvider.createAccessToken( memberId, loginId );
+        String accessToken =jwtTokenProvider.createAccessToken( memberId, loginId ,deviceId);
 
         // Refresh Token
         String refreshToken = jwtTokenProvider.createRefreshToken( memberId );
 
         // Redis 저장
-        refreshTokenService.saveRefreshToken( memberId, refreshToken, jwtTokenProvider.getRefreshTokenExpiration() );
+        refreshTokenService.saveRefreshToken( memberId, deviceId, refreshToken, jwtTokenProvider.getRefreshTokenExpiration() );
 
         // 프론트로 전달
         response.sendRedirect(
-                "http://localhost:3000/oauth2/callback"
+                frontendRedirectUrl
                         + "?accessToken=" + accessToken
                         + "&refreshToken=" + refreshToken
         );
