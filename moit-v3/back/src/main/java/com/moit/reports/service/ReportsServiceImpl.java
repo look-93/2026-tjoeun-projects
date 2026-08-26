@@ -18,7 +18,6 @@ import com.moit.member.entity.MemberInfo;
 import com.moit.member.repository.MemberInfoRepository;
 import com.moit.member.repository.MemberRepository;
 import com.moit.reports.api.ApiEmail;
-import com.moit.reports.dto.MemberTrustInfoDto;
 import com.moit.reports.dto.ReportAuditLogDto;
 import com.moit.reports.dto.ReportSearchDto;
 import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
@@ -286,10 +285,10 @@ public class ReportsServiceImpl implements ReportsService {
 		}
 		
 		// 메일 전송 test
-	    if (email != null && !email.isBlank()) {
-	    	apiEmail.sendMail(subject, content, email);
-	    }
-	    else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
+//	    if (email != null && !email.isBlank()) {
+//	    	apiEmail.sendMail(subject, content, email);
+//	    }
+//	    else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
 		
 		ReportResponseDto responseDto = ReportResponseDto.from(report);
 		setTargetMemberInfo(report, responseDto);
@@ -415,32 +414,6 @@ public class ReportsServiceImpl implements ReportsService {
 		return logs;
 	}
 
-	// 신고당한 회원 (신뢰도점수/뱃지) 조회
-	@Override
-	public MemberTrustInfoDto getMemberTrustInfo(Long targetMemberId) {
-		Member member = memberRepository
-				.findById(targetMemberId)
-				.orElseThrow(()-> new IllegalArgumentException("회원 member 조회 오류! targetMemberId: " + targetMemberId));
-		
-		MemberInfo memberInfo = memberInfoRepository
-				.findById(targetMemberId)
-				.orElseThrow(()-> new IllegalArgumentException("신고 대상 회원 MemberInfo 조회 오류! targetMemberId: " + targetMemberId));
-		
-		MemberTrustInfoDto memberInfoDto = new MemberTrustInfoDto();
-		memberInfoDto.setTargetMemberId(targetMemberId);			// 신고당한 회원 아이디
-		memberInfoDto.setTargetNickname(member.getNickname());		// 신고당한 회원 닉네임
-		
-		memberInfoDto.setTrustScore(memberInfo.getTrustScore());	// 신뢰도 점수
-		
-		if (memberInfo.getMemberReportStatus() != null) {					// 뱃지 정보
-			MemberReportStatus reportStatus = memberInfo.getMemberReportStatus();
-			memberInfoDto.setReportStatusId( reportStatus.getReportStatusId() );
-			memberInfoDto.setStatusCode( reportStatus.getStatusCode());
-			memberInfoDto.setStatusName( reportStatus.getStatusName());
-		}
-		
-		return memberInfoDto;
-	}
 
 	// 신고 처리 3일 후 만족도 조사 이메일 발송 (8월 24일 기준 - 8월 21일 00:00 ~ 23:59:59)
 	@Override

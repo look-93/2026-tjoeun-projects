@@ -10,7 +10,6 @@ import { useRouter } from 'next/router';
 import {
     fetchAdminReportsDetailRequest,
     updateAdminReportRequest,
-    fetchMemberReportTrustInfoRequest,
     deleteAdminReportRequest,
     fetchAdminReportAuditLogsRequest,
     aiReportAnalysisRequest,
@@ -40,7 +39,6 @@ function ReportDetailPage() {
         currentReport,
         adminFetchDetail,
         adminUpdate,
-        trustInfoFetch,     // 신뢰도 점수 조회
         adminDelete,
         
         auditLogs,
@@ -72,21 +70,9 @@ function ReportDetailPage() {
         if (adminUpdate.success) {
             message.success('신고 처리가 완료되었습니다.');
 
-            // 신고 상세 재조회
-            dispatch(
-                fetchAdminReportsDetailRequest({
-                    reportId: router.query.reportId,
-                })
-            );
-
-            // 신고당한 사람의 신뢰도점수 재조회
-            if (currentReport?.memberId) {
-                dispatch(
-                    fetchMemberReportTrustInfoRequest({
-                        targetMemberId: currentReport.memberId,
-                    })
-                );
-            }
+            // ServiceImpl updateAdminReport
+            // 반환형 return responseDto (ReportResponseDto)
+            // 승인 처리 / 신뢰도 변경 포함
 
             // 관리자 처리 감사 로그 재조회
             dispatch(
@@ -95,7 +81,7 @@ function ReportDetailPage() {
                 })
             );
         }
-    }, [adminUpdate.success]);
+    }, [adminUpdate.success, dispatch, reportId]);
     
     // --- 신고 삭제 성공 ---
     useEffect(() => {
@@ -270,7 +256,7 @@ function ReportDetailPage() {
                         ({currentReport.memberId ?? '-'}번)
                         {' => '}
                         {currentReport?.trustScore}점{' '}
-                        <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
+                        <ReportStatusCodeTag statusCode={currentReport.statusCode} />
                     </Descriptions.Item>
 
                     <Descriptions.Item label="신고 대상 회원 (targetMemberId)">

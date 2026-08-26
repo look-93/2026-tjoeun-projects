@@ -46,6 +46,7 @@ public class ApiEmail {
 		});
 		
 		// 4. 메일보내기 (Mime 텍스트 text/plain , html text/html , 이미지 image/png) 멀티미디어메시지
+		// MimeMessage -	실제로 SMTP 서버에 보낼 이메일 메시지 객체
 		MimeMessage message = new MimeMessage(session);
 
 		try {

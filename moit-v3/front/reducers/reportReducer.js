@@ -9,7 +9,6 @@ const initialState= {
     checkDoubleReport: null,    // 모임,리뷰 중복신고 더블체크
 
     auditLogs: [],               // 관리자 처리 로그
-    trustInfo: null,             // 신고 대상 회원 신뢰도
     aiReportDetail: null,        // AI 신고 상세 내용
 
     totalCount: 0,
@@ -116,16 +115,6 @@ const initialState= {
     auditLogFetch: {
         loading: false,
         error: null,
-    },
-    
-    
-    // =====================================================
-    // 회원 신뢰도 조회
-    // =====================================================
-    trustInfoFetch: {
-        loading: false,
-        error: null,
-        data: null,
     },
 
 
@@ -296,11 +285,6 @@ const reportReducer = createSlice({
             state.adminUpdate.success = true;
             state.currentReport = action.payload;
 
-            state.currentReport = {
-                ...state.currentReport,
-                ...action.payload,
-            };
-
             state.reports = state.reports.map((report) =>
                 report.reportId === action.payload.reportId
                     ? { ...report, ...action.payload, }
@@ -377,20 +361,6 @@ const reportReducer = createSlice({
             state.auditLogFetch.error = action.payload;
         },
 
-        // --- 신고당한 회원 (신뢰도점수/뱃지) 조회 -
-        fetchMemberReportTrustInfoRequest: (state) => {
-            state.trustInfoFetch.loading = true;
-            state.trustInfoFetch.error = null;
-        },
-        fetchMemberReportTrustInfoSuccess: (state, action) => {
-            state.trustInfoFetch.loading = false;
-            state.trustInfoFetch.data = action.payload;
-        },
-        fetchMemberReportTrustInfoFailure: (state, action) => {
-            state.trustInfoFetch.loading = false;
-            state.trustInfoFetch.error = action.payload;
-        },
-        
         // openAi 기능
         createAIReportDetailRequest: (state) => {
             state.aiCreate.loading = true;
@@ -442,7 +412,6 @@ export const {
     fetchAdminReportsDetailRequest, fetchAdminReportsDetailSuccess, fetchAdminReportsDetailFailure,
     
     fetchAdminReportAuditLogsRequest, fetchAdminReportAuditLogsSuccess, fetchAdminReportAuditLogsFailure,
-    fetchMemberReportTrustInfoRequest, fetchMemberReportTrustInfoSuccess, fetchMemberReportTrustInfoFailure,
     
     createAIReportDetailRequest, createAIReportDetailSuccess, createAIReportDetailFailure,
     aiReportAnalysisRequest, aiReportAnalysisSuccess, aiReportAnalysisFailure,

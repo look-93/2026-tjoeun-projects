@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 
-import com.moit.reports.dto.MemberTrustInfoDto;
 import com.moit.reports.dto.ReportAuditLogDto;
 import com.moit.reports.dto.ReportSearchDto;
 import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
@@ -63,13 +62,6 @@ public interface ReportsService {
 	// =====================
 	// 신고별 관리자 처리 이력 로그 조회
 	List<ReportAuditLogDto> getReportAuditLogs(Long reportId);
-	
-	
-	// ==================
-	// =   trustScore   =
-	// ==================
-	// 신고당한 회원 (신뢰도점수/뱃지) 조회
-	MemberTrustInfoDto getMemberTrustInfo(Long targetMemberId);
 
 	
 	// ================

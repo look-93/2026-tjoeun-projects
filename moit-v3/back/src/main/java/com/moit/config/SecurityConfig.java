@@ -162,7 +162,6 @@ public class SecurityConfig {
             // -------------------------------------------------
             // 관리자
             // -------------------------------------------------
-            // 추후 활성화
              .requestMatchers("/api/admin/**", "/api/reports/admin/**")
              .hasAnyRole("ADMIN", "SUPERADMIN")
 
