@@ -123,8 +123,6 @@ function ReportEditPage() {
     dispatch(
       updateReportRequest({
         reportId: Number(reportId),
-        memberId: 2, // 로그인 임시 하드코딩
-
         dto: {
           targetType: currentReport.targetType,
           targetId: currentReport.targetId,
