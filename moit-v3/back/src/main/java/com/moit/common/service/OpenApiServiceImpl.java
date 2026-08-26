@@ -19,9 +19,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.moit.common.dto.AddressSearchResponse;
+import com.moit.common.dto.SolapiSmsDto.SolapiSmsRequestDto;
+import com.moit.common.dto.SolapiSmsDto.SolapiSmsResponseDto;
 import com.moit.common.dto.WeatherInfoRequest;
 import com.moit.common.dto.WeatherInfoResponse;
 import com.moit.util.GridUtil;
+import com.solapi.sdk.SolapiClient;
+import com.solapi.sdk.message.exception.SolapiEmptyResponseException;
+import com.solapi.sdk.message.exception.SolapiMessageNotReceivedException;
+import com.solapi.sdk.message.exception.SolapiUnknownException;
+import com.solapi.sdk.message.model.Message;
+import com.solapi.sdk.message.service.DefaultMessageService;
 
 @Service
 public class OpenApiServiceImpl implements OpenApiService {
@@ -30,6 +38,13 @@ public class OpenApiServiceImpl implements OpenApiService {
     private String kmaApiKey;
     @Value("${vworld.api.key}")
     private String apiKey;
+    
+    @Value("${solapi.api.key}")
+    private String solapiApiKey;
+    @Value("${solapi.api.secret}")
+    private String solapiApiSecret;
+    @Value("${solapi.from}")
+    private String sender;
 
     private final RestClient vworldRestClient;
     private final RestClient weatherRestClient;
@@ -37,7 +52,8 @@ public class OpenApiServiceImpl implements OpenApiService {
 
     public OpenApiServiceImpl(
             @Qualifier("vworldRestClient") RestClient vworldRestClient,
-            @Qualifier("weatherRestClient") RestClient weatherRestClient) {
+            @Qualifier("weatherRestClient") RestClient weatherRestClient
+    		) {
         this.vworldRestClient = vworldRestClient;
         this.weatherRestClient = weatherRestClient;
     }
@@ -265,5 +281,32 @@ public class OpenApiServiceImpl implements OpenApiService {
 
     }
 
+	@Override
+	public SolapiSmsResponseDto sendSms(SolapiSmsRequestDto request) {
+		DefaultMessageService  messageService = 
+				SolapiClient.INSTANCE.createInstance(solapiApiKey, solapiApiSecret);
+		
+		Message message = new Message();
+		
+		message.setFrom(sender);
+		message.setTo(request.getPhoneNumber());
+		message.setText(request.getMessage());
+		
+		try {
+		    messageService.send(message, null);
+
+		    return new SolapiSmsResponseDto("SMS 발송 성공");
+
+		} catch (
+		    SolapiMessageNotReceivedException |
+		    SolapiEmptyResponseException |
+		    SolapiUnknownException e
+		) {
+		    e.printStackTrace();
+
+		    return new SolapiSmsResponseDto("SMS 발송 실패" + e);
+		}	
+	}
+	
 	
 }

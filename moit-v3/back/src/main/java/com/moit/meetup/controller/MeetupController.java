@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.common.dto.SigunguDto;
+import com.moit.common.dto.SolapiSmsDto.SolapiSmsRequestDto;
+import com.moit.common.dto.SolapiSmsDto.SolapiSmsResponseDto;
+import com.moit.common.service.OpenApiService;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicationRequestDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplyMemberListResponseDto;
 import com.moit.meetup.dto.MeetupApplicationDto.MyApplicationListResponseDto;
@@ -53,6 +56,7 @@ import lombok.RequiredArgsConstructor;
 public class MeetupController {
 
 	private final MeetupService meetupService;
+	private final OpenApiService openApiService;
 	
 	@Operation(summary = "모임리스트조회", description = "모임리스트를 조회합니다.")
 	@GetMapping
@@ -329,6 +333,16 @@ public class MeetupController {
 	@PostMapping("/write/ai/recommended")
 	public ResponseEntity<RecommendMeetupResponseDto> meetupWriteAiRecommended(@RequestBody RecommendMeetupRequestDto request){
 		return ResponseEntity.ok(meetupService.meetupWriteAiRecommended(request));
+	}
+		
+	@Operation(summary = "날씨 알림 문자 발송", description = "날씨 알림 문자 발송 테스트용")
+	@PostMapping("/notification")
+	public ResponseEntity<SolapiSmsResponseDto> sendSms(@RequestBody SolapiSmsRequestDto request){
+		
+	    SolapiSmsResponseDto response =
+	            openApiService.sendSms(request);
+
+	    return ResponseEntity.ok(response);
 	}
 }
 
