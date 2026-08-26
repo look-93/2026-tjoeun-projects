@@ -100,10 +100,10 @@ public interface AdvertisementService {
     int deleteAdvertisementImage(Long adId);
 
     // 노출 수 증가
-    int updateImpressions(Long adId);
+    void updateImpressions(Long adId);
 
     // 클릭 수 증가
-    int updateAdvertisementClick(Long adId);
+    void updateAdvertisementClick(Long adId);
 
     // 광고 조회
     AdvertisementDto selectTopAdvertisement(String position);
@@ -123,7 +123,8 @@ public interface AdvertisementService {
             String position,
             Long memberId,
             String ip,
-            String userAgent);
+            String userAgent,
+            String referrer);
 	
 	// 노출 로그
     boolean insertImpressionLog(
@@ -132,6 +133,15 @@ public interface AdvertisementService {
             Long memberId,
             String ip,
             String userAgent);
+    
+    // 포인트 적립
+    boolean processAdvertisementClick(
+            Long adId,
+            String position,
+            Long memberId,
+            String ip,
+            String userAgent
+    );
 
 	// 일일통계
 //	void insertDailyStatistics();

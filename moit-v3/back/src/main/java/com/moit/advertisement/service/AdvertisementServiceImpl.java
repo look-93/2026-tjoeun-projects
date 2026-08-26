@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -40,7 +39,12 @@ import com.moit.advertisement.repository.AdvertisementImpressionLogRepository;
 import com.moit.advertisement.repository.AdvertisementPaymentRepository;
 import com.moit.advertisement.repository.AdvertisementRepository;
 import com.moit.member.entity.Member;
+import com.moit.member.entity.MemberInfo;
+import com.moit.member.entity.PointHistory;
+import com.moit.member.enums.PointTypeEnum;
+import com.moit.member.repository.MemberInfoRepository;
 import com.moit.member.repository.MemberRepository;
+import com.moit.member.repository.PointHistoryRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -51,12 +55,16 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
     private final AdvertisementRepository advertisementRepository;
     private final AdvertisementImageRepository advertisementImageRepository;
-    private final MemberRepository memberRepository;
+    
     private final AdvertisementCalculationService calculationService;
     
     private final AdvertisementClickLogRepository clickLogRepository;
     private final AdvertisementImpressionLogRepository impressionLogRepository;
     private final AdvertisementPaymentRepository advertisementPaymentRepository;
+        
+    private final MemberRepository memberRepository;
+    private final MemberInfoRepository memberInfoRepository;
+    private final PointHistoryRepository pointHistoryRepository;
 
     private final MailService mailService;
 //    private final AiSummaryService aiSummaryService;
@@ -1077,41 +1085,37 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
     @Override
     @Transactional
-    public int updateImpressions(
-            Long adId) {
+    public void updateImpressions(Long adId) {
 
-        int result =
-                advertisementRepository
-                        .increaseImpressions(adId);
+        Advertisement advertisement =
+                advertisementRepository.findById(adId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
 
-        if (result == 0) {
+        advertisement.increaseImpressions();
 
-            throw new IllegalArgumentException(
-                    "광고를 찾을 수 없습니다."
-            );
-        }
-
-        return result;
+        advertisement.getImpressions();
     }
 
 
     @Override
     @Transactional
-    public int updateAdvertisementClick(
-            Long adId) {
+    public void updateAdvertisementClick(Long adId) {
 
-        int result =
-                advertisementRepository
-                        .increaseClicks(adId);
+        Advertisement advertisement =
+                advertisementRepository.findById(adId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
 
-        if (result == 0) {
+        advertisement.increaseClicks();
 
-            throw new IllegalArgumentException(
-                    "광고를 찾을 수 없습니다."
-            );
-        }
-
-        return result;
+        advertisement.getClicks();
     }
     
     // 클릭 & 노툴 로그
@@ -1126,8 +1130,10 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             String position,
             Long memberId,
             String ip,
-            String userAgent) {
+            String userAgent,
+            String referrer) {
 
+    	// 광고 조회
         Advertisement advertisement =
                 advertisementRepository.findById(adId)
                         .orElseThrow(() ->
@@ -1135,30 +1141,49 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                                         "광고를 찾을 수 없습니다."
                                 )
                         );
-
+        // 위치 변환
         AdPosition adPosition = AdPosition.valueOf(position);
 
         // 최근 1시간 내 동일 광고 + IP + 위치 클릭 여부 확인
-        LocalDateTime oneHourAgo =
-                LocalDateTime.now().minusHours(1);
+        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
 
-        boolean alreadyClicked =
-                clickLogRepository
-                        .existsByAdvertisement_AdIdAndIpAddressAndPositionAndClickedAtAfter(
-                                adId,
-                                ip,
-                                adPosition,
-                                oneHourAgo
-                        );
+        boolean alreadyClicked;
+
+
+        if (memberId != null) {
+
+            // 로그인 사용자
+        	// 광고 + 회원 + 위치 기준
+            alreadyClicked =
+                    clickLogRepository
+                            .existsByAdvertisement_AdIdAndMember_IdAndPositionAndClickedAtAfter(
+                                    adId,
+                                    memberId,
+                                    adPosition,
+                                    oneHourAgo
+                            );
+
+        } else {
+
+            // 비로그인 사용자
+        	// 광고 + IP + 위치 기준
+            alreadyClicked =
+                    clickLogRepository
+                            .existsByAdvertisement_AdIdAndIpAddressAndPositionAndClickedAtAfter(
+                                    adId,
+                                    ip,
+                                    adPosition,
+                                    oneHourAgo
+                            );
+        }
 
         // 1시간 이내 이미 클릭한 경우
-        // 로그 저장 X
-        // 포인트 적립 X
-        // 클릭 수 증가 X
+        // 로그 저장 X , 포인트 적립 X , 클릭 수 증가 X
         if (alreadyClicked) {
             return false;
         }
 
+        // 회원 정보 조회
         Member member = null;
 
         if (memberId != null) {
@@ -1166,6 +1191,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                     .orElse(null);
         }
 
+        // 클릭 로그 저장
         AdvertisementClickLog clickLog =
                 AdvertisementClickLog.builder()
                         .advertisement(advertisement)
@@ -1176,7 +1202,45 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                         .build();
 
         clickLogRepository.save(clickLog);
+        
+        //로그인 사용자라면 포인트 적립
+        if (member != null) {
 
+            final int POINT = 10;
+
+            MemberInfo memberInfo =
+                    memberInfoRepository.findById(memberId)
+                            .orElseThrow(() ->
+                                    new IllegalArgumentException(
+                                            "회원 정보를 찾을 수 없습니다."
+                                    )
+                            );
+
+            // 포인트 증가
+            int currentPoint =
+                    memberInfo.getPoint() == null
+                            ? 0
+                            : memberInfo.getPoint();
+
+            memberInfo.setPoint(currentPoint + POINT);
+
+            // =====================================================
+            // 8. 포인트 적립 이력 저장
+            // =====================================================
+
+            PointHistory history =
+                    new PointHistory();
+
+            history.setMember(member);
+            history.setPointPm(POINT);
+            history.setPointType(PointTypeEnum.SAVE.name());
+            history.setPointReason("광고 클릭 적립");
+            
+            pointHistoryRepository.save(history);
+        }
+
+        // 최초 클릭으로 인정 ->  Controller에서 광고 clicks +1
+        
         return true;
     }
     
@@ -1198,6 +1262,78 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         }
 
         return "PC";
+    }
+    
+    
+    @Override
+    @Transactional
+    public boolean processAdvertisementClick(
+            Long adId,
+            String position,
+            Long memberId,
+            String ip,
+            String userAgent) {
+
+        Advertisement advertisement =
+                advertisementRepository.findById(adId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
+
+        AdPosition adPosition = AdPosition.valueOf(position);
+
+        LocalDateTime oneHourAgo =
+                LocalDateTime.now().minusHours(1);
+
+        boolean alreadyClicked =
+                clickLogRepository
+                        .existsByAdvertisement_AdIdAndIpAddressAndPositionAndClickedAtAfter(
+                                adId,
+                                ip,
+                                adPosition,
+                                oneHourAgo
+                        );
+
+        // 중복 클릭
+        if (alreadyClicked) {
+            return false;
+        }
+
+        Member member = null;
+
+        if (memberId != null) {
+            member = memberRepository.findById(memberId)
+                    .orElse(null);
+        }
+
+        // 1. 클릭 로그 저장
+        AdvertisementClickLog clickLog =
+                AdvertisementClickLog.builder()
+                        .advertisement(advertisement)
+                        .member(member)
+                        .deviceType(getDeviceType(userAgent))
+                        .ipAddress(ip)
+                        .position(adPosition)
+                        .build();
+
+        clickLogRepository.save(clickLog);
+
+        // 2. 광고 클릭 수 증가
+        updateAdvertisementClick(adId);
+
+        // 3. 로그인 사용자라면 포인트 적립
+        if (member != null) {
+
+            // 포인트 적립
+            // pointService.addPoint(...)
+
+            // 포인트 적립 이력
+            // pointHistoryRepository.save(...)
+        }
+
+        return true;
     }
 	 
 	// =========================================================

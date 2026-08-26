@@ -375,8 +375,8 @@ public class AdvertisementController {
     // 광고 클릭
     @PostMapping("/click")
     public ResponseEntity<Void> increaseClick(
-            @RequestParam Long adId,
-            @RequestParam String position,
+            @RequestParam("adId") Long adId,
+            @RequestParam(name = "position") String position,
             Authentication authentication,
             HttpServletRequest request) {
 
@@ -384,10 +384,10 @@ public class AdvertisementController {
 
         if (authentication != null
                 && authentication.isAuthenticated()
-                && authentication.getPrincipal() instanceof CustomUserDetails) {
+                && authentication.getPrincipal()
+                        instanceof CustomUserDetails) {
 
-            CustomUserDetails user =
-                    (CustomUserDetails) authentication.getPrincipal();
+            CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 
             memberId = user.getUser().getMemberId();
         }
@@ -395,26 +395,21 @@ public class AdvertisementController {
         String ip = request.getRemoteAddr();
         String userAgent = request.getHeader("User-Agent");
 
-        boolean counted =
-                advertisementService.insertClickLog(
-                        adId,
-                        position,
-                        memberId,
-                        ip,
-                        userAgent
-                );
-
-        if (counted) {
-            advertisementService.updateAdvertisementClick(adId);
-        }
+        advertisementService.processAdvertisementClick(
+                adId,
+                position,
+                memberId,
+                ip,
+                userAgent
+        );
 
         return ResponseEntity.ok().build();
     }
     
     @PostMapping("/impression")
     public ResponseEntity<Void> increaseImpression(
-            @RequestParam Long adId,
-            @RequestParam String position,
+    		@RequestParam(name = "adId") Long adId,
+            @RequestParam(name = "position") String position,
             Authentication authentication,
             HttpServletRequest request) {
 
@@ -451,7 +446,7 @@ public class AdvertisementController {
     
     @GetMapping("/top")
     public ResponseEntity<AdvertisementDto> getTopAdvertisement(
-            @RequestParam String position) {
+    		@RequestParam(name = "position") String position) {
 
         AdvertisementDto advertisement =
                 advertisementService.selectTopAdvertisement(position);

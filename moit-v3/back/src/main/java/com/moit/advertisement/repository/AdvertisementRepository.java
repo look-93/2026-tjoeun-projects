@@ -22,17 +22,20 @@ public interface AdvertisementRepository
         extends JpaRepository<Advertisement, Long> {
 	
 	@Query("""
-	    select distinct a
+	    select a
 	    from Advertisement a
-	    join AdvertisementImage ai
-	        on ai.advertisement = a
 	    where a.deleteYn = 'N'
 	      and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED
 	      and a.paymentStatus = com.moit.advertisement.enums.PaymentStatus.PAID
 	      and a.status = com.moit.advertisement.enums.AdStatus.OPEN
 	      and a.startDatetime <= CURRENT_TIMESTAMP
 	      and a.endDatetime >= CURRENT_TIMESTAMP
-	      and ai.imageType = :position
+	      and exists (
+	          select 1
+	          from AdvertisementImage ai
+	          where ai.advertisement = a
+	            and ai.imageType = :position
+	      )
 	    order by a.priorityScore desc, a.adId desc
 	""")
 	List<Advertisement> findAvailableAdvertisements(
