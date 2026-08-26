@@ -27,7 +27,12 @@ function AdvertiseListPage() {
   const [advertiseList, setAdvertiseList] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // 입력창에 현재 입력된 검색어
+  const [searchInput, setSearchInput] = useState('');
+
+  // 실제 API 검색에 사용되는 검색어
   const [searchText, setSearchText] = useState('');
+
   const [sort, setSort] = useState('');
 
   const [page, setPage] = useState(1);
@@ -81,7 +86,7 @@ function AdvertiseListPage() {
   // 검색
   const handleSearch = () => {
     setPage(1);
-    loadAdvertiseList();
+    setSearchText(searchInput);
   };
 
   // 정렬
@@ -113,7 +118,11 @@ function AdvertiseListPage() {
 
       message.success('광고가 삭제되었습니다.');
 
-      await loadAdvertiseList();
+      if (advertiseList.length === 1 && page > 1) {
+        setPage(page - 1);
+      } else {
+        loadAdvertiseList();
+      }
 
     } catch (error) {
       console.error('광고 삭제 실패', error);
@@ -365,14 +374,10 @@ function AdvertiseListPage() {
         <Space>
           <Input
             placeholder="광고명을 입력하세요."
-            value={searchText}
-            onChange={(e) =>
-              setSearchText(e.target.value)
-            }
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value) }
             onPressEnter={handleSearch}
-            style={{
-              width: 300,
-            }}
+            style={{ width: 300 }}
           />
 
           <Select
