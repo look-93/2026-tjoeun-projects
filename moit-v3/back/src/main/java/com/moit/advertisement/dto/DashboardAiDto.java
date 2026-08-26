@@ -34,7 +34,7 @@ public class DashboardAiDto {
 	 // AI가 생성한 요약
     private String summary;
     // 생성 시각
-    private LocalDateTime createdAt;
+    private String createdAt;
     // 요약 id
     private Integer summaryId;
 }

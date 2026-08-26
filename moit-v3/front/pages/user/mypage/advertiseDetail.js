@@ -266,7 +266,7 @@ function AdvertiseDetailPage() {
 
       {/* 반려 사유 */}
       {advertise.rejectReason && (
-        <Card title="반려 정보" style={{ marginBottom: 20, borderColor: '#ffa39e' }}>
+        <Card title="반려 정보 (수정해서 다시 제출해주세요.)" style={{ marginBottom: 20, borderColor: '#ffa39e' }}>
           <Descriptions bordered column={1}>
             <Descriptions.Item label="반려 사유" labelStyle={{ color: '#cf1322' }}>
               <span style={{ color: '#cf1322', fontWeight: 'bold' }}>{advertise.rejectReason}</span>

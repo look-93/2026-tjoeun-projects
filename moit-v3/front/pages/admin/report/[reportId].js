@@ -2,7 +2,8 @@
 // 관리자 신고 상세 페이지
 // 신고 상세 조회 + 승인/반려 + 삭제
 
-import { memo, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+// Redux에 액션 전송, Redux에 저장된 값을 꺼내오기
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 
@@ -12,10 +13,12 @@ import {
     fetchMemberReportTrustInfoRequest,
     deleteAdminReportRequest,
     fetchAdminReportAuditLogsRequest,
+    aiReportAnalysisRequest,
 } from '../../../reducers/reportReducer';
+
 import {
-    Card, Radio, Input, Button, Typography, Space, Divider, message,
-    Descriptions, Tag, Modal, Spin
+    Card, Input, Button, Typography, Space, Alert,
+    message, Descriptions, Modal, Spin, Text
 } from 'antd';
 
 import ReportStatusTag from '../../../components/ReportStatusTag';
@@ -40,6 +43,10 @@ function ReportDetailPage() {
 
         auditLogs,
         auditLogFetch,
+
+        aiAnalysis,         // // AI가 분석해서 보내준 최종 결과
+        aiAnalysisLoading,
+        aiAnalysisError,
 
     } = useSelector((state) => state.report);
 
@@ -174,10 +181,18 @@ function ReportDetailPage() {
 
         // 리뷰 신고
         if (currentReport.targetType === 'REVIEW') {
+
             router.push(
-                `/user/meetup/review/detail?reviewId=${currentReport.targetId}`
+                // http://localhost:3000/user/meetup/review/detailreview?reviewId=10&meetupId=3
+                `/user/meetup/review/detailreview?reviewId=${currentReport.targetId}&meetupId=${currentReport.meetupId}`
             );
         }
+    };
+
+    // 관리자 신고 AI 판단 보조 요청
+    const handleAiAnalysis = () => {
+        if (!reportId) { return; }
+        dispatch( aiReportAnalysisRequest({reportId}) );
     };
 
     // 신고 수정 - 승인 (신뢰도점수/뱃지/처리상태 변경)
@@ -214,7 +229,6 @@ function ReportDetailPage() {
                 }
             })
         )
-
     };
     
     // 신고 삭제 요청
@@ -321,6 +335,60 @@ function ReportDetailPage() {
                         )
                     }
                 </Descriptions>
+
+                {/* ============================== */}
+                {/* AI 신고 판단 보조 */}
+                {/* ============================== */}
+                <Card title="AI 판단 보조" style={{ marginTop: 24 }}>
+                    <Space
+                        direction="vertical"
+                        size="middle"
+                        style={{ width: '100%' }}
+                    >
+                        <p>
+                            신고 내용과 신고 대상 원문,
+                            운영 기준 및 과거 유사 사례를 기반으로 분석합니다.
+                        </p>
+
+                        <span style={{color: '#888'}}>
+                            ※ AI 결과는 참고용이며 최종 승인 및 반려 결정은 관리자가 수행합니다.
+                        </span>
+
+                        <Button
+                            type="primary"
+                            onClick={handleAiAnalysis}
+                            loading={aiAnalysisLoading}
+                            disabled={!reportId}
+                        >
+                            AI 판단 보조 요청
+                        </Button>
+
+                        {/* AI가 분석해서 보내준 최종 결과 Error */}
+                        {aiAnalysisError && (
+                            <Alert
+                                type="error"
+                                showIcon
+                                message="AI 분석 실패"
+                                description={aiAnalysisError}
+                            />
+                        )}
+
+                        {/* AI가 분석해서 보내준 최종 결과가 있다면 */}
+                        {aiAnalysis && (
+                            <Card size="small" title="AI 분석 결과">
+                                <div
+                                    style={{
+                                        whiteSpace: 'pre-wrap',
+                                        wordBreak: 'break-word',
+                                        lineHeight: 1.7,
+                                    }}
+                                >
+                                    {aiAnalysis}
+                                </div>
+                            </Card>
+                        )}
+                    </Space>
+                </Card>
 
 
                 {/* 관리자 처리 사유 */}

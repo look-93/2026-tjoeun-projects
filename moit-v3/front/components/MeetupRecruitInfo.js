@@ -36,12 +36,12 @@ function MeetupRecruitInfo({ meetup, isOwner }) {
                 message.success("모임 신청이 취소되었습니다.");
             }
 
-            dispatch(resetMeetupState());
+            //dispatch(resetMeetupState());
         }
 
         if (error) {
             message.error(error);
-            dispatch(resetMeetupState());
+            //dispatch(resetMeetupState());
         }
     }, [applySuccess, error, meetup, dispatch]);
 

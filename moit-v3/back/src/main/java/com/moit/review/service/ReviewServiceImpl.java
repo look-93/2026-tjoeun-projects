@@ -1,13 +1,17 @@
 package com.moit.review.service;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.common.entity.Image;
+import com.moit.common.repository.ImageRepository;
 import com.moit.exception.ResourceNotFoundException;
 import com.moit.meetup.entity.Meetup;
 import com.moit.meetup.enums.MeetupStatus;
@@ -25,6 +29,7 @@ import com.moit.review.entity.ReviewLike;
 import com.moit.review.repository.ReviewImageRepository;
 import com.moit.review.repository.ReviewLikeRepository;
 import com.moit.review.repository.ReviewRepository;
+import com.moit.util.UtilUpload;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +43,8 @@ public class ReviewServiceImpl implements ReviewService {
 	private final ReviewImageRepository reviewImageRepository;
 	private final MeetupRepository meetupRepository;
 	private final MemberRepository memberRepository;
+	private final ImageRepository imageRepository;
+	private final UtilUpload utilUpload; 
 
 	// api 연동
 	private final ModerationClientService moderationClientService;
@@ -101,6 +108,7 @@ public class ReviewServiceImpl implements ReviewService {
 		return ReviewResponseDto.detailFrom(review);
 	}
 
+	
 	// 리뷰 수정
 		@Override
 		@Transactional
@@ -112,7 +120,7 @@ public class ReviewServiceImpl implements ReviewService {
 				throw new IllegalArgumentException("본인이 작성한 리뷰만 수정할 수 있습니다.");
 			}
 
-			// 🛠️ [수정] 내용이 변경되었을 때만 필터링 API 검사 (수정 시 에러 방지)
+			
 			if (requestDto.getContent() != null && !requestDto.getContent().equals(review.getContent())) {
 				if (moderationClientService.checkContent(requestDto.getContent())) {
 					throw new IllegalArgumentException("부적절한 내용이 포함되어 있어 수정할 수 없습니다.");
@@ -125,18 +133,39 @@ public class ReviewServiceImpl implements ReviewService {
 				review.setIsPublic(requestDto.getIsPublic());
 			}
 
+			
 			if (requestDto.getImageIds() != null) {
-				reviewImageRepository.deleteByReview_Id(reviewId);
-				review.getReviewImages().clear();
+				List<ReviewImage> currentReviewImages = review.getReviewImages();
+
+				List<ReviewImage> imagesToRemove = new ArrayList<>();
+				for (ReviewImage ri : currentReviewImages) {
+					// 현재 DB에 있는 이미지의 ID가 요청으로 들어온 ID 목록에 없다면 삭제 대상
+					if (!requestDto.getImageIds().contains(ri.getImage().getId())) {
+						imagesToRemove.add(ri);
+					}
+				}
+
+				// 삭제 대상 처리
+				for (ReviewImage ri : imagesToRemove) {
+					reviewImageRepository.delete(ri);
+					currentReviewImages.remove(ri);
+				}
+
+				
+				List<Long> existingImageIds = currentReviewImages.stream()
+						.map(ri -> ri.getImage().getId())
+						.toList();
 
 				for (Long imageId : requestDto.getImageIds()) {
-					Image image = Image.builder().id(imageId).build();
-					ReviewImage reviewImage = ReviewImage.builder().review(review).image(image).build();
-					reviewImageRepository.save(reviewImage);
+					if (!existingImageIds.contains(imageId)) {
+						Image image = Image.builder().id(imageId).build();
+						ReviewImage reviewImage = ReviewImage.builder().review(review).image(image).build();
+						reviewImageRepository.save(reviewImage);
+						currentReviewImages.add(reviewImage);
+					}
 				}
 			}
 		}
-
 	// 리뷰 삭제
 	@Override
 	@Transactional
@@ -158,7 +187,7 @@ public class ReviewServiceImpl implements ReviewService {
 			return getReviewsByMeetup(meetupId, null, pageable);
 		}
 
-		// 2. 검색어(keyword)까지 지원하는 메서드 (상세페이지용)
+		
 		@Override
 		public ReviewListResponseDto getReviewsByMeetup(Long meetupId, String keyword, Pageable pageable) {
 			// 공개된('Y') 리뷰와 검색어(keyword), 페이징/정렬 적용 조회
@@ -213,8 +242,7 @@ public class ReviewServiceImpl implements ReviewService {
 
 				Review review = reviewRepository.findById(reviewId)
 						.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 리뷰입니다. REVIEW ID : " + reviewId));
-				
-				// ★ [수정] getReferenceById 대신 findById를 사용하여 실제 Member 엔티티를 안전하게 조회합니다.
+								
 				Member member = memberRepository.findById(memberId)
 						.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 회원입니다. MEMBER ID : " + memberId));
 
@@ -274,5 +302,34 @@ public class ReviewServiceImpl implements ReviewService {
 				.orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 리뷰입니다. REVIEW ID : " + reviewId));
 
 		review.setDeleteYn('Y');
+	}
+
+	@Override
+	@Transactional
+	public List<Long> uploadImages(List<MultipartFile> images, Long memberId) {
+		List<Long> imageIds = new ArrayList<>();
+		
+		if (images == null || images.isEmpty()) {
+			return imageIds;
+		}
+
+		try {
+			for (MultipartFile file : images) {
+				if (file.isEmpty()) continue;
+				
+				String savedFileName = utilUpload.fileUpload(file, "review");
+				
+				Image image = Image.builder()
+						.imagePath(savedFileName)
+						.build();
+				
+				Image savedImage = imageRepository.save(image);
+				imageIds.add(savedImage.getId());
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("리뷰 이미지 업로드 중 오류가 발생했습니다.", e);
+		}
+
+		return imageIds;
 	}
 }

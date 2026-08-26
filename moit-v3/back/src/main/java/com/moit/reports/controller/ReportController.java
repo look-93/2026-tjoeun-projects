@@ -17,9 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.moit.reports.api.ApiOpenAi;
-import com.moit.reports.dto.AiReportsDto;
-
 import com.moit.reports.dto.MemberTrustInfoDto;
 import com.moit.reports.dto.ReportAuditLogDto;
 import com.moit.reports.dto.ReportSearchDto;
@@ -27,8 +24,6 @@ import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
 import com.moit.reports.dto.ReportsDto.ReportProcessDto;
 import com.moit.reports.dto.ReportsDto.ReportRequestDto;
 import com.moit.reports.dto.ReportsDto.ReportResponseDto;
-import com.moit.reports.enums.ReasonCode;
-import com.moit.reports.enums.ReportStatus;
 import com.moit.reports.enums.TargetType;
 import com.moit.reports.service.ReportsService;
 import com.moit.security.CustomUserDetails;
@@ -45,8 +40,6 @@ import lombok.RequiredArgsConstructor;
 public class ReportController {
 
 	private final ReportsService reportsService;
-	private final ApiOpenAi apiOpenAi;
-//	private final ApiEmail apiEmail;
 
 	// test button
 //	@RequestMapping("/user/meetup/report/button")
@@ -243,26 +236,4 @@ public class ReportController {
 		MemberTrustInfoDto response = reportsService.getMemberTrustInfo(targetMemberId);
 		return ResponseEntity.ok(response);
 	}
-
-	//////////////////////////////////////////////////////////
-	// ApiOpenAi
-	@Operation(summary = "AI 신고 내용 작성", description = "키워드, 사유, 타겟타입 기반으로 AI가 신고 내용을 작성합니다.")
-	@PostMapping("/openai")
-	public ResponseEntity<String> createReportApiOpenAi(
-			@RequestBody AiReportsDto dto) {
-
-		String response = apiOpenAi.getAIResponse(dto);
-		return ResponseEntity.ok(response);
-	}
-
-	//////////////////////////////////////////////////////////
-	// ApiEmail
-//	@Operation(summary = "AI 신고 내용 작성", description = "사용자가 입력한 키워드를 기반으로 AI가 신고 내용을 작성합니다.")
-//	@PostMapping("/openai")
-//	public ResponseEntity<String> createReportApiOpenAi (
-//			@RequestBody Map<String, String> request ) {
-//		
-//		String keywords = request.get("keywords");
-//		return ResponseEntity.ok(apiOpenAi.getAIResponse(keywords));
-//	}
 }

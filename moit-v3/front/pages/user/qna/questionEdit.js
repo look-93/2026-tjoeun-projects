@@ -7,7 +7,6 @@ import {
 } from '../../../reducers/qnaReducer';
 
 import {
-  Breadcrumb,
   Button,
   Card,
   Checkbox,
@@ -185,15 +184,10 @@ function questionEdit() {
               <Button onClick={handleCancel}>
                 취소
               </Button>
-
             </Space>
-
           </div>
-
         </Form>
-
       </Card>
-
     </div>
   );
 }
