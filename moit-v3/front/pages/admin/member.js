@@ -259,6 +259,11 @@ function AdminMemberPage() {
           value: data.suspendedCount,
           suffix: '명',
         },
+        {
+          title: '오늘 가입자',
+          value: data.todayCount,
+          suffix: '명',
+        },
       ]);
     } catch (error) {
       console.error('회원 통계 조회 실패:',error);

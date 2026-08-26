@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -261,17 +262,7 @@ public class MemberRestController {
 
         return ResponseEntity.ok( service.existsByNickname(nickname) );
     }
-
-    // 전화번호 중복검사
-    @Operation( summary = "전화번호 중복검사", description = "사용 중인 전화번호인지 확인합니다." )
-    @GetMapping("/check-mobile")
-    public ResponseEntity<Boolean> checkMobile(
-            @Parameter(description = "확인할 전화번호")
-            @RequestParam("mobile") String mobile) {
-
-        return ResponseEntity.ok( service.existsByMobile(mobile) );
-    }
-    
+ 
     // 로그인
     @Operation(
             summary = "로그인",
@@ -831,11 +822,53 @@ public class MemberRestController {
 	    CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
 	    Long memberId = userDetails.getAppUserId();
+	    String currentDeviceId = userDetails.getDeviceId();
 
-	    List<LoginDeviceDto> devices = loginDeviceService.getLoginDevices(memberId);
+	    List<LoginDeviceDto> devices = loginDeviceService.getLoginDevices(memberId, currentDeviceId);
 
 	    return ResponseEntity.ok(devices);
 	}
-       
+    
+    // 특정 기기 로그아웃
+    @Operation(
+    	    summary = "특정 기기 로그아웃",
+    	    description = "현재 로그인한 회원의 특정 기기를 로그아웃합니다."
+    	)
+    @DeleteMapping("/login-devices/{deviceId}")
+	public ResponseEntity<Void> deleteLoginDevice(
+			@PathVariable("deviceId") String deviceId,
+	        Authentication authentication) {
+    	
+    	System.out.println("===== 특정 기기 로그아웃 CONTROLLER =====");
+        System.out.println("deviceId = " + deviceId);
+        System.out.println("authentication = " + authentication);
+    	
+    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    	
+    	Long memberId = userDetails.getAppUserId();
+    	
+    	loginDeviceService.deleteLoginDevice(memberId, deviceId);
+    	refreshTokenService.deleteRefreshToken(memberId, deviceId);
+    	
+    	return ResponseEntity.noContent().build();    	
+    }
+    
+    // 모든 기기 로그아웃
+    @Operation(
+    	    summary = "모든 기기 로그아웃",
+    	    description = "현재 로그인한 회원의 모든 로그인 기기를 로그아웃합니다."
+    	)
+    	@DeleteMapping("/login-devices/all")
+    	public ResponseEntity<Void> deleteAllLoginDevices(
+    	        Authentication authentication) {
+    	
+    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    	
+    	Long memberId = userDetails.getAppUserId();
+    	
+    	loginDeviceService.deleteAllLoginDevices(memberId);
+    	
+    	return ResponseEntity.noContent().build();   	
+    }
     
 }

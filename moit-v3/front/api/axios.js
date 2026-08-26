@@ -43,10 +43,10 @@ api.interceptors.request.use(
       // 로그인/회원가입 등 인증 불필요 요청에는
       // Access Token을 굳이 붙이지 않음
       const isLoginRequest =
-        config.url?.includes("/api/members/login");
+        config.url === "/api/members/login";
 
       const isSignupRequest =
-        config.url?.includes("/api/members/signup");
+        config.url === "/api/members/signup";
 
       if (
         accessToken &&
@@ -99,8 +99,8 @@ api.interceptors.response.use(
     // 로그인 / 로그아웃 요청은 Refresh 대상이 아님
     // =====================================================
     if (
-      originalRequest?.url?.includes("/api/members/login") ||
-      originalRequest?.url?.includes("/api/members/logout")
+      originalRequest?.url === "/api/members/login" ||
+      originalRequest?.url === "/api/members/logout"
     ) {
       return Promise.reject(error);
     }

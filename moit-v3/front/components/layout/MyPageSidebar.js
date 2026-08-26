@@ -15,10 +15,6 @@ function MyPageSidebar() {
       label: '내 정보',
     },
     {
-      key: '/user/mypage/member/loginHistory',
-      label: '로그인 기록',
-    },
-    {
       key: '/user/mypage/meetup',
       label: '내 모임',
     },
@@ -42,37 +38,108 @@ function MyPageSidebar() {
       key: '/user/mypage/member/edit',
       label: '회원정보 수정',
     },
+
+    // =========================
+    // 계정 보안센터
+    // =========================
     {
-      key: '/user/mypage/member/password-change',
-      label: '비밀번호 변경',
-    },
-    {
-      key: '/user/mypage/member/delete',
-      label: '회원 탈퇴',
+      key: 'security',
+      label: '계정 보안센터',
+      children: [
+        {
+          key: '/user/mypage/member/security',
+          label: '로그인 기기 관리',
+        },
+        {
+          key: '/user/mypage/member/loginHistory',
+          label: '로그인 기록',
+        },
+        {
+          key: '/user/mypage/member/password-change',
+          label: '비밀번호 변경',
+        },
+        {
+          key: '/user/mypage/member/delete',
+          label: '회원 탈퇴',
+        },
+      ],
     },
   ];
 
-  //console.log(user)
-
+  // =========================
   // 제휴업체인 경우 광고 메뉴 추가
+  // =========================
   if (user?.memberTypeId === 2) {
-      menuItems.splice(6, 0, {
-          key: "/user/mypage/advertiseList",
-          label: "광고 관리",
-      });
+    menuItems.splice(6, 0, {
+      key: "/user/mypage/advertiseList",
+      label: "광고 관리",
+    });
   }
 
-  const selectedKey =
-    menuItems.find((item) => router.pathname === item.key)?.key ||
-    menuItems.find((item) => router.pathname.startsWith(`${item.key}/`))?.key;
+  // =========================
+  // 현재 선택된 메뉴
+  // =========================
+  let selectedKey = null;
+
+  const normalMenu = menuItems.find(
+    (item) =>
+      !item.children &&
+      (
+        router.pathname === item.key ||
+        router.pathname.startsWith(`${item.key}/`)
+      )
+  );
+
+  if (normalMenu) {
+    selectedKey = normalMenu.key;
+  }
+
+  // =========================
+  // 보안센터 하위 메뉴 확인
+  // =========================
+  const securityMenu = menuItems.find(
+    (item) => item.key === 'security'
+  );
+
+  const securityChild = securityMenu?.children?.find(
+    (child) =>
+      router.pathname === child.key ||
+      router.pathname.startsWith(`${child.key}/`)
+  );
+
+  if (securityChild) {
+    selectedKey = securityChild.key;
+  }
 
   return (
-    <Sider width={220} theme="light" className="mypage-sidebar">
+    <Sider
+      width={220}
+      theme="light"
+      className="mypage-sidebar"
+    >
       <Menu
-        mode="vertical"
-        selectedKeys={selectedKey ? [selectedKey] : []}
+        mode="inline"
+
+        triggerSubMenuAction="click"
+
+        selectedKeys={
+          selectedKey ? [selectedKey] : []
+        }
+
+        // 비밀번호 변경 / 회원탈퇴 페이지에서는
+        // 보안센터가 기본적으로 펼쳐짐
+        defaultOpenKeys={
+          securityChild ? ['security'] : []
+        }
+
         items={menuItems}
-        onClick={({ key }) => router.push(key)}
+
+        onClick={({ key }) => {
+          // 실제 페이지가 있는 메뉴만 이동
+          if (key !== 'security') {
+            router.push(key);
+          }
+        }}
       />
     </Sider>
   );

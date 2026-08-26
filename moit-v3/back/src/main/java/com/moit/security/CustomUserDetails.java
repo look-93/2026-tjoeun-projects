@@ -135,6 +135,8 @@ public class CustomUserDetails implements UserDetails , OAuth2User{ //1.  UserDe
 	    this.deviceId = deviceId;
 	}
 	
+	public String getDeviceId() { return deviceId; }
+	
 	
 }
 
