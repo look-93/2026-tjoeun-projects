@@ -84,6 +84,8 @@ public interface AdvertisementService {
 
     // 우선도 설정
 	int updateAdGrade(Long adId, String adGrade);
+	// 광고 우선도 갱신
+	int updatePriorityScore();
 	
 	// 기간 변경
     void updatePeriod(Long adId, LocalDateTime start, LocalDateTime end);

@@ -241,7 +241,7 @@ function AdvertiseDetailPage() {
           </Descriptions.Item>
 
           <Descriptions.Item label="결제 금액">
-            {advertise.paymentAmount || '-'}
+            {formatPrice(advertise.paymentAmount ?? '-')}
           </Descriptions.Item>
 
           <Descriptions.Item label="결제일">
