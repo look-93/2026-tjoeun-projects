@@ -46,13 +46,23 @@ const initialState = {
         loginId: null,
         email: null,
         nickname: null,
-        mobile: null,
     },
 
     // =========================
     // 이메일 인증
     // =========================
     emailVerification: {
+        sending: false,
+        verifying: false,
+        sent: false,
+        verified: false,
+        error: null,
+    },
+
+    // =========================
+    // 전화번호 인증
+    // =========================
+    mobileVerification: {
         sending: false,
         verifying: false,
         sent: false,
@@ -388,22 +398,61 @@ const userReducer = createSlice({
         },
 
         // =========================
-        // 전화번호 중복검사
+        // 전화번호 인증번호 발송
         // =========================
-        checkMobileRequest: (state)=>{
-            state.loading = true;
-            state.error = null;
-            state.duplicateCheck.mobile = null;
+        mobileSendRequest: (state) => {
+            state.mobileVerification.sending = true;
+            state.mobileVerification.sent = false;
+            state.mobileVerification.verified = false;
+            state.mobileVerification.error = null;
         },
-        checkMobileSuccess: (state,action)=>{
-            state.loading = false;
-            state.error = null;
-            state.duplicateCheck.mobile = action.payload;
+
+        mobileSendSuccess: (state) => {
+            state.mobileVerification.sending = false;
+            state.mobileVerification.sent = true;
+            state.mobileVerification.verified = false;
+            state.mobileVerification.error = null;
         },
-        checkMobileFailure: (state,action)=>{
-            state.loading = false;
-            state.error = action.payload;
-            state.duplicateCheck.mobile = null;
+
+        mobileSendFailure: (state, action) => {
+            state.mobileVerification.sending = false;
+            state.mobileVerification.sent = false;
+            state.mobileVerification.verified = false;
+            state.mobileVerification.error = action.payload;
+        },
+
+        // =========================
+        // 전화번호 인증번호 확인
+        // =========================
+        mobileVerifyRequest: (state) => {
+            state.mobileVerification.verifying = true;
+            state.mobileVerification.verified = false;
+            state.mobileVerification.error = null;
+        },
+
+        mobileVerifySuccess: (state) => {
+            state.mobileVerification.verifying = false;
+            state.mobileVerification.verified = true;
+            state.mobileVerification.error = null;
+        },
+
+        mobileVerifyFailure: (state, action) => {
+            state.mobileVerification.verifying = false;
+            state.mobileVerification.verified = false;
+            state.mobileVerification.error = action.payload;
+        },
+
+        // =========================
+        // 전화번호 인증 상태 초기화
+        // =========================
+        resetMobileVerification: (state) => {
+            state.mobileVerification = {
+                sending: false,
+                verifying: false,
+                sent: false,
+                verified: false,
+                error: null,
+            };
         },
 
         // =========================
@@ -831,7 +880,6 @@ export const {
     checkLoginIdRequest,checkLoginIdSuccess,checkLoginIdFailure,
     checkEmailRequest,checkEmailSuccess,checkEmailFailure,
     checkNicknameRequest,checkNicknameSuccess,checkNicknameFailure,
-    checkMobileRequest,checkMobileSuccess,checkMobileFailure,
     logoutRequest,logoutSuccess,logoutFailure, resetDuplicateCheck,resetEmailVerification,
     checkPasswordLeakRequest,checkPasswordLeakSuccess,checkPasswordLeakFailure,
     resetPasswordLeak,findMembersRequest,findMembersSuccess,findMembersFailure,
@@ -848,6 +896,8 @@ export const {
     getLoginDevicesRequest,getLoginDevicesSuccess,getLoginDevicesFailure,resetLoginDevices,
     deleteLoginDeviceRequest,deleteLoginDeviceSuccess,deleteLoginDeviceFailure,resetDeleteLoginDevice,
     deleteAllLoginDevicesRequest,deleteAllLoginDevicesSuccess,deleteAllLoginDevicesFailure,resetDeleteAllLoginDevices,  
+    mobileSendRequest,mobileSendSuccess, mobileSendFailure,mobileVerifyRequest,
+    mobileVerifySuccess,mobileVerifyFailure,resetMobileVerification,
 } = userReducer.actions;
 
 //4. export

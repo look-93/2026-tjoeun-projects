@@ -17,6 +17,7 @@ public class VerificationService {
     
     // 인증번호 유효시간
     private static final long VERIFICATION_EXPIRE_MINUTES = 2;
+    private static final long VERIFIED_EXPIRE_MINUTES = 10;
     
     // 이메일 인증번호 저장
     public String createEmailCode(String email) {
@@ -51,47 +52,7 @@ public class VerificationService {
         redisTemplate.opsForValue().set(
                 verifiedKey,
                 "true",
-                VERIFICATION_EXPIRE_MINUTES,
-                TimeUnit.MINUTES
-        );
-        return true;
-    }
-    
-    // 휴대폰 인증번호 저장
-    public String createPhoneCode(String mobile) {
-
-        String code = createCode();
-        String key = "verification:phone:" + mobile;
-
-        redisTemplate.opsForValue().set(
-                key,
-                code,
-                VERIFICATION_EXPIRE_MINUTES,
-                TimeUnit.MINUTES
-        );
-        return code;
-    }
-    
-    // 휴대폰 인증번호 확인
-    public boolean verifyPhoneCode(String mobile, String code) {
-
-        String key = "verification:phone:" + mobile;
-        String savedCode = redisTemplate.opsForValue().get(key);
-
-        if (savedCode == null) { return false; }
-
-        if (!savedCode.equals(code)) { return false; }
-
-        // 인증 성공하면 인증번호 삭제
-        redisTemplate.delete(key);
-
-        // 인증 완료 상태 저장
-        String verifiedKey = "verification:phone:verified:" + mobile;
-
-        redisTemplate.opsForValue().set(
-                verifiedKey,
-                "true",
-                VERIFICATION_EXPIRE_MINUTES,
+                VERIFIED_EXPIRE_MINUTES,
                 TimeUnit.MINUTES
         );
         return true;
@@ -112,15 +73,6 @@ public class VerificationService {
         String verifiedKey = "verification:email:verified:" + email;
 
         redisTemplate.delete(verifiedKey);
-    }
-    
-    // 휴대폰 인증 완료 여부
-    public boolean isPhoneVerified(String mobile) {
-
-        String key = "verification:phone:verified:" + mobile;
-        String value = redisTemplate.opsForValue().get(key);
-
-        return "true".equals(value);
     }
     
     // 인증번호 생성

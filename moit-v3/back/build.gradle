@@ -71,6 +71,9 @@ dependencies {
 
     // OpenAI
     implementation 'com.openai:openai-java:2.12.0'
+    
+    // SMS
+    implementation 'com.solapi:sdk:1.1.0'
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

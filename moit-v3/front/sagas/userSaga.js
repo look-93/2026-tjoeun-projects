@@ -8,7 +8,6 @@ import {
     checkLoginIdRequest,checkLoginIdSuccess,checkLoginIdFailure,
     checkEmailRequest,checkEmailSuccess,checkEmailFailure,
     checkNicknameRequest,checkNicknameSuccess,checkNicknameFailure,
-    checkMobileRequest,checkMobileSuccess,checkMobileFailure,
     logoutRequest,logoutSuccess,logoutFailure, resetDuplicateCheck,resetEmailVerification,
     checkPasswordLeakRequest,checkPasswordLeakSuccess,checkPasswordLeakFailure,
     resetPasswordLeak,findMembersRequest,findMembersSuccess,findMembersFailure,
@@ -25,6 +24,8 @@ import {
     getLoginDevicesRequest,getLoginDevicesSuccess,getLoginDevicesFailure,resetLoginDevices,
     deleteLoginDeviceRequest,deleteLoginDeviceSuccess,deleteLoginDeviceFailure,resetDeleteLoginDevice,
     deleteAllLoginDevicesRequest,deleteAllLoginDevicesSuccess,deleteAllLoginDevicesFailure,resetDeleteAllLoginDevices,  
+    mobileSendRequest,mobileSendSuccess, mobileSendFailure,mobileVerifyRequest,
+    mobileVerifySuccess,mobileVerifyFailure,resetMobileVerification,
 } from '../reducers/userReducer';
 
 
@@ -114,10 +115,22 @@ function checkNicknameApi(nickname){
 }
 
 // =========================
-// 전화번호 중복검사 API
+// 휴대폰 인증번호 발송 API
 // =========================
-function checkMobileApi(mobile){
-    return api.get("/api/members/check-mobile",{params: {mobile: mobile}});
+function mobileSendApi(mobile) {
+    return api.post("/api/members/phone/send", {
+        mobile: mobile
+    });
+}
+
+// =========================
+// 휴대폰 인증번호 확인 API
+// =========================
+function mobileVerifyApi(mobile, code) {
+    return api.post("/api/members/phone/verify", {
+        mobile: mobile,
+        code: code
+    });
 }
 
 // =========================
@@ -486,6 +499,10 @@ function* signup(action){
         yield put(signupSuccess(response.data));
     }catch(err){
         console.error("회원가입 실패:",err);
+        console.error("에러 객체:", err);
+        console.error("HTTP 상태:", err.response?.status);
+        console.error("서버 응답:", err.response?.data);
+        console.error("서버 메시지:", err.response?.data?.message);
         yield put(signupFailure(err.response?.data?.message || err.message));
     }
 }
@@ -628,27 +645,92 @@ function* checkNickname(action){
 }
 
 // =========================
-// 전화번호 중복검사
+// 휴대폰 인증번호 발송
 // =========================
-function* checkMobile(action){ 
-    try{ 
-        const response = yield call(checkMobileApi, action.payload); 
+function* mobileSend(action) {
 
-        const available = !response.data;
+    try {
 
-        console.log("전화번호 사용 가능 여부:", available); 
- 
-        yield put(checkMobileSuccess(available));
+        const mobile = action.payload;
 
-    }catch(err){ 
-        console.error("전화번호 중복검사 실패:",err); 
- 
+        console.log("===== 휴대폰 인증번호 발송 START =====");
+        console.log("mobile:", mobile);
+
+        const response = yield call(
+            mobileSendApi,
+            mobile
+        );
+
+        console.log("===== 휴대폰 인증번호 발송 SUCCESS =====");
+        console.log("status:", response.status);
+        console.log("response.data:", response.data);
+
         yield put(
-            checkMobileFailure(
-                err.response?.data?.message || err.message
+            mobileSendSuccess()
+        );
+
+    } catch (err) {
+
+        console.error("===== 휴대폰 인증번호 발송 FAILURE =====");
+        console.error("status:", err.response?.status);
+        console.error("data:", err.response?.data);
+        console.error("message:", err.response?.data?.message);
+        console.error("error:", err);
+
+        yield put(
+            mobileSendFailure(
+                err.response?.data?.message ||
+                err.response?.data ||
+                "휴대폰 인증번호 발송에 실패했습니다."
             )
-        ); 
-    } 
+        );
+    }
+}
+
+
+// =========================
+// 휴대폰 인증번호 확인
+// =========================
+function* mobileVerify(action) {
+
+    try {
+
+        const { mobile, code } = action.payload;
+
+        console.log("===== 휴대폰 인증번호 확인 START =====");
+        console.log("mobile:", mobile);
+        console.log("code:", code);
+
+        const response = yield call(
+            mobileVerifyApi,
+            mobile,
+            code
+        );
+
+        console.log("===== 휴대폰 인증번호 확인 SUCCESS =====");
+        console.log("status:", response.status);
+        console.log("response.data:", response.data);
+
+        yield put(
+            mobileVerifySuccess()
+        );
+
+    } catch (err) {
+
+        console.error("===== 휴대폰 인증번호 확인 FAILURE =====");
+        console.error("status:", err.response?.status);
+        console.error("data:", err.response?.data);
+        console.error("message:", err.response?.data?.message);
+        console.error("error:", err);
+
+        yield put(
+            mobileVerifyFailure(
+                err.response?.data?.message ||
+                err.response?.data ||
+                "휴대폰 인증에 실패했습니다."
+            )
+        );
+    }
 }
 
 // =========================
@@ -687,6 +769,7 @@ function* logoutSaga(action) {
         if (typeof window !== "undefined") {
             localStorage.removeItem("accessToken");
             localStorage.removeItem("refreshToken");
+            localStorage.removeItem("deviceId");
         }
 
         // 3. Redux 로그아웃 상태 변경
@@ -724,6 +807,7 @@ function* logoutSaga(action) {
         if (typeof window !== "undefined") {
             localStorage.removeItem("accessToken");
             localStorage.removeItem("refreshToken");
+            localStorage.removeItem("deviceId");
         }
 
         yield put(
@@ -981,7 +1065,6 @@ export default function* userSaga(){
         takeLatest(checkLoginIdRequest.type, checkLoginId),
         takeLatest(checkEmailRequest.type, checkEmail),
         takeLatest(checkNicknameRequest.type, checkNickname),
-        takeLatest(checkMobileRequest.type, checkMobile),
         takeLatest(checkPasswordLeakRequest.type, checkPasswordLeak),
         takeLatest(findMembersRequest.type, findMembers),
         takeLatest(logoutRequest.type, logoutSaga),
@@ -999,5 +1082,7 @@ export default function* userSaga(){
         takeLatest(getLoginDevicesRequest.type,getLoginDevicesSaga),
         takeLatest(deleteLoginDeviceRequest.type,deleteLoginDeviceSaga),
         takeLatest(deleteAllLoginDevicesRequest.type,deleteAllLoginDevicesSaga),
+        takeLatest(mobileSendRequest.type, mobileSend),
+        takeLatest(mobileVerifyRequest.type, mobileVerify),
     ]);
 }

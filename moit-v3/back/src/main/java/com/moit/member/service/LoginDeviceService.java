@@ -23,4 +23,7 @@ public interface  LoginDeviceService {
 	
 	// 모든 기기 삭제
 	void deleteAllLoginDevices(Long memberId);
+	
+	// 로그인 기기 존재 여부
+	boolean existsLoginDevice(Long memberId, String deviceId);
 }

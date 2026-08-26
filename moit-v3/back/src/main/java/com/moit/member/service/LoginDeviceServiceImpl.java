@@ -100,10 +100,19 @@ public class LoginDeviceServiceImpl implements LoginDeviceService {
         if (keys != null && !keys.isEmpty()) {  redisTemplate.delete(keys); }
 	}
 	
+	@Override
+	public boolean existsLoginDevice(Long memberId, String deviceId) {
+		
+		String key = createKey(memberId, deviceId);
+
+	    return Boolean.TRUE.equals( redisTemplate.hasKey(key) );
+	}
+	
 	// Redis Key 생성
 	private String createKey( Long memberId, String deviceId) {
 
         return "loginDevice:" + memberId + ":" + deviceId;
     }
 
+	
 }
