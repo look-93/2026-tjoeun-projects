@@ -1,14 +1,21 @@
 package com.moit.qna.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.qna.dao.QuestionMapper;
 import com.moit.qna.dto.AnswerDto.AnswerResponseDto;
+import com.moit.qna.dto.QuestionDto.QuestionImageDto;
 import com.moit.qna.dto.QuestionDto.QuestionRequestDto;
 import com.moit.qna.dto.QuestionDto.QuestionResponseDto;
 
@@ -53,7 +60,7 @@ public class QuestionService {
         return list;
     }
 
-    // 문의 상세 조회 + 답변 정보 조회
+    // 문의 상세 조회 + 답변 + 이미지 정보 조회
     public QuestionResponseDto getDetail(Long id) {
         // 문의 정보 조회
         QuestionResponseDto question = questionMapper.findById(id);
@@ -62,8 +69,11 @@ public class QuestionService {
 
         // 해당 문의의 답변 조회
         AnswerResponseDto answer = questionMapper.findByQuestionId(id);
-
         question.setAnswer(answer);
+        
+        // 해당 문의의 이미지 조회
+        question.setImages(questionMapper.findQuestionImages(id));
+        
         return question;
     }
 
@@ -81,6 +91,41 @@ public class QuestionService {
         }
         // questions 테이블 저장
         questionMapper.insertQuestion(dto);
+        // 문의 이미지 저장
+        if (dto.getImages() != null && !dto.getImages().isEmpty()) {
+            Path uploadPath = Paths.get("uploads/qna").toAbsolutePath();
+            try {
+            	Files.createDirectories(uploadPath);
+                for (MultipartFile file : dto.getImages()) {
+                    if (file == null || file.isEmpty()) continue;
+
+                    String originalName = file.getOriginalFilename();
+                    String extension = "";
+
+                    if (originalName != null && originalName.contains(".")) {
+                        extension = originalName.substring(originalName.lastIndexOf("."));
+                    }
+
+                    String storedName = UUID.randomUUID() + extension;
+                    Path filePath = uploadPath.resolve(storedName);
+
+                    file.transferTo(filePath.toFile());
+
+                    QuestionImageDto image = new QuestionImageDto();
+                    image.setQuestionId(dto.getQuestionId());
+                    image.setOriginalName(originalName);
+                    image.setStoredName(storedName);
+                    image.setImagePath("/images/qna/" + storedName);
+                    image.setImageSize(file.getSize());
+                    image.setContentType(file.getContentType());
+
+                    questionMapper.insertQuestionImage(image);
+                }
+            } catch (IOException e) {
+                throw new IllegalStateException("문의 이미지 저장에 실패했습니다.", e);
+            }
+        }
+
         // AI 분석 + QUESTION_AI_ANALYSIS 저장
         String text = dto.getTitle() + "\n" + dto.getContent();
         questionAiAnalysisService.analyzeAndSave(dto.getQuestionId(), text);
@@ -197,7 +242,14 @@ public class QuestionService {
     }
 
     //해당 모임의 문의 목록
-    public List<QuestionResponseDto> selectByParentId(Long parentId){
-        return questionMapper.selectByParentId(parentId);
+    public List<QuestionResponseDto> selectByMeetupQuestions(
+            Long meetupId,
+            Long memberId,
+            Long memberTypeId) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("meetupId", meetupId);
+        map.put("memberId", memberId);
+        map.put("memberTypeId", memberTypeId);
+        return questionMapper.selectByMeetupQuestions(map);
     }
 }

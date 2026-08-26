@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
 import { qnaCreateRequest, qnaReset } from '../../../reducers/qnaReducer';
@@ -10,7 +10,9 @@ import {
   Input,
   Space,
   Typography,
+  Upload,
 } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -18,6 +20,7 @@ const { TextArea } = Input;
 function questionWrite() {
   const router = useRouter();
   const dispatch = useDispatch();
+  const [fileList, setFileList] = useState([]);
 
   const { qna, success, error } = useSelector((state) => state.qna);
   const { type, meetupId } = router.query;
@@ -30,7 +33,8 @@ function questionWrite() {
     if (success && qna?.questionId) {
       const questionId = qna.questionId;
       dispatch(qnaReset());
-      router.push(`/user/qna/questionDetail?questionId=${questionId}`);}
+      router.push(`/user/qna/questionDetail?questionId=${questionId}`);
+    }
   }, [success, qna, router, dispatch]);
 
   useEffect(() => {
@@ -53,10 +57,19 @@ function questionWrite() {
 
         <Form layout="vertical"
             onFinish={(values) => {
-              dispatch( qnaCreateRequest({ ...values, parentId: isMeetup ? Number(meetupId) : 0,
-                category: isMeetup ? 'MEETUP' : 'ADMIN',
-                isPublic: values.isPublic ? 'N' : 'Y',
-              }) );
+              const formData = new FormData();
+
+              formData.append('title', values.title);
+              formData.append('content', values.content);
+              formData.append('parentId', isMeetup ? Number(meetupId) : 0);
+              formData.append('category', isMeetup ? 'MEETUP' : 'ADMIN');
+              formData.append('isPublic', values.isPublic ? 'N' : 'Y');
+
+              fileList.forEach((file) => {
+                formData.append('images', file.originFileObj);
+              });
+
+              dispatch(qnaCreateRequest(formData));
             }}
           >
           <Form.Item label="제목" name="title">
@@ -69,6 +82,26 @@ function questionWrite() {
 
           <Form.Item name="isPublic" valuePropName="checked">
             <Checkbox>비공개 문의</Checkbox>
+          </Form.Item>
+
+          <Form.Item label="문의 이미지">
+            <Space>
+              <Upload
+                multiple
+                beforeUpload={() => false}
+                accept="image/*"
+                maxCount={3}
+                fileList={fileList}
+                onChange={({ fileList: newFileList }) => {
+                  setFileList(newFileList);
+                }}
+              >
+                <Button icon={<UploadOutlined />}>
+                  이미지 선택 (최대 3장)
+                </Button>
+              </Upload>
+
+            </Space>
           </Form.Item>
 
           <div className="qna-write-actions">
