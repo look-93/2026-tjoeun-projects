@@ -104,7 +104,8 @@ public class SecurityConfig {
                 "/api/members/check-loginId",
                 "/api/members/check-email",
                 "/api/members/check-nickname",
-                "/api/members/check-mobile",
+                "/api/members/phone/send",
+                "/api/members/phone/verify",
                 "/api/members/refresh",
                 "/api/members/email/send",
                 "/api/members/email/verify",
@@ -162,7 +163,6 @@ public class SecurityConfig {
             // -------------------------------------------------
             // 관리자
             // -------------------------------------------------
-            // 추후 활성화
              .requestMatchers("/api/admin/**", "/api/reports/admin/**")
              .hasAnyRole("ADMIN", "SUPERADMIN")
 

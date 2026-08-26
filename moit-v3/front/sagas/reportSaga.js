@@ -15,10 +15,10 @@ import  {
     fetchAdminReportsDetailRequest, fetchAdminReportsDetailSuccess, fetchAdminReportsDetailFailure,
 
     fetchAdminReportAuditLogsRequest, fetchAdminReportAuditLogsSuccess, fetchAdminReportAuditLogsFailure,
-    fetchMemberReportTrustInfoRequest, fetchMemberReportTrustInfoSuccess, fetchMemberReportTrustInfoFailure,
 
     createAIReportDetailRequest, createAIReportDetailSuccess, createAIReportDetailFailure,
-    aiReportAnalysisRequest, aiReportAnalysisSuccess, aiReportAnalysisFailure
+    aiReportAnalysisRequest, aiReportAnalysisSuccess, aiReportAnalysisFailure,
+    resetAiAnalysisState
 } from '../reducers/reportReducer';
 import api from '../api/axios';
 
@@ -158,6 +158,12 @@ export const updateAdminReportAPI = (payload)=> {
     console.log('관리자 처리 reportId:', reportId);
     console.log('관리자 처리 processDto:', processDto);
 
+    console.log('관리자 처리 reportId:', reportId);
+    console.log(
+        '관리자 처리 processDto:',
+        JSON.stringify(processDto)
+    );
+
     // @PathVariable("reportId") Long reportId
     // @RequestBody ReportProcessDto processDto
     //
@@ -174,9 +180,6 @@ export function* updateAdminReport(action) {
     try {
         const result = yield call(updateAdminReportAPI, action.payload);
         yield put(updateAdminReportSuccess(result.data));
-
-        // 승인/반려 처리 끝난 후 상세정보 다시 조회
-        yield put( fetchAdminReportsDetailRequest(action.data.reportId) );
         
     } catch(err) {
         yield put(updateAdminReportFailure(err.response?.data?.message || err.message));
@@ -308,30 +311,6 @@ export function* fetchAdminReportAuditLogs(action) {
     }
 }
 
-// watchFetchMemberReportTrustInfo    - GET     /api/reports/admin/member/{targetMemberId}/trustInfo
-// 신고당한 회원 신뢰도 점수 + 뱃지 조회
-export const fetchMemberReportTrustInfoAPI = (payload)=> {
-    const { targetMemberId } = payload;
-
-    // @PathVariable("targetMemberId") Long targetMemberId
-    // POST_API_BASE = http://localhost:8080/api/reports/admin/member/31/trustInfo
-    return api.get(
-        `${POST_API_BASE}/admin/member/${targetMemberId}/trustInfo`
-    );
-}
-export function* fetchMemberReportTrustInfo(action) {
-    try {
-        // result.data  (action.payload)
-        // targetMemberId, targetNickname, trustScore,
-        // reportStatusId, statusCode, statusName
-        const result = yield call(fetchMemberReportTrustInfoAPI, action.payload);
-        yield put(fetchMemberReportTrustInfoSuccess(result.data));
-
-    } catch(err) {
-        yield put(fetchMemberReportTrustInfoFailure(err.response?.data?.message || err.message));
-    }
-}
-
 // AI 신고 내용 작성
 export const createAIReportDetailAPI = (dto) => {
     // @RequestBody AiReportsDto { keywords, reasonCode, targetType }
@@ -359,7 +338,12 @@ export const aiReportAnalysisAPI = (payload) => {
 export function* aiReportAnalysis(action) {
     try {
         const result = yield call(aiReportAnalysisAPI, action.payload);
-        yield put( aiReportAnalysisSuccess(result.data));
+        yield put(
+            aiReportAnalysisSuccess({
+                reportId: action.payload.reportId,  // 1. 몇 번 신고인지 → reportId
+                result: result.data                 // 2. AI 결과가 뭔지 → result
+            })
+        );
 
     } catch (err) {
         yield put(aiReportAnalysisFailure( err.response?.data?.message || err.message ));
@@ -385,7 +369,6 @@ function* watchFetchAdminReports() { yield takeLatest( fetchAdminReportsRequest.
 function* watchFetchAdminReportsDetail() { yield takeLatest( fetchAdminReportsDetailRequest.type, fetchAdminReportsDetail ); }
 
 function* watchFetchAdminReportAuditLogs() { yield takeLatest( fetchAdminReportAuditLogsRequest.type, fetchAdminReportAuditLogs ); }
-function* watchFetchMemberReportTrustInfo() { yield takeLatest( fetchMemberReportTrustInfoRequest.type, fetchMemberReportTrustInfo ); }
 
 function* watchCreateAIReportDetail() { yield takeLatest( createAIReportDetailRequest.type, createAIReportDetail ); }
 function* watchAiReportAnalysis() { yield takeLatest( aiReportAnalysisRequest.type, aiReportAnalysis ); }
@@ -406,7 +389,6 @@ export default function* reportSaga() {
         call(watchFetchAdminReportsDetail),     // --- 관리자 신고 상세 조회 ---
         
         call(watchFetchAdminReportAuditLogs),
-        call(watchFetchMemberReportTrustInfo),
         
         call(watchCreateAIReportDetail),
         call(watchAiReportAnalysis),

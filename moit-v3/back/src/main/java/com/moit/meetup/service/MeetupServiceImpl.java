@@ -790,6 +790,7 @@ public class MeetupServiceImpl implements MeetupService{
 	}
 	
 	//모임끌어올리기
+	@Transactional
 	@Override
 	public void boostMeetup(Long memberId, Long meetupId) {
 		
@@ -809,7 +810,7 @@ public class MeetupServiceImpl implements MeetupService{
                 );
         
         // 모임 개설자 본인 확인
-        if(!meetup.getMember().getId().equals(meetupId)) {
+        if(!meetup.getMember().getId().equals(memberId)) {
         	throw new IllegalStateException("모임 개설자만 끌어올리기 할 수 있습니다.");
         }
         
@@ -847,6 +848,7 @@ public class MeetupServiceImpl implements MeetupService{
         MeetupBoost meetupBoost = MeetupBoost.builder()
         									 .meetup(meetup)
         									 .pointHistory(pointHistory)
+        									 .endDate(LocalDate.now().plus(7, ChronoUnit.DAYS))
         									 .build();
         
         meetupBoostRepository.save(meetupBoost);  

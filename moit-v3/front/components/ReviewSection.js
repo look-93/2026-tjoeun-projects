@@ -26,6 +26,7 @@ import {
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
 import { analyzeReviewsRequest,resetReviewState } from '../reducers/reviewReducer'; 
+import ReviewComments from './ReviewComment'; 
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -389,6 +390,8 @@ function ReviewSection({
               >
                 {review.likesCount ?? review.likes ?? 0}
               </Button>
+
+              <ReviewComments reviewId={review.id} />
             </Card>
           );
         })}

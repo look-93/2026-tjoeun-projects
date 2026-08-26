@@ -16,11 +16,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiEmail {
 	
-	@Value("${naver.host}")
+	@Value("${NAVER_HOST}")
 	public String host;
-	@Value("${naver.user}")
+	@Value("${NAVER_USER}")
 	public String user;
-	@Value("${naver.password}")
+	@Value("${NAVER_PASSWORD}")
 	public String password;
 	
 	// 이메일 보내기			제목				본문내용			받는사람
@@ -46,6 +46,7 @@ public class ApiEmail {
 		});
 		
 		// 4. 메일보내기 (Mime 텍스트 text/plain , html text/html , 이미지 image/png) 멀티미디어메시지
+		// MimeMessage -	실제로 SMTP 서버에 보낼 이메일 메시지 객체
 		MimeMessage message = new MimeMessage(session);
 
 		try {

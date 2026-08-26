@@ -172,7 +172,7 @@ function ReportDetailPage() {
                         ({currentReport.memberId ?? '-'}번)
                         {' => '}
                         {currentReport.trustScore}점{' '}
-                        <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
+                        <ReportStatusCodeTag statusCode={currentReport.statusCode} />
                     </Descriptions.Item>
 
                     <Descriptions.Item label="신고 대상 회원 (targetMemberId)">
