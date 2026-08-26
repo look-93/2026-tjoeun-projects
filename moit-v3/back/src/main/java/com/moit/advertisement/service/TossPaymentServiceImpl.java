@@ -117,7 +117,8 @@ public class TossPaymentServiceImpl implements TossPaymentService {
                 throw new RuntimeException("토스 결제 승인 실패");
             }
         } catch (Exception e) {
-        	throw new RuntimeException("토스 결제 승인 실패");
+        	e.printStackTrace();
+        	throw new RuntimeException("토스 결제 승인 실패: " + e.getMessage(), e);
         }
     }
 }
