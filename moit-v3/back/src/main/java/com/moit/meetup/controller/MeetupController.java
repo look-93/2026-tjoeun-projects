@@ -335,15 +335,15 @@ public class MeetupController {
 		return ResponseEntity.ok(meetupService.meetupWriteAiRecommended(request));
 	}
 		
-	@Operation(summary = "날씨 알림 문자 발송", description = "날씨 알림 문자 발송 테스트용")
-	@PostMapping("/notification")
-	public ResponseEntity<SolapiSmsResponseDto> sendSms(@RequestBody SolapiSmsRequestDto request){
-		
-	    SolapiSmsResponseDto response =
-	            openApiService.sendSms(request);
-
-	    return ResponseEntity.ok(response);
-	}
+//	@Operation(summary = "날씨 알림 문자 발송", description = "날씨 알림 문자 발송 테스트용")
+//	@PostMapping("/notification")
+//	public ResponseEntity<SolapiSmsResponseDto> sendSms(@RequestBody SolapiSmsRequestDto request){
+//		
+//	    SolapiSmsResponseDto response =
+//	            openApiService.sendSms(request);
+//
+//	    return ResponseEntity.ok(response);
+//	}
 }
 
 //성공 응답

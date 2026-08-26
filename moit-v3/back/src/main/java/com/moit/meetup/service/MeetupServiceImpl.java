@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -20,9 +23,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moit.common.dto.SigunguDto;
+import com.moit.common.dto.SolapiSmsDto.SolapiSmsRequestDto;
+import com.moit.common.dto.WeatherInfoRequest;
+import com.moit.common.dto.WeatherInfoResponse;
 import com.moit.common.entity.Image;
 import com.moit.common.entity.Sigungu;
 import com.moit.common.repository.ImageRepository;
+import com.moit.common.service.OpenApiService;
+import com.moit.config.ThymeleafConfig;
 import com.moit.exception.ResourceNotFoundException;
 import com.moit.meetup.client.OpenAiApiClient;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicantResponseDto;
@@ -70,6 +78,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MeetupServiceImpl implements MeetupService{
+
+    private final ThymeleafConfig thymeleafConfig;
 	
 	private static final String BOOST_KEY_PREFIX = "meetup:boost:";
 	private static final int BOOST_POINT = 200; // 끌어올리기 비용
@@ -87,7 +97,8 @@ public class MeetupServiceImpl implements MeetupService{
     private final MeetupBoostRepository meetupBoostRepository;
     private final PointHistoryRepository pointHistoryRepository;
     private final RedisTemplate<String, String> redisTemplate;
-    
+    private final OpenApiService openApiService;
+
 	//모임리스트조회
 	@Override
 	public MeetupListResponseDto search(
@@ -459,15 +470,12 @@ public class MeetupServiceImpl implements MeetupService{
 	        if (meetupApplication.getApplyStatus() == ApplyStatus.PENDING) {
 	        	
 	            // 모임 날짜
-	            LocalDate meetupDate = LocalDateTime
-	                    .parse(meetup.getMeetupAt())
-	                    .toLocalDate();
-	        	
-	                       
+	        	LocalDateTime meetupDate = meetup.getMeetupAt();          
+
 	            /* 당일취소 1시간 경과 취소하면 -5점 */
 	            
 	        	// 오늘 진행되는 모임인지 확인
-	        	boolean isTodayMeetup = meetupDate.isEqual(LocalDate.now());
+	        	boolean isTodayMeetup = meetupDate.isEqual(LocalDateTime.now());
 	        	
 	        	//신청 후 경과 시간
 	        	long elapsedMinutes  = ChronoUnit.MINUTES.between(meetupApplication.getCreatedAt(), LocalDateTime.now());
@@ -959,5 +967,110 @@ public class MeetupServiceImpl implements MeetupService{
 	    }
 
 	    member.getMemberInfo().setAiSummary(aiSummary);
-	}	
+	}
+	
+	// 날씨 알림 sms
+	@Override
+    public void sendTomorrowWeatherNotification() {
+    	
+    	// 내일 날짜 구하기
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        
+        // 내일의 시작 시간(00:00:00) 구하기
+        LocalDateTime start = tomorrow.atStartOfDay();
+        
+        // 모레 시작 시간
+        LocalDateTime end = tomorrow.plusDays(1).atStartOfDay();
+        
+        // 내일 모임 조회
+        List<Meetup> meetups =
+                meetupRepository.findTomorrowMeetups(start, end);
+        
+        // 같은 지역(nx, ny)의 날씨 API 중복 호출 방지
+        Map<String, WeatherInfoResponse> weatherCache = new HashMap<>();
+        
+        // 해당 모임 날씨 조회
+        for (Meetup meetup : meetups) {
+        	
+        	// 날씨 정보 요청
+        	WeatherInfoRequest request = new WeatherInfoRequest();
+        	
+            request.setNx(meetup.getNx());
+            request.setNy(meetup.getNy());
+            
+            // 비 예보 확인
+            request.setMeetupDate(
+            		meetup.getMeetupAt()
+            			  .toLocalDate()
+            			  .format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+            );
+            
+            request.setMeetupTime(
+                    meetup.getMeetupAt().getHour()
+            );
+            
+            // nx + ny를 지역 캐시 키로 사용
+            String cacheKey =
+                    request.getNx() + "_" + request.getNy();
+
+            WeatherInfoResponse weather = weatherCache.get(cacheKey);
+
+            // 캐시에 없으면 API 호출
+            if (weather == null) {
+
+                try {
+                    weather = openApiService.getWeathreInfo(request);
+
+                    weatherCache.put(cacheKey, weather);
+
+                } catch (Exception e) {
+                	System.out.println("날씨 조회 실패 - meetupId: {}" + meetup.getId() + e);
+                    continue;
+                }
+            }
+            
+            // 강수확률확인
+            try {
+	            //System.out.println(weather.getPop() + "dddddddddddddddddddddddddddddddddddddddddddddddddd");
+            	if (weather.getPop() != null && weather.getPop() >= 10) {
+            		
+          
+	            	// 승인된 참여자에게 SMS 발송
+	            	for(MeetupApplication application : meetup.getMeetupApplications()) {
+	            	    
+	            		// 승인된 참여자가 아니면 continue
+	            		if (application.getApplyStatus() != ApplyStatus.APPROVED) {
+	            	        continue;
+	            	    }
+	            		
+	            		String mobile = application.getMember().getMobile();
+	            		
+	            		SolapiSmsRequestDto smsRequest = new SolapiSmsRequestDto();
+	            		
+	            		smsRequest.setPhoneNumber(mobile);
+	            		smsRequest.setMessage(
+	            			    "☔ [MOIT 날씨 알림]\n"
+	            			    + "내일 모임 시간에 비가 예상됩니다.\n"
+	            			    + "강수확률: " + weather.getPop() + "%\n"
+	            		);
+	
+	            		 openApiService.sendSms(smsRequest);
+//	            		System.out.println(
+//	            			    "SMS 발송 대상: " + mobile
+//	            			);
+	            	}
+	            }
+            }catch(Exception e) {
+            	System.out.println(
+            		    "날씨 조회 실패 - meetupId: "
+            		    + meetup.getId()
+            		    + ", error: "
+            		    + e.getMessage()
+            		);
+                continue;	
+            }
+        }
+    }
+
+    
 }

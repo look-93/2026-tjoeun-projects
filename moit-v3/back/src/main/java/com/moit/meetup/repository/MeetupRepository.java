@@ -253,6 +253,17 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 		        @Param("meetupId") Long meetupId,
 		        Pageable pageable
 		);
-
-
+	
+	// 내일 진행예정인 모임 조회
+	@Query("""
+			SELECT m
+			FROM Meetup m
+			WHERE m.meetupAt >= :start
+			  AND m.meetupAt < :end
+			  AND m.meetupStatus = 'RECRUITING'
+	""")
+	List<Meetup> findTomorrowMeetups(
+		    @Param("start") LocalDateTime start,
+		    @Param("end") LocalDateTime end
+		);
 }

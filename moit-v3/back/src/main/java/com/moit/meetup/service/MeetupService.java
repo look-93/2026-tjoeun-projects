@@ -93,4 +93,7 @@ public interface MeetupService {
 	// ################### open api ###################
 	//ai 제목/카테고리/컨텐츠 추가
 	public RecommendMeetupResponseDto meetupWriteAiRecommended(RecommendMeetupRequestDto request);
+	
+	// 날씨 알림 sms
+	public void sendTomorrowWeatherNotification();
 }

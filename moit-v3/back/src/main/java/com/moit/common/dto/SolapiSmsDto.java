@@ -7,6 +7,7 @@ import lombok.Setter;
 
 public class SolapiSmsDto {
 	
+	@Setter
     @Getter
     @NoArgsConstructor
 	public static class SolapiSmsRequestDto{
