@@ -29,10 +29,11 @@ import org.springframework.web.server.ResponseStatusException;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
+import com.moit.advertisement.dto.AdvertisementPositionPriceDto;
 import com.moit.advertisement.dto.AdvertisementPriceDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.PaymentConfirmRequestDto;
-import com.moit.advertisement.enums.AdGrade;
+//import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.PaymentType;
 //import com.moit.advertisement.repository.AdvertisementPaymentRepository;
@@ -335,11 +336,18 @@ public class AdvertisementController {
     
     
     @GetMapping("/prices")
-    public ResponseEntity<List<AdvertisementPriceDto>> getRegistrationPrices(
-            @RequestParam AdGrade adGrade) {
+    public ResponseEntity<List<AdvertisementPriceDto>> getRegistrationPrices() {
 
         return ResponseEntity.ok(
-                advertisementService.getInitialPrices(adGrade)
+                advertisementService.getInitialPrices()
+        );
+    }
+    
+    @GetMapping("/prices/position")
+    public ResponseEntity<List<AdvertisementPositionPriceDto>> getPositionPrices() {
+
+        return ResponseEntity.ok(
+                advertisementService.getPositionPrices()
         );
     }
     
@@ -411,7 +419,7 @@ public class AdvertisementController {
     // =========================================================
     // 토스 결제 최종 승인
     // =========================================================
-    @Operation(summary = "결제 승인 (Confirm)", description = "프론트엔드 결제 성공 후 토스 서버에 최종 승인을 요청합니다.")
+    @Operation(summary = "결제 승인 (Confirm)", description = "프론트엔드 결제 성공 후 토스 서버에 최종 승인을 d요청합니다.")
     @PostMapping("/payment/confirm")
     public ResponseEntity<?> confirmPayment(@RequestBody PaymentConfirmRequestDto requestDto) {
         try {

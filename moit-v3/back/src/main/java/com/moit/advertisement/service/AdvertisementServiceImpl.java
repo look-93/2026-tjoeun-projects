@@ -22,6 +22,7 @@ import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
+import com.moit.advertisement.dto.AdvertisementPositionPriceDto;
 import com.moit.advertisement.dto.AdvertisementPriceDto;
 import com.moit.advertisement.dto.AdvertisementScore;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
@@ -42,6 +43,7 @@ import com.moit.advertisement.repository.AdvertisementClickLogRepository;
 import com.moit.advertisement.repository.AdvertisementImageRepository;
 import com.moit.advertisement.repository.AdvertisementImpressionLogRepository;
 import com.moit.advertisement.repository.AdvertisementPaymentRepository;
+import com.moit.advertisement.repository.AdvertisementPositionPriceRepository;
 import com.moit.advertisement.repository.AdvertisementPriceRepository;
 import com.moit.advertisement.repository.AdvertisementRepository;
 import com.moit.member.entity.Member;
@@ -68,6 +70,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     private final AdvertisementImpressionLogRepository impressionLogRepository;
     private final AdvertisementPaymentRepository advertisementPaymentRepository;
     private final AdvertisementPriceRepository advertisementPriceRepository;
+    private final AdvertisementPositionPriceRepository advertisementPositionPriceRepository;
         
     private final MemberRepository memberRepository;
     private final MemberInfoRepository memberInfoRepository;
@@ -767,15 +770,13 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     
     @Override
     @Transactional(readOnly = true)
-    public List<AdvertisementPriceDto> getInitialPrices(
-            AdGrade adGrade) {
+    public List<AdvertisementPriceDto> getInitialPrices() {
 
         List<AdvertisementPrice> priceList =
                 advertisementPriceRepository
-                        .findByPaymentTypeAndAdGradeOrderByPeriodDaysAsc(
-                                PaymentType.INITIAL,
-                                adGrade
-                        );
+		                .findByPaymentTypeOrderByPeriodDaysAsc(
+		                        PaymentType.INITIAL
+		                );
 
         return priceList.stream()
                 .map(price -> AdvertisementPriceDto.builder()
@@ -785,6 +786,26 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                         .paymentType(price.getPaymentType())
                         .basePrice(price.getBasePrice())
                         .build())
+                .toList();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdvertisementPositionPriceDto> getPositionPrices() {
+
+        return advertisementPositionPriceRepository
+                .findAllByOrderByPositionAsc()
+                .stream()
+                .map(price -> {
+                    AdvertisementPositionPriceDto dto =
+                            new AdvertisementPositionPriceDto();
+
+                    dto.setPositionPriceId(price.getPositionPriceId());
+                    dto.setPosition(price.getPosition());
+                    dto.setAdditionalPrice(price.getAdditionalPrice());
+
+                    return dto;
+                })
                 .toList();
     }
     
@@ -1225,7 +1246,6 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     // 광고 노출 / 클릭
     // =========================================================
 
-    // 클릭 & 노툴 로그
     @Override
     public AdvertisementDto selectAdvertisement(
             String position,
@@ -2126,6 +2146,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                       .filter(score -> score > 0)
                       .sum();
 
+        // 모든 광고 점수가 0 이하라면 전체 후보 중 랜덤
         if (totalScore <= 0) {
 
             return scores.get(
@@ -2153,9 +2174,16 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             }
         }
 
-        return scores.get(
-                ThreadLocalRandom.current()
-                        .nextInt(scores.size())
-        ).getAdvertisement();
+        // 거의 오지 않지만 안전장치
+        return scores.stream()
+                .filter(item -> item.getScore() > 0)
+                .findFirst()
+                .map(AdvertisementScore::getAdvertisement)
+                .orElse(
+                        scores.get(
+                                ThreadLocalRandom.current()
+                                        .nextInt(scores.size())
+                        ).getAdvertisement()
+                );
     }
 }

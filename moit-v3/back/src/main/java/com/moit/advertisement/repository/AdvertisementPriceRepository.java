@@ -36,4 +36,8 @@ public interface AdvertisementPriceRepository
             AdGrade adGrade,
             Integer periodDays
     );
+
+    List<AdvertisementPrice> findByPaymentTypeOrderByPeriodDaysAsc(
+            PaymentType paymentType
+    );
 }

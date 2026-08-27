@@ -10,9 +10,9 @@ import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
+import com.moit.advertisement.dto.AdvertisementPositionPriceDto;
 import com.moit.advertisement.dto.AdvertisementPriceDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
-import com.moit.advertisement.enums.AdGrade;
 
 
 public interface AdvertisementService {
@@ -180,7 +180,8 @@ public interface AdvertisementService {
 
 	AdvertisementPaymentDto createInitialPayment(Long adId, Long memberId);
 
-	List<AdvertisementPriceDto> getInitialPrices(AdGrade adGrade);
+	List<AdvertisementPriceDto> getInitialPrices();
+	List<AdvertisementPositionPriceDto> getPositionPrices();
 	
 	AdvertisementPaymentDto createExtensionPayment(
 	        Long adId,

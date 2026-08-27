@@ -345,7 +345,9 @@ function AdvertiseListPage() {
            (
               record.reminder30dSent === 'Y' ||
               record.reminder14dSent === 'Y'
-            ) && (
+            ) && 
+            !(record.paymentType === 'EXTENSION' &&
+              record.paymentStatus === 'PAID') && (
             <Button
               type="primary"
               size="small"
