@@ -12,6 +12,7 @@ import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
 import com.moit.advertisement.dto.AdvertisementPriceDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
+import com.moit.advertisement.enums.AdGrade;
 
 
 public interface AdvertisementService {
@@ -85,7 +86,8 @@ public interface AdvertisementService {
 	// 광고 우선도 갱신
 	int updatePriorityScore();
 	
-	List<AdvertisementPriceDto> getExtensionPrices(Long adId);
+	// 연장 가격 조회
+	List<AdvertisementPriceDto> getExtensionPrices(Long adId, Long memberId);
 	
 	// 기간 변경
     void updatePeriod(Long adId, LocalDateTime start, LocalDateTime end);
@@ -177,6 +179,14 @@ public interface AdvertisementService {
 	void sendReminderMail();
 
 	AdvertisementPaymentDto createInitialPayment(Long adId, Long memberId);
+
+	List<AdvertisementPriceDto> getInitialPrices(AdGrade adGrade);
+	
+	AdvertisementPaymentDto createExtensionPayment(
+	        Long adId,
+	        Long memberId,
+	        int days
+	);
 
 	// 스케쥴러 돌리는건 일단 주석처리함
 }

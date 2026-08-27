@@ -764,6 +764,30 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         );
     }
     
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdvertisementPriceDto> getInitialPrices(
+            AdGrade adGrade) {
+
+        List<AdvertisementPrice> priceList =
+                advertisementPriceRepository
+                        .findByPaymentTypeAndAdGradeOrderByPeriodDaysAsc(
+                                PaymentType.INITIAL,
+                                adGrade
+                        );
+
+        return priceList.stream()
+                .map(price -> AdvertisementPriceDto.builder()
+                        .priceId(price.getPriceId())
+                        .adGrade(price.getAdGrade())
+                        .periodDays(price.getPeriodDays())
+                        .paymentType(price.getPaymentType())
+                        .basePrice(price.getBasePrice())
+                        .build())
+                .toList();
+    }
+    
     // =========================================================
     // 결제 생성
     // =========================================================
@@ -914,10 +938,80 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
         return toPaymentDto(payment);
     }
+    
+    
+    @Override
+    @Transactional
+    public AdvertisementPaymentDto createExtensionPayment(
+            Long adId,
+            Long memberId,
+            int days) {
+    	
+    	// 광고주 본인의 광고인지 확인
+        Advertisement advertisement =
+                advertisementRepository
+                        .findByAdIdAndAdvertiser_Id(adId, memberId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
 
+        // 연장 가능 기간 검증
+        if (days != 7 &&
+            days != 14 &&
+            days != 30 &&
+            days != 60 &&
+            days != 90) {
+
+            throw new IllegalArgumentException(
+                    "지원하지 않는 연장 기간입니다."
+            );
+        }
+
+        // DB에서 연장 가격 조회
+        AdvertisementPrice price =
+                advertisementPriceRepository
+                        .findByPaymentTypeAndAdGradeAndPeriodDays(
+                                PaymentType.EXTENSION,
+                                advertisement.getAdGrade(),
+                                days
+                        )
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "해당 연장 기간의 가격을 찾을 수 없습니다."
+                                )
+                        );
+
+        BigDecimal amount = price.getBasePrice();
+
+        // 연장 결제 대기 상태
+        advertisement.waitForExtensionPayment();
+
+        // 결제 주문번호 생성
+        String orderId = "AD_EXT_" + adId + "_" + UUID.randomUUID();
+
+        AdvertisementPayment payment =
+                AdvertisementPayment.builder()
+                        .advertisement(advertisement)
+                        .advertiser(advertisement.getAdvertiser())
+                        .orderId(orderId)
+                        .baseAmount(amount)
+                        .positionAmount(BigDecimal.ZERO)
+                        .amount(amount)
+                        .paymentType(PaymentType.EXTENSION)
+                        .periodDays(days)
+                        .build();
+
+        advertisementPaymentRepository.save(payment);
+
+        return AdvertisementPaymentDto.from(payment);
+    }
+
+    // 연장 가격 조회
     @Override
     @Transactional(readOnly = true)
-    public List<AdvertisementPriceDto> getExtensionPrices(Long adId) {
+    public List<AdvertisementPriceDto> getExtensionPrices(Long adId, Long memberId) {
 
         Advertisement advertisement =
                 advertisementRepository.findById(adId)
@@ -926,6 +1020,12 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                                         "광고를 찾을 수 없습니다."
                                 )
                         );
+
+			    advertisementRepository
+			        .findByAdIdAndAdvertiser_Id(adId, memberId)
+			        .orElseThrow(() ->
+			            new IllegalArgumentException("본인의 광고만 조회할 수 있습니다.")
+			        );
 
         AdGrade adGrade = advertisement.getAdGrade();
 

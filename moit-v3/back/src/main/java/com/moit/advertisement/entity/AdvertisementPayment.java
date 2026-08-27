@@ -127,7 +127,7 @@ public class AdvertisementPayment {
 	 // 가격 변경 이후에도 과거 결제 내역에서 확인할 수 있도록 저장
 	 // MAIN / MEETUP_LIST_BANNER / MEETUP_LIST_SIDEBAR / MEETUP_DETAIL_SIDEBAR
 	 @Enumerated(EnumType.STRING)
-	 @Column(name = "POSITION", length = 30, nullable = false)
+	 @Column(name = "POSITION", length = 30)
 	 private AdPosition position;
 
 

@@ -29,4 +29,11 @@ public interface AdvertisementPriceRepository
             PaymentType paymentType,
             AdGrade adGrade
     );
+	
+	// 연장용 가격 조회
+    List<AdvertisementPrice> findByPaymentTypeAndAdGradeAndPeriodDaysGreaterThanEqualOrderByPeriodDaysAsc(
+            PaymentType paymentType,
+            AdGrade adGrade,
+            Integer periodDays
+    );
 }

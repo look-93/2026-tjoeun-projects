@@ -46,12 +46,18 @@ function AdvertiseExtensionModal({
           advertisement.adId
         );
 
+        const prices = response.data || [];
+
         console.log(
           '연장 가격 조회 결과:',
-          response.data
+          prices
         );
 
-        setPriceList(response.data || []);
+        setPriceList(prices);
+
+        if (prices.length > 0) {
+          setSelectedDays(prices[0].periodDays);
+        }
 
       } catch (error) {
 

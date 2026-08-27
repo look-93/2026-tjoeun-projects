@@ -156,8 +156,10 @@ public class SecurityConfig {
             // 제휴업체 광고
             // -------------------------------------------------
             .requestMatchers(
-            		"/user/advertisement/aiAdvertise", 
-            		"/api/admin/advertisement/price/**")
+            		"/api/advertisement/prices",
+            	    "/api/advertisement/*/extension-prices",
+            	    "/api/advertisement/**" 
+            )
             .hasRole("PARTNER")
 
             // -------------------------------------------------

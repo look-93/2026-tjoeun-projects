@@ -29,11 +29,13 @@ import org.springframework.web.server.ResponseStatusException;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
+import com.moit.advertisement.dto.AdvertisementPriceDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.PaymentConfirmRequestDto;
+import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.PaymentType;
-import com.moit.advertisement.repository.AdvertisementPaymentRepository;
+//import com.moit.advertisement.repository.AdvertisementPaymentRepository;
 import com.moit.advertisement.service.AdvertisementCalculationService;
 import com.moit.advertisement.service.AdvertisementService;
 import com.moit.advertisement.service.TossPaymentService;
@@ -56,7 +58,7 @@ public class AdvertisementController {
     private final AdvertisementService advertisementService;
     private final AdvertisementCalculationService calculationService;
     private final TossPaymentService tossPaymentService;
-    private final AdvertisementPaymentRepository advertisementPaymentRepository;
+//    private final AdvertisementPaymentRepository advertisementPaymentRepository;
 
     private static final String UPLOAD_PATH = "C:/upload/ad/";
     
@@ -331,6 +333,16 @@ public class AdvertisementController {
         return ResponseEntity.noContent().build();
     }
     
+    
+    @GetMapping("/prices")
+    public ResponseEntity<List<AdvertisementPriceDto>> getRegistrationPrices(
+            @RequestParam AdGrade adGrade) {
+
+        return ResponseEntity.ok(
+                advertisementService.getInitialPrices(adGrade)
+        );
+    }
+    
 	 // =========================================================
 	 // 최초 결제 생성
 	 // =========================================================
@@ -354,14 +366,46 @@ public class AdvertisementController {
 	     return ResponseEntity.ok(payment);
 	 }
 	 
-	 @GetMapping("/extension-prices")
-	 public ResponseEntity<?> getExtensionPrices(
-	         @RequestParam Long adId
-	 ) {
+	// =========================================================
+	// 광고 연장 결제 생성
+	// =========================================================
+	@Operation(
+	    summary = "광고 연장 결제 생성",
+	    description = "광고 연장 기간을 기준으로 결제 정보를 생성합니다."
+	)
+	@PostMapping("/payment/extension/{adId}")
+	public ResponseEntity<AdvertisementPaymentDto> createExtensionPayment(
+	        @PathVariable("adId") Long adId,
+	        @RequestParam("days") int days,
+	        Authentication authentication) {
 
-	     return ResponseEntity.ok(
-	             advertisementService.getExtensionPrices(adId)
-	     );
+	    Long memberId = getLoginMemberId(authentication);
+
+	    AdvertisementPaymentDto payment =
+	            advertisementService.createExtensionPayment(
+	                    adId,
+	                    memberId,
+	                    days
+	            );
+
+	    return ResponseEntity.ok(payment);
+	}
+	 
+	// 연장 가격 조회
+	 @GetMapping("/{adId}/extension-prices")
+	 public ResponseEntity<List<AdvertisementPriceDto>> getExtensionPrices(
+	         @PathVariable("adId") Long adId,
+	         Authentication authentication) {
+
+	     Long memberId = getLoginMemberId(authentication);
+
+	     List<AdvertisementPriceDto> priceList =
+	             advertisementService.getExtensionPrices(
+	                     adId,
+	                     memberId
+	             );
+
+	     return ResponseEntity.ok(priceList);
 	 }
     
     // =========================================================

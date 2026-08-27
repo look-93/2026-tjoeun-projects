@@ -50,13 +50,21 @@ export const createInitialPayment = (adId) => {
   );
 };
 
-// 연장 결제 요청
+// 연장 가격 조회
 export const getExtensionPrices = (adId) => {
   return axios.get(
-    `${API_URL}/extension-prices`,
+    `${API_URL}/${adId}/extension-prices`
+  );
+};
+
+// 연장 결제 정보 생성
+export const createExtensionPayment = (adId, days) => {
+  return axios.post(
+    `${API_URL}/payment/extension/${adId}`,
+    null,
     {
       params: {
-        adId,
+        days,
       },
     }
   );
