@@ -339,8 +339,14 @@ function ReportDetailPage() {
                             onClick={handleAiAnalysis}
                             loading={aiAnalysisLoading}
                             disabled={!reportId}
-                        >
-                            AI 판단 보조 요청
+                        >   
+                            {aiAnalysisLoading ? (
+                                <>
+                                    분석 중... ⏳
+                                </>
+                            ) : (
+                                "AI 판단 보조 요청"
+                            )}
                         </Button>
 
                         {/* AI가 분석해서 보내준 최종 결과 Error */}
@@ -403,9 +409,29 @@ function ReportDetailPage() {
                     {
                         currentReport.status === 'PENDING' && (
                             <Space>
-                                <Button type="primary" onClick={handleApproved}>승인</Button>
-                                <Button danger onClick={handleRejected}>반려</Button>
-                                <Button type="danger" onClick={handleDelete}>삭제</Button>
+                                <Button
+                                    type="primary"
+                                    onClick={handleApproved}
+                                    loading={adminUpdate.loading}
+                                >
+                                    승인
+                                </Button>
+
+                                <Button
+                                    danger
+                                    onClick={handleRejected}
+                                    loading={adminUpdate.loading}
+                                >
+                                    반려
+                                </Button>
+
+                                <Button
+                                    type="danger"
+                                    onClick={handleDelete}
+                                    loading={adminDelete.loading}
+                                >
+                                    삭제
+                                </Button>
                             </Space>
                         )
                     }

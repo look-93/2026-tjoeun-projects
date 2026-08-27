@@ -31,66 +31,68 @@ public class ReportAiContextService {
 				.orElseThrow(() -> new IllegalArgumentException("신고를 찾을 수 없습니다."));
 
 		// 신고 대상 원문 조회
+		String targetTitle;
 		String targetContent;
 
+		// 모임 원문 조회
 		if (report.getTargetType() == TargetType.MEETUP) {
-			targetContent = getMeetupContent(report.getTargetId());
+			Meetup meetup = meetupRepository.findById(report.getTargetId())
+					.orElseThrow(() -> new IllegalArgumentException("신고 대상 모임을 찾을 수 없습니다."));
 
+			targetTitle = meetup.getTitle();
+			targetContent = """
+					[신고 대상 모임]
+
+					내용:
+					%s
+
+					장소:
+					%s %s
+
+					모임 일시:
+					%s
+					
+					""".formatted(
+							meetup.getContent(),
+							meetup.getAddress(),
+							meetup.getAddressDetail(),
+							meetup.getMeetupAt()
+					);
+			
+		// 리뷰 원문 조회 -	조회수 안 올라감, 비공개 리뷰 차단 x
 		} else if (report.getTargetType() == TargetType.REVIEW) {
-			targetContent = getReviewContent(report.getTargetId());
+			Review review = reviewRepository.findById(report.getTargetId())
+					.orElseThrow(() -> new IllegalArgumentException("신고 대상 리뷰를 찾을 수 없습니다."));
+			
+			targetTitle = "리뷰";
+	        targetContent = """
+					[신고 대상 리뷰]
 
+					리뷰 내용:
+					%s
+
+					별점:
+					%s
+					
+					""".formatted(review.getContent(), review.getRating()
+			);
+			
+			
 		} else {
+			targetTitle = "확인 불가";
 			targetContent = "신고 대상 원문을 확인할 수 없습니다.";
 		}
 
 		// AI 분석용 객체 반환
 		return new ReportAiContext(
 				report.getReportId(),
-				report.getTargetType(),
-				report.getTargetId(),
 				report.getReasonCode(),
 				report.getReasonDetail(),
+				report.getTargetType(),
+				report.getTargetId(),
+				targetTitle,
 				targetContent
 		);
 	}
 
-	// 모임 원문 조회
-	private String getMeetupContent(Long meetupId) {
-		Meetup meetup = meetupRepository.findById(meetupId)
-				.orElseThrow(() -> new IllegalArgumentException("신고 대상 모임을 찾을 수 없습니다."));
-
-		return """
-				[신고 대상 모임]
-
-				제목:
-				%s
-
-				내용:
-				%s
-
-				장소:
-				%s %s
-
-				모임 일시:
-				%s
-				""".formatted(meetup.getTitle(), meetup.getContent(), meetup.getAddress(), meetup.getAddressDetail(),
-				meetup.getMeetupAt());
-	}
-
-	// 리뷰 원문 조회
-	// 조회수 안 올라감, 비공개 리뷰 차단 x
-	private String getReviewContent(Long reviewId) {
-		Review review = reviewRepository.findById(reviewId)
-				.orElseThrow(() -> new IllegalArgumentException("신고 대상 리뷰를 찾을 수 없습니다."));
-
-		return """
-				[신고 대상 리뷰]
-
-				리뷰 내용:
-				%s
-
-				별점:
-				%s
-				""".formatted(review.getContent(), review.getRating());
-	}
 }
