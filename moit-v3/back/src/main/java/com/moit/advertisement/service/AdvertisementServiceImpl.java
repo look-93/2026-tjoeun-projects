@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -217,10 +218,16 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             return List.of();
         }
 
-        List<Advertisement> advertisements =
-                advertisementRepository.findByAdvertiser_IdAndDeleteYn(advertiserId, 'N');
+        Pageable pageable = createPageable(dto);
 
-        return advertisements.stream()
+        return advertisementRepository
+                .searchMyAdvertisement(
+                        advertiserId,
+                        dto.getSearchText(),
+                        pageable
+                )
+                .getContent()
+                .stream()
                 .map(this::toDto)
                 .toList();
     }
@@ -236,7 +243,10 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             return 0;
         }
 
-        return (int) advertisementRepository.countByAdvertiser_IdAndDeleteYn(advertiserId, 'N');
+        return (int) advertisementRepository.countMyAdvertisement(
+                advertiserId,
+                dto.getSearchText()
+        );
     }
 
 
@@ -348,6 +358,9 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                     break;
                 case "date": 
                     sort = Sort.by(Sort.Direction.ASC, "createdAt"); // 결제 예정순 (오래된 순)
+                    break;
+                case "status":
+                    sort = Sort.by( Sort.Direction.ASC, "status" );
                     break;
             }
         }
@@ -494,6 +507,13 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                                         "광고를 찾을 수 없습니다."
                                 )
                         );
+        
+        // 결제 완료 후에는 광고 수정 불가
+        if (advertisement.getPaymentStatus() == PaymentStatus.PAID) {
+            throw new IllegalStateException(
+                    "결제가 완료된 광고는 수정할 수 없습니다."
+            );
+        }
 
         /*
          * Entity 내부 update 메서드를 이용한다.
@@ -663,23 +683,48 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                                     )
                             );
 
-            // 광고 승인
-            advertisement.approve(admin);
+        // 기존 결제 상태 확인
+        PaymentStatus paymentStatus = advertisement.getPaymentStatus();
+        
+        // 광고 승인
+        advertisement.approve(admin);
 
-            // 광고주 결제 요청 메일 발송
-            Member advertiser = advertisement.getAdvertiser();
+        // ==========================================
+        // 최초 승인 + 결제 전인 경우에만 메일 발송
+        // ==========================================
+        if (paymentStatus == PaymentStatus.WAITING) {
+
+            Member advertiser =
+                    advertisement.getAdvertiser();
 
             if (advertiser != null) {
 
-                String advertiserEmail = advertiser.getEmail();
+                String advertiserEmail =
+                        advertiser.getEmail();
 
-                AdvertisementDto adDto = toDto(advertisement);
+                AdvertisementDto adDto = new AdvertisementDto();
+
+                adDto.setAdId(advertisement.getAdId());
+                adDto.setTitle(advertisement.getTitle());
+                adDto.setStartDatetime(
+                        advertisement.getStartDatetime()
+                );
+                adDto.setEndDatetime(
+                        advertisement.getEndDatetime()
+                );
+
+                // 승인 시점에는 결제 내역이 없으므로
+                // 광고에 저장된 실제 광고 금액 사용
+                adDto.setPaymentAmount(
+                        advertisement.getTotalBudget()
+                );
 
                 mailService.sendAdvertisementPaymentRequestMail(
                         adDto,
                         advertiserEmail
                 );
-            }
+             }
+          }
 
             return 1;
         }
@@ -1507,6 +1552,115 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         
         // flush를 통해 DB에 즉시 반영 (선택사항이나 스케줄러 작업 시 권장)
         advertisementRepository.flush();
+    }
+    
+    
+    // =========================================================
+    // 광고 우선도(피로도) 자동 갱신 (스케줄러용)
+    // =========================================================
+    @Override
+    @Transactional
+    public int updatePriorityScore() {
+
+        List<Advertisement> advertisements =
+                advertisementRepository.findPriorityUpdateTargets();
+
+        int count = 0;
+
+        for (Advertisement advertisement : advertisements) {
+
+            int score = calculatePriorityScore(advertisement);
+
+            advertisement.updatePriorityScore(score);
+
+            count++;
+        }
+
+        return count;
+    }
+    
+    private int calculatePriorityScore(
+            Advertisement advertisement) {
+
+        int score;
+
+        // ==========================================
+        // 1. 광고 등급 기본 점수
+        // ==========================================
+
+        if (advertisement.getAdGrade() == AdGrade.PREMIUM) {
+            score = 7;
+        } else {
+            score = 3;
+        }
+
+
+        // ==========================================
+        // 2. CTR 보정
+        // ==========================================
+
+        long impressions =
+                advertisement.getImpressions() == null
+                        ? 0L
+                        : advertisement.getImpressions();
+
+        long clicks =
+                advertisement.getClicks() == null
+                        ? 0L
+                        : advertisement.getClicks();
+
+
+        double ctr = 0.0;
+
+        if (impressions > 0) {
+            ctr = (double) clicks / impressions * 100;
+        }
+
+
+        if (ctr >= 5.0) {
+            score += 2;
+        } else if (ctr >= 2.0) {
+            score += 1;
+        }
+
+
+        // ==========================================
+        // 3. 피로도 보정
+        // ==========================================
+
+        BigDecimal fatigue =
+                advertisement.getFatigueScore();
+
+        if (fatigue != null) {
+
+            double fatigueScore =
+                    fatigue.doubleValue();
+
+            if (fatigueScore >= 80) {
+                score -= 2;
+            } else if (fatigueScore >= 50) {
+                score -= 1;
+            }
+        }
+
+
+        // ==========================================
+        // 4. 등급별 범위 제한
+        // ==========================================
+
+        if (advertisement.getAdGrade() == AdGrade.PREMIUM) {
+
+            // PREMIUM : 5 ~ 10
+            score = Math.max(5, Math.min(score, 10));
+
+        } else {
+
+            // GENERAL : 1 ~ 6
+            score = Math.max(1, Math.min(score, 6));
+        }
+
+
+        return score;
     }
     
     // =========================================================

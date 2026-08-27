@@ -45,5 +45,4 @@ public interface MemberService {
     boolean existsByLoginId(String loginId);
     boolean existsByEmail(String email);
     boolean existsByNickname(String nickname);
-    boolean existsByMobile(String mobile);
 }

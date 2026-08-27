@@ -30,17 +30,18 @@ public class AdvertisementScheduler {
 
     // 5분마다 광고 우선도 갱신 실행 
 //    @Scheduled(cron = "0 */5 * * * *")
-//    public void updateAdvertisementPriority() {
-//
-//
-//        int count =
-//            advertisementService.updatePriorityScore();
-//
-//        System.out.println(
-//            "광고 우선도 갱신 : " + count
-//       );
-//
-//    }
+    @Scheduled(cron = "0 */30 * * * *")
+    public void updateAdvertisementPriority() {
+
+
+        int count =
+            advertisementService.updatePriorityScore();
+
+        System.out.println(
+            "광고 우선도 갱신 : " + count
+       );
+
+    }
     
     // 매일 새벽 1시  일일통계 저장
 //    @Scheduled(cron = "0 0 1 * * *")

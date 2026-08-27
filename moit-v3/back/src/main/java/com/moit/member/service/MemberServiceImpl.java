@@ -42,6 +42,7 @@ public class MemberServiceImpl implements MemberService{
 	private final PasswordLeakService passwordLeakService;
 	private final MemberReportStatusRepository memberReportStatusRepository;
 	private final VerificationService verificationService;
+	private final PhoneVerificationService phoneVerificationService;
 	
 	// 중복검사
 	@Override
@@ -55,17 +56,17 @@ public class MemberServiceImpl implements MemberService{
 	@Override
 	public boolean existsByNickname(String nickname) {
 		return memberRepository.existsByNickname(nickname);
-	}
-	@Override
-	public boolean existsByMobile(String mobile) {
-		return memberRepository.existsByMobile(mobile);
-	}
-	
+	}	
 	
 	// 회원가입
 	@Transactional
 	@Override
 	public UserDto signup(UserDto dto) {
+		
+		// 휴대폰 인증 여부 확인
+	    if (!phoneVerificationService.isPhoneVerified(dto.getMobile())) {
+	        throw new IllegalArgumentException("휴대폰 인증이 완료되지 않았습니다.");
+	    }
 		
 		//회원 유형 조회
 		MemberType memberType = memberTypeRepository.findById(dto.getMemberTypeId())
@@ -163,6 +164,9 @@ public class MemberServiceImpl implements MemberService{
 				memberInterestRepository.save(memberInterest);
 			}
 		}
+		
+		// 휴대폰 인증 완료 상태 삭제
+		phoneVerificationService.removePhoneVerified(dto.getMobile());
 		
 		// DTO에 반영
 		dto.setMemberId(member.getId());

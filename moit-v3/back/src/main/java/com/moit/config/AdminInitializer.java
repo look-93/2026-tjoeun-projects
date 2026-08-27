@@ -45,9 +45,14 @@ public class AdminInitializer implements CommandLineRunner {
 
         log.info("🔥 [AdminInit] 최고관리자 계정(admin) 초기 데이터를 생성합니다.");
 
-        MemberType superAdminType = memberTypeRepository.findById(MemberTypeEnum.ROLE_SUPERADMIN.getId())
-                .orElseThrow(() -> new RuntimeException("ROLE_SUPERADMIN 유형을 찾을 수 없습니다."));
-                
+        MemberType superAdminType = memberTypeRepository
+        	    .findByTypeName("ROLE_SUPERADMIN")
+        	    .orElseGet(() -> {
+        	        MemberType newType = new MemberType();
+        	        newType.setTypeName("ROLE_SUPERADMIN");
+
+        	        return memberTypeRepository.save(newType);
+        	    });               
         MemberStatus activeStatus = memberStatusRepository.findById(MemberStatusEnum.ACTIVE.getId()) // 상태 Enum명 확인 필요
                 .orElseThrow(() -> new RuntimeException("ACTIVE 회원 상태를 찾을 수 없습니다."));
 

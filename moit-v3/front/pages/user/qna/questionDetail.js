@@ -358,6 +358,42 @@ function questionDetail() {
           </Paragraph>
         </Card>
 
+        {/* =================================================
+            첨부파일
+        ================================================= */}
+        {qna?.images && qna.images.length > 0 && (
+          <>
+            <Divider />
+
+            <Title level={5}>
+              첨부파일
+            </Title>
+
+            <div style={{ marginTop: 12 }}>
+              {qna.images.map((image) => (
+                <div
+                  key={image.imageId}
+                  style={{
+                    padding: '10px 12px',
+                    border: '1px solid #eee',
+                    borderRadius: 6,
+                    marginBottom: 8,
+                  }}
+                >
+                  📎{' '}
+                  <a
+                    href={`http://localhost:8080${image.imagePath}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {image.originalName}
+                  </a>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
       </Card>
 
       <Card

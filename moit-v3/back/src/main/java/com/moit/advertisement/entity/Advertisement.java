@@ -391,4 +391,7 @@ public class Advertisement extends BaseEntity{
         this.totalBudget = totalBudget;
     }
 
+    public void updatePriorityScore(Integer priorityScore) {
+        this.priorityScore = priorityScore;
+    }
 }

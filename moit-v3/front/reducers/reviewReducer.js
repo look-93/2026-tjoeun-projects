@@ -9,7 +9,9 @@ const initialState = {
     totalPage: 0,
     analysisResult: "",
     // --댓글 관련 상태--
+    commentLoading: false, 
     comments: [],      // 댓글 목록
+    commentsMap:{},
     commentLoadingMap: {},
     commentError: null,
 
@@ -187,19 +189,58 @@ const reviewReducer = createSlice({
             }
         },
 
-        // 댓글 목록 조회
-        getCommentsRequest: (state) => {
+        
+        
+        // 댓글 목록 조회 요청
+        // --댓글 목록 조회 요청--
+        getCommentsRequest: (state, action) => {
+            const reviewId = action.payload?.reviewId || action.payload; // 객체든 숫자/문자든 방어
+            if (!state.commentLoadingMap) state.commentLoadingMap = {};
+            if (reviewId !== undefined && reviewId !== null) {
+                state.commentLoadingMap[reviewId] = true;
+            }
             state.commentLoading = true;
             state.commentError = null;
         },
-        getCommentsSuccess: (state, action) => {           
-            const { reviewId, comments } = action.payload;
-            state.commentLoadingMap[reviewId] = false;
-            state.commentsMap[reviewId] = comments || [];
+        getCommentsSuccess: (state, action) => {          
+            const payload = action.payload || {};
+            const reviewId = payload.reviewId;
+            const comments = payload.comments;
+
+            if (!state.commentsMap) state.commentsMap = {};
+            if (!state.commentLoadingMap) state.commentLoadingMap = {};
+
+            if (reviewId !== undefined && reviewId !== null) {
+                state.commentLoadingMap[reviewId] = false; // 해당 리뷰 로딩 종료
+                state.commentsMap[reviewId] = comments || [];
+            }
+            state.commentLoading = false;
         },
-        getCommentsFailure: (state, action) => {           
+        getCommentsFailure: (state, action) => {          
+            state.commentLoading = false;
             state.commentError = action.payload;
+            
+            // ✅ [수정] 실패 시 특정 reviewId를 특정하기 어렵다면, 
+            // commentLoadingMap의 모든 값을 false로 만들거나 안전하게 닫아줍니다.
+            if (state.commentLoadingMap) {
+                Object.keys(state.commentLoadingMap).forEach((key) => {
+                    state.commentLoadingMap[key] = false;
+                });
+            }
         },
+
+        // getCommentsRequest: (state) => {
+        //     state.commentLoading = true;
+        //     state.commentError = null;
+        // },
+        // getCommentsSuccess: (state, action) => {           
+        //     const { reviewId, comments } = action.payload;
+        //     state.commentLoadingMap[reviewId] = false;
+        //     state.commentsMap[reviewId] = comments || [];
+        // },
+        // getCommentsFailure: (state, action) => {           
+        //     state.commentError = action.payload;
+        // },
 
         // 댓글 작성
         createCommentRequest: (state) => {
