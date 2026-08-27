@@ -38,6 +38,8 @@ function questionDetail() {
 
   const [selectedRating, setSelectedRating] = useState(null);
   const [satisfactionComment, setSatisfactionComment] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isAnswerDeleting, setIsAnswerDeleting] = useState(false);
 
   // 상세 조회
   useEffect(() => {
@@ -57,19 +59,21 @@ function questionDetail() {
   
   // 삭제 성공 시 알림 후 목록 이동
   useEffect(() => {
-    if (!deleteSuccess) return;
+    if (!isDeleting || !deleteSuccess) return;
 
     alert('문의가 삭제되었습니다.');
+    setIsDeleting(false);
     router.push('/user/mypage/question');
-  }, [deleteSuccess, router]);
+  }, [isDeleting, deleteSuccess, router]);
 
   // 답변 삭제 성공
   useEffect(() => {
-    if (!answerDeleteSuccess) return;
+    if (!isAnswerDeleting || !answerDeleteSuccess) return;
 
     alert('답변이 삭제되었습니다.');
+    setIsAnswerDeleting(false);
     dispatch(qnaDetailRequest(Number(questionId)));
-  }, [answerDeleteSuccess, questionId, dispatch]);
+  }, [isAnswerDeleting, answerDeleteSuccess, questionId, dispatch]);
 
   useEffect(() => {
     if (error) { 
@@ -178,7 +182,7 @@ function questionDetail() {
   const handleDelete = () => {
     if (!questionId) return;
     if (!window.confirm('문의를 삭제하시겠습니까?')) return;
-
+    setIsDeleting(true);
     dispatch(
       qnaDeleteRequest(Number(questionId))
     );
@@ -187,7 +191,7 @@ function questionDetail() {
   const handleAnswerDelete = () => {
     if (!qna?.questionId || !answer.answerId) return;
     if (!window.confirm('답변을 삭제하시겠습니까?')) return;
-
+    setIsAnswerDeleting(true);
     dispatch(
       qnaAnswerDeleteRequest({
         questionId: Number(qna.questionId),

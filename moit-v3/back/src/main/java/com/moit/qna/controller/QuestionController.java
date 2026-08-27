@@ -220,8 +220,8 @@ public class QuestionController {
 
     // 문의 수정 화면 이동
     @Operation(summary = "문의 수정", description = "문의를 수정합니다.")
-    @PutMapping("/{questionId}")
-    public ResponseEntity<Void> edit(@PathVariable("questionId") Long questionId, @RequestBody QuestionRequestDto dto, Authentication authentication) {
+    @PutMapping(value = "/{questionId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> edit(@PathVariable("questionId") Long questionId, @ModelAttribute QuestionRequestDto dto, Authentication authentication) {
         QuestionResponseDto question = questionService.getDetail(questionId);
         // 작성자 또는 관리자 권한 확인
         if (!canEdit(question, authentication)) {

@@ -1,4 +1,4 @@
-package com.moit.qna.entity;
+package com.moit.qna.enums;
 
 public enum IsPublic {
 	Y,

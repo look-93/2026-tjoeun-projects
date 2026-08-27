@@ -42,8 +42,14 @@ public interface QuestionMapper {
     // 문의 수정
     void updateQuestion(QuestionRequestDto dto);
 
+    // 문의 수정시 기존 이미지 선택 삭제
+    void deleteQuestionImagesByIds(List<Long> imageIds);
+    
     // 문의 삭제
     void deleteQuestion(Long questionId);
+    
+    // 이미지도 같이 삭제
+    void deleteQuestionImages(Long questionId);
 
     // 검색
     List<QuestionResponseDto> findBySearch(QuestionSearchDto dto);
