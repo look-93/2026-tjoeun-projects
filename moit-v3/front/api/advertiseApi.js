@@ -49,3 +49,46 @@ export const createInitialPayment = (adId) => {
     `${API_URL}/payment/initial/${adId}`
   );
 };
+
+// 연장 결제 요청
+export const getExtensionPrices = (adId) => {
+  return axios.get(
+    `${API_URL}/extension-prices`,
+    {
+      params: {
+        adId,
+      },
+    }
+  );
+};
+
+// 메인/위치별 광고 조회
+export const getTopAdvertisement = (position) => {
+    return axios.get(`${API_URL}/top`, {
+        params: {
+            position,
+        },
+    });
+};
+
+
+// 광고 노출수 증가
+export const increaseAdvertisementImpression = (adId, position) => {
+    return axios.post(`${API_URL}/impression`, null, {
+        params: {
+            adId,
+            position,
+        },
+    });
+};
+
+
+// 광고 클릭수 증가
+export const increaseAdvertisementClick = (adId, position) => {
+    return axios.post(`${API_URL}/click`, null, {
+        params: {
+            adId,
+            position,
+        },
+    });
+};

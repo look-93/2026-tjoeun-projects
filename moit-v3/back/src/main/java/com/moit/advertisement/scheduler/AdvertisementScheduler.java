@@ -54,12 +54,12 @@ public class AdvertisementScheduler {
     
     // 매일 오전 9시 광고기간 만료 30/14일자 발송
 //    @Scheduled(cron = "0 0 9 * * *")
-//    @Scheduled(cron = "0 */1 * * * *")
-//    public void advertisementReminder() {
-//    	System.out.println("스케줄러 실행");
-//        advertisementService.sendReminderMail();
-//
-//    }
+    @Scheduled(cron = "0 */1 * * * *")
+    public void advertisementReminder() {
+    	System.out.println("만료 메일 스케줄러 실행");
+        advertisementService.sendReminderMail();
+
+    }
     // 3시간마다 통계 ai 요약 저장
 //    @Scheduled(cron = "0 0 */3 * * *")
 ////    @Scheduled(cron = "0 */1 * * * *")

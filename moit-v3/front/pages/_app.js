@@ -8,6 +8,7 @@ import UserLayout from "../components/layout/UserLayout"; // 공통레이아웃
 import AdminLayout from "../components/layout/AdminLayout"; // 공통레이아웃
 import "antd/dist/antd.css"; // ant 디자인
 import "../styles/global.css"; // 전역 css
+import "../styles/AdBanner.css"; // 광고 배너 css
 import "bootstrap/dist/css/bootstrap.min.css"; // bootstrap css
 import { useDispatch, useSelector } from "react-redux";
 

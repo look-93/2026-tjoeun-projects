@@ -62,11 +62,9 @@ public class AdvertisementCalculationServiceImpl implements AdvertisementCalcula
         }
 
         // 기간 계산
-        long diffHours =
-                Duration.between(startDatetime, endDatetime).toHours();
+        long diffMinutes = Duration.between(startDatetime, endDatetime).toMinutes();
 
-        int totalDays =
-                (int) Math.ceil((double) diffHours / 24.0);
+        int totalDays = (int) Math.ceil((double) diffMinutes / (24 * 60.0));
 
         if (totalDays <= 0) {
             return AdvertisementCalculationResultDto.builder()
@@ -158,9 +156,8 @@ public class AdvertisementCalculationServiceImpl implements AdvertisementCalcula
             return 0;
         }
 
-        long diffHours =
-                Duration.between(startDatetime, endDatetime).toHours();
+        long diffMinutes = Duration.between(startDatetime, endDatetime).toMinutes();
 
-        return (int) Math.ceil((double) diffHours / 24.0);
+        return (int) Math.ceil( (double) diffMinutes / (24 * 60.0) );
     }
 }
