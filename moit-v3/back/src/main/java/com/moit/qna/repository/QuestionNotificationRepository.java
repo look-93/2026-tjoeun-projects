@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.moit.qna.entity.IsRead;
 import com.moit.qna.entity.QuestionNotification;
+import com.moit.qna.enums.IsRead;
 
 public interface QuestionNotificationRepository extends JpaRepository<QuestionNotification, Long> {
 
