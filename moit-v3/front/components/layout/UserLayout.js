@@ -11,6 +11,7 @@ import MyPageSidebar from './MyPageSidebar';
 
 import {
   getMyPageRequest,
+  getPointHistoryRequest,
 } from '../../reducers/userReducer';
 
 const { Content } = Layout;
@@ -24,8 +25,14 @@ function UserLayout({ children }) {
   // Redux 회원정보
   const user = useSelector((state) => state.user?.user);
 
+  // Redux 보유 포인트
+  const point = useSelector((state) => state.user?.point ?? 0);
+
   useEffect(() => {
-    if (isMypage) {dispatch(getMyPageRequest());}
+    if (isMypage) {
+      dispatch(getMyPageRequest());
+      dispatch(getPointHistoryRequest());
+    }
   }, [isMypage, dispatch]);
 
   return (
@@ -36,7 +43,7 @@ function UserLayout({ children }) {
       {isMypage ? (
         <>
           {/* 마이페이지 프로필 */}
-          <MypageHeader user={user} />
+          <MypageHeader user={user} point={point}/>
 
           <Layout className="mypage-body">
 

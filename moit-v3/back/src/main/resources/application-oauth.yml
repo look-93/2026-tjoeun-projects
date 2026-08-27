@@ -59,8 +59,8 @@ kma:
 vworld:
   api:
     key: ${VWORLD_API_KEY}
-
 naver:
   host: ${NAVER_HOST}
   user: ${NAVER_USER}
   password: ${NAVER_PASSWORD}		
+

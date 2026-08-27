@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
-import dayjs from "dayjs";
+import moment from "moment";
 import {
     Button,
     Card,
@@ -113,7 +113,7 @@ function write() {
             ny: meetup.ny,
             latitude: meetup.latitude,
             longitude: meetup.longitude,
-            meetupAt: meetup.meetupAt ? dayjs(meetup.meetupAt) : null,
+            meetupAt: meetup.meetupAt ? moment(meetup.meetupAt) : null,
         });
 
         setSelectedAddress({

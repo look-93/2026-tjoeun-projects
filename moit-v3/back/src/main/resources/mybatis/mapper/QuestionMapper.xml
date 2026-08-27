@@ -134,7 +134,7 @@
 	      AND delete_yn = 'N'
 	</select>
 
-	<!-- 상세보기 -->
+	<!-- 상세보기 조회 -->
 	<select id="findById" parameterType="long" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto">
 	    SELECT q.*,
 	        NVL(qa.analysis_status, 'NORMAL') AS analysis_status,
@@ -218,11 +218,13 @@
 	    ORDER BY image_id ASC
 	</select>
 	
-	<!-- 문의 이미지 논리 삭제 -->
-	<update id="deleteQuestionImage" parameterType="long">
+	<!-- 문의 삭제 시 첨부파일 논리삭제 -->
+	<update id="deleteQuestionImages" parameterType="long">
 	    UPDATE question_images
-	    SET delete_yn = 'Y'
-	    WHERE image_id = #{imageId}
+	    SET delete_yn = 'Y',
+	        updated_at = CURRENT_TIMESTAMP
+	    WHERE question_id = #{questionId}
+	      AND delete_yn = 'N'
 	</update>
 
 	<!-- 답변 달리면 상태 변경 -->
@@ -238,8 +240,21 @@
 		SET
 		title = #{title},
 		content = #{content},
-		is_public = #{isPublic}
+		is_public = #{isPublic},
+        updated_at = CURRENT_TIMESTAMP
 		WHERE question_id = #{questionId}
+	</update>
+
+	<!-- 문의 수정시 선택한 기존 이미지 논리삭제 -->
+	<update id="deleteQuestionImagesByIds">
+	    UPDATE question_images
+	    SET delete_yn = 'Y',
+	        updated_at = CURRENT_TIMESTAMP
+	    WHERE image_id IN
+	    <foreach collection="list" item="imageId" open="(" separator="," close=")">
+	        #{imageId}
+	    </foreach>
+	    AND delete_yn = 'N'
 	</update>
 
 	<!-- 문의 삭제 (논리삭제) -->

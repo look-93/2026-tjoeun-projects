@@ -1,11 +1,13 @@
 import React from "react";
 import { Avatar, Tag } from "antd";
-import api from '../../api/axios';
 
-function MypageHeader({ user }) {
+function MypageHeader({ user, point = 0 }) {
 
     console.log("===== MYPAGE HEADER USER =====");
     console.log(user);
+
+    console.log("===== MYPAGE HEADER POINT =====");
+    console.log(point);
 
     const getMemberType = (memberTypeId) => {
         switch (Number(memberTypeId)) {
@@ -27,37 +29,42 @@ function MypageHeader({ user }) {
     };
 
     const getProfileImageUrl = (profileUrl) => {
+
         if (!profileUrl) {
             return "/images/moit.png";
         }
 
-        // 기본 프로필 이미지
         if (profileUrl === "/images/moit.png") {
             return "/images/moit.png";
         }
 
-        // 이미 전체 URL이면 그대로 사용
         if (profileUrl.startsWith("http")) {
             return profileUrl;
         }
 
-        // Spring Boot에서 제공하는 업로드 이미지
         return `${process.env.NEXT_PUBLIC_API_BASE_URL}${profileUrl}`;
     };
 
     return (
         <div className="mypage-profile-card">
 
-            {/* 프로필 이미지 */}
-            <Avatar
-                size={64}
-                src={getProfileImageUrl(user?.profileUrl)}
-            >
-                {!user?.profileUrl &&
-                    user?.nickname?.charAt(0)}
-            </Avatar>
+            {/* =========================
+                프로필 이미지
+            ========================= */}
+            <div className="mypage-profile-image">
+                <Avatar
+                    size={72}
+                    src={getProfileImageUrl(user?.profileUrl)}
+                >
+                    {!user?.profileUrl &&
+                        user?.nickname?.charAt(0)}
+                </Avatar>
+            </div>
 
-            {/* 회원 정보 */}
+
+            {/* =========================
+                회원 정보
+            ========================= */}
             <div className="mypage-profile-info">
 
                 {/* 닉네임 */}
@@ -74,6 +81,23 @@ function MypageHeader({ user }) {
                 <Tag>
                     {getMemberType(user?.memberTypeId)}
                 </Tag>
+
+            </div>
+
+
+            {/* =========================
+                포인트
+            ========================= */}
+            <div className="mypage-profile-point">
+
+                <span className="mypage-point-label">
+                    보유 포인트
+                </span>
+
+                <strong>
+                    {Number(point || 0).toLocaleString()}
+                    <span> P</span>
+                </strong>
 
             </div>
 

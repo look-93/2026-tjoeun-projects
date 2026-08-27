@@ -1,15 +1,9 @@
 package com.moit.meetup.scheduler;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.moit.common.dto.WeatherInfoRequest;
-import com.moit.common.dto.WeatherInfoResponse;
-import com.moit.common.service.OpenApiService;
+import com.moit.meetup.service.MeetupService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,31 +11,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MeetupScheduler {
 	
-	private final OpenApiService openApiService;
-	//private final MeetupService1 meetupService;
+	private final MeetupService meetupService;
 	
-    // 5분마다 광고 우선도 갱신 실행 
-	@Scheduled(cron = "0 0 * * * *")
-    public void sendKakaoWeatherInfo() {
-//		List<MeetupDto1> list =  meetupService.selectMeetupsBeforeTwoHours();
-//		
-//		for(MeetupDto1 dto : list) {
-//			WeatherInfoRequest request  = new WeatherInfoRequest();
-//			DateTimeFormatter inputFormatter =
-//			        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-//			LocalDateTime dateTime = LocalDateTime.parse(dto.getMeetupAt(), inputFormatter);
-//			request.setMeetupDate(dateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-//			request.setMeetupTime(dateTime.getHour());
-//			request.setNx(request.getNx());
-//			request.setNy(request.getNy());
-//			WeatherInfoResponse response = openApiService.getWeathreInfo(request);
-//			MeetupWeatherNotificationDto notiDto = new MeetupWeatherNotificationDto();
-//			notiDto.setMeetupId(dto.getMeetupId());
-//			notiDto.setMemberId(dto.getMemberId());
-//			notiDto.setMobile(dto.getMobile());
-//			notiDto.setSendStatus("SENT");
-//			meetupService.insertNotification(notiDto);
-//		}
-
+	//@Scheduled(cron = "0 * * * * *")   // 테스트용 1분마다
+    //@Scheduled(cron = "0 0 18 * * *", zone = "Asia/Seoul")  // 오후 6시 문자알림발송
+    public void sendWeatherNotification() {
+		System.out.println(" sms 알림 스케줄러 실행");
+    	meetupService.sendTomorrowWeatherNotification();
     }
+
 }

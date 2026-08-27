@@ -50,13 +50,15 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 	@Query("""
 		    SELECT m
 		    FROM Meetup m
-			LEFT JOIN MeetupBoost mb ON mb.meetup = m AND mb.createdAt = (
-													        SELECT MAX(mb2.createdAt)
-													        FROM MeetupBoost mb2
-													        WHERE mb2.meetup = m
-														    ) 
-												      AND mb.startDate <= CURRENT_DATE
-													  AND mb.endDate >= CURRENT_DATE	
+			LEFT JOIN MeetupBoost mb ON mb.meetup = m AND mb.startDate <= CURRENT_DATE
+													  AND mb.endDate >= CURRENT_DATE
+													  AND mb.createdAt = (
+													    SELECT MAX(mb2.createdAt)
+													    FROM MeetupBoost mb2
+													    WHERE mb2.meetup = m
+													      AND mb2.startDate <= CURRENT_DATE
+													      AND mb2.endDate >= CURRENT_DATE
+													  )	
 														    
 		    WHERE m.deleteYn = :deleteYn
 
@@ -107,10 +109,8 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 			        ELSE 1
 			    END ASC,
 			
-			    CASE
-			        WHEN mb.createdAt IS NOT NULL THEN mb.createdAt
-			        ELSE m.createdAt
-			    END DESC,
+			    mb.createdAt DESC,
+			    m.createdAt DESC,
 				  
 				CASE
 				    WHEN :orderType = 'createAt'
@@ -253,6 +253,17 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 		        @Param("meetupId") Long meetupId,
 		        Pageable pageable
 		);
-
-
+	
+	// 내일 진행예정인 모임 조회
+	@Query("""
+			SELECT m
+			FROM Meetup m
+			WHERE m.meetupAt >= :start
+			  AND m.meetupAt < :end
+			  AND m.meetupStatus = 'RECRUITING'
+	""")
+	List<Meetup> findTomorrowMeetups(
+		    @Param("start") LocalDateTime start,
+		    @Param("end") LocalDateTime end
+		);
 }

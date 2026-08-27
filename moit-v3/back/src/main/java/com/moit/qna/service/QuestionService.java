@@ -135,15 +135,78 @@ public class QuestionService {
     }
 
     // 문의 수정
+    @Transactional
     public void updateQuestion(QuestionRequestDto dto) {
-    	String status = questionMapper.findStatusByQuestionId(dto.getQuestionId());
+        String status = questionMapper.findStatusByQuestionId(dto.getQuestionId());
+        if ("ANSWERED".equals(status)) {
+            throw new IllegalStateException("답변이 등록된 문의는 수정할 수 없습니다.");
+        }
 
-        if ("ANSWERED".equals(status)) { throw new IllegalStateException("답변이 등록된 문의는 수정할 수 없습니다."); }
+        // 문의 내용 수정
         questionMapper.updateQuestion(dto);
+        // 기존 이미지 삭제
+        if (dto.getDeleteImageIds() != null && !dto.getDeleteImageIds().isEmpty()) {
+            questionMapper.deleteQuestionImagesByIds(dto.getDeleteImageIds());
+        }
+        // 새 이미지 저장
+        if (dto.getImages() != null && !dto.getImages().isEmpty()) {
+            Path uploadPath = Paths.get("uploads/qna").toAbsolutePath();
+            try {
+                Files.createDirectories(uploadPath);
+                for (MultipartFile file : dto.getImages()) {
+                    if (file == null || file.isEmpty()) continue;
+
+                    String originalName = file.getOriginalFilename();
+                    String extension = "";
+
+                    if (originalName != null && originalName.contains(".")) {
+                        extension = originalName.substring(originalName.lastIndexOf("."));
+                    }
+
+                    String storedName = UUID.randomUUID() + extension;
+                    Path filePath = uploadPath.resolve(storedName);
+
+                    file.transferTo(filePath.toFile());
+
+                    QuestionImageDto image = new QuestionImageDto();
+                    image.setQuestionId(dto.getQuestionId());
+                    image.setOriginalName(originalName);
+                    image.setStoredName(storedName);
+                    image.setImagePath("/images/qna/" + storedName);
+                    image.setImageSize(file.getSize());
+                    image.setContentType(file.getContentType());
+
+                    questionMapper.insertQuestionImage(image);
+                }
+            } catch (IOException e) {
+                throw new IllegalStateException("문의 이미지 저장에 실패했습니다.", e);
+            }
+        }
     }
 
     // 문의 삭제
+    @Transactional
     public void deleteQuestion(Long questionId) {
+        // 1. 해당 문의의 첨부파일 조회
+        List<QuestionImageDto> images = questionMapper.findQuestionImages(questionId);
+        // 2. 실제 파일 삭제
+        if (images != null) {
+            Path uploadPath = Paths.get("uploads/qna").toAbsolutePath();
+            for (QuestionImageDto image : images) {
+                if (image.getStoredName() == null) {continue;}
+                Path filePath = uploadPath.resolve(image.getStoredName());
+                try {
+                    Files.deleteIfExists(filePath);
+                } catch (IOException e) {
+                    throw new IllegalStateException(
+                            "문의 첨부파일 삭제에 실패했습니다.", e
+                    );
+                }
+            }
+        }
+        // 3. 첨부파일 DB 삭제
+        questionMapper.deleteQuestionImages(questionId);
+        // 4. 문의 삭제
         questionMapper.deleteQuestion(questionId);
     }
 

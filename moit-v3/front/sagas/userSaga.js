@@ -26,6 +26,8 @@ import {
     deleteAllLoginDevicesRequest,deleteAllLoginDevicesSuccess,deleteAllLoginDevicesFailure,resetDeleteAllLoginDevices,  
     mobileSendRequest,mobileSendSuccess, mobileSendFailure,mobileVerifyRequest,
     mobileVerifySuccess,mobileVerifyFailure,resetMobileVerification,
+    getPointHistoryRequest,getPointHistorySuccess,getPointHistoryFailure,resetPointHistory,
+    checkAttendanceRequest,checkAttendanceSuccess,checkAttendanceFailure,resetAttendance,
 } from '../reducers/userReducer';
 
 
@@ -247,6 +249,21 @@ function deleteAllLoginDevicesApi() {
     );
 }
 
+// =========================
+// 포인트 내역 조회 API
+// =========================
+function getPointHistoryApi() {
+    return api.get("/api/members/me/point/history");
+}
+
+// =========================
+// 출석체크 API
+// =========================
+function checkAttendanceApi() {
+    return api.post("/api/members/me/point/attendance");
+}
+
+
 ////////////////////////////////////////////////////
 
 // =========================
@@ -285,6 +302,9 @@ function* login(action){
         }
 
         yield put(loginSuccess(response.data));
+
+        yield put(getMyInfoRequest());
+        
     } catch(err){ 
         console.error("로그인 실패:",err); 
 
@@ -537,7 +557,13 @@ function* emailVerify(action){
 
         yield put(emailVerifySuccess());
     }catch(err){       
-        yield put(emailVerifyFailure(err.response?.data?.message || err.message));
+        const errorMessage =
+            err.response?.data ||
+            "인증번호가 일치하지 않거나 만료되었습니다.";
+
+        console.log("이메일 인증 실패:", errorMessage);
+
+        yield put(emailVerifyFailure(errorMessage));
     }
 }
 
@@ -1053,6 +1079,60 @@ function* deleteAccount(action) {
     }
 }
 
+// =========================
+// 포인트 내역 조회
+// =========================
+function* getPointHistorySaga() {
+
+    try {
+        console.log("===== 포인트 내역 조회 START =====");
+
+        const response = yield call(getPointHistoryApi);
+
+        console.log("===== 포인트 내역 조회 SUCCESS =====");
+        console.log("status:", response.status);
+        console.log("data:", response.data);
+
+        yield put(getPointHistorySuccess(response.data) );
+
+    } catch (error) {
+
+        console.error("===== 포인트 내역 조회 FAILURE =====");
+        console.error(error);
+
+        yield put(getPointHistoryFailure(error.response?.data?.message || "포인트 내역을 불러오지 못했습니다."));
+    }
+}
+
+// =========================
+// 출석체크
+// =========================
+function* checkAttendanceSaga() {
+
+    try {
+        console.log("===== 출석체크 START =====");
+
+        const response = yield call(checkAttendanceApi);
+
+        console.log("===== 출석체크 SUCCESS =====");
+        console.log("status:", response.status);
+        console.log("data:", response.data);
+
+        yield put(checkAttendanceSuccess(response.data));
+
+    } catch (error) {
+
+        console.error("===== 출석체크 FAILURE =====");
+        console.error(error);
+        console.error("status:", error.response?.status);
+        console.error("data:", error.response?.data);
+        console.error("message:", error.response?.data?.message);
+
+        yield put(checkAttendanceFailure(error.response?.data?.message || "출석체크에 실패했습니다.") );
+    }
+}
+
+
 export default function* userSaga(){
 
     console.log("===== USER SAGA STARTED =====");
@@ -1084,5 +1164,7 @@ export default function* userSaga(){
         takeLatest(deleteAllLoginDevicesRequest.type,deleteAllLoginDevicesSaga),
         takeLatest(mobileSendRequest.type, mobileSend),
         takeLatest(mobileVerifyRequest.type, mobileVerify),
+        takeLatest(getPointHistoryRequest.type,getPointHistorySaga),
+        takeLatest(checkAttendanceRequest.type, checkAttendanceSaga),
     ]);
 }
