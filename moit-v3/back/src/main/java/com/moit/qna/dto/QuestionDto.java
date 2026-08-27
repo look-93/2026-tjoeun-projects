@@ -64,21 +64,6 @@ public class QuestionDto {
         private String aiCategory;
     }
     
-    // 문의 이미지 응답 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class QuestionImageDto {
-        private Long imageId;
-        private Long questionId;
-        private String originalName;
-        private String storedName;
-        private String imagePath;
-        private Long imageSize;
-        private String contentType;
-        private String deleteYn;
-        private Timestamp createdAt;
-        private Timestamp updatedAt;
-    }
-    
     // 관리자 문의 목록 응답 DTO
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class QuestionAdminResponseDto {

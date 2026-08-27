@@ -8,9 +8,7 @@ import com.moit.qna.entity.QuestionAiAnalysis;
 import jakarta.transaction.Transactional;
 
 public interface QuestionAiAnalysisRepository extends JpaRepository<QuestionAiAnalysis, Long> {
-
     @Modifying
-    @Transactional
     @Query("""
         UPDATE QuestionAiAnalysis q
         SET q.analysisStatus = 'NORMAL'
