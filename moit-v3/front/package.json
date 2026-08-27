@@ -39,6 +39,7 @@
     "react-infinite-scroll-component": "^6.1.1",
     "react-redux": "^8.0.5",
     "react-slick": "^0.28.1",
+    "recharts": "^3.10.1",
     "redux": "^4.0.5",
     "redux-devtools-extension": "^2.13.8",
     "redux-saga": "^1.1.3",

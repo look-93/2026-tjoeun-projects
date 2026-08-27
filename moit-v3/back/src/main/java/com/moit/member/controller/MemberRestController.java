@@ -24,6 +24,7 @@ import com.moit.member.dto.LoginHistoryResponseDto;
 import com.moit.member.dto.LoginRequestDto;
 import com.moit.member.dto.LoginResponseDto;
 import com.moit.member.dto.MyPageDto;
+import com.moit.member.dto.PointHistoryDto;
 import com.moit.member.dto.RefreshRequestDto;
 import com.moit.member.dto.RefreshResponseDto;
 import com.moit.member.dto.ResetPasswordDto;
@@ -31,9 +32,11 @@ import com.moit.member.dto.UserDto;
 import com.moit.member.dto.UserRequestDto;
 import com.moit.member.dto.UserResponseDto;
 import com.moit.member.dto.UserUpdateRequestDto;
+import com.moit.member.entity.PointHistory;
 import com.moit.member.service.LoginDeviceService;
 import com.moit.member.service.LoginHistoryService;
 import com.moit.member.service.MemberService;
+import com.moit.member.service.PointService;
 import com.moit.member.service.VerificationService;
 import com.moit.security.CustomUserDetails;
 import com.moit.security.JwtTokenProvider;
@@ -66,6 +69,8 @@ public class MemberRestController {
 	private final VerificationService verificationService;
 	private final LoginHistoryService loginHistoryService;
 	private final LoginDeviceService loginDeviceService;
+	private final PointService pointService;
+	
 	
 	//회원가입
 	@Operation( summary = "회원가입", description = "새로운 회원을 등록합니다." )
@@ -869,6 +874,115 @@ public class MemberRestController {
     	loginDeviceService.deleteAllLoginDevices(memberId);
     	
     	return ResponseEntity.noContent().build();   	
+    }
+    
+    // 포인트
+    @Operation(
+            summary = "현재 보유 포인트 조회",
+            description = "현재 로그인한 회원의 보유 포인트를 조회합니다."
+    )
+    @GetMapping("/me/point")
+    public ResponseEntity<Integer> getMyPoint( Authentication authentication) {
+
+        // 1. JWT 인증 정보에서 회원 ID 가져오기
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        Long memberId = userDetails.getAppUserId();
+
+        // 2. 현재 포인트 조회
+        Integer point = pointService.getCurrentPoint(memberId);
+
+        // 3. 포인트 반환
+        return ResponseEntity.ok(point);
+    }
+    
+    // 포인트 내역 조회
+    @Operation(
+            summary = "포인트 내역 조회",
+            description = "현재 로그인한 회원의 포인트 적립 및 사용 내역을 조회합니다."
+    )
+    @GetMapping("/me/point/history")
+    public ResponseEntity<List<PointHistoryDto>> getMyPointHistory( Authentication authentication) {
+
+        // 1. JWT 인증 정보에서 회원 ID 가져오기
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        Long memberId = userDetails.getAppUserId();
+
+        // 2. 포인트 내역 조회
+        List<PointHistory> histories = pointService.getPointHistory(memberId);
+
+        // 3. Entity → DTO 변환
+        List<PointHistoryDto> response = histories.stream().map(history -> {
+
+                            PointHistoryDto dto = new PointHistoryDto();
+
+                            dto.setHistoryId(history.getHistoryId());
+                            dto.setPointPm(history.getPointPm());
+                            dto.setPointType(history.getPointType());
+                            dto.setPointReason(history.getPointReason());
+                            dto.setCreatedAt(history.getCreatedAt());
+
+                            return dto;
+                        }).toList();
+        // 4. 반환
+        return ResponseEntity.ok(response);
+    }
+    
+    // 출석체크
+    @Operation(
+            summary = "출석체크",
+            description = "하루에 한 번 출석체크하고 포인트를 지급합니다."
+    )
+    @PostMapping("/me/point/attendance")
+    public ResponseEntity<?> checkAttendance(
+            Authentication authentication) {
+
+        try {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+            Long memberId = userDetails.getAppUserId();
+            Integer currentPoint = pointService.checkAttendance(memberId);
+
+            return ResponseEntity.ok( Map.of( "message", "출석체크가 완료되었습니다.", "point", 10, "currentPoint", currentPoint ) );
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity .badRequest() .body(Map.of( "message", e.getMessage() ));
+        }
+    }
+    
+    // 월별 출석 기록 조회
+    @Operation(
+            summary = "월별 출석 기록 조회",
+            description = "현재 로그인한 회원의 특정 연도와 월의 출석 기록을 조회합니다."
+    )
+    @GetMapping("/me/point/attendance")
+    public ResponseEntity<List<PointHistoryDto>> getAttendanceHistory(
+            @RequestParam int year,
+            @RequestParam int month,
+            Authentication authentication) {
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        Long memberId = userDetails.getAppUserId();
+
+        List<PointHistory> histories = pointService.getAttendanceHistory(memberId, year, month);
+
+        List<PointHistoryDto> response = histories.stream()
+                .map(history -> {
+                    PointHistoryDto dto = new PointHistoryDto();
+
+                    dto.setHistoryId(history.getHistoryId());
+                    dto.setPointPm(history.getPointPm());
+                    dto.setPointType(history.getPointType());
+                    dto.setPointReason(history.getPointReason());
+                    dto.setCreatedAt(history.getCreatedAt());
+
+                    return dto;
+                }).toList();
+
+        return ResponseEntity.ok(response);
     }
     
 }

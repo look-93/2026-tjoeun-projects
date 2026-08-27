@@ -148,7 +148,20 @@ const [password, setPassword] = useState("");
 
 // 회원가입 행동 데이터
 const [signupBehavior, setSignupBehavior] = useState({
+    
+    // 전체 오류 횟수
     errorCount: 0,
+
+    // 필드별 오류 횟수
+    fieldErrorCount: {
+        loginId: 0,
+        password: 0,
+        nickname: 0,
+        email: 0,
+        mobile: 0,
+        birth: 0,
+        interestIds: 0,
+    },
     emailVerificationFailCount: 0,
     mobileVerificationFailCount: 0,
     passwordErrorCount: 0,
@@ -166,6 +179,58 @@ const [signupBehavior, setSignupBehavior] = useState({
         interestIds: 0,
     },
 });
+
+// =========================
+// 이메일 인증 실패 횟수 기록
+// =========================
+useEffect(() => {
+
+    // 이메일 인증 에러가 없으면 실행하지 않음
+    if (!emailVerification.error) {
+        return;
+    }
+
+    setSignupBehavior((prev) => {
+
+        const newCount = prev.emailVerificationFailCount + 1;
+
+        console.log("===== 이메일 인증 실패 =====");
+        console.log("실패 사유:", emailVerification.error);
+        console.log("이메일 인증 실패 횟수:", newCount);
+
+        return {
+            ...prev,
+            emailVerificationFailCount: newCount,
+        };
+    });
+
+}, [emailVerification.error]);
+
+// =========================
+// 전화번호 인증 실패 횟수 기록
+// =========================
+useEffect(() => {
+
+    if (!mobileVerification.error) {
+        return;
+    }
+
+    setSignupBehavior((prev) => {
+
+        const newCount =
+            prev.mobileVerificationFailCount + 1;
+
+        console.log("===== 전화번호 인증 실패 =====");
+        console.log("실패 사유:", mobileVerification.error);
+        console.log("전화번호 인증 실패 횟수:", newCount);
+
+        return {
+            ...prev,
+            mobileVerificationFailCount: newCount,
+        };
+    });
+
+}, [mobileVerification.error]);
 
 // 회원가입 성공처리
 useEffect(()=>{
@@ -513,11 +578,71 @@ const handleSignup = (values)=>{
         birth: birth,
         profileUrl: "",
         interestIds: values.interestIds || [],
+        
+        // 회원가입 행동 데이터
+        signupBehavior: signupBehavior,
     };
 
     console.log("회원가입 요청 데이터:", signupData);
     
     dispatch(signupRequest(signupData));
+};
+
+// 회원가입 입력 오류 발생
+const handleFinishFailed = (errorInfo) => {
+
+    setSignupBehavior((prev) => {
+
+        // 기존 필드별 오류 횟수 복사
+        const newFieldErrorCount = {
+            ...prev.fieldErrorCount,
+        };
+
+        // 비밀번호 오류 발생 여부
+        let passwordError = false;
+
+        // 오류가 발생한 필드들
+        errorInfo.errorFields.forEach((field) => {
+
+            const fieldName = field.name[0];
+
+            // 우리가 수집할 필드인 경우만 증가
+            if (newFieldErrorCount[fieldName] !== undefined) {
+                newFieldErrorCount[fieldName]++;
+            }
+
+            // 비밀번호 오류 확인
+            if (
+                fieldName === "password" ||
+                fieldName === "passwordConfirm"
+            ) {
+                passwordError = true;
+            }
+        });
+
+        const newBehavior = {
+            ...prev,
+
+            // 전체 오류 횟수
+            errorCount: prev.errorCount + 1,
+
+            // 필드별 오류 횟수
+            fieldErrorCount: newFieldErrorCount,
+
+            // 비밀번호 오류 횟수
+            passwordErrorCount: passwordError
+                ? prev.passwordErrorCount + 1
+                : prev.passwordErrorCount,
+        };
+
+        console.log("===== 회원가입 오류 발생 =====");
+        console.log("오류 필드:", errorInfo.errorFields);
+        console.log("전체 오류 횟수:", newBehavior.errorCount);
+        console.log("필드별 오류 횟수:", newBehavior.fieldErrorCount);
+        console.log("비밀번호 오류 횟수:",newBehavior.passwordErrorCount );
+
+        return newBehavior;
+    });
 };
 
 // 비밀번호 강도
@@ -539,6 +664,7 @@ return (
             <Form form={form} 
                   layout="vertical" 
                   onFinish={handleSignup}
+                  onFinishFailed={handleFinishFailed}
                   initialValues={{
                     memberTypeId: 1,
                     gender: "N",
