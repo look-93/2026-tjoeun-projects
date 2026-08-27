@@ -983,7 +983,7 @@ public class MeetupServiceImpl implements MeetupService{
 	public void sendTomorrowWeatherNotification() {
 
 	    // 내일 날짜 구하기
-	    LocalDate tomorrow = LocalDate.now().plusDays(1);
+	    LocalDate tomorrow = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(1);
 
 	    // 내일의 시작 시간(00:00:00) 구하기
 	    LocalDateTime start = tomorrow.atStartOfDay();
@@ -1037,7 +1037,7 @@ public class MeetupServiceImpl implements MeetupService{
 	        }
 
 	        // 강수확률 확인 (null 체크로 NPE 방지)
-	        if (weather.getPop() == null || weather.getPop() < 5) {
+	        if (weather.getPop() == null || weather.getPop() < 50) { // 강수확률 50%이상 문자발송
 	            continue;
 	        }
 
@@ -1095,7 +1095,6 @@ public class MeetupServiceImpl implements MeetupService{
 	            }
 
 	            // 저장 실패가 SMS 발송(위 블록)에 영향 주지 않도록 별도 try-catch로 분리
-	            // (특히 SENT인데 저장 실패하면 다음 실행 때 중복 발송될 수 있어 로그를 따로 남김)
 	            try {
 	                MeetupNotification notification = MeetupNotification.builder()
 	                        .meetup(meetup)
