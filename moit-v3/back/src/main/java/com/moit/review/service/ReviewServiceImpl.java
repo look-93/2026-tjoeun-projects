@@ -276,13 +276,25 @@ public class ReviewServiceImpl implements ReviewService {
 				return openAiReviewService.reviewAnalysis(dtoList);
 			}
 
-	// 관리자 - 전체 리뷰 목록 조회
-	@Override
-	public ReviewListResponseDto getAdminReviewList(String keyword, Pageable pageable) {
-		Page<Review> page = reviewRepository.adminGetReviewList(keyword, null, pageable);
+	
+			// 관리자 - 전체 리뷰 목록 조회
+			@Override
+		    public ReviewListResponseDto getAdminReviewList(String keyword, String status, Pageable pageable) {
+		        // memberId를 빼고 keyword, status, pageable 순으로 정확히 전달
+		        Page<Review> page = reviewRepository.adminGetReviewList(keyword, status, pageable);
 
-		return ReviewListResponseDto.from(page);
-	}
+		        page.getContent().forEach(review -> {
+		            if (review.getReviewImages() != null) {
+		                review.getReviewImages().forEach(ri -> {
+		                    if (ri.getImage() != null) {
+		                        ri.getImage().getId();
+		                    }
+		                });
+		            }
+		        });
+
+		        return ReviewListResponseDto.from(page);
+		    }
 
 	// 관리자 - 공개 여부 변경
 	@Override

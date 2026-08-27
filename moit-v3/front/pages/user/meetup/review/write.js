@@ -283,7 +283,7 @@ function ReviewWritePage() {
         {/* 사진 첨부 */}
         <div className="review-write-field" style={{ marginTop: 24 }}>
           <Title level={5}>
-            사진 첨부 <Text type="secondary" style={{ fontSize: 13, fontWeight: 'normal' }}>(선택, 최대 5장)</Text>
+            사진 첨부 <Text type="secondary" style={{ fontSize: 13, fontWeight: 'normal' }}>(선택)</Text>
           </Title>
 
           <Upload
