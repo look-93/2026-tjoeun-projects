@@ -1,5 +1,6 @@
 package com.moit.meetup.entity;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,7 +62,7 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	private String addressDetail;
 	
 	@Column
-	private String meetupAt;
+	private LocalDateTime meetupAt;
 	
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)

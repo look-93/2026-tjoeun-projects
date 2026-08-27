@@ -19,11 +19,12 @@ public class OpenAiConfig {
         		.baseUrl("http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0")
         		.build();
     }    
-    
+
     @Bean("vworldRestClient")
     public RestClient vworldRestClient() {
         return RestClient.builder()
                 .baseUrl("https://api.vworld.kr")
                 .build();
     }
+    
 }
