@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 //1. 초기화 상태(공용)
 const initialState = {
     user: null,
+    point: 0,
     members: [],
 
     accessToken: null,
@@ -169,6 +170,26 @@ const initialState = {
     deleteAllLoginDevices: {
         loading: false,
         success: false,
+        error: null,
+    },
+
+    // =========================
+    // 포인트
+    // =========================
+    pointHistory: {
+        loading: false,
+        data: [],
+        error: null,
+    },
+    // =========================
+    // 출석체크
+    // =========================
+    attendance: {
+        loading: false,
+        success: false,
+        attendedToday: false,
+        point: 0,
+        currentPoint: 0,
         error: null,
     },
 
@@ -770,6 +791,79 @@ const userReducer = createSlice({
             };
         },
 
+        // =========================
+        // 포인트 내역 조회
+        // =========================
+        getPointHistoryRequest: (state) => {
+            state.pointHistory.loading = true;
+            state.pointHistory.error = null;
+        },
+        getPointHistorySuccess: (state, action) => {
+            state.pointHistory.loading = false;
+            state.pointHistory.data = action.payload;
+            state.pointHistory.error = null;
+
+            // 포인트 내역을 기준으로 현재 포인트 계산
+            state.point = action.payload.reduce(
+                (total, item) => {
+                    return total + (Number(item.pointPm) || 0);
+                },
+                0
+            );
+        },
+        getPointHistoryFailure: (state, action) => {
+            state.pointHistory.loading = false;
+            state.pointHistory.error = action.payload;
+        },
+        resetPointHistory: (state) => {
+            state.pointHistory = {
+                loading: false,
+                data: [],
+                error: null,
+            };
+        },
+
+        // =========================
+        // 출석체크
+        // =========================
+        checkAttendanceRequest: (state) => {
+            state.attendance.loading = true;
+            state.attendance.success = false;
+            state.attendance.error = null;
+        },
+
+        checkAttendanceSuccess: (state, action) => {
+            state.attendance.loading = false;
+            state.attendance.success = true;
+
+            state.attendance.attendedToday = true;
+
+            state.attendance.point = action.payload.point;
+            state.attendance.currentPoint = action.payload.currentPoint;
+            state.attendance.error = null;
+
+            // 현재 보유 포인트도 바로 갱신
+            state.point = action.payload.currentPoint;
+        },
+
+        checkAttendanceFailure: (state, action) => {
+            state.attendance.loading = false;
+            state.attendance.success = false;
+            state.attendance.error = action.payload;
+
+            // 이미 출석한 경우
+            if (action.payload === "오늘은 이미 출석체크를 완료했습니다.") {
+                state.attendance.attendedToday = true;
+            }
+        },
+
+        resetAttendance: (state) => {
+            state.attendance.loading = false;
+            state.attendance.success = false;
+            state.attendance.error = null;
+        },
+
+
         // =================================================
         // 중복확인 상태 초기화
         // =================================================
@@ -898,6 +992,8 @@ export const {
     deleteAllLoginDevicesRequest,deleteAllLoginDevicesSuccess,deleteAllLoginDevicesFailure,resetDeleteAllLoginDevices,  
     mobileSendRequest,mobileSendSuccess, mobileSendFailure,mobileVerifyRequest,
     mobileVerifySuccess,mobileVerifyFailure,resetMobileVerification,
+    getPointHistoryRequest,getPointHistorySuccess,getPointHistoryFailure,resetPointHistory,
+    checkAttendanceRequest,checkAttendanceSuccess,checkAttendanceFailure,resetAttendance,
 } = userReducer.actions;
 
 //4. export

@@ -11,8 +11,16 @@ function MyPageSidebar() {
 
   const menuItems = [
     {
-      key: '/user/member/mypage',
+      key: '/user/mypage/member/mypage',
       label: '내 정보',
+    },
+    {
+      key: '/user/mypage/member/attendance',
+      label: '출석체크',
+    },
+    {
+      key: '/user/mypage/member/pointHistory',
+      label: '포인트 내역',
     },
     {
       key: '/user/mypage/meetup',
