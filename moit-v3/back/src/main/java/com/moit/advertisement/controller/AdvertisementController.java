@@ -63,7 +63,10 @@ public class AdvertisementController {
     
     // 사용자 id
     private Long getLoginMemberId(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
+    	if (authentication == null
+                || !authentication.isAuthenticated()
+                || !(authentication.getPrincipal()
+                        instanceof CustomUserDetails)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
         CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
@@ -323,7 +326,7 @@ public class AdvertisementController {
         }
 
         // 서비스에서 파일 + 이미지DB + 광고 삭제 모두 처리
-        advertisementService.deleteAdvertisement(adId);
+        advertisementService.deleteAdvertisement(adId, memberId);
 
         return ResponseEntity.noContent().build();
     }
@@ -349,6 +352,16 @@ public class AdvertisementController {
 	             );
 	
 	     return ResponseEntity.ok(payment);
+	 }
+	 
+	 @GetMapping("/extension-prices")
+	 public ResponseEntity<?> getExtensionPrices(
+	         @RequestParam Long adId
+	 ) {
+
+	     return ResponseEntity.ok(
+	             advertisementService.getExtensionPrices(adId)
+	     );
 	 }
     
     // =========================================================
@@ -394,13 +407,15 @@ public class AdvertisementController {
 
         String ip = request.getRemoteAddr();
         String userAgent = request.getHeader("User-Agent");
+        String referrer = request.getHeader("Referer");
 
-        advertisementService.processAdvertisementClick(
+        advertisementService.insertClickLog(
                 adId,
                 position,
                 memberId,
                 ip,
-                userAgent
+                userAgent,
+                referrer
         );
 
         return ResponseEntity.ok().build();
@@ -428,28 +443,44 @@ public class AdvertisementController {
         String ip = request.getRemoteAddr();
         String userAgent = request.getHeader("User-Agent");
 
-        boolean counted =
-                advertisementService.insertImpressionLog(
-                        adId,
-                        position,
-                        memberId,
-                        ip,
-                        userAgent
-                );
-
-        if (counted) {
-            advertisementService.updateImpressions(adId);
-        }
+        advertisementService.insertImpressionLog(
+                adId,
+                position,
+                memberId,
+                ip,
+                userAgent
+        );
 
         return ResponseEntity.ok().build();
     }
     
     @GetMapping("/top")
     public ResponseEntity<AdvertisementDto> getTopAdvertisement(
-    		@RequestParam(name = "position") String position) {
+            @RequestParam(name = "position") String position,
+            Authentication authentication,
+            HttpServletRequest request) {
+
+        Long memberId = null;
+
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getPrincipal() instanceof CustomUserDetails) {
+
+            CustomUserDetails user =
+                    (CustomUserDetails) authentication.getPrincipal();
+
+            memberId = user.getUser().getMemberId();
+        }
+
+        // 비로그인 사용자도 광고 피로도를 계산할 수 있도록 세션 사용
+        String sessionId = request.getSession().getId();
 
         AdvertisementDto advertisement =
-                advertisementService.selectTopAdvertisement(position);
+                advertisementService.selectAdvertisement(
+                        position,
+                        memberId,
+                        sessionId
+                );
 
         if (advertisement == null) {
             return ResponseEntity.noContent().build();

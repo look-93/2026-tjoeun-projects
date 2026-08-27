@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,12 +22,15 @@ import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
+import com.moit.advertisement.dto.AdvertisementPriceDto;
+import com.moit.advertisement.dto.AdvertisementScore;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.entity.Advertisement;
 import com.moit.advertisement.entity.AdvertisementClickLog;
 import com.moit.advertisement.entity.AdvertisementImage;
 import com.moit.advertisement.entity.AdvertisementImpressionLog;
 import com.moit.advertisement.entity.AdvertisementPayment;
+import com.moit.advertisement.entity.AdvertisementPrice;
 import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.AdStatus;
@@ -37,6 +42,7 @@ import com.moit.advertisement.repository.AdvertisementClickLogRepository;
 import com.moit.advertisement.repository.AdvertisementImageRepository;
 import com.moit.advertisement.repository.AdvertisementImpressionLogRepository;
 import com.moit.advertisement.repository.AdvertisementPaymentRepository;
+import com.moit.advertisement.repository.AdvertisementPriceRepository;
 import com.moit.advertisement.repository.AdvertisementRepository;
 import com.moit.member.entity.Member;
 import com.moit.member.entity.MemberInfo;
@@ -61,6 +67,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     private final AdvertisementClickLogRepository clickLogRepository;
     private final AdvertisementImpressionLogRepository impressionLogRepository;
     private final AdvertisementPaymentRepository advertisementPaymentRepository;
+    private final AdvertisementPriceRepository advertisementPriceRepository;
         
     private final MemberRepository memberRepository;
     private final MemberInfoRepository memberInfoRepository;
@@ -325,11 +332,11 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     public int selectWaitingTotalCnt(
             AdvertisementSearchDto dto) {
 
-        return advertisementRepository
-                .findByApprovalStatus(
+    	return (int) advertisementRepository
+                .countByDeleteYnAndApprovalStatus(
+                        'N',
                         ApprovalStatus.WAITING
-                )
-                .size();
+                );
     }
 
     // =========================================================
@@ -482,8 +489,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
         List<Advertisement> advertisements =
                 advertisementRepository.findAvailableAdvertisements(
-                        adPosition,
-                        PageRequest.of(0, 1)
+                        adPosition
                 );
 
         if (advertisements.isEmpty()) {
@@ -623,7 +629,8 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     @Override
     @Transactional
     public int deleteAdvertisement(
-            Long adId) {
+            Long adId,
+            Long memberId) {
 
         Advertisement advertisement =
                 advertisementRepository
@@ -633,6 +640,9 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                                         "광고를 찾을 수 없습니다."
                                 )
                         );
+        if (!advertisement.getAdvertiser().getId().equals(memberId)) {
+            throw new IllegalArgumentException("본인의 광고만 삭제할 수 있습니다.");
+        }
 
 
         // 이미지 조회
@@ -905,6 +915,38 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         return toPaymentDto(payment);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdvertisementPriceDto> getExtensionPrices(Long adId) {
+
+        Advertisement advertisement =
+                advertisementRepository.findById(adId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
+
+        AdGrade adGrade = advertisement.getAdGrade();
+
+        List<AdvertisementPrice> priceList =
+                advertisementPriceRepository
+                        .findByPaymentTypeAndAdGradeOrderByPeriodDaysAsc(
+                                PaymentType.EXTENSION,
+                                adGrade
+                        );
+
+        return priceList.stream()
+                .map(price -> AdvertisementPriceDto.builder()
+                        .priceId(price.getPriceId())
+                        .adGrade(price.getAdGrade())
+                        .periodDays(price.getPeriodDays())
+                        .paymentType(price.getPaymentType())
+                        .basePrice(price.getBasePrice())
+                        .build()
+                )
+                .toList();
+    }
 
     // =========================================================
     // 광고 상태 변경
@@ -1083,166 +1125,177 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     // 광고 노출 / 클릭
     // =========================================================
 
-    @Override
-    @Transactional
-    public void updateImpressions(Long adId) {
-
-        Advertisement advertisement =
-                advertisementRepository.findById(adId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "광고를 찾을 수 없습니다."
-                                )
-                        );
-
-        advertisement.increaseImpressions();
-
-        advertisement.getImpressions();
-    }
-
-
-    @Override
-    @Transactional
-    public void updateAdvertisementClick(Long adId) {
-
-        Advertisement advertisement =
-                advertisementRepository.findById(adId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "광고를 찾을 수 없습니다."
-                                )
-                        );
-
-        advertisement.increaseClicks();
-
-        advertisement.getClicks();
-    }
-    
     // 클릭 & 노툴 로그
-	    
-	 // =========================================================
-	 // 클릭 로그
-	 // =========================================================
     @Override
-    @Transactional
-    public boolean insertClickLog(
-            Long adId,
+    public AdvertisementDto selectAdvertisement(
             String position,
             Long memberId,
-            String ip,
-            String userAgent,
-            String referrer) {
+            String sessionId) {
 
-    	// 광고 조회
-        Advertisement advertisement =
-                advertisementRepository.findById(adId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "광고를 찾을 수 없습니다."
-                                )
-                        );
-        // 위치 변환
         AdPosition adPosition = AdPosition.valueOf(position);
 
-        // 최근 1시간 내 동일 광고 + IP + 위치 클릭 여부 확인
-        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+        List<Advertisement> candidates =
+                advertisementRepository
+                        .findAvailableAdvertisements(adPosition);
 
-        boolean alreadyClicked;
-
-
-        if (memberId != null) {
-
-            // 로그인 사용자
-        	// 광고 + 회원 + 위치 기준
-            alreadyClicked =
-                    clickLogRepository
-                            .existsByAdvertisement_AdIdAndMember_IdAndPositionAndClickedAtAfter(
-                                    adId,
-                                    memberId,
-                                    adPosition,
-                                    oneHourAgo
-                            );
-
-        } else {
-
-            // 비로그인 사용자
-        	// 광고 + IP + 위치 기준
-            alreadyClicked =
-                    clickLogRepository
-                            .existsByAdvertisement_AdIdAndIpAddressAndPositionAndClickedAtAfter(
-                                    adId,
-                                    ip,
-                                    adPosition,
-                                    oneHourAgo
-                            );
+        if (candidates.isEmpty()) {
+            return null;
         }
-
-        // 1시간 이내 이미 클릭한 경우
-        // 로그 저장 X , 포인트 적립 X , 클릭 수 증가 X
-        if (alreadyClicked) {
-            return false;
-        }
-
-        // 회원 정보 조회
-        Member member = null;
-
-        if (memberId != null) {
-            member = memberRepository.findById(memberId)
-                    .orElse(null);
-        }
-
-        // 클릭 로그 저장
-        AdvertisementClickLog clickLog =
-                AdvertisementClickLog.builder()
-                        .advertisement(advertisement)
-                        .member(member)
-                        .deviceType(getDeviceType(userAgent))
-                        .ipAddress(ip)
-                        .position(adPosition)
-                        .build();
-
-        clickLogRepository.save(clickLog);
         
-        //로그인 사용자라면 포인트 적립
-        if (member != null) {
+        List<AdvertisementScore> scores = new ArrayList<>();
 
-            final int POINT = 10;
+        for (Advertisement ad : candidates) {
 
-            MemberInfo memberInfo =
-                    memberInfoRepository.findById(memberId)
-                            .orElseThrow(() ->
-                                    new IllegalArgumentException(
-                                            "회원 정보를 찾을 수 없습니다."
-                                    )
-                            );
+            int recentImpressions =
+                    advertisementRepository.countRecentImpressions(
+                            ad.getAdId(),
+                            memberId,
+                            sessionId
+                    );
 
-            // 포인트 증가
-            int currentPoint =
-                    memberInfo.getPoint() == null
-                            ? 0
-                            : memberInfo.getPoint();
+            int fatigue  = calculateFatigue(recentImpressions);
 
-            memberInfo.setPoint(currentPoint + POINT);
+            double score =
+                    calculateFinalScore(
+                            ad,
+                            fatigue
+                    );
 
-            // =====================================================
-            // 8. 포인트 적립 이력 저장
-            // =====================================================
-
-            PointHistory history =
-                    new PointHistory();
-
-            history.setMember(member);
-            history.setPointPm(POINT);
-            history.setPointType(PointTypeEnum.SAVE.name());
-            history.setPointReason("광고 클릭 적립");
-            
-            pointHistoryRepository.save(history);
+            scores.add(
+                    new AdvertisementScore(
+                            ad,
+                            score
+                    )
+            );
         }
 
-        // 최초 클릭으로 인정 ->  Controller에서 광고 clicks +1
-        
-        return true;
+        Advertisement selected = weightedRandomSelect(scores);
+
+        return toDto(selected);
     }
+	    
+	 // =========================================================
+	 // 클릭 로그 + 클릭수 + 포인트 적립
+	 // =========================================================
+	 @Override
+	 @Transactional
+	 public boolean insertClickLog(
+	         Long adId,
+	         String position,
+	         Long memberId,
+	         String ip,
+	         String userAgent,
+	         String referrer) {
+	
+	     // 광고 조회
+	     Advertisement advertisement =
+	             advertisementRepository.findById(adId)
+	                     .orElseThrow(() ->
+	                             new IllegalArgumentException(
+	                                     "광고를 찾을 수 없습니다."
+	                             )
+	                     );
+	
+	     AdPosition adPosition =
+	             AdPosition.valueOf(position);
+	
+	     // 최근 1시간 이내 중복 클릭 확인
+	     LocalDateTime oneHourAgo =
+	             LocalDateTime.now().minusHours(1);
+	
+	     boolean alreadyClicked;
+	
+	     if (memberId != null) {
+	
+	         // 로그인 사용자
+	         // 광고 + 회원 + 위치 기준
+	         alreadyClicked =
+	                 clickLogRepository
+	                         .existsByAdvertisement_AdIdAndMember_IdAndPositionAndClickedAtAfter(
+	                                 adId,
+	                                 memberId,
+	                                 adPosition,
+	                                 oneHourAgo
+	                         );
+	
+	     } else {
+	
+	         // 비로그인 사용자
+	         // 광고 + IP + 위치 기준
+	         alreadyClicked =
+	                 clickLogRepository
+	                         .existsByAdvertisement_AdIdAndIpAddressAndPositionAndClickedAtAfter(
+	                                 adId,
+	                                 ip,
+	                                 adPosition,
+	                                 oneHourAgo
+	                         );
+	     }
+	
+	     // 중복 클릭
+	     if (alreadyClicked) {
+	         return false;
+	     }
+	
+	     // 회원 조회
+	     Member member = null;
+	
+	     if (memberId != null) {
+	         member =
+	                 memberRepository.findById(memberId)
+	                         .orElse(null);
+	     }
+	
+	     // 클릭 로그 저장
+	     AdvertisementClickLog clickLog =
+	             AdvertisementClickLog.builder()
+	                     .advertisement(advertisement)
+	                     .member(member)
+	                     .deviceType(getDeviceType(userAgent))
+	                     .ipAddress(ip)
+	                     .referrer(referrer)
+	                     .position(adPosition)
+	                     .build();
+	
+	     clickLogRepository.save(clickLog);
+	
+	     // 광고 클릭수 증가
+	     advertisement.increaseClicks();
+	
+	     // 로그인 사용자 포인트 적립
+	     if (member != null) {
+	
+	         final int POINT = 10;
+	
+	         MemberInfo memberInfo =
+	                 memberInfoRepository.findById(memberId)
+	                         .orElseThrow(() ->
+	                                 new IllegalArgumentException(
+	                                         "회원 정보를 찾을 수 없습니다."
+	                                 )
+	                         );
+	
+	         int currentPoint =
+	                 memberInfo.getPoint() == null
+	                         ? 0
+	                         : memberInfo.getPoint();
+	
+	         memberInfo.setPoint(currentPoint + POINT);
+	
+	         // 포인트 적립 이력
+	         PointHistory history =
+	                 new PointHistory();
+	
+	         history.setMember(member);
+	         history.setPointPm(POINT);
+	         history.setPointType(PointTypeEnum.SAVE.name());
+	         history.setPointReason("광고 클릭 적립");
+	
+	         pointHistoryRepository.save(history);
+	     }
+	
+	     return true;
+	 }
     
     private String getDeviceType(String userAgent) {
 
@@ -1252,88 +1305,16 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
         String ua = userAgent.toLowerCase();
 
+        if (ua.contains("ipad")
+                || ua.contains("tablet")) {
+            return "TABLET";
+        }
+
         if (ua.contains("mobile")) {
             return "MOBILE";
         }
 
-        if (ua.contains("tablet")
-                || ua.contains("ipad")) {
-            return "TABLET";
-        }
-
         return "PC";
-    }
-    
-    
-    @Override
-    @Transactional
-    public boolean processAdvertisementClick(
-            Long adId,
-            String position,
-            Long memberId,
-            String ip,
-            String userAgent) {
-
-        Advertisement advertisement =
-                advertisementRepository.findById(adId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "광고를 찾을 수 없습니다."
-                                )
-                        );
-
-        AdPosition adPosition = AdPosition.valueOf(position);
-
-        LocalDateTime oneHourAgo =
-                LocalDateTime.now().minusHours(1);
-
-        boolean alreadyClicked =
-                clickLogRepository
-                        .existsByAdvertisement_AdIdAndIpAddressAndPositionAndClickedAtAfter(
-                                adId,
-                                ip,
-                                adPosition,
-                                oneHourAgo
-                        );
-
-        // 중복 클릭
-        if (alreadyClicked) {
-            return false;
-        }
-
-        Member member = null;
-
-        if (memberId != null) {
-            member = memberRepository.findById(memberId)
-                    .orElse(null);
-        }
-
-        // 1. 클릭 로그 저장
-        AdvertisementClickLog clickLog =
-                AdvertisementClickLog.builder()
-                        .advertisement(advertisement)
-                        .member(member)
-                        .deviceType(getDeviceType(userAgent))
-                        .ipAddress(ip)
-                        .position(adPosition)
-                        .build();
-
-        clickLogRepository.save(clickLog);
-
-        // 2. 광고 클릭 수 증가
-        updateAdvertisementClick(adId);
-
-        // 3. 로그인 사용자라면 포인트 적립
-        if (member != null) {
-
-            // 포인트 적립
-            // pointService.addPoint(...)
-
-            // 포인트 적립 이력
-            // pointHistoryRepository.save(...)
-        }
-
-        return true;
     }
 	 
 	// =========================================================
@@ -1392,6 +1373,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 		                .build();
 
 		impressionLogRepository.save(impressionLog);
+		advertisementRepository.increaseImpressions(adId);
 
 	    return true;
 	}
@@ -1404,31 +1386,26 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     @Override
     public int selectTotalAdvertisementCnt() {
 
-        return (int)
-                advertisementRepository.count();
+    	return (int) advertisementRepository.countByDeleteYn('N');
     }
 
 
     @Override
     public int selectOpenAdvertisementCnt() {
         return (int) advertisementRepository
-                .countByStatus(AdStatus.OPEN);
+                .countByDeleteYnAndStatus('N', AdStatus.OPEN);
     }
-
 
     @Override
     public int selectPendingAdvertisementCnt() {
-
         return (int) advertisementRepository
-                .countByStatus(AdStatus.PENDING);
+                .countByDeleteYnAndStatus('N', AdStatus.PENDING);
     }
-
 
     @Override
     public int selectClosedAdvertisementCnt() {
-
         return (int) advertisementRepository
-                .countByStatus(AdStatus.CLOSED);
+                .countByDeleteYnAndStatus('N', AdStatus.CLOSED);
     }
     
     
@@ -1702,20 +1679,39 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         LocalDateTime now = LocalDateTime.now();
 
         // 1. 대기중(SCHEDULED or PENDING)인 광고 중, 시작 시간이 도래한 것을 OPEN으로 변경
-        // (본인의 AdStatus enum에 있는 대기 상태 이름에 맞춰주세요. 예: SCHEDULED, PENDING, READY 등)
         List<Advertisement> readyAds = advertisementRepository
-                .findByStatusAndStartDatetimeLessThanEqual(AdStatus.PENDING, now);
+        		.findByStatusAndPaymentStatusAndStartDatetimeLessThanEqual(
+                        AdStatus.PENDING,
+                        PaymentStatus.PAID,
+                        now
+                    );
         
         for (Advertisement ad : readyAds) {
             ad.changeStatus(AdStatus.OPEN);
+            
+            System.out.println(
+                    "[광고 OPEN] 광고 ID="
+                    + ad.getAdId()
+                    + ", 결제상태="
+                    + ad.getPaymentStatus()
+            );
         }
 
         // 2. 진행중(OPEN)인 광고 중, 종료 시간이 지난 것을 CLOSED(마감)로 변경
         List<Advertisement> expiredAds = advertisementRepository
-                .findByStatusAndEndDatetimeLessThanEqual(AdStatus.OPEN, now);
+        		.findByStatusAndPaymentStatusAndEndDatetimeLessThanEqual(
+                        AdStatus.OPEN,
+                        PaymentStatus.PAID,
+                        now
+                    );
         
         for (Advertisement ad : expiredAds) {
             ad.changeStatus(AdStatus.CLOSED);
+            
+            System.out.println(
+                    "[광고 CLOSED] 광고 ID="
+                    + ad.getAdId()
+            );
         }
         
         // flush를 통해 DB에 즉시 반영 (선택사항이나 스케줄러 작업 시 권장)
@@ -1852,8 +1848,24 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                         day30End
                 );
 
+        System.out.println("======================================");
+        System.out.println("[연장메일 스케줄러 실행]");
+        System.out.println("현재시간 : " + now);
+        System.out.println("D-30 시작 : " + day30Start);
+        System.out.println("D-30 종료 : " + day30End);
+        System.out.println("D-30 대상 광고 수 : " + ads30.size());
+        System.out.println("======================================");
+        
         for (Advertisement ad : ads30) {
 
+        	System.out.println(
+        	        "[D-30 메일 발송 대상] "
+        	        + "adId=" + ad.getAdId()
+        	        + ", title=" + ad.getTitle()
+        	        + ", email=" + ad.getAdvertiser().getEmail()
+        	        + ", endDatetime=" + ad.getEndDatetime()
+        	    );
+        	
             AdvertisementDto dto = toDto(ad);
 
             Member advertiser = ad.getAdvertiser();
@@ -1873,6 +1885,11 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             );
 
             ad.markReminder30dSent();
+            
+            System.out.println(
+                    "[D-30 메일 발송 완료] adId="
+                    + ad.getAdId()
+            );
         }
 
 
@@ -1893,6 +1910,18 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             AdvertisementDto dto = toDto(ad);
 
             Member advertiser = ad.getAdvertiser();
+            
+            System.out.println(
+            		"[D-14 메일 발송 대상] "
+            				+ "adId=" + ad.getAdId()
+            				+ ", title=" + ad.getTitle()
+            				+ ", email=" + (
+            						advertiser != null
+            						? advertiser.getEmail()
+            								: "NULL"
+            						)
+            				+ ", endDatetime=" + ad.getEndDatetime()
+            		);
 
             if (advertiser == null || advertiser.getEmail() == null
                     || advertiser.getEmail().isBlank()) {
@@ -1909,6 +1938,124 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             );
 
             ad.markReminder14dSent();
+            
+            System.out.println(
+                    "[D-14 메일 발송 완료] adId="
+                    + ad.getAdId()
+            );
         }
+    }
+    
+    private int calculateFatigue(int recentImpressions) {
+
+        if (recentImpressions >= 10) {
+            return 3;
+        }
+
+        if (recentImpressions >= 6) {
+            return 2;
+        }
+
+        if (recentImpressions >= 3) {
+            return 1;
+        }
+
+        return 0;
+    }
+    
+    private double calculateGradeWeight(Advertisement ad) {
+
+        if (ad.getAdGrade() == AdGrade.PREMIUM) {
+            return 1.3;
+        }
+
+        return 1.0;
+    }
+    
+    private double calculateFinalScore(
+            Advertisement ad,
+            int userFatigue
+    ) {
+
+        // 광고 자체 우선도
+        double priorityWeight = calculatePriorityWeight(ad);
+
+        // PREMIUM 보정
+        double gradeWeight = calculateGradeWeight(ad);
+
+        // 사용자 피로도
+        double fatigueWeight =calculateFatigueWeight(userFatigue);
+
+        return priorityWeight
+                * gradeWeight
+                * fatigueWeight;
+    }
+    
+    private double calculateFatigueWeight(int fatigue) {
+
+        return switch (fatigue) {
+            case 0 -> 1.0;
+            case 1 -> 0.8;
+            case 2 -> 0.6;
+            case 3 -> 0.3;
+            default -> 0.2;
+        };
+    }
+    
+    private double calculatePriorityWeight(
+            Advertisement ad
+    ) {
+
+        int priority =
+                ad.getPriorityScore() != null
+                        ? ad.getPriorityScore()
+                        : 1;
+
+        return Math.min(
+                2.0,
+                1.0 + (priority * 0.15)
+        );
+    }
+    
+    private Advertisement weightedRandomSelect(
+            List<AdvertisementScore> scores
+    ) {
+
+        double totalScore = scores.stream()
+                      .mapToDouble(AdvertisementScore::getScore)
+                      .filter(score -> score > 0)
+                      .sum();
+
+        if (totalScore <= 0) {
+
+            return scores.get(
+                    ThreadLocalRandom.current()
+                            .nextInt(scores.size())
+            ).getAdvertisement();
+        }
+
+        double random =
+                ThreadLocalRandom.current()
+                        .nextDouble(totalScore);
+
+        double accumulated = 0;
+
+        for (AdvertisementScore score : scores) {
+
+            if (score.getScore() <= 0) {
+                continue;
+            }
+
+            accumulated += score.getScore();
+
+            if (random <= accumulated) {
+                return score.getAdvertisement();
+            }
+        }
+
+        return scores.get(
+                ThreadLocalRandom.current()
+                        .nextInt(scores.size())
+        ).getAdvertisement();
     }
 }

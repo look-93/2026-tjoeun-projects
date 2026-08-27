@@ -50,6 +50,18 @@ export const createInitialPayment = (adId) => {
   );
 };
 
+// 연장 결제 요청
+export const getExtensionPrices = (adId) => {
+  return axios.get(
+    `${API_URL}/extension-prices`,
+    {
+      params: {
+        adId,
+      },
+    }
+  );
+};
+
 // 메인/위치별 광고 조회
 export const getTopAdvertisement = (position) => {
     return axios.get(`${API_URL}/top`, {

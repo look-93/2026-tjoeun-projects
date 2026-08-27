@@ -36,11 +36,9 @@ public interface AdvertisementRepository
 	          where ai.advertisement = a
 	            and ai.imageType = :position
 	      )
-	    order by a.priorityScore desc, a.adId desc
 	""")
 	List<Advertisement> findAvailableAdvertisements(
-	        @Param("position") AdPosition position,
-	        Pageable pageable
+	        @Param("position") AdPosition position
 	);
 	
     
@@ -119,6 +117,26 @@ public interface AdvertisementRepository
 	        Long advertiserId, 
 	        ApprovalStatus approvalStatus, 
 	        Character deleteYn
+	);
+	
+	// 최근 피로도 조회
+	@Query(value = """
+	    SELECT COUNT(*)
+	    FROM advertisement_impression_log
+	    WHERE ad_id = :adId
+	      AND viewed_at >= SYSTIMESTAMP - INTERVAL '1' DAY
+	      AND (
+	          member_id = :memberId
+	          OR (
+	              :memberId IS NULL
+	              AND session_id = :sessionId
+	          )
+	      )
+	    """, nativeQuery = true)
+	int countRecentImpressions(
+	        @Param("adId") Long adId,
+	        @Param("memberId") Long memberId,
+	        @Param("sessionId") String sessionId
 	);
 	
 	long countByApprovalStatus(ApprovalStatus status);
@@ -222,10 +240,18 @@ public interface AdvertisementRepository
     );
     
     // 스케줄러용: 특정 상태이면서 시작시간이 특정 시간(현재) 이전인 광고 조회
-    List<Advertisement> findByStatusAndStartDatetimeLessThanEqual(AdStatus status, LocalDateTime now);
+    List<Advertisement> findByStatusAndPaymentStatusAndStartDatetimeLessThanEqual(
+            AdStatus status,
+            PaymentStatus paymentStatus,
+            LocalDateTime now
+    );
 
     // 스케줄러용: 특정 상태이면서 종료시간이 특정 시간(현재) 이전인 광고 조회
-    List<Advertisement> findByStatusAndEndDatetimeLessThanEqual(AdStatus status, LocalDateTime now);
+    List<Advertisement> findByStatusAndPaymentStatusAndEndDatetimeLessThanEqual(
+            AdStatus status,
+            PaymentStatus paymentStatus,
+            LocalDateTime now
+    );
     
     // 스케줄러용: 종료시간이 30일, 14일 남은 광고 조회
     List<Advertisement> findByDeleteYnAndPaymentStatusAndStatusAndEndDatetimeBetween(
