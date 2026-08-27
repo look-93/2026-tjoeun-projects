@@ -22,21 +22,23 @@ public interface AdvertisementRepository
         extends JpaRepository<Advertisement, Long> {
 	
 	@Query("""
-	    select distinct a
+	    select a
 	    from Advertisement a
-	    join AdvertisementImage ai
-	        on ai.advertisement = a
 	    where a.deleteYn = 'N'
 	      and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED
+	      and a.paymentStatus = com.moit.advertisement.enums.PaymentStatus.PAID
 	      and a.status = com.moit.advertisement.enums.AdStatus.OPEN
 	      and a.startDatetime <= CURRENT_TIMESTAMP
 	      and a.endDatetime >= CURRENT_TIMESTAMP
-	      and ai.imageType = :position
-	    order by a.priorityScore desc, a.adId desc
+	      and exists (
+	          select 1
+	          from AdvertisementImage ai
+	          where ai.advertisement = a
+	            and ai.imageType = :position
+	      )
 	""")
 	List<Advertisement> findAvailableAdvertisements(
-	        @Param("position") AdPosition position,
-	        Pageable pageable
+	        @Param("position") AdPosition position
 	);
 	
     
@@ -77,11 +79,64 @@ public interface AdvertisementRepository
 	List<Advertisement> findByAdvertiser_IdAndDeleteYn(Long advertiserId, Character deleteYn);
 
 	long countByAdvertiser_IdAndDeleteYn(Long advertiserId, Character deleteYn);
+	
+	@Query("""
+	    select a
+	    from Advertisement a
+	    where a.advertiser.id = :advertiserId
+	      and a.deleteYn = 'N'
+	      and (
+	          :searchText is null
+	          or :searchText = ''
+	          or lower(a.title) like lower(concat('%', :searchText, '%'))
+	      )
+	    """)
+	Page<Advertisement> searchMyAdvertisement(
+	        @Param("advertiserId") Long advertiserId,
+	        @Param("searchText") String searchText,
+	        Pageable pageable
+	);
+	
+	@Query("""
+	    select count(a)
+	    from Advertisement a
+	    where a.advertiser.id = :advertiserId
+	      and a.deleteYn = 'N'
+	      and (
+	          :searchText is null
+	          or :searchText = ''
+	          or lower(a.title) like lower(concat('%', :searchText, '%'))
+	      )
+	    """)
+	long countMyAdvertisement(
+	        @Param("advertiserId") Long advertiserId,
+	        @Param("searchText") String searchText
+	);
 
 	List<Advertisement> findByAdvertiser_IdAndApprovalStatusAndDeleteYn(
 	        Long advertiserId, 
 	        ApprovalStatus approvalStatus, 
 	        Character deleteYn
+	);
+	
+	// 최근 피로도 조회
+	@Query(value = """
+	    SELECT COUNT(*)
+	    FROM advertisement_impression_log
+	    WHERE ad_id = :adId
+	      AND viewed_at >= SYSTIMESTAMP - INTERVAL '1' DAY
+	      AND (
+	          member_id = :memberId
+	          OR (
+	              :memberId IS NULL
+	              AND session_id = :sessionId
+	          )
+	      )
+	    """, nativeQuery = true)
+	int countRecentImpressions(
+	        @Param("adId") Long adId,
+	        @Param("memberId") Long memberId,
+	        @Param("sessionId") String sessionId
 	);
 	
 	long countByApprovalStatus(ApprovalStatus status);
@@ -185,10 +240,18 @@ public interface AdvertisementRepository
     );
     
     // 스케줄러용: 특정 상태이면서 시작시간이 특정 시간(현재) 이전인 광고 조회
-    List<Advertisement> findByStatusAndStartDatetimeLessThanEqual(AdStatus status, LocalDateTime now);
+    List<Advertisement> findByStatusAndPaymentStatusAndStartDatetimeLessThanEqual(
+            AdStatus status,
+            PaymentStatus paymentStatus,
+            LocalDateTime now
+    );
 
     // 스케줄러용: 특정 상태이면서 종료시간이 특정 시간(현재) 이전인 광고 조회
-    List<Advertisement> findByStatusAndEndDatetimeLessThanEqual(AdStatus status, LocalDateTime now);
+    List<Advertisement> findByStatusAndPaymentStatusAndEndDatetimeLessThanEqual(
+            AdStatus status,
+            PaymentStatus paymentStatus,
+            LocalDateTime now
+    );
     
     // 스케줄러용: 종료시간이 30일, 14일 남은 광고 조회
     List<Advertisement> findByDeleteYnAndPaymentStatusAndStatusAndEndDatetimeBetween(
@@ -226,4 +289,22 @@ public interface AdvertisementRepository
 	        @Param("start") LocalDateTime start,
 	        @Param("end") LocalDateTime end
 	);
+	
+	
+	// =========================================================
+	// 스케줄러용 광고 우선도 갱신 대상
+	// 승인 + 결제완료 + 운영중인 광고만 대상
+	// =========================================================
+	@Query("""
+	    select a
+	    from Advertisement a
+	    where a.deleteYn = 'N'
+	      and a.approvalStatus =
+	          com.moit.advertisement.enums.ApprovalStatus.APPROVED
+	      and a.paymentStatus =
+	          com.moit.advertisement.enums.PaymentStatus.PAID
+	      and a.status =
+	          com.moit.advertisement.enums.AdStatus.OPEN
+	""")
+	List<Advertisement> findPriorityUpdateTargets();
 }

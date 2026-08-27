@@ -1,5 +1,6 @@
 package com.moit.member.repository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -35,9 +36,7 @@ public interface MemberRepository extends JpaRepository<Member, Long>{
 	boolean  existsByEmail(String email);
 	
 	// 닉네임 중복검사
-	boolean  existsByNickname(String nickname);
-	
-	boolean existsByMobile(String mobile);
+	boolean  existsByNickname(String nickname);	
 	
     // 관리자 회원관리
     @Query("""
@@ -73,4 +72,15 @@ public interface MemberRepository extends JpaRepository<Member, Long>{
     // 정지 회원
     long countByMemberStatus_StatusIdAndDeleteYn( Long statusId, Character deleteYn );
 	
+    // 오늘 가입자 수
+    @Query(
+    	    value = """
+    	        SELECT COUNT(*)
+    	        FROM members
+    	        WHERE created_at >= TRUNC(SYSDATE)
+    	          AND created_at < TRUNC(SYSDATE) + 1
+    	        """,
+    	    nativeQuery = true
+    	)
+    	long countTodayMembers();
 }

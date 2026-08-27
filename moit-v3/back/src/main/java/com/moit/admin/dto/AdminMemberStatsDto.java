@@ -14,5 +14,7 @@ public class AdminMemberStatsDto {
 	private Long memberCount;
 	// 정지 회원
 	private Long suspendedCount;
+	// 오늘 가입자 수
+	private Long todayCount;
 	
 }

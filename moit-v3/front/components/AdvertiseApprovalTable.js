@@ -60,14 +60,13 @@ function AdvertiseApprovalTable({
       render: (_, record) => {
         // 승인 대기 / 결제 대기 / 반려 등을 명확히 표시
         const isPaymentWaiting = 
-          record.approvalStatus === 'PAYMENT_WAITING' || 
+          record.approvalStatus === 'APPROVED' && 
           record.paymentStatus === 'WAITING';
 
         return (
           <div>
             <div style={{ fontWeight: 'bold' }}>
               {record.approvalStatus === 'WAITING' && '승인 대기'}
-              {record.approvalStatus === 'PAYMENT_WAITING' && '결제 대기'}
               {record.approvalStatus === 'REJECTED' && '반려'}
               {record.approvalStatus === 'APPROVED' && '승인 완료'}
             </div>

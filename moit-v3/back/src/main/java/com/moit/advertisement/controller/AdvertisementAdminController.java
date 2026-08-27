@@ -18,13 +18,18 @@ import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
-import com.moit.advertisement.dto.DashboardAiDto;
 import com.moit.advertisement.enums.ApprovalStatus;
 import com.moit.advertisement.service.AdvertisementService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+
+import com.moit.security.CustomUserDetails;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,8 +42,20 @@ public class AdvertisementAdminController {
 
     private final AdvertisementService advertisementService;
     
-    // JWT 적용 후 로그인 사용자 ID로 변경
-    private static final Long LOGIN_ADMIN_ID = 99L;
+    private Long getLoginMemberId(Authentication authentication) {
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "로그인이 필요합니다."
+            );
+        }
+
+        CustomUserDetails user =
+                (CustomUserDetails) authentication.getPrincipal();
+
+        return user.getUser().getMemberId();
+    }
     
     // =========================================================
     // 승인 관리 탭 API (승인 대기 + 승인 완료되었으나 결제 대기인 광고 포함)
@@ -210,7 +227,10 @@ public class AdvertisementAdminController {
 	)
 	@PatchMapping("/{adId}/approve")
 	public ResponseEntity<Void> approve(
-	        @PathVariable("adId") Long adId) {
+	        @PathVariable("adId") Long adId,
+	        Authentication authentication) {
+    	
+    	Long loginAdminId = getLoginMemberId(authentication);
 
 	    AdvertisementDto.AdvertisementAdminUpdateDto dto =
 	            new AdvertisementDto.AdvertisementAdminUpdateDto();
@@ -218,7 +238,7 @@ public class AdvertisementAdminController {
 	    dto.setAdId(adId);
 	    dto.setApprovalStatus("APPROVED");
 	    dto.setStatus("PENDING");
-	    dto.setApprovedBy(LOGIN_ADMIN_ID);
+	    dto.setApprovedBy(loginAdminId);
 	    dto.setApprovedAt(LocalDateTime.now());
 
 	    advertisementService.updateApprovalStatus(dto);
@@ -237,7 +257,10 @@ public class AdvertisementAdminController {
     @PatchMapping("/{adId}/reject")
     public ResponseEntity<Void> reject(
             @PathVariable("adId") Long adId,
-            @RequestParam(name = "rejectReason") String rejectReason) {
+            @RequestParam(name = "rejectReason") String rejectReason,
+            Authentication authentication) {
+    	
+    	Long loginAdminId = getLoginMemberId(authentication);
 
         AdvertisementDto.AdvertisementAdminUpdateDto dto =
                 new AdvertisementDto.AdvertisementAdminUpdateDto();
@@ -245,7 +268,7 @@ public class AdvertisementAdminController {
         dto.setAdId(adId);
         dto.setApprovalStatus("REJECTED");
 
-        dto.setApprovedBy(LOGIN_ADMIN_ID);
+        dto.setApprovedBy(loginAdminId);
         dto.setRejectReason(rejectReason);
         dto.setApprovedAt(LocalDateTime.now());
 
@@ -265,7 +288,10 @@ public class AdvertisementAdminController {
     @PatchMapping("/{adId}/status")
     public ResponseEntity<Void> status(
             @PathVariable("adId") Long adId,
-            @RequestParam(name = "status") String status) {
+            @RequestParam(name = "status") String status,
+            Authentication authentication) {
+    	
+    	Long loginAdminId = getLoginMemberId(authentication);
 
         AdvertisementDto.AdvertisementAdminUpdateDto dto =
                 new AdvertisementDto.AdvertisementAdminUpdateDto();
@@ -273,30 +299,10 @@ public class AdvertisementAdminController {
         dto.setAdId(adId);
         dto.setStatus(status);
 
-        dto.setStatusUpdatedBy(LOGIN_ADMIN_ID);
+        dto.setStatusUpdatedBy(loginAdminId);
         dto.setStatusUpdatedAt(LocalDateTime.now());
 
         advertisementService.updateAdvertisementStatus(dto);
-
-        return ResponseEntity.ok().build();
-    }
-    
-    // =========================================================
-    // 광고 등급 변경
-    // =========================================================
-    @Operation(
-	    summary = "광고 등급 변경",
-	    description = "광고의 일반/프리미엄 등급을 변경합니다."
-	)
-    @PatchMapping("/{adId}/grade")
-    public ResponseEntity<Void> updateGrade(
-            @PathVariable("adId") Long adId,
-            @RequestParam(name = "adGrade") String adGrade) {
-
-        advertisementService.updateAdGrade(
-                adId,
-                adGrade
-        );
 
         return ResponseEntity.ok().build();
     }

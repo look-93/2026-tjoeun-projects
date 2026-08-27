@@ -34,7 +34,7 @@ public class MeetupApplicationDto {
 		private String rejectReason;
 		private Long meetupId;
 		private String meetupTitle;
-		private String meetupAt;
+		private LocalDateTime meetupAt;
 		private String applyStatus;
 		private String meetupStatus;
 		

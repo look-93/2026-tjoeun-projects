@@ -21,7 +21,8 @@ public class ReviewCommentDto {
     @Setter
     @NoArgsConstructor
     public static class ReviewCommentRequestDto {
-        private Long parentCommentId; // 대댓글일 경우 부모 ID (최상위는 null)
+    	private Long reviewId;
+        private Long parentCommentId; 
 
         @NotBlank(message = "댓글 내용은 필수 입력 항목입니다.")
         private String content;
@@ -63,9 +64,10 @@ public class ReviewCommentDto {
             
             response.setCommentId(comment.getId());
             response.setDeleteYn(comment.getDeleteYn());
-
-            // 삭제된 댓글인 경우 처리
-            if (comment.getDeleteYn() == 'Y') { 
+            response.setContent(comment.getContent());
+            
+            // 💡 삭제된 댓글 처리 (원하시는 경우 "삭제된 댓글입니다." 텍스트 유지 혹은 제거 가능)
+            if (comment.getDeleteYn() != null && comment.getDeleteYn() == 'Y') {  
                 response.setContent("삭제된 댓글입니다.");
             }
 
@@ -97,13 +99,13 @@ public class ReviewCommentDto {
                 response.setUpdatedAt(comment.getUpdatedAt().format(formatter));
             }
 
-            // 자식 대댓글 재귀적 변환 매핑
+            // 자식 대댓글 재귀적 변환 매핑 (💡 삭제된('Y') 대댓글은 화면에 아예 안 보이도록 필터링 추가!)
             try {
                 if (comment.getChildren() != null && !comment.getChildren().isEmpty()) {
-                    List<ReviewCommentResponseDto> childDtos = new ArrayList<>();
-                    for (ReviewComment child : comment.getChildren()) {
-                        childDtos.add(ReviewCommentResponseDto.from(child));
-                    }
+                    List<ReviewCommentResponseDto> childDtos = comment.getChildren().stream()
+                            .filter(child -> child.getDeleteYn() == null || child.getDeleteYn() != 'Y') // 삭제되지 않은 자식만 통과!
+                            .map(ReviewCommentResponseDto::from)
+                            .collect(Collectors.toList());
                     response.setChildren(childDtos);
                 }
             } catch (Exception e) {

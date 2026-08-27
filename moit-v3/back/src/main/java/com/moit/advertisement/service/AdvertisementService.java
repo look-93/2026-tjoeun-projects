@@ -10,9 +10,8 @@ import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
+import com.moit.advertisement.dto.AdvertisementPriceDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
-import com.moit.advertisement.dto.AdvertisementStatisticsDto;
-import com.moit.advertisement.dto.DashboardAiDto;
 
 
 public interface AdvertisementService {
@@ -71,7 +70,7 @@ public interface AdvertisementService {
     );
 
     // 광고 삭제
-    int deleteAdvertisement(Long adId);
+    int deleteAdvertisement(Long adId, Long memberId);
 
     // 승인
     int updateApprovalStatus(AdvertisementDto.AdvertisementAdminUpdateDto dto);
@@ -83,6 +82,10 @@ public interface AdvertisementService {
 
     // 우선도 설정
 	int updateAdGrade(Long adId, String adGrade);
+	// 광고 우선도 갱신
+	int updatePriorityScore();
+	
+	List<AdvertisementPriceDto> getExtensionPrices(Long adId);
 	
 	// 기간 변경
     void updatePeriod(Long adId, LocalDateTime start, LocalDateTime end);
@@ -97,10 +100,7 @@ public interface AdvertisementService {
     int deleteAdvertisementImage(Long adId);
 
     // 노출 수 증가
-    int updateImpressions(Long adId);
-
-    // 클릭 수 증가
-    int updateAdvertisementClick(Long adId);
+//    void updateImpressions(Long adId);
 
     // 광고 조회
     AdvertisementDto selectTopAdvertisement(String position);
@@ -113,6 +113,12 @@ public interface AdvertisementService {
     int selectPendingAdvertisementCnt();
 
     int selectClosedAdvertisementCnt();
+    
+    AdvertisementDto selectAdvertisement(
+            String position,
+            Long memberId,
+            String sessionId
+    );
 
     // 클릭 로그
     boolean insertClickLog(
@@ -120,7 +126,8 @@ public interface AdvertisementService {
             String position,
             Long memberId,
             String ip,
-            String userAgent);
+            String userAgent,
+            String referrer);
 	
 	// 노출 로그
     boolean insertImpressionLog(
@@ -129,6 +136,15 @@ public interface AdvertisementService {
             Long memberId,
             String ip,
             String userAgent);
+    
+    // 포인트 적립
+//    boolean processAdvertisementClick(
+//            Long adId,
+//            String position,
+//            Long memberId,
+//            String ip,
+//            String userAgent
+//    );
 
 	// 일일통계
 //	void insertDailyStatistics();
@@ -159,6 +175,8 @@ public interface AdvertisementService {
 
 	// 메일 발송
 	void sendReminderMail();
+
+	AdvertisementPaymentDto createInitialPayment(Long adId, Long memberId);
 
 	// 스케쥴러 돌리는건 일단 주석처리함
 }

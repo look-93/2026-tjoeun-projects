@@ -215,6 +215,39 @@ function AdvertiseDetailPage() {
       {/* 결제 정보 */}
       <Card title="결제 정보" style={{ marginBottom: 20 }}>
         <Descriptions bordered column={2}>
+
+          <Descriptions.Item label="예상 결제 금액">
+            {formatPrice(advertise.calculatedAmount)}
+          </Descriptions.Item>
+
+          <Descriptions.Item label="기본 / 추가 금액">
+            {formatPrice(
+              advertise.baseAmount ?? advertise.basePrice
+            )}
+            {' / '}
+            {formatPrice(
+              advertise.positionAmount ?? advertise.positionPrice
+            )}
+          </Descriptions.Item>
+
+          <Descriptions.Item label="결제 유형">
+            {formatPaymentType(advertise.paymentType)}
+          </Descriptions.Item>
+
+          <Descriptions.Item label="결제 상태">
+            <PaymentStatusTag
+              value={advertise.paymentHistoryStatus}
+            />
+          </Descriptions.Item>
+
+          <Descriptions.Item label="결제 금액">
+            {formatPrice(advertise.paymentAmount ?? '-')}
+          </Descriptions.Item>
+
+          <Descriptions.Item label="결제일">
+            {formatDateTime(advertise.paidAt)}
+          </Descriptions.Item>
+
           <Descriptions.Item label="주문 번호(토스)">
             {advertise.orderId || '-'}
           </Descriptions.Item>
@@ -224,40 +257,20 @@ function AdvertiseDetailPage() {
           </Descriptions.Item>
 
           <Descriptions.Item label="결제 수단">
-            {advertise.paymentMethod || '-'}
+            {formatPaymentMethod(advertise.paymentMethod)}
           </Descriptions.Item>
 
-          <Descriptions.Item label="기본 / 추가 금액">
-            {formatPrice(advertise.baseAmount)} / {formatPrice(advertise.positionAmount)}
-          </Descriptions.Item>
-
-          {/* 취소된 결제인 경우에만 취소 정보 표시 */}
           {advertise.paymentHistoryStatus === 'CANCELLED' && (
             <>
               <Descriptions.Item label="취소 일시">
                 {formatDateTime(advertise.cancelledAt)}
               </Descriptions.Item>
+
               <Descriptions.Item label="취소 사유">
                 {advertise.cancelReason || '-'}
               </Descriptions.Item>
             </>
           )}
-
-          <Descriptions.Item label="결제 유형">
-            {formatPaymentType(advertise.paymentType)}
-          </Descriptions.Item>
-
-          <Descriptions.Item label="결제 상태">
-            <PaymentStatusTag value={advertise.paymentHistoryStatus} />
-          </Descriptions.Item>
-
-          <Descriptions.Item label="결제 금액">
-            {formatPrice(advertise.paymentAmount)}
-          </Descriptions.Item>
-
-          <Descriptions.Item label="결제일">
-            {formatDateTime(advertise.paidAt)}
-          </Descriptions.Item>
 
         </Descriptions>
       </Card>
@@ -326,6 +339,17 @@ function formatDateTime(value) {
 function formatPrice(value) {
   if (value == null) return '-';
   return `${Number(value).toLocaleString()}원`;
+}
+
+function formatPaymentMethod(value) {
+  if (value === 'CARD') return '카드';
+  if (value === 'EASY_PAY') return '간편결제';
+  if (value === 'VIRTUAL_ACCOUNT') return '가상계좌';
+  if (value === 'TRANSFER') return '계좌이체';
+  if (value === 'MOBILE') return '휴대폰';
+  if (value === 'OTHER') return '기타';
+
+  return value || '-';
 }
 
 function calculateCtr(impressions, clicks) {

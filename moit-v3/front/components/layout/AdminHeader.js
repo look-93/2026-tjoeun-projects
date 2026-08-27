@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import { Card, Row, Col, Typography } from 'antd';
+import { Card, Row, Col, Typography, Button, } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
-import { getMyInfoRequest } from '../../reducers/userReducer';
+import { getMyInfoRequest,logoutRequest } from '../../reducers/userReducer';
 
 const { Title, Text } = Typography;
 
@@ -22,6 +22,12 @@ function AdminHeader() {
     Number(user?.memberTypeId) === 4
       ? '최고관리자'
       : '관리자';
+  
+  
+  const handleLogout = () => {
+    console.log('===== 관리자 로그아웃 =====');
+    dispatch(logoutRequest({provider: user?.provider || null,}));
+  };    
 
   return (
     <Card
@@ -43,9 +49,24 @@ function AdminHeader() {
         </Col>
 
         <Col>
-          <Text className="admin-header-user">
-            {user?.nickname || '관리자'}님 ({memberTypeName})
-          </Text>
+          <Row
+            align="middle"
+            gutter={16}
+          >
+            <Col>
+              <Text className="admin-header-user">
+                {user?.nickname || '관리자'}님 ({memberTypeName})
+              </Text>
+            </Col>
+
+            <Col>
+              <Button
+                onClick={handleLogout}
+              >
+                로그아웃
+              </Button>
+            </Col>
+          </Row>
         </Col>
 
       </Row>
