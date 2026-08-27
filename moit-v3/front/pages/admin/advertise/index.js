@@ -38,8 +38,14 @@ function AdminAdvertisePage() {
   // 광고 목록
   const [advertiseList, setAdvertiseList] = useState([]);
 
-  // 검색 조건
+//// 검색 조건
+  // 검색창에 입력 중인 값
   const [searchText, setSearchText] = useState('');
+
+  // 실제 API에 적용된 검색어
+  const [appliedSearchText, setAppliedSearchText] = useState('');
+
+  // 필터 / 정렬
   const [status, setStatus] = useState('');
   const [sort, setSort] = useState('');
 
@@ -57,7 +63,7 @@ function AdminAdvertisePage() {
 
   const size = 10;
 // 1. 광고 목록 조회 (검색, 정렬, 탭별 상태값 명확히 주입)
-  const loadAdvertiseList = async (customSearchText = searchText, customStatus = status, customSort = sort, customPage = page) => {
+  const loadAdvertiseList = async (customSearchText = appliedSearchText, customStatus = status, customSort = sort, customPage = page) => {
     try {
       const params = { 
         searchText: customSearchText, 
@@ -82,7 +88,7 @@ function AdminAdvertisePage() {
   };
 
   // 2. 검색 결과 페이징용 개수 조회 (검색어 조건 반영)
-  const loadCount = async (customSearchText = searchText, customStatus = status) => {
+  const loadCount = async (customSearchText = appliedSearchText, customStatus = status) => {
     try {
       const params = { 
         searchText: customSearchText, 
@@ -122,34 +128,23 @@ function AdminAdvertisePage() {
 
   useEffect(() => {
     loadAdvertiseList(searchText, status, sort, page);
-    loadCount(searchText, status);
+    loadCount(appliedSearchText, status);
     loadStats();
-  }, [tab, page, searchText, status, sort]);
+  }, [tab, page, appliedSearchText, status, sort]);
 
-  // 💡 검색 버튼을 누르거나 필터/정렬을 바꿨을 때 즉시 실행되는 함수
-  // const handleSearch = (values) => {
-  //   const nextSearchText = values?.searchText !== undefined ? values.searchText : searchText;
-  //   const nextStatus = values?.status !== undefined ? values.status : status;
-  //   const nextSort = values?.sort !== undefined ? values.sort : sort;
-
-  //   setSearchText(nextSearchText);
-  //   setStatus(nextStatus);
-  //   setSort(nextSort);
-  //   setPage(1);
-
-  //   // 상태가 바뀐 즉시 최신 값으로 API 호출!
-  //   loadAdvertiseList(nextSearchText, nextStatus, nextSort, 1);
-  //   loadCount(nextSearchText, nextStatus);
-  // };
   const handleSearch = () => {
     setPage(1);
+    setAppliedSearchText(searchText);
   };
 
   // 탭 변경
   const handleTabChange = (nextTab) => {
     setTab(nextTab);
     setPage(1);
+
     setSearchText('');
+    setAppliedSearchText('');
+
     setStatus('');
     setSort('');
   };
@@ -206,71 +201,61 @@ function AdminAdvertisePage() {
 
   /*
    * =========================
-   * 검색 조건 (기존과 동일하게 유지)
+   * 검색 조건 
    * =========================
    */
-  const approvalSearchConditions = [
-    {
-      key: 'status', defaultValue: 'all', options: [
-        { value: 'all', label: '전체 상태' },
-        { value: 'WAITING', label: '승인 대기' },
-        { value: 'PAYMENT_WAITING', label: '결제 대기' },
-        { value: 'REJECTED', label: '반려' },
-      ],
-    },
-    {
-      key: 'sort', defaultValue: 'all', options: [
-        { value: 'all', label: '최신 등록순' },
-        { value: 'start', label: '시작 예정순' },
-        { value: 'end', label: '종료 임박순' },
-        { value: 'budget', label: '예산 높은순' },
-        { value: 'grade', label: '등급순' },
-      ],
-    },
+  const approvalStatusOptions = [
+    { value: '', label: '전체 상태' },
+    { value: 'WAITING', label: '승인 대기' },
+    { value: 'PAYMENT_WAITING', label: '결제 대기' },
+    { value: 'REJECTED', label: '반려' },
   ];
 
-  const paymentSearchConditions = [
-    {
-      key: 'status', defaultValue: 'all', options: [
-        { value: 'all', label: '전체 유형' },
-        { value: 'NEW', label: '신규 결제' },
-        { value: 'EXTENSION', label: '연장 결제' },
-        { value: 'WAITING', label: '결제 대기' },
-      ],
-    },
-    {
-      key: 'sort', defaultValue: 'all', options: [
-        { value: 'all', label: '최신 결제순' },
-        { value: 'amount', label: '결제 금액순' },
-        { value: 'date', label: '결제 예정순' },
-      ],
-    },
+  const approvalSortOptions = [
+    { value: '', label: '최신 등록순' },
+    { value: 'start', label: '시작 예정순' },
+    { value: 'end', label: '종료 임박순' },
+    { value: 'budget', label: '예산 높은순' },
+    { value: 'grade', label: '등급순' },
   ];
 
-  const statusSearchConditions = [
-    { key: 'searchText', defaultValue: '', options: [] },
-    {
-      key: 'status', defaultValue: 'all', options: [
-        { value: 'all', label: '전체 상태' },
-        { value: 'BEFORE_OPEN', label: '게시 전' },
-        { value: 'OPEN', label: '게시 중' },
-        { value: 'CLOSED', label: '종료' },
-      ],
-    },
-    {
-      key: 'sort', defaultValue: 'all', options: [
-        { value: 'all', label: '최신 등록순' },
-        { value: 'start', label: '게시 시작순' },
-        { value: 'end', label: '종료 임박순' },
-        { value: 'impressions', label: '노출수순' },
-        { value: 'clicks', label: '클릭수순' },
-      ],
-    },
+  const paymentStatusOptions = [
+    { value: '', label: '전체 유형' },
+    { value: 'NEW', label: '신규 결제' },
+    { value: 'EXTENSION', label: '연장 결제' },
+    { value: 'WAITING', label: '결제 대기' },
   ];
 
-  const currentSearchConditions =
-    tab === 'approval' ? approvalSearchConditions
-      : tab === 'payment' ? paymentSearchConditions : statusSearchConditions;
+  const paymentSortOptions = [
+    { value: '', label: '최신 결제순' },
+    { value: 'amount', label: '결제 금액순' },
+    { value: 'date', label: '결제 예정순' },
+  ];
+
+  const statusStatusOptions = [
+    { value: '', label: '전체 상태' },
+    { value: 'BEFORE_OPEN', label: '게시 전' },
+    { value: 'OPEN', label: '게시 중' },
+    { value: 'CLOSED', label: '종료' },
+  ];
+
+  const statusSortOptions = [
+    { value: '', label: '최신 등록순' },
+    { value: 'start', label: '게시 시작순' },
+    { value: 'end', label: '종료 임박순' },
+    { value: 'impressions', label: '노출수순' },
+    { value: 'clicks', label: '클릭수순' },
+  ];
+
+  const currentStatusOptions =
+  tab === 'approval'
+    ? approvalStatusOptions : tab === 'payment'
+      ? paymentStatusOptions : statusStatusOptions;
+
+const currentSortOptions =
+  tab === 'approval'
+    ? approvalSortOptions : tab === 'payment'
+      ? paymentSortOptions : statusSortOptions;
 
   /*
    * =========================
@@ -326,13 +311,18 @@ function AdminAdvertisePage() {
 
       {/* 검색 상자 */}
       <AdminAdvertiseSearchBox 
-        tab={tab}
         searchText={searchText}
         setSearchText={setSearchText}
+
         status={status}
         setStatus={setStatus}
+
         sort={sort}
         setSort={setSort}
+
+        statusOptions={currentStatusOptions}
+        sortOptions={currentSortOptions}
+
         onSearch={handleSearch}
       />
 

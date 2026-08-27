@@ -28,6 +28,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
+import com.moit.advertisement.dto.AdvertisementPaymentDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.PaymentConfirmRequestDto;
 import com.moit.advertisement.entity.AdvertisementPayment;
@@ -328,19 +329,28 @@ public class AdvertisementController {
         return ResponseEntity.noContent().build();
     }
     
-    // =========================================================
-    // 결제 정보(주문번호) 조회
-    // =========================================================
-    @Operation(summary = "결제 대기 중인 주문번호 조회", description = "광고 ID로 결제에 사용할 orderId를 조회합니다.")
-    @GetMapping("/payment/orderId/{adId}")
-    public ResponseEntity<String> getOrderIdByAdId(@PathVariable("adId") Long adId, Authentication authentication) {
-        // DB에서 해당 adId에 묶인 결제 대기(REQUESTED) 상태의 orderId를 찾아옵니다.
-        AdvertisementPayment payment = advertisementPaymentRepository
-                .findByAdvertisement_AdIdAndPaymentStatus(adId, PaymentHistoryStatus.REQUESTED)
-                .orElseThrow(() -> new IllegalArgumentException("결제 대기 중인 주문 정보를 찾을 수 없습니다."));
-
-        return ResponseEntity.ok(payment.getOrderId());
-    }
+	 // =========================================================
+	 // 최초 결제 생성
+	 // =========================================================
+	 @Operation(
+	     summary = "광고 최초 결제 생성",
+	     description = "결제하기 요청 시 광고 결제 정보를 생성하고 Toss 결제에 사용할 주문번호를 반환합니다."
+	 )
+	 @PostMapping("/payment/initial/{adId}")
+	 public ResponseEntity<AdvertisementPaymentDto> createInitialPayment(
+	         @PathVariable("adId") Long adId,
+	         Authentication authentication) {
+	
+	     Long memberId = getLoginMemberId(authentication);
+	
+	     AdvertisementPaymentDto payment =
+	             advertisementService.createInitialPayment(
+	                     adId,
+	                     memberId
+	             );
+	
+	     return ResponseEntity.ok(payment);
+	 }
     
     // =========================================================
     // 토스 결제 최종 승인

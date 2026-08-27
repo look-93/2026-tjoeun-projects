@@ -16,7 +16,7 @@ import com.moit.reports.enums.ReasonCode;
 import com.moit.reports.enums.TargetType;
 
 @Service
-public class ApiOpenAi {
+public class ApiOpenAi {	// 사용자 신고 작성 openAI
 	
 	@Value("${openai.api.key}")
 	private String apiKey;

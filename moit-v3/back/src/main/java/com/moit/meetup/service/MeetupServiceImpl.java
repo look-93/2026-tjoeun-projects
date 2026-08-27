@@ -4,11 +4,17 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,9 +26,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moit.common.dto.SigunguDto;
+import com.moit.common.dto.SolapiSmsDto.SolapiSmsRequestDto;
+import com.moit.common.dto.WeatherInfoRequest;
+import com.moit.common.dto.WeatherInfoResponse;
 import com.moit.common.entity.Image;
 import com.moit.common.entity.Sigungu;
 import com.moit.common.repository.ImageRepository;
+import com.moit.common.service.OpenApiService;
+import com.moit.config.ThymeleafConfig;
 import com.moit.exception.ResourceNotFoundException;
 import com.moit.meetup.client.OpenAiApiClient;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicantResponseDto;
@@ -48,13 +59,17 @@ import com.moit.meetup.entity.MeetupBoost;
 import com.moit.meetup.entity.MeetupCategory;
 import com.moit.meetup.entity.MeetupImage;
 import com.moit.meetup.entity.MeetupLike;
+import com.moit.meetup.entity.MeetupNotification;
 import com.moit.meetup.enums.ApplyStatus;
+import com.moit.meetup.enums.MeetupNotificationSendStatus;
+import com.moit.meetup.enums.MeetupNotificationType;
 import com.moit.meetup.enums.MeetupStatus;
 import com.moit.meetup.repository.MeetupApplicationRepository;
 import com.moit.meetup.repository.MeetupBoostRepository;
 import com.moit.meetup.repository.MeetupCategoryRepository;
 import com.moit.meetup.repository.MeetupImageRepository;
 import com.moit.meetup.repository.MeetupLikesRepository;
+import com.moit.meetup.repository.MeetupNotificationRepository;
 import com.moit.meetup.repository.MeetupRepository;
 import com.moit.meetup.repository.MeetupSigunguRepository;
 import com.moit.member.entity.Member;
@@ -70,6 +85,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MeetupServiceImpl implements MeetupService{
+
+    private final ThymeleafConfig thymeleafConfig;
 	
 	private static final String BOOST_KEY_PREFIX = "meetup:boost:";
 	private static final int BOOST_POINT = 200; // 끌어올리기 비용
@@ -87,7 +104,9 @@ public class MeetupServiceImpl implements MeetupService{
     private final MeetupBoostRepository meetupBoostRepository;
     private final PointHistoryRepository pointHistoryRepository;
     private final RedisTemplate<String, String> redisTemplate;
-    
+    private final OpenApiService openApiService;
+    private final MeetupNotificationRepository meetupNotificationRepository;
+
 	//모임리스트조회
 	@Override
 	public MeetupListResponseDto search(
@@ -459,15 +478,12 @@ public class MeetupServiceImpl implements MeetupService{
 	        if (meetupApplication.getApplyStatus() == ApplyStatus.PENDING) {
 	        	
 	            // 모임 날짜
-	            LocalDate meetupDate = LocalDateTime
-	                    .parse(meetup.getMeetupAt())
-	                    .toLocalDate();
-	        	
-	                       
+	        	LocalDateTime meetupDate = meetup.getMeetupAt();          
+
 	            /* 당일취소 1시간 경과 취소하면 -5점 */
 	            
 	        	// 오늘 진행되는 모임인지 확인
-	        	boolean isTodayMeetup = meetupDate.isEqual(LocalDate.now());
+	        	boolean isTodayMeetup = meetupDate.isEqual(LocalDateTime.now());
 	        	
 	        	//신청 후 경과 시간
 	        	long elapsedMinutes  = ChronoUnit.MINUTES.between(meetupApplication.getCreatedAt(), LocalDateTime.now());
@@ -790,6 +806,7 @@ public class MeetupServiceImpl implements MeetupService{
 	}
 	
 	//모임끌어올리기
+	@Transactional
 	@Override
 	public void boostMeetup(Long memberId, Long meetupId) {
 		
@@ -809,7 +826,7 @@ public class MeetupServiceImpl implements MeetupService{
                 );
         
         // 모임 개설자 본인 확인
-        if(!meetup.getMember().getId().equals(meetupId)) {
+        if(!meetup.getMember().getId().equals(memberId)) {
         	throw new IllegalStateException("모임 개설자만 끌어올리기 할 수 있습니다.");
         }
         
@@ -847,6 +864,7 @@ public class MeetupServiceImpl implements MeetupService{
         MeetupBoost meetupBoost = MeetupBoost.builder()
         									 .meetup(meetup)
         									 .pointHistory(pointHistory)
+        									 .endDate(LocalDate.now().plus(7, ChronoUnit.DAYS))
         									 .build();
         
         meetupBoostRepository.save(meetupBoost);  
@@ -957,5 +975,146 @@ public class MeetupServiceImpl implements MeetupService{
 	    }
 
 	    member.getMemberInfo().setAiSummary(aiSummary);
-	}	
+	}
+	
+	// 날씨 알림 sms
+	@Override
+	@Transactional
+	public void sendTomorrowWeatherNotification() {
+
+	    // 내일 날짜 구하기
+	    LocalDate tomorrow = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(1);
+
+	    // 내일의 시작 시간(00:00:00) 구하기
+	    LocalDateTime start = tomorrow.atStartOfDay();
+
+	    // 모레 시작 시간
+	    LocalDateTime end = tomorrow.plusDays(1).atStartOfDay();
+
+	    // 내일 모임 조회
+	    List<Meetup> meetups = meetupRepository.findTomorrowMeetups(start, end);
+
+	    // 같은 지역(nx, ny)의 날씨 API 중복 호출 방지
+	    Map<String, WeatherInfoResponse> weatherCache = new HashMap<>();
+
+	    // 해당 모임 날씨 조회
+	    for (Meetup meetup : meetups) {
+
+	        // 날씨 정보 요청
+	        WeatherInfoRequest request = new WeatherInfoRequest();
+
+	        request.setNx(meetup.getNx());
+	        request.setNy(meetup.getNy());
+
+	        // 비 예보 확인
+	        request.setMeetupDate(
+	                meetup.getMeetupAt()
+	                      .toLocalDate()
+	                      .format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+	        );
+
+	        request.setMeetupTime(meetup.getMeetupAt().getHour());
+
+	        // nx + ny를 지역 캐시 키로 사용
+	        String cacheKey = request.getNx() + "_" + request.getNy();
+	        
+	        // 캐시에서 꺼냄
+	        WeatherInfoResponse weather = weatherCache.get(cacheKey);
+
+	        // 캐시에 없으면 API 호출
+	        if (weather == null) {
+	            try {
+	            	
+	                weather = openApiService.getWeathreInfo(request);
+	                
+	                //캐시에 저장
+	                weatherCache.put(cacheKey, weather);
+	                
+	            } catch (Exception e) {
+	                System.out.println("날씨 조회 실패 - meetupId: " + meetup.getId() + ", error: " + e.getMessage());
+	                continue;
+	            }
+	        }
+
+	        // 강수확률 확인 (null 체크로 NPE 방지)
+	        if (weather.getPop() == null || weather.getPop() < 50) { // 강수확률 50%이상 문자발송
+	            continue;
+	        }
+
+	        // 이 모임에 대해 이미 알림 보낸 참여자 ID를 한 번에 조회 (참여자별 개별 쿼리 방지)
+	        Set<Long> alreadyNotifiedMemberIds;
+	        try {
+	            alreadyNotifiedMemberIds = meetupNotificationRepository
+	                    .findByMeetupAndMeetupNotificationType(meetup, MeetupNotificationType.RAIN)
+	                    .stream()
+	                    .map(n -> n.getMember().getId())
+	                    .collect(Collectors.toSet());
+	        } catch (Exception e) {
+	            System.out.println("알림 이력 조회 실패 - meetupId: " + meetup.getId() + ", error: " + e.getMessage());
+	            continue;
+	        }
+
+	        // 승인된 참여자에게 SMS 발송
+	        for (MeetupApplication application : meetup.getMeetupApplications()) {
+
+	            // 승인된 참여자가 아니면 continue
+	            if (application.getApplyStatus() != ApplyStatus.APPROVED) {
+	                continue;
+	            }
+
+	            Member member = application.getMember();
+
+	            // 이미 이 모임에 대해 날씨 알림을 보냈으면 스킵 (중복 발송 방지)
+	            if (alreadyNotifiedMemberIds.contains(member.getId())) {
+	                continue;
+	            }
+
+	            DateTimeFormatter smsDateFormatter = DateTimeFormatter.ofPattern("M/d(E) HH:mm", Locale.KOREAN); 
+	            
+	            String mobile = member.getMobile();
+	            String messageText =
+	                    "☔ [MOIT 날씨 알림]\n"
+	                  + "[" + meetup.getMeetupCategory().getCategoryName() + "] " + meetup.getMeetupAt().format(smsDateFormatter) + "\n"
+	                  + "내일 비소식이 있습니다.\n"
+	                  + "모임 참여 시 참고하세요.\n"
+	                  + "강수확률: " + weather.getPop() + "%\n";
+
+	            // 참여자 한 명 SMS 발송 실패해도 나머지는 계속 발송되도록 개별 try-catch
+	            MeetupNotificationSendStatus status;
+	            try {
+	                SolapiSmsRequestDto smsRequest = new SolapiSmsRequestDto();
+	                smsRequest.setPhoneNumber(mobile);
+	                smsRequest.setMessage(messageText);
+
+	                openApiService.sendSms(smsRequest);
+	                status = MeetupNotificationSendStatus.SENT;
+
+	            } catch (Exception e) {
+	                status = MeetupNotificationSendStatus.FAILED;
+	                System.out.println("SMS 발송 실패 - memberId: " + member.getId() + ", error: " + e.getMessage());
+	            }
+
+	            // 저장 실패가 SMS 발송(위 블록)에 영향 주지 않도록 별도 try-catch로 분리
+	            try {
+	                MeetupNotification notification = MeetupNotification.builder()
+	                        .meetup(meetup)
+	                        .member(member)
+	                        .meetupNotificationType(MeetupNotificationType.RAIN)
+	                        .phoneNumber(mobile)
+	                        .message(messageText)
+	                        .meetupNotificationSendStatus(status)
+	                        .sentAt(status == MeetupNotificationSendStatus.SENT ? LocalDateTime.now() : null)
+	                        .build();
+
+	                meetupNotificationRepository.save(notification);
+
+	            } catch (Exception e) {
+	                System.out.println("⚠️ 알림 이력 저장 실패 (SMS 발송 결과: " + status + ") - memberId: "
+	                        + member.getId() + ", error: " + e.getMessage());
+	            }
+	        }
+	    }
+	    
+	} // end sendTomorrowWeatherNotification
+    
 }

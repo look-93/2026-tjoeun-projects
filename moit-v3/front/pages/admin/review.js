@@ -1,19 +1,47 @@
-import { Row, Col, Button, Input, Select, Table } from 'antd';
+import { Row, Col, Button, Table, Tag, Spin } from 'antd';
 import AdminStatCard from '../../components/AdminStatCard';
 import AdminSearchBox from '../../components/AdminSearchBox';
 import AdminListTabs from '../../components/AdminListTabs';
-import { useState } from 'react';
-// http://localhost:3000/admin/review
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+
+// 💡 reviewReducer에 정의된 정확한 액션 이름들로 임포트합니다!
+import {
+  getReviewListRequest,
+  deleteReviewRequest,
+  // changeReviewVisibilityRequest 액션이 사가에 있다면 함께 임포트, 혹은 아래 참고
+} from '../../reducers/reviewReducer'; 
 
 function AdminReviewPage() {
-  //테스트용 테이터
-  const serverData = { allcnt: 1200, running: 1000, close: 1200 };
+  const dispatch = useDispatch();
+
+  // Redux 스토어에서 리뷰 데이터 가져오기 (totalCount, totalPage도 함께 가져올 수 있습니다)
+  const { reviews, totalCount, loading } = useSelector(
+    (state) => state.review
+  );
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
+  // 검색 및 탭 조건
+  const [searchType, setSearchType] = useState('all');
+  const [status, setStatus] = useState('all');
+  const [searchText, setSearchText] = useState('');
+  const [listType, setListType] = useState('all');
+
+  // 통계 카드 데이터 바인딩
+  const publicCount = reviews ? reviews.filter((r) => r.isPublic === 'Y' || r.isPublic === true).length : 0;
+  const hiddenCount = reviews ? reviews.filter((r) => r.isPublic === 'N' || r.isPublic === false).length : 0;
+
   const stats = [
-    { title: '전체 모임', value: serverData.allcnt, suffix: '개' },
-    { title: '모집 중', value: serverData.running, suffix: '개' },
-    { title: '모집 마감', value: serverData.close, suffix: '개' },
-    { title: '모집 마감', value: 100, suffix: '개' },
+    { title: '전체 후기', value: totalCount || 0, suffix: '개' },
+    { title: '공개된 후기', value: publicCount, suffix: '개' },
+    { title: '비공개 후기', value: hiddenCount, suffix: '개' },
   ];
+
+  const listTabs = [{ key: 'all', label: '전체 후기' }];
+
+  // 테이블 컬럼 정의
   const adminColumns = [
     {
       title: '번호',
@@ -21,183 +49,133 @@ function AdminReviewPage() {
       key: 'id',
       width: 80,
       align: 'center',
+      render: (_, record, index) => (reviews ? totalCount - ((currentPage - 1) * pageSize + index) : 0),
     },
     {
-      title: '아이디',
-      dataIndex: 'loginId',
-      key: 'loginId',
-    },
-    {
-      title: '닉네임',
-      dataIndex: 'nickname',
-      key: 'nickname',
-    },
-    {
-      title: '이름',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: '이메일',
-      dataIndex: 'email',
-      key: 'email',
-    },
-    {
-      title: '가입일',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
+      title: '모임 번호',
+      dataIndex: 'meetupId',
+      key: 'meetupId',
+      width: 100,
       align: 'center',
+    },
+    {
+      title: '작성자',
+      dataIndex: 'memberNickname',
+      key: 'memberNickname',
+      width: 120,
+      align: 'center',
+    },
+    {
+      title: '내용',
+      dataIndex: 'content',
+      key: 'content',
+      ellipsis: true,
     },
     {
       title: '상태',
-      dataIndex: 'status',
-      key: 'status',
+      dataIndex: 'isPublic',
+      key: 'isPublic',
+      width: 100,
       align: 'center',
-      render: (_, record) => (
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-          <Button size="small">수정</Button>
-
-          <Button size="small" danger>
-            삭제
-          </Button>
-        </div>
-      ),
-    },
-  ];
-  const adminData = [
-    {
-      key: 1,
-      id: 1,
-      loginId: 'admin01',
-      nickname: '관리자1',
-      name: '김관리',
-      email: 'admin01@moit.com',
-      createdAt: '2026-08-01',
-      status: '정상',
+      render: (isPublic) =>
+        isPublic === 'N' || isPublic === false ? (
+          <Tag color="default">비공개</Tag>
+        ) : (
+          <Tag color="success">공개</Tag>
+        ),
     },
     {
-      key: 2,
-      id: 2,
-      loginId: 'admin02',
-      nickname: '관리자2',
-      name: '이관리',
-      email: 'admin02@moit.com',
-      createdAt: '2026-08-03',
-      status: '정상',
-    },
-  ];
-  const userColumns = [
-    {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
-      align: 'center',
-    },
-    {
-      title: '아이디',
-      dataIndex: 'loginId',
-      key: 'loginId',
-    },
-    {
-      title: '닉네임',
-      dataIndex: 'nickname',
-      key: 'nickname',
-    },
-    {
-      title: '이름',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: '이메일',
-      dataIndex: 'email',
-      key: 'email',
-    },
-    {
-      title: '가입일',
+      title: '작성일',
       dataIndex: 'createdAt',
       key: 'createdAt',
-    },
-  ];
-  const userData = [
-    {
-      key: 1,
-      id: 1,
-      loginId: 'user01',
-      nickname: '보라',
-      name: '김보라',
-      email: 'bora@moit.com',
-      createdAt: '2026-08-01',
+      width: 150,
+      align: 'center',
+      render: (createdAt) =>
+        createdAt ? createdAt.replace('T', ' ').slice(0, 16) : '-',
     },
     {
-      key: 2,
-      id: 2,
-      loginId: 'user02',
-      nickname: '철수',
-      name: '김철수',
-      email: 'chulsoo@moit.com',
-      createdAt: '2026-08-03',
+      title: '관리',
+      key: 'action',
+      width: 160,
+      align: 'center',
+      render: (_, record) => {
+        const isHidden = record.isPublic === 'N' || record.isPublic === false;
+        return (
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
+            <Button
+              size="small"
+              onClick={() => handleToggleVisibility(record.id)}
+            >
+              {isHidden ? '공개 전환' : '비공개 처리'}
+            </Button>
+            <Button
+              size="small"
+              danger
+              onClick={() => handleDelete(record.id)}
+            >
+              삭제
+            </Button>
+          </div>
+        );
+      },
     },
   ];
-  // 체크박스
-  const [checkStrictly, setCheckStrictly] = useState(false);
 
-  const rowSelection = {
-    checkStrictly,
-    onChange: (selectedRowKeys, selectedRows) => {
-      console.log('선택된 ID:', selectedRowKeys);
-      console.log('선택된 데이터:', selectedRows);
-    },
+  // 검색 핸들러
+  const handleSearch = (values) => {
+    setSearchType(values.category || 'all');
+    setSearchText(values.keyword || '');
+    setStatus(values.status || 'all');
+    setCurrentPage(1);
   };
 
-  const [listType, setListType] = useState('admin');
+  // 💡 데이터 요청: getReviewListRequest 액션 사용
+  useEffect(() => {
+    dispatch(
+      getReviewListRequest({
+        page: currentPage - 1,
+        size: pageSize,
+        searchType: searchType === 'all' ? null : searchType,
+        searchText: searchText || null,
+        status: status === 'all' ? null : status,
+      })
+    );
+  }, [currentPage, searchType, searchText, status, dispatch]);
 
-  // 목록 전환
-  const listTabs = [
-    {
-      key: 'admin',
-      label: '관리자목록',
-    },
-    {
-      key: 'user',
-      label: '사용자목록',
-    },
-  ];
+  // 공개/비공개 토글 핸들러 (사이드 이펙트 처리에 맞게 연동)
+  const handleToggleVisibility = (reviewId) => {
+  dispatch({
+    type: 'review/changeVisibilityRequest',
+    payload: reviewId,
+  });
+};
+
+  // 💡 삭제 요청: deleteReviewRequest 액션 사용 (리듀서에서 목록 자동 필터링 처리됨)
+  const handleDelete = (reviewId) => {
+    dispatch(deleteReviewRequest(reviewId));
+  };
+
+  if (!reviews) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '300px', gap: '16px' }}>
+        <Spin size="large" />
+        <span>후기 정보를 불러오는 중입니다...</span>
+      </div>
+    );
+  }
+
   return (
     <>
-      {/* 통계 */}
       <Row gutter={[16, 16]}>
         {stats.map((stat) => (
-          <Col xs={24} sm={12} md={12} lg={6} key={stat.title}>
+          <Col xs={24} sm={12} md={12} lg={8} key={stat.title}>
             <AdminStatCard {...stat} />
           </Col>
         ))}
       </Row>
 
-      {/* 목록 탭 */}
-      {/* 목록 탭 */}
-      <AdminListTabs
-        tabs={listTabs}
-        activeTab={listType}
-        onChange={setListType}
-      />
+      <AdminListTabs tabs={listTabs} activeTab={listType} onChange={setListType} />
 
-      {/* 검색 영역 조건1개*/}
-      {/* <AdminSearchBox
-        conditions={[
-          {
-            key: 'searchType',
-            defaultValue: 'title',
-            options: [
-              { value: 'title', label: '제목' },
-              { value: 'content', label: '내용' },
-            ],
-          },
-        ]}
-      /> */}
-
-      {/* 검색 영역 조건2개*/}
       <AdminSearchBox
         conditions={[
           {
@@ -205,8 +183,8 @@ function AdminReviewPage() {
             defaultValue: 'all',
             options: [
               { value: 'all', label: '전체' },
-              { value: 'exercise', label: '운동' },
-              { value: 'study', label: '스터디' },
+              { value: 'content', label: '내용' },
+              { value: 'nickname', label: '작성자' },
             ],
           },
           {
@@ -214,21 +192,23 @@ function AdminReviewPage() {
             defaultValue: 'all',
             options: [
               { value: 'all', label: '전체 상태' },
-              { value: 'recruiting', label: '모집중' },
-              { value: 'closed', label: '마감' },
+              { value: 'public', label: '공개' },
+              { value: 'hidden', label: '비공개' },
             ],
           },
         ]}
+        onSearch={handleSearch}
       />
 
-      {/* 모임 목록 */}
       <div className="admin-table-box">
         <Table
-          rowSelection={rowSelection}
-          columns={listType === 'admin' ? adminColumns : userColumns}
-          dataSource={listType === 'admin' ? adminData : userData}
+          columns={adminColumns}
+          dataSource={reviews}
           pagination={{
-            pageSize: 10,
+            current: currentPage,
+            pageSize: pageSize,
+            total: totalCount,
+            onChange: (page) => setCurrentPage(page),
             showSizeChanger: false,
           }}
           rowKey="id"
@@ -238,4 +218,5 @@ function AdminReviewPage() {
     </>
   );
 }
+
 export default AdminReviewPage;

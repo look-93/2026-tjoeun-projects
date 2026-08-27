@@ -154,11 +154,6 @@ public class MailServiceImpl implements MailService {
                                     %s원
                                 </p>
 
-                                <p>
-                                    <b>주문번호</b><br>
-                                    %s
-                                </p>
-
                             </div>
 
                             <p>
@@ -187,12 +182,6 @@ public class MailServiceImpl implements MailService {
 
                             </div>
 
-                            <hr>
-
-                            <p style="font-size:13px;color:#888;">
-                                본 메일은 MOIT 시스템에서 자동 발송되었습니다.
-                            </p>
-
                         </div>
 
                     </body>
@@ -202,12 +191,29 @@ public class MailServiceImpl implements MailService {
                             ad.getTitle(),
                             ad.getStartDatetime(),
                             ad.getEndDatetime(),
-                            ad.getPaymentAmount(),
-                            ad.getOrderId()
+                            ad.getPaymentAmount()
                     );
+            
             helper.setText(html, true);
+            
+            System.out.println();
+            System.out.println("========================================");
+            System.out.println("===== 광고 결제 요청 메일 발송 =====");
+            System.out.println("발신자       : " + mailSenderEmail);
+            System.out.println("수신자       : " + advertiserEmail);
+            System.out.println("광고 ID      : " + ad.getAdId());
+            System.out.println("광고명       : " + ad.getTitle());
+            System.out.println("광고 기간    : " + ad.getStartDatetime()
+                    + " ~ " + ad.getEndDatetime());
+            System.out.println("결제 금액    : " + ad.getPaymentAmount());
+            System.out.println("========================================");
+            System.out.println();
+
+            // 실제 메일 발송
             mailSender.send(message);
 
+            System.out.println("===== 메일 발송 성공 =====");
+            
             System.out.println( "광고 결제 요청 메일 발송 성공 : " + advertiserEmail );
 
         } catch (Exception e) {

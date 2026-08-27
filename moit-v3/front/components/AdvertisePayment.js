@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { loadPaymentWidget } from '@tosspayments/payment-widget-sdk';
 import { Button, message, Spin } from 'antd';
-import api from '../api/axios';
+import { createInitialPayment, } from '../api/advertiseApi';
 
 const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
 
@@ -17,66 +17,140 @@ export default function AdvertisePayment({ adId, amount, adTitle }) {
   useEffect(() => {
     let isMounted = true;
     
-    const customerKey = `customer_${adId}_${Math.random().toString(36).substring(2, 9)}`;
-
-    const initializeWidget = async () => {
+    const initializePayment = async () => {
       try {
         setLoading(true);
 
-        // 백엔드 DB에 이미 생성되어 있는 orderId
-        const res = await api.get(`/api/advertisement/payment/orderId/${adId}`);
-        if (!isMounted) return;
-        setRealOrderId(res.data);
-        console.log("DB에서 가져온 진짜 orderId:", res.data);
+        /*
+         * 1. 백엔드에서 결제 정보 생성
+         *
+         * 이미 REQUESTED 결제가 있으면
+         * 기존 결제 정보를 재사용함.
+         */
+        const paymentResponse = await createInitialPayment(adId);
 
-        // 2. 토스 위젯 로드
-        const paymentWidget = await loadPaymentWidget(clientKey, customerKey);
-        if (!isMounted) return;
+        if (!isMounted) {
+          return;
+        }
 
-        const paymentMethodsWidget = paymentWidget.renderPaymentMethods(
-          "#payment-method",
-          { value: price },
-          { variantKey: "DEFAULT" }
+        const payment = paymentResponse.data;
+
+        console.log(
+          '백엔드에서 생성/조회한 결제 정보:',
+          payment
         );
 
+        /*
+         * 2. 백엔드에서 받은 실제 orderId 사용
+         */
+        setRealOrderId(payment.orderId);
+
+        /*
+         * 3. 실제 결제 금액도 백엔드 금액 사용
+         *
+         * 프론트에서 전달받은 amount를 그대로 믿지 않고
+         * 서버가 계산한 결제 금액을 사용
+         */
+        const serverAmount = Number(payment.amount);
+
+        if (!serverAmount || serverAmount <= 0) {
+          throw new Error('서버에서 올바른 결제 금액을 받지 못했습니다.');
+        }
+
+        setPrice(serverAmount);
+
+        /*
+         * 4. Toss 고객 키
+         *
+         * 같은 광고의 결제창을 다시 열어도
+         * 고객 식별이 가능하도록 adId 기반으로 생성
+         */
+        const customerKey = `customer_${adId}`;
+
+        // 5. Toss Payment Widget 생성
+        const paymentWidget =
+          await loadPaymentWidget(
+            clientKey,
+            customerKey
+          );
+
+        if (!isMounted) {
+          return;
+        }
+
+        // 6. 결제수단 렌더링
+        const paymentMethodsWidget =
+          paymentWidget.renderPaymentMethods(
+            '#payment-method',
+            {
+              value: Number(payment.amount),
+            },
+            {
+              variantKey: 'DEFAULT',
+            }
+          );
+
+        // 7. 약관 렌더링
         paymentWidget.renderAgreement(
-          "#agreement", 
-          { variantKey: "AGREEMENT" }
+          '#agreement',
+          {
+            variantKey: 'AGREEMENT',
+          }
         );
 
-        paymentMethodsWidget.on("ready", () => {
-          if (isMounted) {
+        // 8. 결제창 준비 완료
+        paymentMethodsWidget.on(
+          'ready',
+          () => {
+            if (!isMounted) {
+              return;
+            }
             setIsReady(true);
             setLoading(false);
           }
-        });
+        );
 
         paymentWidgetRef.current = paymentWidget;
         paymentMethodsWidgetRef.current = paymentMethodsWidget;
-
       } catch (error) {
-        if (isMounted) {
-          console.error("결제 위젯 초기화 실패:", error);
-          message.error("결제창을 불러오는 데 실패했습니다.");
-          setLoading(false);
+
+        if (!isMounted) {
+          return;
         }
+
+        console.error(
+          '결제 초기화 실패:',
+          error
+        );
+
+        console.error(
+          '응답:',
+          error.response?.data
+        );
+
+        message.error(
+          error.response?.data?.message ||
+          '결제 정보를 생성하지 못했습니다.'
+        );
+
+        setLoading(false);
       }
     };
 
-    const timer = setTimeout(() => {
-      initializeWidget();
-    }, 100);
+    if (adId) {
+      initializePayment();
+    }
 
     return () => {
       isMounted = false;
-      clearTimeout(timer);
     };
+
   }, [adId]);
 
   useEffect(() => {
     const paymentMethodsWidget = paymentMethodsWidgetRef.current;
     if (paymentMethodsWidget == null) return;
-    paymentMethodsWidget.updateAmount(price);
+    paymentMethodsWidget.updateAmount(Number(price));
   }, [price]);
 
   const handlePayment = async () => {
@@ -84,6 +158,15 @@ export default function AdvertisePayment({ adId, amount, adTitle }) {
 
     if (!paymentWidget || !isReady) {
       message.warning("결제창이 준비 중입니다. 잠시만 기다려주세요.");
+      return;
+    }
+
+    if (!realOrderId) {
+
+      message.error(
+        '주문번호를 확인할 수 없습니다.'
+      );
+
       return;
     }
 

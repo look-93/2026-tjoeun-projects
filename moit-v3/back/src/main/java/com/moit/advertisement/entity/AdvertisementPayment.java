@@ -240,4 +240,24 @@ public class AdvertisementPayment {
         this.paymentMethod = paymentMethod;
         this.paidAt = LocalDateTime.now();
     }
+    
+    public void updateAmount(
+            BigDecimal baseAmount,
+            BigDecimal positionAmount,
+            BigDecimal amount) {
+
+        this.baseAmount = baseAmount;
+        this.positionAmount = positionAmount;
+        this.amount = amount;
+    }
+    
+    public void updatePeriod(
+            int periodDays,
+            LocalDateTime startDatetime,
+            LocalDateTime endDatetime) {
+
+        this.periodDays = periodDays;
+        this.startDatetime = startDatetime;
+        this.endDatetime = endDatetime;
+    }
 }

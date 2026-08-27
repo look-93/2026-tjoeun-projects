@@ -144,10 +144,10 @@ public class RagService {	// 실제 RAG 작업
 	
 	public String analyzeReport(Long reportId) {
 
-		// 현재 신고 + 신고 대상 원문 가져오기
+		// reportContext -	DB에서 조회한 현재 신고 데이터 + 신고 대상 원문 가져오기
 		ReportAiContext reportContext = reportAiContextService.getReportContext(reportId);
 
-		// 유사 문서 검색용 문자열 생성
+		// query -	유사 문서 Embedding 검색용 문자열 생성
 		String query = """
 				신고 유형: %s
 				신고 내용: %s
@@ -157,10 +157,10 @@ public class RagService {	// 실제 RAG 작업
 				""".formatted(reportContext.getReasonCode(), reportContext.getReasonDetail(),
 				reportContext.getTargetContent());
 
-		// 현재 사건과 비슷한 운영 기준 / 사례 Top 3 검색
+		// similarChunks -	현재 사건과 비슷한 운영 기준 / 사례 Top 3 검색
 		List<RagChunk> similarChunks = searchSimilarChunks(query, 3);
 
-		// 검색된 참고자료를 하나의 문자열로 합치기
+		// contextBuilder -	검색된 참고자료를 하나의 문자열로 합치기
 		StringBuilder contextBuilder = new StringBuilder();
 
 		for (RagChunk chunk : similarChunks) {
@@ -172,9 +172,10 @@ public class RagService {	// 실제 RAG 작업
 			contextBuilder.append(chunk.getContent()).append("\n\n");
 		}
 
+		// ragContext -		GPT에게 줄 참고 문서
 		String ragContext = contextBuilder.toString();
 
-		// GPT에게 알려줄 현재 사건 정보
+		// currentReport -	GPT에게 알려줄 현재 신고 정보
 		String currentReport = """
 				[현재 신고]
 

@@ -386,5 +386,12 @@ public class Advertisement extends BaseEntity{
         this.approvalStatus = ApprovalStatus.WAITING;
         this.rejectReason = null; // 수정했으므로 기존 반려 사유 초기화
     }
+    
+    public void updateTotalBudget(BigDecimal totalBudget) {
+        this.totalBudget = totalBudget;
+    }
 
+    public void updatePriorityScore(Integer priorityScore) {
+        this.priorityScore = priorityScore;
+    }
 }

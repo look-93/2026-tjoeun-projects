@@ -29,4 +29,9 @@ public interface AdvertisementCalculationService {
             PaymentType paymentType,
             List<AdPosition> positions
     );
+    
+    int calculateTotalDays(
+            LocalDateTime startDatetime,
+            LocalDateTime endDatetime
+    );
 }

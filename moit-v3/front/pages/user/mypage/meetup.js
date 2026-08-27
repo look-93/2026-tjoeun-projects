@@ -24,6 +24,8 @@ import {
     fetchMyMeetupCountRequest,
     deleteMeetupRequest,
     resetDeleteSuccess,
+    boostMeetupRequest,
+    resetBoostSuccess,
 } from "../../../reducers/meetupReducer";
 import MeetupApplicantModal from "../../../components/MeetupApplicantModal";
 import MyPageStatCard from "../../../components/MyPageStatCard";
@@ -46,6 +48,8 @@ function UserMyMeetupPage() {
         myMeetupCount,
         loading,
         deleteSuccess,
+        boostSuccess,
+        error,
     } = useSelector((state) => state.meetup);
 
     // 승인 처리
@@ -118,6 +122,18 @@ function UserMyMeetupPage() {
         });
     };
 
+    // 끌어올리기
+    const handleBoost = (meetupId) => {
+        Modal.confirm({
+            title: "모임을 끌어올리시겠습니까?",
+            content: "200 포인트가 차감되며, 7일에 한 번만 사용할 수 있습니다.",
+            okText: "끌어올리기",
+            cancelText: "취소",
+            onOk: () => {
+                dispatch(boostMeetupRequest(meetupId));
+            },
+        });
+    };
     // 통계
     const stats = [
         {
@@ -173,6 +189,26 @@ function UserMyMeetupPage() {
 
         dispatch(resetDeleteSuccess());
     }, [deleteSuccess, dispatch]);
+
+    useEffect(() => {
+        if (!boostSuccess) return;
+
+        message.success("모임이 끌어올려졌습니다.");
+
+        dispatch(
+            fetchMyMeetupsRequest({
+                page: 0,
+                size: 10,
+            }),
+        );
+        dispatch(resetBoostSuccess());
+    }, [boostSuccess, dispatch]);
+
+    useEffect(() => {
+        if (!error) return;
+
+        message.error(error);
+    }, [error]);
 
     // 테이블
     const columns = [
@@ -246,7 +282,7 @@ function UserMyMeetupPage() {
             align: "center",
             render: (_, record) => {
                 const isCompleted = record.meetupStatus === "COMPLETED";
-
+                const canBoost = record.meetupStatus === "RECRUITING";
                 return (
                     <Space>
                         <Button
@@ -263,7 +299,7 @@ function UserMyMeetupPage() {
 
                         <Button
                             size="small"
-                            disabled={isCompleted}
+                            disabled={!canBoost}
                             onClick={() => handleApplicantManage(record.id)}
                         >
                             신청자 관리
@@ -272,10 +308,17 @@ function UserMyMeetupPage() {
                         <Button
                             danger
                             size="small"
-                            disabled={isCompleted}
+                            disabled={!canBoost}
                             onClick={() => handleDelete(record.id)}
                         >
                             삭제
+                        </Button>
+                        <Button
+                            size="small"
+                            disabled={!canBoost}
+                            onClick={() => handleBoost(record.id)}
+                        >
+                            끌어올리기
                         </Button>
                     </Space>
                 );

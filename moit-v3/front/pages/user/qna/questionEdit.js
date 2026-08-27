@@ -23,7 +23,7 @@ function questionEdit() {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const { question } = router.query;
+  const { questionId } = router.query;
 
   const { qna, loading, success, error } = useSelector(
     (state) => state.qna
@@ -33,12 +33,12 @@ function questionEdit() {
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    if (!router.isReady || !question) return;
+    if (!router.isReady || !questionId) return;
 
     dispatch(
-      qnaDetailRequest(Number(question))
+      qnaDetailRequest(Number(questionId))
     );
-  }, [router.isReady, question, dispatch]);
+  }, [router.isReady, questionId, dispatch]);
 
   useEffect(() => {
     if (!qna) return;
@@ -54,13 +54,13 @@ function questionEdit() {
     if (!submitted || !success) return;
 
     router.push(
-      `/user/qna/questionDetail?questionId=${question}`
+      `/user/qna/questionDetail?questionId=${questionId}`
     );
   }, [
     submitted,
     success,
     router,
-    question,
+    questionId,
   ]);
 
   useEffect(() => {
@@ -75,7 +75,7 @@ function questionEdit() {
   const title = isMeetup ? '모임 1:1 문의 수정' : '관리자 1:1 문의 수정';
 
   const handleSubmit = (values) => {
-    if (!question) return;
+    if (!questionId) return;
     if (!window.confirm('문의 내용을 수정하시겠습니까?')) {
       return;
     }
@@ -83,7 +83,7 @@ function questionEdit() {
 
     dispatch(
       qnaUpdateRequest({
-        questionId: Number(question),
+        questionId: Number(questionId),
         data: {
           title: values.title,
           content: values.content,

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 import com.moit.advertisement.entity.AdvertisementPositionPrice;
 import com.moit.advertisement.entity.AdvertisementPrice;
@@ -26,6 +27,8 @@ import com.moit.member.enums.MemberStatusEnum;
 import com.moit.member.enums.MemberTypeEnum;
 import com.moit.member.repository.MemberStatusRepository;
 import com.moit.member.repository.MemberTypeRepository;
+import com.moit.reports.entity.MemberReportStatus;
+import com.moit.reports.repository.MemberReportStatusRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +48,10 @@ public class DataInitializer {
     private final SidoRepository  sidoRepository;
     private final SigunguRepository  sigunguRepository;
     
+    private final MemberReportStatusRepository memberReportStatusRepository;
+    
 	@Bean
+	@Order(1)
 	public CommandLineRunner initData() {
 		return args -> {
             
@@ -127,19 +133,24 @@ public class DataInitializer {
             }
             
             // ==========================================
-            // 5. 카테고리
+            // 카테고리
             // ==========================================
             initCategories();
 
             // ==========================================
-            // 6. 시도
+            // 시도
             // ==========================================
             initSidos();
 
             // ==========================================
-            // 7. 시군구
+            // 시군구
             // ==========================================
             initSigungus();
+            
+	         // ==========================================
+	         // 회원 신고 상태 초기 데이터
+	         // ==========================================
+	         initMemberReportStatuses();
 		};
 	}
 
@@ -351,6 +362,24 @@ public class DataInitializer {
         sigungu.setSido(sido);
 
         return sigungu;
+    }
+    
+    private void initMemberReportStatuses() {
+
+        if (memberReportStatusRepository.count() > 0) {
+            log.info("🔥 [DataInit] 회원 신고 상태 데이터가 이미 존재합니다.");
+            return;
+        }
+
+        log.info("🔥 [DataInit] 회원 신고 상태 초기 데이터를 생성합니다.");
+
+        memberReportStatusRepository.saveAll(Arrays.asList(
+            new MemberReportStatus("ACTIVE", "정상"),
+            new MemberReportStatus("WARNING", "주의"),
+            new MemberReportStatus("DANGER", "위험")
+        ));
+
+        log.info("🔥 [DataInit] 회원 신고 상태 초기 데이터 생성 완료");
     }
     
 }

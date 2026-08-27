@@ -1,5 +1,9 @@
 package com.moit.meetup.entity;
 
+import java.time.LocalDate;
+
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.moit.member.entity.PointHistory;
 import com.moit.util.BaseEntity;
 
@@ -25,7 +29,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name="MEETUP_BOOST")
+@Table(name="MEETUP_BOOSTS")
 public class MeetupBoost extends BaseEntity{
 	
 	@Id
@@ -40,4 +44,11 @@ public class MeetupBoost extends BaseEntity{
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "history_id", nullable = false)
 	private PointHistory pointHistory;
+	
+	@CreationTimestamp
+	@Column(nullable = false, updatable = false)
+    private LocalDate startDate;
+	
+	@Column(nullable = false)
+    private LocalDate endDate;
 }
