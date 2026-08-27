@@ -39,11 +39,11 @@ public class OpenApiServiceImpl implements OpenApiService {
     @Value("${vworld.api.key}")
     private String apiKey;
     
-    @Value("${solapi.api.key}")
+    @Value("${solapi.api-key}")
     private String solapiApiKey;
-    @Value("${solapi.api.secret}")
+    @Value("${solapi.api-secret}")
     private String solapiApiSecret;
-    @Value("${solapi.from}")
+    @Value("${solapi.sender}")
     private String sender;
 
     private final RestClient vworldRestClient;

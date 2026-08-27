@@ -13,10 +13,10 @@ public class MeetupScheduler {
 	
 	private final MeetupService meetupService;
 	
-	@Scheduled(cron = "0 * * * * *")
+	//@Scheduled(cron = "0 * * * * *")
     //@Scheduled(cron = "0 0 18 * * *")
     public void sendWeatherNotification() {
-    	
+		System.out.println(" sms 알림 스케줄러 실행");
     	meetupService.sendTomorrowWeatherNotification();
     }
 

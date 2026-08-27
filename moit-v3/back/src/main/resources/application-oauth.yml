@@ -64,9 +64,3 @@ naver:
   host: ${NAVER_HOST}
   user: ${NAVER_USER}
   password: ${NAVER_PASSWORD}
-
-solapi:
-  api:
-    key : ${SOLAPI_API_KEY}
-    secret : ${SOLAPI_API_SECRET}
-  from : ${SOLAPI_FROM}
