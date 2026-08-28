@@ -60,9 +60,9 @@ function AdvertiseWritePage() {
     const fetchPrices = async () => {
       try {
         // 일반/프리미엄 기본 가격 목록 가져오기 
-        const priceRes = await axios.get('/api/admin/advertisement/price');
+        const priceRes = await axios.get('/api/advertisement/prices');
         // 위치별 추가금 가져오기
-        const positionRes = await axios.get('/api/admin/advertisement/price/position');
+        const positionRes = await axios.get('/api/advertisement/prices/position');
 
         // ==========================================
         // 🛠️ 기본 가격 (기간별로 일반/프리미엄 묶기)
@@ -154,9 +154,7 @@ function AdvertiseWritePage() {
     return () => {
       if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
     };
-  }, []);
-
-  const [selectedPositions, setSelectedPositions] = useState(['MAIN']);       
+  }, []); 
 
   const [imageFiles, setImageFiles] = useState({
     MAIN: [],

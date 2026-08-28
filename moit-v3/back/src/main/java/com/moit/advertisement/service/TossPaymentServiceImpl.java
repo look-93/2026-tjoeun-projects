@@ -16,11 +16,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moit.advertisement.dto.PaymentConfirmRequestDto;
 import com.moit.advertisement.entity.Advertisement;
 import com.moit.advertisement.entity.AdvertisementPayment;
 import com.moit.advertisement.enums.AdStatus;
+import com.moit.advertisement.enums.PaymentType;
 // import com.moit.advertisement.enums.PaymentHistoryStatus; // 본인 패키지에 맞게 주석 해제
 // import com.moit.advertisement.enums.PaymentStatus; // 본인 패키지에 맞게 주석 해제
 import com.moit.advertisement.repository.AdvertisementPaymentRepository;
@@ -77,41 +77,91 @@ public class TossPaymentServiceImpl implements TossPaymentService {
 
         try {
             // 4. API 통신
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    "https://api.tosspayments.com/v1/payments/confirm",
-                    requestEntity,
-                    String.class
-            );
+        	ResponseEntity<JsonNode> response = restTemplate.postForEntity(
+        	        "https://api.tosspayments.com/v1/payments/confirm",
+        	        requestEntity,
+        	        JsonNode.class
+        	);
 
-            if (response.getStatusCode().is2xxSuccessful()) {
-            	ObjectMapper objectMapper = new ObjectMapper();
-                String paymentMethod = "알 수 없음"; // 기본값
-                try {
-                    JsonNode rootNode = objectMapper.readTree(response.getBody());
-                    paymentMethod = rootNode.path("method").asText(); // 예: "카드", "가상계좌", "간편결제"
-                } catch (Exception e) {
-                    System.out.println("결제수단 파싱 실패: " + e.getMessage());
-                }
-                
+        	if (response.getStatusCode().is2xxSuccessful()) {
+
+        	    JsonNode rootNode = response.getBody();
+
+        	    String tossMethod = rootNode.path("method").asText();
+
+        	    System.out.println("🔥 Toss 결제수단: [" + tossMethod + "]");
+
+        	    String paymentMethod;
+
+        	    switch (tossMethod) {
+
+        	        case "카드":
+        	            paymentMethod = "CARD";
+        	            break;
+
+        	        case "간편결제":
+        	            paymentMethod = "EASY_PAY";
+        	            break;
+
+        	        case "가상계좌":
+        	            paymentMethod = "VIRTUAL_ACCOUNT";
+        	            break;
+
+        	        case "계좌이체":
+        	            paymentMethod = "TRANSFER";
+        	            break;
+
+        	        case "휴대폰":
+        	            paymentMethod = "MOBILE";
+        	            break;
+
+        	        default:
+        	            paymentMethod = "OTHER";
+        	            break;
+        	    }
+
+        	    System.out.println("🔥 DB 저장용 결제수단: [" + paymentMethod + "]");
+        	    
             	// 1. 결제 이력(History) 성공 처리
                 payment.updatePaymentSuccess(requestDto.getPaymentKey(), paymentMethod); 
                 
                 // 2. 광고 본체 가져오기
                 Advertisement advertisement = payment.getAdvertisement();
                 
-                // 3. 광고 결제 완료 상태로 변경 (엔티티에 이미 만들어져 있는 메서드 호출!)
-                advertisement.completeInitialPayment();
-                
-                // 4. 시작 일시 비교 후 상태 결정
-                LocalDateTime now = LocalDateTime.now();
-                LocalDateTime startDateTime = advertisement.getStartDatetime(); // 엔티티의 시작 일시 필드
+             // 결제 유형에 따른 광고 상태 처리
+                if (payment.getPaymentType() == PaymentType.INITIAL) {
 
-                if (startDateTime != null && now.isBefore(startDateTime)) {
-                    // 아직 시작 일시 전인 경우 -> 예약/대기 상태 (예: SCHEDULED 또는 READY)
-                    advertisement.changeStatus(AdStatus.PENDING); 
+                    // 최초 결제
+                    advertisement.completeInitialPayment();
+
+                    LocalDateTime now = LocalDateTime.now();
+                    LocalDateTime startDateTime =
+                            advertisement.getStartDatetime();
+
+                    if (startDateTime != null && now.isBefore(startDateTime)) {
+                        advertisement.changeStatus( AdStatus.PENDING );
+                    } else {
+                        advertisement.changeStatus( AdStatus.OPEN );
+                    }
+
+                } else if (payment.getPaymentType() == PaymentType.EXTENSION) {
+
+                    // 연장 결제
+                    advertisement.completeExtensionPayment();
+
+                    // 연장 일수 가져오기
+                    Integer periodDays =
+                            payment.getPeriodDays();
+
+                    if (periodDays == null) {
+                        throw new IllegalArgumentException(
+                                "연장 기간 정보가 없습니다."
+                        );
+                    }
+
+                    advertisement.extendEndDatetime( periodDays );
                 } else {
-                    // 시작 일시가 이미 지났거나 현재인 경우 -> 바로 OPEN
-                    advertisement.changeStatus(AdStatus.OPEN);
+                    throw new IllegalArgumentException( "지원하지 않는 결제 유형입니다." );
                 }
             } else {
                 throw new RuntimeException("토스 결제 승인 실패");

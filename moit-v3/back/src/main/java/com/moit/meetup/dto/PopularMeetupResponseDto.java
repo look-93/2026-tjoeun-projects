@@ -1,5 +1,6 @@
 package com.moit.meetup.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.Getter;
@@ -16,7 +17,7 @@ public class PopularMeetupResponseDto {
 
     private String nickname;
 
-    private String meetupAt;
+    private LocalDateTime meetupAt;
 
     private String sidoName;
     private String sigunguName;
@@ -33,7 +34,7 @@ public class PopularMeetupResponseDto {
             Long id,
             String title,
             String nickname,
-            String meetupAt,
+            LocalDateTime meetupAt,
             String sidoName,
             String sigunguName,
             String imagePath,

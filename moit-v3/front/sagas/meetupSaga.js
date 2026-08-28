@@ -86,7 +86,7 @@ import {
     recommendMeetupRequest,
     recommendMeetupSuccess,
     recommendMeetupFailure,
-  
+
     //인기모임
     fetchPopularMeetupsRequest,
     fetchPopularMeetupsSuccess,
@@ -101,7 +101,7 @@ import {
     boostMeetupRequest,
     boostMeetupSuccess,
     boostMeetupFailure,
-
+    resetBoostSuccess,
 } from "../reducers/meetupReducer";
 
 const MEETUP_API_BASE = "/api/meetups";
@@ -655,8 +655,7 @@ export function* boostMeetup(action) {
     } catch (err) {
         yield put(
             boostMeetupFailure(
-                err.response?.data?.message ||
-                    "모임 끌어올리기에 실패했습니다.",
+                err.response?.data?.error || "모임 끌어올리기에 실패했습니다.",
             ),
         );
     }

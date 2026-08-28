@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:oracle:thin:@localhost:1522/XE
+    url: jdbc:oracle:thin:@localhost:1521/XE
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: oracle.jdbc.OracleDriver
@@ -69,7 +69,12 @@ jwt:
   prefix: Bearer
   
 toss:
-  secret-key: ${TOSS_SECRET_KEY}  
+  secret-key: ${TOSS_SECRET_KEY} 
+
+solapi:
+  api-key: ${SOLAPI_API_KEY}
+  api-secret: ${SOLAPI_API_SECRET}
+  sender: ${SOLAPI_SENDER}		 
 
 #server:
 #  port: 8484

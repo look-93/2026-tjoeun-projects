@@ -104,7 +104,8 @@ public class SecurityConfig {
                 "/api/members/check-loginId",
                 "/api/members/check-email",
                 "/api/members/check-nickname",
-                "/api/members/check-mobile",
+                "/api/members/phone/send",
+                "/api/members/phone/verify",
                 "/api/members/refresh",
                 "/api/members/email/send",
                 "/api/members/email/verify",
@@ -155,8 +156,10 @@ public class SecurityConfig {
             // 제휴업체 광고
             // -------------------------------------------------
             .requestMatchers(
-            		"/user/advertisement/aiAdvertise", 
-            		"/api/admin/advertisement/price/**")
+            		"/api/advertisement/prices",
+            	    "/api/advertisement/*/extension-prices",
+            	    "/api/advertisement/**" 
+            )
             .hasRole("PARTNER")
 
             // -------------------------------------------------

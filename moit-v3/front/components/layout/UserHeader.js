@@ -242,7 +242,7 @@ function UserHeader() {
       }
 
       // 일반 회원
-      router.push("/user/member/mypage");
+      router.push("/user/mypage/member/mypage");
   };
 
   // =========================================================
@@ -642,7 +642,7 @@ function UserHeader() {
                       setDrawerOpen(false);
 
                       if (user.memberTypeId === 3 ||user.memberTypeId === 4) {router.push("/admin/member");} 
-                      else {router.push("/user/mypage");}
+                      else {router.push("/user/mypage/member/mypage");}
                   }}
                   style={{ cursor: "pointer" }}
               >

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.moit.member.dto.UserDto;
+import com.moit.member.service.LoginDeviceService;
 import com.moit.member.service.MemberService;
 
 import jakarta.servlet.FilterChain;
@@ -21,10 +22,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberService service;
+    private final LoginDeviceService loginDeviceService;
 
-    public JwtAuthenticationFilter( JwtTokenProvider jwtTokenProvider, MemberService memberService ) {
+    public JwtAuthenticationFilter( 
+    		JwtTokenProvider jwtTokenProvider, 
+    		MemberService memberService, 
+    		LoginDeviceService loginDeviceService ) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.service = memberService;
+        this.loginDeviceService = loginDeviceService;
     }
 
     @Override
@@ -120,10 +126,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             
             String deviceId =
             	    jwtTokenProvider.getDeviceId(token);
+            
+            boolean deviceValid =
+            	    loginDeviceService.existsLoginDevice(memberId, deviceId);
 
-            System.out.println(
-                "JWT memberId : " + memberId
-            );
+            System.out.println( "JWT memberId : " + memberId );
+            
+            if (!deviceValid) {
+
+                System.out.println( "로그아웃된 기기 - JWT 인증 차단" );
+
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             // =================================================
             // 7. DB에서 회원 조회
@@ -184,9 +199,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     .getContext()
                     .setAuthentication(authentication);
 
-                System.out.println(
-                    "인증 객체 생성 완료"
-                );
+                System.out.println( "인증 객체 생성 완료" );
 
                 System.out.println(
                     "현재 인증 : " +

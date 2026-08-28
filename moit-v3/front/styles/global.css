@@ -436,6 +436,9 @@ a {
   margin: 20px 60px 0;
   padding: 20px 30px;
 
+  display: flex;
+  align-items: center;
+
   background: #fff;
   border-radius: 15px;
 
@@ -449,6 +452,13 @@ a {
 .mypage-container {
   width: 100%;
   box-sizing: border-box;
+}
+
+/* 마이페이지 배경 */
+.mypage-layout,
+.mypage-layout .ant-layout,
+.mypage-layout .ant-layout-content {
+    background: #fff !important;
 }
 
 /* =========================
@@ -631,6 +641,67 @@ a {
 
   font-size: 16px;
   font-weight: 600;
+}
+
+.mypage-profile-image {
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-right: 24px;
+}
+
+.mypage-profile-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.mypage-profile-info h6 {
+    margin: 0 0 6px 0;
+
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.mypage-profile-info p {
+    margin: 0 0 8px 0;
+
+    font-size: 14px;
+    color: #777;
+}
+
+.mypage-profile-point {
+    min-width: 180px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+
+    padding-left: 32px;
+
+    border-left: 1px solid #eeeeee;
+}
+
+.mypage-point-label {
+    margin-bottom: 6px;
+
+    font-size: 13px;
+    color: #888;
+}
+
+.mypage-profile-point strong {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.mypage-profile-point strong span {
+    margin-left: 3px;
+
+    font-size: 15px;
+    font-weight: 600;
 }
 
 /* =========================

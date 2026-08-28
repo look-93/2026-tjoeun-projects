@@ -10,6 +10,7 @@ import com.moit.qna.dto.AnswerDto.AnswerRequestDto;
 import com.moit.qna.dto.AnswerDto.AnswerResponseDto;
 import com.moit.qna.dto.NotificationDto;
 import com.moit.qna.dto.QuestionAiAnalysisDto;
+import com.moit.qna.dto.QuestionDto.QuestionImageDto;
 import com.moit.qna.dto.QuestionDto.QuestionRequestDto;
 import com.moit.qna.dto.QuestionDto.QuestionResponseDto;
 import com.moit.qna.dto.QuestionSearchDto;
@@ -25,6 +26,15 @@ public interface QuestionMapper {
 
     // 문의 등록
     void insertQuestion(QuestionRequestDto dto);
+    
+    // 이미지 저장
+    int insertQuestionImage(QuestionImageDto image);
+
+    // 문의 상세에서 이미지 목록 조회
+    List<QuestionImageDto> findQuestionImages(Long questionId);
+
+    // 이미지 논리삭제
+    int deleteQuestionImage(Long imageId);
 
     // 답변 등록 시 문의 상태 변경
     void updateStatusAnswered(Long questionId);
@@ -32,8 +42,14 @@ public interface QuestionMapper {
     // 문의 수정
     void updateQuestion(QuestionRequestDto dto);
 
+    // 문의 수정시 기존 이미지 선택 삭제
+    void deleteQuestionImagesByIds(List<Long> imageIds);
+    
     // 문의 삭제
     void deleteQuestion(Long questionId);
+    
+    // 이미지도 같이 삭제
+    void deleteQuestionImages(Long questionId);
 
     // 검색
     List<QuestionResponseDto> findBySearch(QuestionSearchDto dto);
@@ -72,7 +88,7 @@ public interface QuestionMapper {
     void deleteSelected(List<Long> ids);
 
     // 특정 모임 문의 조회
-    List<QuestionResponseDto> selectByParentId(Long parentId);
+    List<QuestionResponseDto> selectByMeetupQuestions(Map<String, Object> map);
     
     // 답변이 등록된 문의 수정 불가
     String findStatusByQuestionId(Long questionId);

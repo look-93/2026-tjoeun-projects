@@ -14,11 +14,13 @@ import {
     checkLoginIdRequest,
     checkEmailRequest,
     checkNicknameRequest,
-    checkMobileRequest,
     resetDuplicateCheck,
     resetEmailVerification,
     checkPasswordLeakRequest,
-    resetPasswordLeak,resetSignup
+    resetPasswordLeak,resetSignup,
+    mobileSendRequest,
+    mobileVerifyRequest,
+    resetMobileVerification,
 } from "../../../reducers/userReducer";
 
 const {Title,Text} = Typography;      
@@ -113,6 +115,7 @@ function Signup(){
 const {
     signup,
     emailVerification,
+    mobileVerification,
     duplicateCheck,
     passwordLeak
 } = useSelector((state) => state.user);
@@ -137,16 +140,189 @@ const [loginId, setLoginId] = useState("");
 const [nickname, setNickname] = useState(""); 
 // 입력된 전화번호 
 const [mobile, setMobile] = useState("");
+
+const [mobileVerificationCode, setMobileVerificationCode] = useState("");
+const [mobileTimer, setMobileTimer] = useState(0);
 // 입력된 비밀번호
 const [password, setPassword] = useState("");
+
+// 회원가입 행동 데이터
+const [signupBehavior, setSignupBehavior] = useState({
+    
+    // 전체 오류 횟수
+    errorCount: 0,
+
+    // 필드별 오류 횟수
+    fieldErrorCount: {
+        loginId: 0,
+        password: 0,
+        nickname: 0,
+        email: 0,
+        mobile: 0,
+        birth: 0,
+        interestIds: 0,
+    },
+    emailVerificationFailCount: 0,
+    mobileVerificationFailCount: 0,
+    passwordErrorCount: 0,
+
+    currentField: null,
+    fieldStartTime: null,
+
+    fieldStayTime: {
+        loginId: 0,
+        password: 0,
+        nickname: 0,
+        email: 0,
+        mobile: 0,
+        birth: 0,
+        interestIds: 0,
+    },
+});
+
+// =========================
+// 이메일 인증 실패 횟수 기록
+// =========================
+useEffect(() => {
+
+    // 이메일 인증 에러가 없으면 실행하지 않음
+    if (!emailVerification.error) {
+        return;
+    }
+
+    setSignupBehavior((prev) => {
+
+        const newCount = prev.emailVerificationFailCount + 1;
+
+        console.log("===== 이메일 인증 실패 =====");
+        console.log("실패 사유:", emailVerification.error);
+        console.log("이메일 인증 실패 횟수:", newCount);
+
+        return {
+            ...prev,
+            emailVerificationFailCount: newCount,
+        };
+    });
+
+}, [emailVerification.error]);
+
+// =========================
+// 전화번호 인증 실패 횟수 기록
+// =========================
+useEffect(() => {
+
+    if (!mobileVerification.error) {
+        return;
+    }
+
+    setSignupBehavior((prev) => {
+
+        const newCount =
+            prev.mobileVerificationFailCount + 1;
+
+        console.log("===== 전화번호 인증 실패 =====");
+        console.log("실패 사유:", mobileVerification.error);
+        console.log("전화번호 인증 실패 횟수:", newCount);
+
+        return {
+            ...prev,
+            mobileVerificationFailCount: newCount,
+        };
+    });
+
+}, [mobileVerification.error]);
 
 // 회원가입 성공처리
 useEffect(()=>{
     if(signupSuccess){
         message.success("회원가입이 완료되었습니다.");
+
+        // 회원가입 성공 상태 초기화
+        dispatch(resetSignup());
+
         router.push("/user/member/login");
     }
-},[signupSuccess,router]);
+},[signupSuccess,router,dispatch]);
+
+// 전화번호 인증 타이머
+useEffect(() => {
+
+    // 타이머가 0이면 실행하지 않음
+    if (mobileTimer <= 0) {
+        return;
+    }
+
+
+    const timer = setInterval(() => {
+
+        setMobileTimer((prev) => {
+
+            if (prev <= 1) {
+                clearInterval(timer);
+
+                return 0;
+            }
+
+            return prev - 1;
+        });
+
+    }, 1000);
+
+
+    // 컴포넌트 종료 또는 타이머 변경 시 정리
+    return () => clearInterval(timer);
+
+}, [mobileTimer]);
+
+
+// =========================================================
+// 전화번호 타이머 표시
+// =========================================================
+
+const formatTimer = (seconds) => {
+
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+
+    return `${String(minutes).padStart(2, "0")}:${String(
+        remainingSeconds
+    ).padStart(2, "0")}`;
+};
+
+// 필드 체류시간 기록
+const moveToField = (fieldName) => {
+
+    setSignupBehavior((prev) => {
+        const now = Date.now();
+
+        // 이전 필드가 있다면 체류시간 계산
+        if (prev.currentField && prev.fieldStartTime) {
+
+            const stayTime = now - prev.fieldStartTime;
+
+            console.log("현재 필드:", fieldName,"체류시간:",stayTime);
+
+            return {
+                ...prev,
+                currentField: fieldName,
+                fieldStartTime: now,
+                fieldStayTime: {
+                    ...prev.fieldStayTime,
+                    [prev.currentField]:
+                        prev.fieldStayTime[prev.currentField] + stayTime,
+                },
+            };
+        }
+        // 처음 필드에 진입한 경우
+        return {
+            ...prev,
+            currentField: fieldName,
+            fieldStartTime: now,
+        };
+    });
+ 
+};
+
 
 // 아이디 입력변경 시
 const handleLoginIdChange = (e)=>{
@@ -156,6 +332,8 @@ const handleLoginIdChange = (e)=>{
 
     //아이디가 변경되면 기존 중복확인 무효처리
     dispatch(resetDuplicateCheck("loginId"));
+
+    moveToField("loginId");
 };
 
 // 이메일 입력변경 시
@@ -183,8 +361,12 @@ const handleMobileChange = (e)=>{
     const value = e.target.value;
 
     setMobile(value);
+    setMobileVerificationCode("");
 
-    dispatch(resetDuplicateCheck("mobile"));
+    dispatch(resetMobileVerification());
+
+    // 타이머도 초기화
+    setMobileTimer(0);
 };
 
 // 아이디 중복확인
@@ -244,16 +426,6 @@ const handleCheckNickname = ()=>{
     dispatch(checkNicknameRequest(nickname.trim()));
 };
 
-// 전화번호 중복확인
-const handleCheckMobile = ()=>{
-    if(!mobile.trim()){
-        message.warning("전화번호를 입력해주세요.");
-        return;
-    }
-
-    dispatch(checkMobileRequest(mobile.trim()));
-};
-
 // 이메일 인증번호 발송
 const handleSendEmailCode = ()=>{
     if(!email.trim()){
@@ -291,6 +463,59 @@ const handleVerifyEmail = ()=>{
     }));
 };
 
+// 전화번호 인증번호 발송
+const handleSendMobileCode = () => {
+    if (!mobile.trim()) {
+        message.warning("전화번호를 입력해주세요.");
+        return;
+    }
+
+    // 기존 인증 결과 초기화
+    dispatch(resetMobileVerification());
+
+    // 인증번호 입력값 초기화
+    setMobileVerificationCode("");
+
+
+    // ★ 2분 = 120초
+    setMobileTimer(120);
+
+
+
+    dispatch(mobileSendRequest(mobile.trim()));
+};
+
+
+
+// 전화번호 인증번호 확인
+const handleVerifyMobile = () => {
+    if (!mobile.trim()) {
+        message.warning("전화번호를 입력해주세요.");
+        return;
+    }
+
+    if (!mobileVerification.sent) {
+        message.warning("먼저 인증번호를 발송해주세요.");
+        return;
+    }
+
+    // 타이머가 종료되었으면 인증 불가
+    if (mobileTimer <= 0) {
+        message.warning("인증번호 유효시간이 만료되었습니다. 인증번호를 다시 발송해주세요.");
+        return;
+    }
+
+    if (!mobileVerificationCode.trim()) {
+        message.warning("인증번호를 입력해주세요.");
+        return;
+    }
+
+    dispatch(mobileVerifyRequest({
+        mobile: mobile.trim(),
+        code: mobileVerificationCode.trim()
+    }));
+};
+
 // 회원가입
 const handleSignup = (values)=>{
     
@@ -315,10 +540,12 @@ const handleSignup = (values)=>{
         message.error("닉네임 중복확인을 완료해주세요.");
         return;
     }
-    if(!duplicateCheck.mobile){
-        message.error("전화번호 중복확인을 완료해주세요.");
-        return;
-    }
+
+    // 모바일 인증여부
+    if (!mobileVerification.verified) {
+    message.error("전화번호 인증을 완료해주세요.");
+    return;
+}
 
     // 비밀번호 유출 여부
     if (!passwordLeak.checked) {
@@ -338,6 +565,7 @@ const handleSignup = (values)=>{
         birth = values.birth.format("YYYY-MM-DD");
     }
 
+
     // 회원가입 데이터
     const signupData = {
         loginId: values.loginId,
@@ -350,11 +578,71 @@ const handleSignup = (values)=>{
         birth: birth,
         profileUrl: "",
         interestIds: values.interestIds || [],
+        
+        // 회원가입 행동 데이터
+        signupBehavior: signupBehavior,
     };
 
     console.log("회원가입 요청 데이터:", signupData);
     
     dispatch(signupRequest(signupData));
+};
+
+// 회원가입 입력 오류 발생
+const handleFinishFailed = (errorInfo) => {
+
+    setSignupBehavior((prev) => {
+
+        // 기존 필드별 오류 횟수 복사
+        const newFieldErrorCount = {
+            ...prev.fieldErrorCount,
+        };
+
+        // 비밀번호 오류 발생 여부
+        let passwordError = false;
+
+        // 오류가 발생한 필드들
+        errorInfo.errorFields.forEach((field) => {
+
+            const fieldName = field.name[0];
+
+            // 우리가 수집할 필드인 경우만 증가
+            if (newFieldErrorCount[fieldName] !== undefined) {
+                newFieldErrorCount[fieldName]++;
+            }
+
+            // 비밀번호 오류 확인
+            if (
+                fieldName === "password" ||
+                fieldName === "passwordConfirm"
+            ) {
+                passwordError = true;
+            }
+        });
+
+        const newBehavior = {
+            ...prev,
+
+            // 전체 오류 횟수
+            errorCount: prev.errorCount + 1,
+
+            // 필드별 오류 횟수
+            fieldErrorCount: newFieldErrorCount,
+
+            // 비밀번호 오류 횟수
+            passwordErrorCount: passwordError
+                ? prev.passwordErrorCount + 1
+                : prev.passwordErrorCount,
+        };
+
+        console.log("===== 회원가입 오류 발생 =====");
+        console.log("오류 필드:", errorInfo.errorFields);
+        console.log("전체 오류 횟수:", newBehavior.errorCount);
+        console.log("필드별 오류 횟수:", newBehavior.fieldErrorCount);
+        console.log("비밀번호 오류 횟수:",newBehavior.passwordErrorCount );
+
+        return newBehavior;
+    });
 };
 
 // 비밀번호 강도
@@ -376,6 +664,7 @@ return (
             <Form form={form} 
                   layout="vertical" 
                   onFinish={handleSignup}
+                  onFinishFailed={handleFinishFailed}
                   initialValues={{
                     memberTypeId: 1,
                     gender: "N",
@@ -425,6 +714,7 @@ return (
                                placeholder="아이디를 입력해주세요."
                                value={loginId}
                                onChange={handleLoginIdChange}
+                               onFocus={() => moveToField("loginId")}
                         />
                         <Button type="primary"
                                 onClick={handleCheckLoginId}
@@ -465,6 +755,7 @@ return (
                         prefix={<LockOutlined />}
                         placeholder="비밀번호를 입력해주세요."
                         onChange={handlePasswordChange}
+                        onFocus={() => moveToField("password")}
                     />
                 </Form.Item>
                 {/* 비밀번호 강도 */}
@@ -576,6 +867,7 @@ return (
                                 placeholder="닉네임을 입력해주세요."
                                 value={nickname}
                                 onChange={handleNicknameChange}
+                                onFocus={() => moveToField("nickname")}
                            />
                            <Button type="primary"
                                    onClick={handleCheckNickname}
@@ -621,6 +913,7 @@ return (
                                 placeholder="이메일을 입력해주세요."
                                 value={email}
                                 onChange={handleEmailChange}
+                                onFocus={() => moveToField("email")}
                            />
                            <Button onClick={handleCheckEmail}>
                             중복확인 
@@ -688,40 +981,111 @@ return (
                     개인정보
                 </Divider>  
 
-                <Form.Item label="전화번호"
-                           name="mobile"
-                           rules={[
-                            {
-                                required: true,
-                                message: "전화번호를 입력해주세요."
-                            }
-                           ]}
+                <Form.Item
+                    label="전화번호"
+                    name="mobile"
+                    rules={[
+                        {
+                            required: true,
+                            message: "전화번호를 입력해주세요."
+                        }
+                    ]}
                 >
-                    <Space.Compact style={{width:"100%"}}>
-                           <Input
-                                prefix={<PhoneOutlined />}
-                                placeholder="전화번호를 입력해주세요."
-                                value={mobile}
-                                onChange={handleMobileChange}
-                           />
-                           <Button type="primary"
-                                   onClick={handleCheckMobile}
-                           >
-                            중복확인
-                           </Button>
+                    <Space.Compact style={{ width: "100%" }}>
+                        <Input
+                            prefix={<PhoneOutlined />}
+                            placeholder="전화번호를 입력해주세요."
+                            value={mobile}
+                            onChange={handleMobileChange}
+                            onFocus={() => moveToField("mobile")}
+                        />
+
+                        <Button
+                            type="primary"
+                            loading={mobileVerification.sending}
+                            onClick={handleSendMobileCode}
+                            disabled={
+                                mobileVerification.sending ||
+                                mobileTimer > 0
+                            }
+                        >
+                            {mobileTimer > 0
+                                ? `재발송 ${formatTimer(mobileTimer)}`
+                                : "인증번호 발송"
+                            }
+                        </Button>
+                    </Space.Compact>
+                </Form.Item>
+                
+                <Form.Item label="전화번호 인증번호">
+                    <Space.Compact style={{ width: "100%" }}>
+                        <Input
+                            placeholder="인증번호를 입력해주세요."
+                            maxLength={6}
+                            value={mobileVerificationCode}
+                            onChange={(e) => {
+                                setMobileVerificationCode(e.target.value);
+                            }}
+                            disabled={!mobileVerification.sent ||
+                                    mobileTimer <= 0 ||
+                                    mobileVerification.verified}
+                        />
+
+                        <Button
+                            type="primary"
+                            loading={mobileVerification.verifying}
+                            onClick={handleVerifyMobile}
+                            disabled={!mobileVerification.sent ||
+                                    mobileTimer <= 0 ||
+                                    mobileVerification.verified}
+                        >
+                            인증확인
+                        </Button>
                     </Space.Compact>
                 </Form.Item> 
-                {duplicateCheck.mobile === true && (
+                {/* 전화번호 타이머 */}
+                {mobileTimer > 0 && !mobileVerification.verified && (
+                        <div style={{marginTop: "-15px",marginBottom: "10px" }}>
+                            <Text type="secondary">
+                                인증번호 유효시간{" "}
+                                <Text
+                                    strong
+                                    type={
+                                        mobileTimer <= 30
+                                            ? "danger"
+                                            : undefined
+                                    }
+                                >
+                                    {formatTimer(mobileTimer)}
+                                </Text>
+                            </Text>
+                        </div>
+                    )}
+
+
+                {/* 인증시간 만료 */}
+                {mobileTimer === 0 &&
+                    mobileVerification.sent &&
+                    !mobileVerification.verified && (
+                        <div style={{marginTop: "-15px", marginBottom: "10px"}}>
+                            <Text type="danger">
+                                인증번호 유효시간이 만료되었습니다.
+                                <br />
+                                인증번호를 다시 발송해주세요.
+                            </Text>
+                        </div>
+                    )}
+                {mobileVerification.verified && (
                     <Text type="success">
                         <CheckOutlined />
-                        {" "}사용 가능한 전화번호입니다.
+                        {" "}전화번호 인증이 완료되었습니다.
                     </Text>
                 )}
 
-                {duplicateCheck.mobile === false && (
-                    <Text type="danger">
-                        이미 사용 중인 전화번호입니다.
-                    </Text>
+                {mobileVerification.error && (
+                    <div style={{ color: "#ff4d4f", marginTop: "8px" }}>
+                        {mobileVerification.error}
+                    </div>
                 )}
 
                 {/* 성별 */}
@@ -763,6 +1127,7 @@ return (
                         style={{width:"100%"}}
                         format="YYYY-MM-DD"
                         placeholder="생년월일을 입력해주세요."
+                        onFocus={() => moveToField("birth")}
                         disabledDate={(current)=> current && current > dayjs().endOf("day")}
                     />
                 </Form.Item>

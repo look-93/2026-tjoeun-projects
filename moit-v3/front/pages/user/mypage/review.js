@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router'; // Next.js 라우터 사용
+import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
+import axios from 'axios';
 import {
   Button,
   Card,
@@ -15,6 +16,7 @@ import {
   Rate,
   message,
   Modal,
+  List,
 } from 'antd';
 import {
   EditOutlined,
@@ -22,6 +24,7 @@ import {
   FileTextOutlined,
   LockOutlined,
   ExclamationCircleOutlined,
+  BellOutlined,
 } from '@ant-design/icons';
 import MyPageStatCard from '../../../components/MyPageStatCard';
 
@@ -34,7 +37,14 @@ const { Title, Text } = Typography;
 
 function UserMyReviewPage() {
   const dispatch = useDispatch();
-  const router = useRouter(); // Next.js 라우터 훅
+  const router = useRouter();
+
+  // SSR 에러 원천 차단을 위한 마운트 체크 상태
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const { reviews = [], totalCount = 0, loading } = useSelector(
     (state) => state.review || {}
@@ -43,6 +53,36 @@ function UserMyReviewPage() {
   const [keyword, setKeyword] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [sort, setSort] = useState('id,desc');
+
+  // 리덕스 스토어에서 유저 정보 가져오기
+  const memberId = useSelector((state) => {
+    if (!isMounted) return null;
+    const userState = state.user || {};
+    const currentUser = userState.user;
+    return currentUser?.id || currentUser?.memberId || null;
+  });
+
+  // 알림 목록 상태 선언
+  const [notifications, setNotifications] = useState([]);
+
+  // 알림 목록 불러오기 (백엔드 8080 포트 직접 호출하여 404 방지)
+  const fetchNotifications = async () => {
+    if (!memberId) return;
+    try {
+      const response = await axios.get(`http://localhost:8080/api/notifications/reviews?memberId=${memberId}`);
+      setNotifications(response.data);
+    } catch (error) {
+      console.error('알림 조회 실패:', error);
+    }
+  };
+
+ 
+  // 알림 클릭 시: 읽음 처리 API를 부르지 않고, 곧바로 리뷰 작성 페이지로 이동
+  const handleNotificationClick = (notificationId, meetupId) => {
+    if (isMounted) {
+      router.push(`/user/meetup/review/write?meetupId=${meetupId}`);
+    }
+  };                                                                                                                                                         
 
   useEffect(() => {
     dispatch(
@@ -54,6 +94,13 @@ function UserMyReviewPage() {
       })
     );
   }, [dispatch, searchKeyword, sort]);
+
+  // memberId가 로드된 이후에만 알림 목록 가져오기
+  useEffect(() => {
+    if (memberId) {
+      fetchNotifications();
+    }
+  }, [memberId]);
 
   const handleSearch = () => {
     setSearchKeyword(keyword);
@@ -87,7 +134,6 @@ function UserMyReviewPage() {
     });
   };
 
-  // ★ 수정 버튼: 마이페이지에서 왔음을 알리는 `from=mypage` 파라미터 추가
   const handleEdit = (reviewId, meetupId) => {
     router.push(
       `/user/meetup/review/write?reviewId=${reviewId}&meetupId=${meetupId}&edit=true&from=mypage`
@@ -204,9 +250,50 @@ function UserMyReviewPage() {
     },
   ];
 
+  if (!isMounted) {
+    return null;
+  }
+
   return (
     <div className="mypage-reviews">
       <MyPageStatCard stats={stats} />
+
+      {/* 후기 작성 권장 알림 위젯 */}
+      {notifications && notifications.length > 0 && (
+        <Card
+          title={
+            <Space>
+              <BellOutlined style={{ color: '#fa8c16' }} />
+              <span>리뷰 작성 권장 알림 ({notifications.length}개)</span>
+            </Space>
+          }
+          style={{ marginBottom: 24, borderColor: '#ffd591', background: '#fff7e6' }}
+        >
+          <List
+            itemLayout="horizontal"
+            dataSource={notifications}
+            renderItem={(item) => (
+              <List.Item
+                actions={[
+                  <Button
+                    type="primary"
+                    size="small"
+                    ghost
+                    onClick={() => handleNotificationClick(item.id, item.meetupId)}
+                  >
+                    리뷰 쓰러 가기
+                  </Button>
+                ]}
+              >
+                <List.Item.Meta
+                  title={<Text strong>{item.title || `모임 #${item.meetupId} 참여가 완료되었습니다.`}</Text>}
+                  description={<Text type="secondary">{item.message || '즐거운 모임 되셨나요? 다른 회원님들을 위해 후기를 남겨주세요!'}</Text>}
+                />
+              </List.Item>
+            )}
+          />
+        </Card>
+      )}
 
       <Card className="mypage-review-filter" style={{ marginBottom: 16 }}>
         <Row justify="space-between" align="middle" gutter={[16, 16]}>
@@ -252,7 +339,7 @@ function UserMyReviewPage() {
         <Table
           columns={columns}
           dataSource={reviews}
-          rowKey={(record) => record.reviewId || record.id}
+          key={(record) => record.reviewId || record.id}
           loading={loading}
           pagination={{
             pageSize: 10,

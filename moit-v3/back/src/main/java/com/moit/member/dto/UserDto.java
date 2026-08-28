@@ -36,6 +36,9 @@ public class UserDto {
 	private MultipartFile profileImage;
 	
 	private List<Integer> interestIds;
+	
+	// 회원가입 행동 데이터
+	private SignupBehaviorDto signupBehavior;
 		
 	
 }

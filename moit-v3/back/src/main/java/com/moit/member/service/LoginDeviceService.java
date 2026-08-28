@@ -16,11 +16,14 @@ public interface  LoginDeviceService {
 			);
 	
 	// 로그인 기기 조회
-	List<LoginDeviceDto> getLoginDevices(Long memberId);
+	List<LoginDeviceDto> getLoginDevices(Long memberId, String currentDeviceId);
 	
 	// 특정 기기 삭제
 	void deleteLoginDevice(Long memberId, String deviceId);
 	
 	// 모든 기기 삭제
 	void deleteAllLoginDevices(Long memberId);
+	
+	// 로그인 기기 존재 여부
+	boolean existsLoginDevice(Long memberId, String deviceId);
 }

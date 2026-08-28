@@ -602,6 +602,7 @@ export const {
     // 상태 초기화
     resetMeetupState,
     resetDeleteSuccess,
+    resetBoostSuccess,
 } = meetupReducer.actions;
 
 export default meetupReducer.reducer;

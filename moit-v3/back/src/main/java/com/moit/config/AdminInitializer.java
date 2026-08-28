@@ -1,6 +1,7 @@
 package com.moit.config;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,13 +10,13 @@ import com.moit.member.entity.Member;
 import com.moit.member.entity.MemberInfo;
 import com.moit.member.entity.MemberStatus;
 import com.moit.member.entity.MemberType;
-import com.moit.reports.entity.MemberReportStatus;
 import com.moit.member.enums.MemberStatusEnum;
 import com.moit.member.enums.MemberTypeEnum;
 import com.moit.member.repository.MemberInfoRepository;
 import com.moit.member.repository.MemberRepository;
 import com.moit.member.repository.MemberStatusRepository;
 import com.moit.member.repository.MemberTypeRepository;
+import com.moit.reports.entity.MemberReportStatus;
 import com.moit.reports.repository.MemberReportStatusRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component // 설정 파일과 별개로 스프링 구동 시 자동 실행됩니다.
+@Order(2)
 @RequiredArgsConstructor
 public class AdminInitializer implements CommandLineRunner {
 
@@ -43,9 +45,14 @@ public class AdminInitializer implements CommandLineRunner {
 
         log.info("🔥 [AdminInit] 최고관리자 계정(admin) 초기 데이터를 생성합니다.");
 
-        MemberType superAdminType = memberTypeRepository.findById(MemberTypeEnum.ROLE_SUPERADMIN.getId())
-                .orElseThrow(() -> new RuntimeException("ROLE_SUPERADMIN 유형을 찾을 수 없습니다."));
-                
+        MemberType superAdminType = memberTypeRepository
+        	    .findByTypeName("ROLE_SUPERADMIN")
+        	    .orElseGet(() -> {
+        	        MemberType newType = new MemberType();
+        	        newType.setTypeName("ROLE_SUPERADMIN");
+
+        	        return memberTypeRepository.save(newType);
+        	    });               
         MemberStatus activeStatus = memberStatusRepository.findById(MemberStatusEnum.ACTIVE.getId()) // 상태 Enum명 확인 필요
                 .orElseThrow(() -> new RuntimeException("ACTIVE 회원 상태를 찾을 수 없습니다."));
 

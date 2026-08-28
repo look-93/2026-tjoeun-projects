@@ -6,6 +6,7 @@ import java.util.Arrays;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 import com.moit.advertisement.entity.AdvertisementPositionPrice;
 import com.moit.advertisement.entity.AdvertisementPrice;
@@ -50,6 +51,7 @@ public class DataInitializer {
     private final MemberReportStatusRepository memberReportStatusRepository;
     
 	@Bean
+	@Order(1)
 	public CommandLineRunner initData() {
 		return args -> {
             
