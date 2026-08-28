@@ -56,6 +56,7 @@ public class UserRequestDto {
         dto.setProviderId(providerId);
         dto.setProfileImage(profileImage);
         dto.setInterestIds(interestIds);
+        dto.setSignupBehavior(signupBehavior);
 
         return dto;
 	}

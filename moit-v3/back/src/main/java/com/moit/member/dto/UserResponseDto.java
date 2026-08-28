@@ -26,6 +26,8 @@ public class UserResponseDto {
 	private String provider;
 	private List<Integer> interestIds;
 	
+	private Integer point;
+	
 	private String createdAt;
 	private String updatedAt; 
 	
@@ -43,6 +45,7 @@ public class UserResponseDto {
 				.statusId(user.getStatusId())
 				.provider(user.getProvider())
 				.interestIds(user.getInterestIds())
+				.point(user.getPoint())
 				.createdAt(user.getCreatedAt())
 				.updatedAt(user.getUpdatedAt())
 				.build();
