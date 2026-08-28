@@ -28,6 +28,7 @@ import {
     ArrowLeftOutlined,
     ExclamationCircleOutlined,
 } from "@ant-design/icons";
+import api from '../../../api/axios';
 
 const { Title } = Typography;
 
@@ -155,41 +156,41 @@ function MeetupDetailPage() {
     };
 
     // 신고 핸들러
-    const handleReport = async (
-        targetType,
-        targetId,
-        writerMemberId
-    ) => {
-
-        // 본인 아이디 신고 방지
-        if (user?.memberId === writerMemberId) {
-            alert("본인이 작성한 글은 신고할 수 없습니다.");
-            return;
-        }
-
+    const handleReport = async () => {
         try {
-            // 중복 신고 방지
-            const response = await axios.get(
+            // 본인이 만든 모임
+            if (user?.memberId === meetup?.memberId) {
+                alert("본인이 만든 모임은 신고할 수 없습니다.");
+                return;
+            }
+
+            const response = await api.get(
                 "/api/reports/checkDoubleReport",
                 {
                     params: {
-                        targetType: targetType,
-                        targetId: targetId
-                    }
+                        targetType: "MEETUP",
+                        targetId: meetup.id,
+                    },
                 }
             );
 
             if (response.data === true) {
-                alert("이미 신고한 게시물입니다.");
+                alert("이미 신고한 모임입니다.");
                 return;
             }
 
             router.push(
-                `/user/meetup/report/write?targetType=${targetType}&targetId=${targetId}`
+                `/user/meetup/report/write?targetType=MEETUP&targetId=${meetup.id}`
             );
 
         } catch (error) {
-            console.error("신고 가능 여부 확인 실패:", error);
+            console.error("중복 신고 확인 실패:", error);
+            console.error("에러 이름:", error?.name);
+            console.error("에러 메시지:", error?.message);
+            console.error("응답 상태:", error?.response?.status);
+            console.error("응답 데이터:", error?.response?.data);
+            console.error("요청 주소:", error?.config?.url);
+
             alert("신고 여부 확인 중 오류가 발생했습니다.");
         }
     };
@@ -352,9 +353,9 @@ function MeetupDetailPage() {
                                     danger
                                     onClick={() =>
                                         handleReport(
-                                            "REVIEW",
-                                            review.id,
-                                            review.memberId
+                                            "MEETUP",
+                                            meetup.id,
+                                            meetup.memberId
                                         )
                                     }
                                 >

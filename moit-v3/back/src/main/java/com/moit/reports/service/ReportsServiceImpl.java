@@ -168,12 +168,6 @@ public class ReportsServiceImpl implements ReportsService {
 	// 모임, 리뷰 신고 더블 체크 (화면용 중복 체크)
 	@Override
 	public boolean checkDoubleReport(Long memberId, TargetType targetType, Long targetId) {
-		// -1은 중복ㅇㅇ,		0은 중복ㄴㄴ
-//		int count = dao.doubleReport(dto);
-//		if(count > 0) { return -1; }
-//		return 0;
-
-		// true = 중복ㅇㅇ,	false = 중복ㄴㄴ
 		return reportRepository.existsByMember_IdAndTargetTypeAndTargetIdAndDeleteYn(memberId, targetType, targetId, 'N');
 	}
 
