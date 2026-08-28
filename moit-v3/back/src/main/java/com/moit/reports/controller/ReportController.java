@@ -1,6 +1,7 @@
 package com.moit.reports.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -193,6 +194,14 @@ public class ReportController {
 		
 		ReportResponseDto report = reportsService.getAdminReportDetail(reportId);
 		return ResponseEntity.ok(report);
+	}
+	
+	// 관리자 통계
+	@GetMapping("/admin/stats")
+	public ResponseEntity<Map<String, Long>> getAdminReportStats() {
+
+		Map<String, Long> response = reportsService.getAdminReportStats();
+		return ResponseEntity.ok(response);
 	}
 
 	//////////////////////////////////////////////////////////

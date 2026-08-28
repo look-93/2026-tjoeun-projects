@@ -65,7 +65,7 @@ public class ReviewCommentServiceImpl implements ReviewCommentService {
 
 	@Override
     public List<ReviewCommentResponseDto> getCommentsByReview(Long reviewId) {
-        // 삭제되지 않은('N') 최상위 댓글 조회 (Character 타입 적용)
+       
         List<ReviewComment> topComments = commentRepository.findByReviewIdAndParentIsNullAndDeleteYnOrderByCreatedAtAsc(reviewId, 'N');
 
         return topComments.stream()
@@ -96,7 +96,7 @@ public class ReviewCommentServiceImpl implements ReviewCommentService {
             throw new IllegalArgumentException("댓글을 삭제할 권한이 없습니다.");
         }
 
-        // 물리 삭제 대신 BaseEntity의 필드를 이용한 논리 삭제('Y') 처리
+        
         comment.setDeleteYn('Y');
 	}
 }

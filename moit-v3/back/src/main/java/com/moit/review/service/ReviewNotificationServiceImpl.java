@@ -21,11 +21,12 @@ public class ReviewNotificationServiceImpl implements ReviewNotificationService 
 	
 	@Override
 	public List<ReviewNotificationResponseDto> getMyNotifications(Long memberId) {
-		// 1. 특정 회원의 알림 목록을 최신순으로 조회
+		
 		List<ReviewNotification> notifications = notificationRepository.findByMemberIdOrderByCreatedAtDesc(memberId);
 				
-		// 💡 [수정] 필터링을 제거하고 조회된 목록을 그대로 전달합니다!
+		
 		return notifications.stream()
+				.filter(n -> !"Y".equals(n.getIsRead()))
 				.map(ReviewNotificationResponseDto::from)
 				.collect(Collectors.toList());
 	}
@@ -42,6 +43,15 @@ public class ReviewNotificationServiceImpl implements ReviewNotificationService 
 		}
 
 		notification.setIsRead("Y");
+	}
+
+	@Override
+	public void completeReviewNotification(Long memberId, Long meetupId) {
+		notificationRepository.findByMemberIdAndMeetupId(memberId, meetupId).ifPresent(notification -> {
+	        notification.setIsRead("Y"); // 읽음 처리
+	       
+	    });
+		
 	}
 
 }

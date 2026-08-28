@@ -18,12 +18,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.moit.member.dao.LoginNotificationMapper;
 import com.moit.member.dto.DeleteAccountRequestDto;
 import com.moit.member.dto.LoginDeviceDto;
 import com.moit.member.dto.LoginHistoryResponseDto;
 import com.moit.member.dto.LoginRequestDto;
 import com.moit.member.dto.LoginResponseDto;
 import com.moit.member.dto.MyPageDto;
+import com.moit.member.dto.NewDeviceNotificationDto;
 import com.moit.member.dto.PointHistoryDto;
 import com.moit.member.dto.RefreshRequestDto;
 import com.moit.member.dto.RefreshResponseDto;
@@ -38,6 +40,7 @@ import com.moit.member.service.LoginHistoryService;
 import com.moit.member.service.MemberService;
 import com.moit.member.service.PointService;
 import com.moit.member.service.VerificationService;
+import com.moit.qna.service.NotificationService;
 import com.moit.security.CustomUserDetails;
 import com.moit.security.JwtTokenProvider;
 import com.moit.security.PasswordLeakService;
@@ -70,7 +73,8 @@ public class MemberRestController {
 	private final LoginHistoryService loginHistoryService;
 	private final LoginDeviceService loginDeviceService;
 	private final PointService pointService;
-	
+	private final NotificationService notificationService;
+	private final LoginNotificationMapper loginNotificationMapper;
 	
 	//회원가입
 	@Operation( summary = "회원가입", description = "새로운 회원을 등록합니다." )
@@ -79,6 +83,49 @@ public class MemberRestController {
             @RequestBody UserRequestDto  request) {
 
 		UserDto dto = request.toUserDto();
+		
+		System.out.println("===== 회원가입 행동 데이터 =====");
+
+	    if (dto.getSignupBehavior() != null) {
+
+	        System.out.println(
+	            "전체 오류 횟수: "
+	            + dto.getSignupBehavior().getErrorCount()
+	        );
+
+	        System.out.println(
+	            "필드별 오류 횟수: "
+	            + dto.getSignupBehavior().getFieldErrorCount()
+	        );
+
+	        System.out.println(
+	            "이메일 인증 실패 횟수: "
+	            + dto.getSignupBehavior().getEmailVerificationFailCount()
+	        );
+
+	        System.out.println(
+	            "전화번호 인증 실패 횟수: "
+	            + dto.getSignupBehavior().getMobileVerificationFailCount()
+	        );
+
+	        System.out.println(
+	            "비밀번호 오류 횟수: "
+	            + dto.getSignupBehavior().getPasswordErrorCount()
+	        );
+
+	        System.out.println(
+	            "현재 필드: "
+	            + dto.getSignupBehavior().getCurrentField()
+	        );
+
+	        System.out.println(
+	            "필드 체류시간: "
+	            + dto.getSignupBehavior().getFieldStayTime()
+	        );
+
+	    } else {
+	        System.out.println("signupBehavior = NULL");
+	    }
 
 	    UserDto result = service.signup(dto);
 
@@ -344,21 +391,80 @@ public class MemberRestController {
 	    String ipAddress = httpRequest.getRemoteAddr();
 	    String userAgent = httpRequest.getHeader("User-Agent");
 
-	    loginHistoryService.saveLoginHistory(
-	            user.getMemberId(),
-	            ipAddress,
-	            userAgent,
-	            "NORMAL"
-	    );
-	    
-	    // 로그인 기기
-	    loginDeviceService.saveLoginDevice(
-	            user.getMemberId(),
-	            deviceId,
-	            ipAddress,
-	            userAgent,
-	            "NORMAL"
-	    );
+		 // =========================================================
+		 // 새로운 로그인 기기인지 확인
+		 // =========================================================
+	
+		 boolean isNewDevice =
+		         !loginDeviceService.existsLoginDevice(
+		                 user.getMemberId(),
+		                 deviceId
+		         );
+		 
+		 System.out.println("=================================");
+		 System.out.println("새로운 기기 로그인 확인");
+		 System.out.println("memberId = " + user.getMemberId());
+		 System.out.println("deviceId = " + deviceId);
+		 System.out.println("isNewDevice = " + isNewDevice);
+		 System.out.println("=================================");
+	
+		 // =========================================================
+		 // 로그인 기록 저장
+		 // =========================================================
+	
+		 loginHistoryService.saveLoginHistory(
+		         user.getMemberId(),
+		         ipAddress,
+		         userAgent,
+		         "NORMAL"
+		 );
+	
+		 // =========================================================
+		 // 새로운 기기 로그인 알림
+		 // =========================================================
+	
+		 if (isNewDevice) {
+			 
+			 System.out.println("===== 새로운 기기 → 알림 INSERT 시작 =====");
+			 
+		     NewDeviceNotificationDto notification =
+		             new NewDeviceNotificationDto();
+	
+		     notification.setMemberId(user.getMemberId());
+	
+		     notification.setMessage(
+		             "새로운 기기에서 로그인되었습니다. "
+		             + "IP: " + ipAddress
+		     );
+	
+		     try {
+	
+		         loginNotificationMapper
+		                 .insertNewDeviceNotification(notification);
+		         
+		         System.out.println("===== 알림 INSERT 성공 =====");
+		         
+		     } catch (Exception e) {
+	
+		         // 알림 저장 실패 때문에 로그인 자체가 실패하지 않도록 처리
+		         System.out.println(
+		                 "새로운 기기 로그인 알림 저장 실패: "
+		                 + e.getMessage()
+		         );
+		     }
+		 }
+	
+		 // =========================================================
+		 // 로그인 기기 저장
+		 // =========================================================
+	
+		 loginDeviceService.saveLoginDevice(
+		         user.getMemberId(),
+		         deviceId,
+		         ipAddress,
+		         userAgent,
+		         "NORMAL"
+		 );
 
         // 7. Access Token 생성
         String accessToken =
@@ -959,8 +1065,8 @@ public class MemberRestController {
     )
     @GetMapping("/me/point/attendance")
     public ResponseEntity<List<PointHistoryDto>> getAttendanceHistory(
-            @RequestParam int year,
-            @RequestParam int month,
+            @RequestParam(name = "year") int year,
+            @RequestParam(name = "month") int month,
             Authentication authentication) {
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();

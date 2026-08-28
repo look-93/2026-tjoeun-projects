@@ -34,6 +34,8 @@ public class ApiScheduledTask {
 	
 	
 	// 실패 이메일 재전송
+//	test
+//	@Scheduled(fixedDelay = 10000)
 	@Scheduled(fixedDelay = 60000)
 	public void retrySendEmail() { 
 		System.out.println("...실패 이메일 재전송 retrySendEmail 스케줄러 실행");

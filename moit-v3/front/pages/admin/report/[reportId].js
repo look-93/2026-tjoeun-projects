@@ -73,13 +73,14 @@ function ReportDetailPage() {
             // ServiceImpl updateAdminReport
             // 반환형 return responseDto (ReportResponseDto)
             // 승인 처리 / 신뢰도 변경 포함
-
             // 관리자 처리 감사 로그 재조회
             dispatch(
                 fetchAdminReportAuditLogsRequest({
                     reportId: Number(reportId),
                 })
             );
+
+            dispatch(resetReportState());
         }
     }, [adminUpdate.success, dispatch, reportId]);
     
@@ -87,6 +88,9 @@ function ReportDetailPage() {
     useEffect(() => {
         if (adminDelete.success) {
             message.success('신고 내역이 삭제되었습니다.');
+
+            dispatch(resetReportState());
+
             router.push('/admin/report');
         }
     }, [adminDelete.success, router]);
@@ -250,7 +254,7 @@ function ReportDetailPage() {
                         {currentReport?.reportId}번 신고글
                     </Descriptions.Item>
 
-                    <Descriptions.Item label="신고자 (memberId)">
+                    <Descriptions.Item label="신고자 (memberId) & 매너 점수">
                         {currentReport.memberNickname ?? '-'}
                         {' '}
                         ({currentReport.memberId ?? '-'}번)
@@ -259,7 +263,7 @@ function ReportDetailPage() {
                         <ReportStatusCodeTag statusCode={currentReport.statusCode} />
                     </Descriptions.Item>
 
-                    <Descriptions.Item label="신고 대상 회원 (targetMemberId)">
+                    <Descriptions.Item label="신고 대상 회원 (targetMemberId) & 매너 점수">
                         {currentReport.targetMemberNickname ?? '-'}
                         {' '}
                         ({currentReport.targetMemberId ?? '-'}번)
@@ -479,7 +483,7 @@ function ReportDetailPage() {
                             {log.processReason || '-'}
                         </Descriptions.Item>
 
-                        <Descriptions.Item label="신뢰도 점수 변동">
+                        <Descriptions.Item label="매너 점수 변동">
                             {log.trustScoreChange != null
                                 ? `${log.trustScoreChange > 0 ? '+' : ''}${log.trustScoreChange}점`
                                 : '-'}
