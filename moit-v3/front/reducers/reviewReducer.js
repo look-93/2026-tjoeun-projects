@@ -106,6 +106,11 @@ const reviewReducer = createSlice({
             state.loading = true;
             state.error = null;
         },
+        // 🌟 [추가] 관리자 전용 리뷰 목록 조회 요청 액션
+        getAdminReviewListRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
         getReviewListSuccess: (state, action) => {
             state.loading = false;
             const payload = action.payload || {};
@@ -189,10 +194,7 @@ const reviewReducer = createSlice({
             }
         },
 
-        
-        
         // 댓글 목록 조회 요청
-        // --댓글 목록 조회 요청--
         getCommentsRequest: (state, action) => {
             const reviewId = action.payload?.reviewId || action.payload; // 객체든 숫자/문자든 방어
             if (!state.commentLoadingMap) state.commentLoadingMap = {};
@@ -220,27 +222,12 @@ const reviewReducer = createSlice({
             state.commentLoading = false;
             state.commentError = action.payload;
             
-            // ✅ [수정] 실패 시 특정 reviewId를 특정하기 어렵다면, 
-            // commentLoadingMap의 모든 값을 false로 만들거나 안전하게 닫아줍니다.
             if (state.commentLoadingMap) {
                 Object.keys(state.commentLoadingMap).forEach((key) => {
                     state.commentLoadingMap[key] = false;
                 });
             }
         },
-
-        // getCommentsRequest: (state) => {
-        //     state.commentLoading = true;
-        //     state.commentError = null;
-        // },
-        // getCommentsSuccess: (state, action) => {           
-        //     const { reviewId, comments } = action.payload;
-        //     state.commentLoadingMap[reviewId] = false;
-        //     state.commentsMap[reviewId] = comments || [];
-        // },
-        // getCommentsFailure: (state, action) => {           
-        //     state.commentError = action.payload;
-        // },
 
         // 댓글 작성
         createCommentRequest: (state) => {
@@ -251,6 +238,19 @@ const reviewReducer = createSlice({
             state.commentLoading = false;
         },
         createCommentFailure: (state, action) => {
+            state.commentLoading = false;
+            state.commentError = action.payload;
+        },
+
+        // 댓글 수정
+        updateCommentRequest: (state) => {
+            state.commentLoading = true;
+            state.commentError = null;
+        },
+        updateCommentSuccess: (state) => {
+            state.commentLoading = false;
+        },
+        updateCommentFailure: (state, action) => {
             state.commentLoading = false;
             state.commentError = action.payload;
         },
@@ -270,7 +270,7 @@ const reviewReducer = createSlice({
     },
 });
 
-// Action 내보내기 (존재하는 액션들만 정확히 내보내기)
+// Action 내보내기
 export const {
     resetReviewState,
     createReviewRequest,
@@ -286,6 +286,7 @@ export const {
     deleteReviewSuccess,
     deleteReviewFailure,
     getReviewListRequest,
+    getAdminReviewListRequest, // 🌟 [추가] 관리자 목록 조회 액션 내보내기
     getReviewListSuccess,
     getReviewListFailure,
     toggleReviewLikeRequest,
@@ -301,6 +302,9 @@ export const {
     createCommentRequest,
     createCommentSuccess,
     createCommentFailure,
+    updateCommentRequest,
+    updateCommentSuccess,
+    updateCommentFailure,
     deleteCommentRequest,
     deleteCommentSuccess,
     deleteCommentFailure,
