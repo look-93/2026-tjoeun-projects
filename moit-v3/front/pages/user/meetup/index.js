@@ -9,16 +9,11 @@ import {
     meetupLikeRequest,
 } from "../../../reducers/meetupReducer";
 
-import MeetupListAd from "../../../components/MeetupListAd";
 import MeetupSearchFilter from "../../../components/MeetupSearchFilter";
 import MeetupCategory from "../../../components/MeetupCategory";
 import MeetupList from "../../../components/MeetupList";
 import CommonPagination from "../../../components/CommonPagination";
-<<<<<<< HEAD
 import AdBanner from "../../../components/AdBanner";
-=======
-import MeetupAd from "../../../components/MeetupAd";
->>>>>>> main
 
 function MeetupListPage() {
     const router = useRouter();
@@ -93,11 +88,6 @@ function MeetupListPage() {
             sigungus.map((sigungu) => [sigungu.sido.sidoId, sigungu.sido]),
         ).values(),
     ];
-
-    const ad = {
-        title: "Moit 특별 이벤트",
-        image: "/images/ad-banner.png",
-    };
 
     // 검색
     const handleSearch = () => {
@@ -207,7 +197,7 @@ function MeetupListPage() {
                             onChange={handleCategoryChange}
                         />
 
-                        <MeetupAd ad={ad} />
+                        <AdBanner position="MEETUP_LIST_BANNER" />
                     </div>
                 </Col>
             </Row>

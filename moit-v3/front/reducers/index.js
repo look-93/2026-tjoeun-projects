@@ -6,12 +6,14 @@ import advertiseReducer from "./advertiseReducer";
 import qnaReducer from "./qnaReducer";
 import commonReducer from "./commonReducer";
 import reviewReducer from "./reviewReducer";
+import advertiseDashboardReducer from "./advertiseDashboardReducer";
 
 const rootReducer = combineReducers({
     user: userReducer, //state.user
     meetup: meetupReducer,
     report: reportReducer,
     advertise: advertiseReducer,
+    advertiseDashboard: advertiseDashboardReducer,
     qna: qnaReducer,
     review: reviewReducer,
     common: commonReducer,

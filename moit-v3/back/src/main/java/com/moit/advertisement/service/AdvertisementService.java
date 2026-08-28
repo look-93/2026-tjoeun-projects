@@ -13,6 +13,7 @@ import com.moit.advertisement.dto.AdvertisementPaymentDto;
 import com.moit.advertisement.dto.AdvertisementPositionPriceDto;
 import com.moit.advertisement.dto.AdvertisementPriceDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
+import com.moit.advertisement.dto.DashboardAiDto;
 
 
 public interface AdvertisementService {
@@ -151,7 +152,7 @@ public interface AdvertisementService {
 //    );
 
 	// 일일통계
-//	void insertDailyStatistics();
+	void insertDailyStatistics();
 	
 	// 통계 차트
 	// 총 통계
@@ -168,10 +169,11 @@ public interface AdvertisementService {
 	double selectExtensionRate();	
 	// 위치별 ctr 차트
 	List<AdvertisementChartDto> selectPositionCtrChart();
+	
 	// AI 통계 요약
-//	DashboardAiDto getDashboardAiData();
-//	DashboardAiDto getLatestAiSummary(); 
-//    void saveAiSummary(String summary); 
+	DashboardAiDto getDashboardAiData();
+	DashboardAiDto getLatestAiSummary(); 
+    void saveAiSummary(String summary); 
 	
 	
 	// 피로도
@@ -190,6 +192,4 @@ public interface AdvertisementService {
 	        Long memberId,
 	        int days
 	);
-
-	// 스케쥴러 돌리는건 일단 주석처리함
 }

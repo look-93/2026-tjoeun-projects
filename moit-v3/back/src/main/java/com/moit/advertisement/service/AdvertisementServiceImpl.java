@@ -3,11 +3,19 @@ package com.moit.advertisement.service;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,8 +34,11 @@ import com.moit.advertisement.dto.AdvertisementPositionPriceDto;
 import com.moit.advertisement.dto.AdvertisementPriceDto;
 import com.moit.advertisement.dto.AdvertisementScore;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
+import com.moit.advertisement.dto.DashboardAiDto;
 import com.moit.advertisement.entity.Advertisement;
+import com.moit.advertisement.entity.AdvertisementAiSummary;
 import com.moit.advertisement.entity.AdvertisementClickLog;
+import com.moit.advertisement.entity.AdvertisementDailyStatistics;
 import com.moit.advertisement.entity.AdvertisementImage;
 import com.moit.advertisement.entity.AdvertisementImpressionLog;
 import com.moit.advertisement.entity.AdvertisementPayment;
@@ -39,7 +50,9 @@ import com.moit.advertisement.enums.ApprovalStatus;
 import com.moit.advertisement.enums.PaymentHistoryStatus;
 import com.moit.advertisement.enums.PaymentStatus;
 import com.moit.advertisement.enums.PaymentType;
+import com.moit.advertisement.repository.AdvertisementAiSummaryRepository;
 import com.moit.advertisement.repository.AdvertisementClickLogRepository;
+import com.moit.advertisement.repository.AdvertisementDailyStatisticsRepository;
 import com.moit.advertisement.repository.AdvertisementImageRepository;
 import com.moit.advertisement.repository.AdvertisementImpressionLogRepository;
 import com.moit.advertisement.repository.AdvertisementPaymentRepository;
@@ -66,8 +79,9 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     
     private final AdvertisementCalculationService calculationService;
     
-    private final AdvertisementClickLogRepository clickLogRepository;
+    private final AdvertisementDailyStatisticsRepository dailyStatisticsRepository;
     private final AdvertisementImpressionLogRepository impressionLogRepository;
+    private final AdvertisementClickLogRepository clickLogRepository;
     private final AdvertisementPaymentRepository advertisementPaymentRepository;
     private final AdvertisementPriceRepository advertisementPriceRepository;
     private final AdvertisementPositionPriceRepository advertisementPositionPriceRepository;
@@ -77,7 +91,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     private final PointHistoryRepository pointHistoryRepository;
 
     private final MailService mailService;
-//    private final AiSummaryService aiSummaryService;
+    private final AdvertisementAiSummaryRepository aiSummaryRepository;
 
     private static final String UPLOAD_PATH = "C:/upload/ad";
 
@@ -1473,7 +1487,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	        // 로그인 사용자
 	        alreadyViewed =
 	                impressionLogRepository
-	                        .existsByAdvertisement_AdIdAndIpAddressAndPositionAndViewedAtAfter(
+	                        .existsByAdvertisement_AdIdAndMember_IdAndPositionAndViewedAtAfter(
 	                                adId,
 	                                memberId,
 	                                adPosition,
@@ -1553,64 +1567,496 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	 // =========================================================
 	 // 통계 차트
 	 // =========================================================
-	
-	 @Override
-	 public AdvertisementChartDto selectSummary() {
-	
-	     AdvertisementChartDto dto = new AdvertisementChartDto();
-	
-	     dto.setTotalAd(selectTotalAdvertisementCnt());
-	
-	     // TODO Repository에서 전체 노출/클릭 조회
-	     // dto.setTotalImp(...);
-	     // dto.setTotalClick(...);
-	     // dto.setAvgCtr(...);
-	
-	     return dto;
-	 }
-	
-	 @Override
-	 public List<AdvertisementChartDto> selectDailyChart() {
-	
-	     // TODO 일일통계 Repository 조회
-	     return List.of();
-	 }
-	
-	 @Override
-	 public List<AdvertisementChartDto> selectTopCtrChart() {
-	
-	     // TODO 광고별 CTR 계산 후 상위 5개 조회
-	     return List.of();
-	 }
-	
-	 @Override
-	 public List<AdvertisementChartDto> selectGradeChart() {
-	
-	     // TODO AdGrade별 광고 개수 조회
-	     return List.of();
-	 }
-	
-	 @Override
-	 public List<AdvertisementChartDto> selectPositionChart() {
-	
-	     // TODO 광고 위치별 노출 조회
-	     return List.of();
-	 }
-	
-	 @Override
-	 public double selectExtensionRate() {
-	
-	     // TODO 연장 광고 / 전체 광고
-	     return 0.0;
-	 }
-	
-	 @Override
-	 public List<AdvertisementChartDto> selectPositionCtrChart() {
-	
-	     // TODO 위치별 CTR 계산
-	     return List.of();
-	 }
+    @Override
+    @Transactional
+    public void insertDailyStatistics() {
 
+        LocalDate statDate = LocalDate.now().minusDays(1);
+
+        List<AdvertisementImpressionLog> impressionLogs =
+                impressionLogRepository.findByViewedAtBetween(
+                        statDate.atStartOfDay(),
+                        statDate.plusDays(1).atStartOfDay()
+                );
+
+        Map<String, Long> impressionMap =
+                impressionLogs.stream()
+                        .collect(Collectors.groupingBy(
+                                log -> log.getAdvertisement().getAdId()
+                                        + "_" + log.getPosition().name(),
+                                Collectors.counting()
+                        ));
+
+        List<AdvertisementClickLog> clickLogs =
+                clickLogRepository.findByClickedAtBetween(
+                        statDate.atStartOfDay(),
+                        statDate.plusDays(1).atStartOfDay()
+                );
+
+        Map<String, Long> clickMap =
+                clickLogs.stream()
+                        .collect(Collectors.groupingBy(
+                                log -> log.getAdvertisement().getAdId()
+                                        + "_" + log.getPosition().name(),
+                                Collectors.counting()
+                        ));
+
+        Set<String> keys = new HashSet<>();
+
+        keys.addAll(impressionMap.keySet());
+        keys.addAll(clickMap.keySet());
+
+        for (String key : keys) {
+
+            String[] split = key.split("_");
+
+            Long adId = Long.valueOf(split[0]);
+            AdPosition position = AdPosition.valueOf(split[1]);
+
+            if (dailyStatisticsRepository
+                    .existsByAdvertisement_AdIdAndStatDateAndPosition(
+                            adId,
+                            statDate,
+                            position)) {
+                continue;
+            }
+
+            Advertisement advertisement =
+                    advertisementRepository.findById(adId)
+                            .orElse(null);
+
+            if (advertisement == null) {
+                continue;
+            }
+
+            long impressions =
+                    impressionMap.getOrDefault(key, 0L);
+
+            long clicks =
+                    clickMap.getOrDefault(key, 0L);
+
+            BigDecimal ctr =
+                    impressions == 0
+                            ? BigDecimal.ZERO
+                            : BigDecimal.valueOf(
+                                    ((double) clicks / impressions) * 100
+                            ).setScale(2, RoundingMode.HALF_UP);
+
+            BigDecimal fatigueScore =
+                    calculateFatigueScore(
+                            adId,
+                            statDate
+                    );
+
+            AdvertisementDailyStatistics statistics =
+                    AdvertisementDailyStatistics.builder()
+                            .advertisement(advertisement)
+                            .statDate(statDate)
+                            .impressions(impressions)
+                            .clicks(clicks)
+                            .ctr(ctr)
+                            .fatigueScore(fatigueScore)
+                            .position(position)
+                            .build();
+
+            dailyStatisticsRepository.save(statistics);
+        }
+    }
+	
+    @Override
+    @Transactional(readOnly = true)
+    public AdvertisementChartDto selectSummary() {
+
+        AdvertisementChartDto dto = new AdvertisementChartDto();
+
+        // 삭제되지 않은 광고 수
+        int totalAd = selectTotalAdvertisementCnt();
+
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(6);
+
+        Long totalImp =
+                dailyStatisticsRepository.sumImpressions(
+                        startDate,
+                        today
+                );
+
+        Long totalClick =
+                dailyStatisticsRepository.sumClicks(
+                        startDate,
+                        today
+                );
+
+        if (totalImp == null) {
+            totalImp = 0L;
+        }
+
+        if (totalClick == null) {
+            totalClick = 0L;
+        }
+
+        double avgCtr = totalImp == 0
+                ? 0.0
+                : (totalClick.doubleValue() / totalImp.doubleValue()) * 100;
+
+        dto.setTotalAd(totalAd);
+        dto.setTotalImp(totalImp.intValue());
+        dto.setTotalClick(totalClick.intValue());
+        dto.setAvgCtr(avgCtr);
+
+        return dto;
+    }
+	
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdvertisementChartDto> selectDailyChart() {
+
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(6);
+
+        List<AdvertisementDailyStatistics> statistics =
+                dailyStatisticsRepository.findRecentStatistics(startDate);
+
+        return statistics.stream()
+                .collect(Collectors.groupingBy(
+                        AdvertisementDailyStatistics::getStatDate,
+                        TreeMap::new,
+                        Collectors.toList()
+                ))
+                .entrySet()
+                .stream()
+                .map(entry -> {
+
+                    LocalDate date = entry.getKey();
+
+                    long impressions = entry.getValue()
+                            .stream()
+                            .mapToLong(s -> s.getImpressions() == null
+                                    ? 0L
+                                    : s.getImpressions())
+                            .sum();
+
+                    long clicks = entry.getValue()
+                            .stream()
+                            .mapToLong(s -> s.getClicks() == null
+                                    ? 0L
+                                    : s.getClicks())
+                            .sum();
+
+                    AdvertisementChartDto dto = new AdvertisementChartDto();
+
+                    dto.setStatDate(date.toString());
+                    dto.setImpressions((int) impressions);
+                    dto.setClicks((int) clicks);
+
+                    return dto;
+                })
+                .toList();
+    }
+	
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdvertisementChartDto> selectTopCtrChart() {
+
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(6);
+
+        List<AdvertisementDailyStatistics> statistics =
+                dailyStatisticsRepository.findRecentStatistics(startDate);
+
+        return statistics.stream()
+                .collect(Collectors.groupingBy(
+                        s -> s.getAdvertisement().getAdId(),
+                        Collectors.toList()
+                ))
+                .values()
+                .stream()
+                .map(list -> {
+
+                    long impressions = list.stream()
+                            .mapToLong(s -> s.getImpressions() == null
+                                    ? 0L
+                                    : s.getImpressions())
+                            .sum();
+
+                    long clicks = list.stream()
+                            .mapToLong(s -> s.getClicks() == null
+                                    ? 0L
+                                    : s.getClicks())
+                            .sum();
+
+                    double ctr = impressions == 0
+                            ? 0.0
+                            : ((double) clicks / impressions) * 100;
+
+                    Advertisement advertisement =
+                            list.get(0).getAdvertisement();
+
+                    AdvertisementChartDto dto =
+                            new AdvertisementChartDto();
+
+                    dto.setTitle(advertisement.getTitle());
+                    dto.setCtr(ctr);
+
+                    return dto;
+
+                })
+                .sorted(
+                        Comparator.comparing(
+                                AdvertisementChartDto::getCtr,
+                                Comparator.nullsLast(
+                                        Comparator.reverseOrder()
+                                )
+                        )
+                )
+                .limit(5)
+                .toList();
+    }
+	
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdvertisementChartDto> selectGradeChart() {
+
+        List<Advertisement> advertisements =
+                advertisementRepository.findByDeleteYn('N');
+
+        return advertisements.stream()
+                .collect(Collectors.groupingBy(
+                        Advertisement::getAdGrade,
+                        Collectors.counting()
+                ))
+                .entrySet()
+                .stream()
+                .map(entry -> {
+
+                    AdvertisementChartDto dto =
+                            new AdvertisementChartDto();
+
+                    dto.setAdGrade(entry.getKey().name());
+                    dto.setCount(entry.getValue().intValue());
+
+                    return dto;
+
+                })
+                .toList();
+    }
+	
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdvertisementChartDto> selectPositionChart() {
+
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(6);
+
+        List<AdvertisementDailyStatistics> statistics =
+                dailyStatisticsRepository.findRecentStatistics(startDate);
+
+        return statistics.stream()
+                .collect(Collectors.groupingBy(
+                        AdvertisementDailyStatistics::getPosition,
+                        Collectors.summingLong(
+                                s -> s.getImpressions() == null
+                                        ? 0L
+                                        : s.getImpressions()
+                        )
+                ))
+                .entrySet()
+                .stream()
+                .map(entry -> {
+
+                    AdvertisementChartDto dto =
+                            new AdvertisementChartDto();
+
+                    dto.setPosition(entry.getKey().name());
+                    dto.setImpressions(entry.getValue().intValue());
+
+                    return dto;
+
+                })
+                .toList();
+    }
+	
+    @Override
+    @Transactional(readOnly = true)
+    public double selectExtensionRate() {
+
+        long totalPaid =
+                advertisementPaymentRepository
+                        .countByAdvertisement_DeleteYnAndPaymentStatus(
+                                'N',
+                                PaymentHistoryStatus.PAID
+                        );
+
+        long extensionPaid =
+                advertisementPaymentRepository
+                        .countByAdvertisement_DeleteYnAndPaymentTypeAndPaymentStatus(
+                                'N',
+                                PaymentType.EXTENSION,
+                                PaymentHistoryStatus.PAID
+                        );
+
+        if (totalPaid == 0) {
+            return 0.0;
+        }
+
+        return ((double) extensionPaid / totalPaid) * 100;
+    }
+	
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdvertisementChartDto> selectPositionCtrChart() {
+
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(6);
+
+        List<AdvertisementDailyStatistics> statistics =
+                dailyStatisticsRepository.findRecentStatistics(startDate);
+
+        return statistics.stream()
+                .collect(Collectors.groupingBy(
+                        AdvertisementDailyStatistics::getPosition,
+                        Collectors.toList()
+                ))
+                .entrySet()
+                .stream()
+                .map(entry -> {
+
+                    long impressions = entry.getValue()
+                            .stream()
+                            .mapToLong(s -> s.getImpressions() == null
+                                    ? 0L
+                                    : s.getImpressions())
+                            .sum();
+
+                    long clicks = entry.getValue()
+                            .stream()
+                            .mapToLong(s -> s.getClicks() == null
+                                    ? 0L
+                                    : s.getClicks())
+                            .sum();
+
+                    double ctr = impressions == 0
+                            ? 0.0
+                            : ((double) clicks / impressions) * 100;
+
+                    AdvertisementChartDto dto =
+                            new AdvertisementChartDto();
+
+                    dto.setPosition(entry.getKey().name());
+                    dto.setCtr(ctr);
+
+                    return dto;
+
+                })
+                .toList();
+    }
+	 
+	 
+    // ai 요약 저장
+    @Override
+    @Transactional
+    public void saveAiSummary(String summary) {
+
+        AdvertisementAiSummary entity =
+                AdvertisementAiSummary.builder()
+                        .summary(summary)
+                        .build();
+
+        aiSummaryRepository.save(entity);
+    }
+    
+    // 최근 ai 요약 불러오기
+    @Override
+    @Transactional(readOnly = true)
+    public DashboardAiDto getLatestAiSummary() {
+
+        AdvertisementAiSummary entity =
+        		aiSummaryRepository
+                        .findTopByOrderByCreatedAtDesc()
+                        .orElse(null);
+
+        if (entity == null) {
+            return null;
+        }
+
+        DashboardAiDto dto = new DashboardAiDto();
+
+        dto.setSummaryId(entity.getSummaryId().intValue());
+        dto.setSummary(entity.getSummary());
+        dto.setCreatedAt(entity.getCreatedAt().toString());
+
+        return dto;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public DashboardAiDto getDashboardAiData() {
+
+        DashboardAiDto dto = new DashboardAiDto();  
+        AdvertisementChartDto summary = selectSummary();
+
+        if (summary != null) {
+            dto.setTotalAd(summary.getTotalAd());
+            dto.setTotalImp(summary.getTotalImp());
+            dto.setTotalClick(summary.getTotalClick());
+            dto.setAvgCtr(summary.getAvgCtr());
+        }
+        dto.setExtensionRate( selectExtensionRate() );
+
+        // 아래 3개는 기존 Dashboard 조회 결과에서 계산
+        List<AdvertisementChartDto> positionList = selectPositionCtrChart();
+
+        if (positionList != null && !positionList.isEmpty()) {
+            AdvertisementChartDto best =
+                    positionList.stream()
+                            .max((a, b) ->
+                                    Double.compare(
+                                            a.getCtr(),
+                                            b.getCtr()
+                                    ))
+                            .orElse(null);
+
+            AdvertisementChartDto worst =
+                    positionList.stream()
+                            .min((a, b) ->
+                                    Double.compare(
+                                            a.getCtr(),
+                                            b.getCtr()
+                                    ))
+                            .orElse(null);
+
+            if (best != null) {
+                dto.setBestPosition(
+                        best.getPosition()
+                );
+            }
+
+            if (worst != null) {
+                dto.setWorstPosition(
+                        worst.getPosition()
+                );
+            }
+        }
+        List<AdvertisementChartDto> gradeList = selectGradeChart();
+
+        if (gradeList != null && !gradeList.isEmpty()) {
+            AdvertisementChartDto topGrade =
+                    gradeList.stream()
+                            .max((a, b) ->
+                                    Integer.compare(
+                                            a.getCount(),
+                                            b.getCount()
+                                    ))
+                            .orElse(null);
+
+            if (topGrade != null) {
+                dto.setTopGrade(
+                        topGrade.getAdGrade()
+                );
+            }
+        }
+        return dto;
+    }
 
     // =========================================================
     // DTO 변환
@@ -1967,6 +2413,46 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
         return score;
     }
+    
+    private BigDecimal calculateFatigueScore(
+            Long adId,
+            LocalDate statDate) {
+
+        LocalDateTime start =
+                statDate.atStartOfDay();
+
+        LocalDateTime end =
+                statDate.plusDays(1).atStartOfDay();
+
+        long impressions =
+                impressionLogRepository.countByAdvertisement_AdIdAndViewedAtBetween(
+                        adId,
+                        start,
+                        end
+                );
+
+        /*
+         * 일일 피로도 계산
+         *
+         * 현재 기준:
+         * 100회 노출당 1점
+         * 최대 100점
+         */
+        BigDecimal fatigueScore =
+                BigDecimal.valueOf(impressions)
+                        .divide(
+                                BigDecimal.valueOf(100),
+                                2,
+                                RoundingMode.HALF_UP
+                        );
+
+        if (fatigueScore.compareTo(BigDecimal.valueOf(100)) > 0) {
+            fatigueScore = BigDecimal.valueOf(100);
+        }
+
+        return fatigueScore;
+    }
+    
     
     // =========================================================
     // 30일, 14일 연장메일 발송 (스케줄러용)
