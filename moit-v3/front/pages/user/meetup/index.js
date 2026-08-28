@@ -197,7 +197,7 @@ function MeetupListPage() {
                             onChange={handleCategoryChange}
                         />
 
-                        <AdBanner position="MEETUP_LIST_BANNER" />
+                        <AdBanner position="MEETUP_LIST_SIDEBAR" />
                     </div>
                 </Col>
             </Row>

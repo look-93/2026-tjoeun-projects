@@ -31,7 +31,6 @@ export function* getAdvertiseDashboardSaga() {
 
     try {
         const [
-            statisticsRes,
             summaryRes,
             dailyRes,
             ctrRes,
@@ -53,20 +52,17 @@ export function* getAdvertiseDashboardSaga() {
 
         console.log('===== 광고 대시보드 API =====');
 
-        console.log('summary:', summaryRes);
-        console.log('daily:', dailyRes);
-        console.log('ctr:', ctrRes);
-        console.log('grade:', gradeRes);
-        console.log('position:', positionRes);
-        console.log('extension:', extensionRes);
-        console.log('positionCtr:', positionCtrRes);
-        console.log('aiSummary:', aiSummaryRes);
+        console.log('summary:', summaryRes?.data);
+        console.log('daily:', dailyRes?.data);
+        console.log('ctr:', ctrRes?.data);
+        console.log('grade:', gradeRes?.data);
+        console.log('position:', positionRes?.data);
+        console.log('extension:', extensionRes?.data);
+        console.log('positionCtr:', positionCtrRes?.data);
+        console.log('aiSummary:', aiSummaryRes?.data);
 
         yield put(
             getAdvertiseDashboardSuccess({
-
-                statistics:
-                    statisticsRes?.data ?? {},
 
                 summary:
                     summaryRes?.data ?? {},
