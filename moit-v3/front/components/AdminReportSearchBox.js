@@ -103,7 +103,7 @@ function AdminReportSearchBox({ onSearch }) {
         {/* 작성자 */}
         <Col flex="auto">
           <Input
-            placeholder="작성자 닉네임"
+            placeholder="신고자 닉네임"
             value={values.memberNickname}
             onChange={(e) => {
               setValues({

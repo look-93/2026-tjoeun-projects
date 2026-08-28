@@ -73,13 +73,14 @@ function ReportDetailPage() {
             // ServiceImpl updateAdminReport
             // 반환형 return responseDto (ReportResponseDto)
             // 승인 처리 / 신뢰도 변경 포함
-
             // 관리자 처리 감사 로그 재조회
             dispatch(
                 fetchAdminReportAuditLogsRequest({
                     reportId: Number(reportId),
                 })
             );
+
+            dispatch(resetReportState());
         }
     }, [adminUpdate.success, dispatch, reportId]);
     
@@ -87,6 +88,9 @@ function ReportDetailPage() {
     useEffect(() => {
         if (adminDelete.success) {
             message.success('신고 내역이 삭제되었습니다.');
+
+            dispatch(resetReportState());
+
             router.push('/admin/report');
         }
     }, [adminDelete.success, router]);

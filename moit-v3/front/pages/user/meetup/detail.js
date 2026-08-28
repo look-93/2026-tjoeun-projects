@@ -181,7 +181,7 @@ function MeetupDetailPage() {
             );
 
             if (response.data === true) {
-                alert("이미 신고한 모임입니다.");
+                alert("이미 신고한 글입니다.");
                 return;
             }
 

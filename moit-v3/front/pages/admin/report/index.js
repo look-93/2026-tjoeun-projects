@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 import { Row, Col, Button, Table, Tag, message } from 'antd';
 import AdminStatCard from '../../../components/AdminStatCard';
 import AdminReportSearchBox from '../../../components/AdminReportSearchBox';
-import { fetchAdminReportsRequest } from '../../../reducers/reportReducer';
+import { fetchAdminReportsRequest, resetReportState } from '../../../reducers/reportReducer';
 
 import ReportStatusTag from '../../../components/ReportStatusTag';
 import ReportStatusCodeTag from '../../../components/ReportStatusCodeTag';
@@ -117,6 +117,9 @@ function AdminReportPage() {
         memberNickname: searchParams.memberNickname || null,
       })
     );
+
+    dispatch(resetReportState());
+
   }, [dispatch, page, searchParams]);
 
 
