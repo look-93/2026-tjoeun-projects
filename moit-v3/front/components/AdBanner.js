@@ -9,14 +9,16 @@ import {
 
 const { Text } = Typography;
 
-function AdBanner() {
+function AdBanner({ position }) {
 
     const [ad, setAd] = useState(null);
 
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+    const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 
     // 한 번의 화면 렌더링에서 노출 API 중복 호출 방지
     const impressionSent = useRef(false);
+
 
     // =========================================================
     // 광고 조회
@@ -24,14 +26,23 @@ function AdBanner() {
 
     useEffect(() => {
 
+        // position이 없으면 조회하지 않음
+        if (!position) {
+            return;
+        }
+
+        // 위치가 변경되면 이전 노출 처리 상태 초기화
+        impressionSent.current = false;
+
         const fetchAdvertisement = async () => {
 
             try {
 
                 const response =
-                    await getTopAdvertisement("MAIN");
+                    await getTopAdvertisement(position);
 
                 if (!response?.data) {
+                    setAd(null);
                     return;
                 }
 
@@ -40,17 +51,18 @@ function AdBanner() {
             } catch (error) {
 
                 console.error(
-                    "메인 광고 조회 실패:",
+                    `${position} 광고 조회 실패:`,
                     error
                 );
 
+                setAd(null);
             }
 
         };
 
         fetchAdvertisement();
 
-    }, []);
+    }, [position]);
 
 
     // =========================================================
@@ -73,14 +85,15 @@ function AdBanner() {
 
                 await increaseAdvertisementImpression(
                     ad.adId,
-                    "MAIN"
+                    position
                 );
 
                 impressionSent.current = true;
 
                 console.log(
                     "광고 노출 처리:",
-                    ad.adId
+                    ad.adId,
+                    position
                 );
 
             } catch (error) {
@@ -96,7 +109,7 @@ function AdBanner() {
 
         sendImpression();
 
-    }, [ad]);
+    }, [ad, position]);
 
 
     // =========================================================
@@ -113,12 +126,13 @@ function AdBanner() {
 
             await increaseAdvertisementClick(
                 ad.adId,
-                "MAIN"
+                position
             );
 
             console.log(
                 "광고 클릭 처리:",
-                ad.adId
+                ad.adId,
+                position
             );
 
         } catch (error) {
@@ -140,19 +154,21 @@ function AdBanner() {
 
 
     // =========================================================
-    // MAIN 이미지
+    // 현재 위치에 맞는 이미지
     // =========================================================
 
-    const mainImage =
+    const adImage =
         ad?.imageList?.find(
             (image) =>
-                image.imageType === "MAIN"
+                image.imageType === position
         );
 
-        // 광고 자체가 없는 경우
-        if (!ad) {
-            return null;
-        }
+
+    // 광고가 없는 경우
+    if (!ad) {
+        return null;
+    }
+
 
     return (
         <Row>
@@ -160,32 +176,40 @@ function AdBanner() {
 
                 <Card
                     hoverable
-                    className="main-ad-card"
+                    className={`main-ad-card ad-${position}`}
                     onClick={handleClick}
                     styles={{
-                        body: { padding: 0 }
+                        body: {
+                            padding: 0
+                        }
                     }}
                 >
+
                     {/* 광고 이미지 */}
-                    {mainImage?.imageUrl ? (
+
+                    {adImage?.imageUrl ? (
 
                         <img
-                            src={`${API_BASE_URL}${mainImage.imageUrl}`}
+                            src={`${API_BASE_URL}${adImage.imageUrl}`}
                             alt={ad.title || "광고"}
-                            className="ad-image"
+                            className={`ad-image ad-${position}`}
                         />
 
                     ) : (
 
                         <div className="ad-placeholder">
+
                             <Text type="secondary">
                                 현재 진행 중인 광고가 없습니다.
                             </Text>
+
                         </div>
 
                     )}
 
+
                     {/* PREMIUM 광고 */}
+
                     {ad.adGrade === "PREMIUM" && (
 
                         <div
@@ -198,9 +222,7 @@ function AdBanner() {
                             </div>
 
                             <div className="premium-ad-content">
-
                                 {ad.content}
-
                             </div>
 
                         </div>

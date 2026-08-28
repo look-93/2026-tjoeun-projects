@@ -7,7 +7,7 @@ import MeetupRecruitInfo from "../../../components/MeetupRecruitInfo";
 import MeetupAuthor from "../../../components/MeetupAuthor";
 import RecommendedMeetups from "../../../components/RecommendedMeetups";
 import MeetupMap from "../../../components/MeetupMap";
-import MeetupAd from "../../../components/MeetupAd";
+import AdBanner from "../../../components/AdBanner";
 import { useRouter } from "next/router";
 import {
     getReviewListRequest,
@@ -415,7 +415,7 @@ function MeetupDetailPage() {
                         address={meetup.address}
                     />
                     {/* 광고 */}
-                    <MeetupAd ad={ad} />
+                    <AdBanner position="MEETUP_DETAIL_SIDEBAR" />
                 </Col>
             </Row>
         </div>

@@ -9,12 +9,11 @@ import {
     meetupLikeRequest,
 } from "../../../reducers/meetupReducer";
 
-import MeetupListAd from "../../../components/MeetupListAd";
 import MeetupSearchFilter from "../../../components/MeetupSearchFilter";
 import MeetupCategory from "../../../components/MeetupCategory";
 import MeetupList from "../../../components/MeetupList";
 import CommonPagination from "../../../components/CommonPagination";
-import MeetupAd from "../../../components/MeetupAd";
+import AdBanner from "../../../components/AdBanner";
 
 function MeetupListPage() {
     const router = useRouter();
@@ -90,11 +89,6 @@ function MeetupListPage() {
         ).values(),
     ];
 
-    const ad = {
-        title: "Moit 특별 이벤트",
-        image: "/images/ad-banner.png",
-    };
-
     // 검색
     const handleSearch = () => {
         console.log({
@@ -159,7 +153,7 @@ function MeetupListPage() {
         ====================== */}
                 <Col xs={24} lg={18}>
                     {/* 광고 */}
-                    <MeetupListAd ad={ad} />
+                    <AdBanner position="MEETUP_LIST_BANNER" />
 
                     {/* 검색 */}
                     <MeetupSearchFilter
@@ -203,7 +197,7 @@ function MeetupListPage() {
                             onChange={handleCategoryChange}
                         />
 
-                        <MeetupAd ad={ad} />
+                        <AdBanner position="MEETUP_LIST_BANNER" />
                     </div>
                 </Col>
             </Row>
