@@ -154,6 +154,46 @@ function MeetupDetailPage() {
         );
     };
 
+    // 신고 핸들러
+    const handleReport = async (
+        targetType,
+        targetId,
+        writerMemberId
+    ) => {
+
+        // 본인 아이디 신고 방지
+        if (user?.memberId === writerMemberId) {
+            alert("본인이 작성한 글은 신고할 수 없습니다.");
+            return;
+        }
+
+        try {
+            // 중복 신고 방지
+            const response = await axios.get(
+                "/api/reports/checkDoubleReport",
+                {
+                    params: {
+                        targetType: targetType,
+                        targetId: targetId
+                    }
+                }
+            );
+
+            if (response.data === true) {
+                alert("이미 신고한 게시물입니다.");
+                return;
+            }
+
+            router.push(
+                `/user/meetup/report/write?targetType=${targetType}&targetId=${targetId}`
+            );
+
+        } catch (error) {
+            console.error("신고 가능 여부 확인 실패:", error);
+            alert("신고 여부 확인 중 오류가 발생했습니다.");
+        }
+    };
+
     // 모임 데이터
     useEffect(() => {
         if (!router.isReady || !meetupId) {
@@ -192,6 +232,7 @@ function MeetupDetailPage() {
     const rawReviews =
         reduxReviews?.map((review) => ({
             id: review.id,
+            memberId: review.memberId,  // 신고 추가 ...
             nickname: review.memberNickname || review.nickname || "익명",
             rating: review.rating,
             content: review.content,
@@ -310,10 +351,10 @@ function MeetupDetailPage() {
                                 <Button
                                     danger
                                     onClick={() =>
-                                        router.push(
-                                            `/user/meetup/report/write?targetType=MEETUP&targetId=${meetup.id}`,
-                                            // `/user/meetup/report/write?targetType=MEETUP&targetId=${meetup.meetupId}`,
-                                            // `/user/meetup/report/write?targetType=MEETUP&targetId=2`,
+                                        handleReport(
+                                            "REVIEW",
+                                            review.id,
+                                            review.memberId
                                         )
                                     }
                                 >

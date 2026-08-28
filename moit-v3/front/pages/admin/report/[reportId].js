@@ -250,7 +250,7 @@ function ReportDetailPage() {
                         {currentReport?.reportId}번 신고글
                     </Descriptions.Item>
 
-                    <Descriptions.Item label="신고자 (memberId)">
+                    <Descriptions.Item label="신고자 (memberId) & 매너 점수">
                         {currentReport.memberNickname ?? '-'}
                         {' '}
                         ({currentReport.memberId ?? '-'}번)
@@ -259,7 +259,7 @@ function ReportDetailPage() {
                         <ReportStatusCodeTag statusCode={currentReport.statusCode} />
                     </Descriptions.Item>
 
-                    <Descriptions.Item label="신고 대상 회원 (targetMemberId)">
+                    <Descriptions.Item label="신고 대상 회원 (targetMemberId) & 매너 점수">
                         {currentReport.targetMemberNickname ?? '-'}
                         {' '}
                         ({currentReport.targetMemberId ?? '-'}번)
@@ -479,7 +479,7 @@ function ReportDetailPage() {
                             {log.processReason || '-'}
                         </Descriptions.Item>
 
-                        <Descriptions.Item label="신뢰도 점수 변동">
+                        <Descriptions.Item label="매너 점수 변동">
                             {log.trustScoreChange != null
                                 ? `${log.trustScoreChange > 0 ? '+' : ''}${log.trustScoreChange}점`
                                 : '-'}
