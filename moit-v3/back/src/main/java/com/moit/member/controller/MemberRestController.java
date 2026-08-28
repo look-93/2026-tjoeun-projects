@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,9 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.member.dto.DeleteAccountRequestDto;
+import com.moit.member.dto.LoginDeviceDto;
+import com.moit.member.dto.LoginHistoryResponseDto;
 import com.moit.member.dto.LoginRequestDto;
 import com.moit.member.dto.LoginResponseDto;
 import com.moit.member.dto.MyPageDto;
+import com.moit.member.dto.PointHistoryDto;
 import com.moit.member.dto.RefreshRequestDto;
 import com.moit.member.dto.RefreshResponseDto;
 import com.moit.member.dto.ResetPasswordDto;
@@ -28,7 +32,11 @@ import com.moit.member.dto.UserDto;
 import com.moit.member.dto.UserRequestDto;
 import com.moit.member.dto.UserResponseDto;
 import com.moit.member.dto.UserUpdateRequestDto;
+import com.moit.member.entity.PointHistory;
+import com.moit.member.service.LoginDeviceService;
+import com.moit.member.service.LoginHistoryService;
 import com.moit.member.service.MemberService;
+import com.moit.member.service.PointService;
 import com.moit.member.service.VerificationService;
 import com.moit.security.CustomUserDetails;
 import com.moit.security.JwtTokenProvider;
@@ -37,6 +45,7 @@ import com.moit.security.RefreshTokenService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
@@ -58,6 +67,10 @@ public class MemberRestController {
 	private final RefreshTokenService refreshTokenService;
 	private final PasswordLeakService passwordLeakService;
 	private final VerificationService verificationService;
+	private final LoginHistoryService loginHistoryService;
+	private final LoginDeviceService loginDeviceService;
+	private final PointService pointService;
+	
 	
 	//회원가입
 	@Operation( summary = "회원가입", description = "새로운 회원을 등록합니다." )
@@ -115,7 +128,8 @@ public class MemberRestController {
 	@PostMapping("/social-info")
 	public ResponseEntity<?> socialSignup(
 	        @RequestBody UserRequestDto request,
-	        HttpSession session) {
+	        HttpSession session,
+	        HttpServletRequest httpRequest) {
 
 	    // 1. 세션에서 OAuth2 회원정보 가져오기
 	    UserDto socialUser = (UserDto) session.getAttribute("socialUser");
@@ -127,6 +141,14 @@ public class MemberRestController {
 	                        "message",
 	                        "소셜 회원가입 정보가 만료되었거나 존재하지 않습니다."
 	                ));
+	    }
+	    
+	    // deviceId 확인
+	    String deviceId = request.getDeviceId();
+
+	    if (deviceId == null || deviceId.isBlank()) {
+
+	        return ResponseEntity .badRequest() .body(Map.of( "message", "deviceId가 필요합니다." ));
 	    }
 
 	    // 2. 프론트에서 입력한 추가정보
@@ -143,12 +165,24 @@ public class MemberRestController {
 
 	    // 5. 실제 회원 ID
 	    Long memberId = result.getMemberId();
+	    
+	    String ipAddress = httpRequest.getRemoteAddr();
+	    String userAgent = httpRequest.getHeader("User-Agent");
+	    
+	    loginDeviceService.saveLoginDevice(
+	            memberId,
+	            deviceId,
+	            ipAddress,
+	            userAgent,
+	            socialUser.getProvider().toUpperCase()
+	    );
 
 	    // 6. Access Token 발급
 	    String accessToken =
 	            jwtTokenProvider.createAccessToken(
 	                    memberId,
-	                    result.getLoginId()
+	                    result.getLoginId(),
+	                    deviceId
 	            );
 
 	    // 7. Refresh Token 발급
@@ -157,6 +191,7 @@ public class MemberRestController {
 	    // 8. Redis에 Refresh Token 저장
 	    refreshTokenService.saveRefreshToken(
 	            memberId,
+	            deviceId,
 	            refreshToken,
 	            jwtTokenProvider.getRefreshTokenExpiration()
 	    );
@@ -171,7 +206,8 @@ public class MemberRestController {
 	                    refreshToken,
 	                    result.getMemberId(),
 	                    result.getLoginId(),
-	                    result.getMemberTypeId()
+	                    result.getMemberTypeId(),
+	                    deviceId
 	            )
 	    );
 	}
@@ -231,17 +267,7 @@ public class MemberRestController {
 
         return ResponseEntity.ok( service.existsByNickname(nickname) );
     }
-
-    // 전화번호 중복검사
-    @Operation( summary = "전화번호 중복검사", description = "사용 중인 전화번호인지 확인합니다." )
-    @GetMapping("/check-mobile")
-    public ResponseEntity<Boolean> checkMobile(
-            @Parameter(description = "확인할 전화번호")
-            @RequestParam("mobile") String mobile) {
-
-        return ResponseEntity.ok( service.existsByMobile(mobile) );
-    }
-    
+ 
     // 로그인
     @Operation(
             summary = "로그인",
@@ -249,8 +275,12 @@ public class MemberRestController {
     )
     @PostMapping("/login")
     public ResponseEntity<?> login(
-            @RequestBody LoginRequestDto request) {
-
+            @RequestBody LoginRequestDto request,
+            HttpServletRequest httpRequest
+            ) {
+    	
+    	String deviceId = request.getDeviceId();
+    	
         // 1. 아이디로 회원조회
         UserDto user = service.findByLoginId(request.getLoginId());
 
@@ -309,12 +339,33 @@ public class MemberRestController {
 	            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of( "message", "회원유형이 맞지 않습니다." ));
 	        }
 	    }
+	    
+	    // 로그인 기록 저장
+	    String ipAddress = httpRequest.getRemoteAddr();
+	    String userAgent = httpRequest.getHeader("User-Agent");
+
+	    loginHistoryService.saveLoginHistory(
+	            user.getMemberId(),
+	            ipAddress,
+	            userAgent,
+	            "NORMAL"
+	    );
+	    
+	    // 로그인 기기
+	    loginDeviceService.saveLoginDevice(
+	            user.getMemberId(),
+	            deviceId,
+	            ipAddress,
+	            userAgent,
+	            "NORMAL"
+	    );
 
         // 7. Access Token 생성
         String accessToken =
                 jwtTokenProvider.createAccessToken(
                         user.getMemberId(),
-                        user.getLoginId()
+                        user.getLoginId(),
+                        deviceId
                 );
 
         // 8. Refresh Token 생성
@@ -326,6 +377,7 @@ public class MemberRestController {
         // 9. Refresh Token Redis 저장
         refreshTokenService.saveRefreshToken(
                 user.getMemberId(),
+                deviceId,
                 refreshToken,
                 jwtTokenProvider.getRefreshTokenExpiration()
         );
@@ -337,70 +389,114 @@ public class MemberRestController {
                         refreshToken,
                         user.getMemberId(),
                         user.getLoginId(),
-                        user.getMemberTypeId()
+                        user.getMemberTypeId(),
+                        deviceId
                 );
 
         return ResponseEntity.ok(response);
     }
     
-    // Access Token 재발급
-    @Operation( summary = "Access Token 재발급", description = "새로운 Access Token을 발급합니다." )
+ // Access Token 재발급
+    @Operation(
+            summary = "Access Token 재발급",
+            description = "Refresh Token을 검증하여 새로운 Access Token과 Refresh Token을 발급합니다."
+    )
     @PostMapping("/refresh")
     public ResponseEntity<RefreshResponseDto> refresh(
-    		 @RequestBody RefreshRequestDto request) {
-    	String refreshToken = request.getRefreshToken();
-    	
-    	//1. Refresh Token 검증
-    	if(!jwtTokenProvider.validateToken(refreshToken)) {
-    		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    	}
-    	
-    	// refresh Token 검사
-    	if(!"REFRESH".equals(jwtTokenProvider.getTokenType(refreshToken))) {
-    		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    	}
-    	
-    	//2. refresh Token에서 회원ID 추출
-    	Long memberId = jwtTokenProvider.getMemberId(refreshToken);
-    	
-    	//3. Redis에 저장된 Refresh Token과 비교
-    	if(!refreshTokenService.validateRefreshToken(memberId, refreshToken)) {
-    		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    	}
-    	
-    	//4. 회원 조회
-    	UserDto user = service.findByMemberId(memberId);
-    	
-    	if(user == null) {
-    		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    	}
-    	
-    	//5. 새로운 access Token 발급
-    	String accessToken = jwtTokenProvider.createAccessToken(user.getMemberId(), user.getLoginId());
-    	
-    	//6. 새로운 refresh Token 발급
-    	String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getMemberId());
-    	
-    	//7. redis의 refresh Token 교체
-    	refreshTokenService.saveRefreshToken(user.getMemberId(), 
-    										 newRefreshToken, 
-    										 jwtTokenProvider.getRefreshTokenExpiration());
-    	
-    	return ResponseEntity.ok(new RefreshResponseDto(accessToken,newRefreshToken));
+            @RequestBody RefreshRequestDto request) {
+
+        String refreshToken = request.getRefreshToken();
+        String deviceId = request.getDeviceId();
+
+        // 1. Refresh Token / Device ID 확인
+        if (refreshToken == null || refreshToken.isBlank()
+                || deviceId == null || deviceId.isBlank()) {
+
+            return ResponseEntity .status(HttpStatus.UNAUTHORIZED) .build();
+        }
+
+        // 2. Refresh Token 자체 검증
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+
+            return ResponseEntity .status(HttpStatus.UNAUTHORIZED) .build();
+        }
+
+        // 3. Refresh Token 타입 확인
+        if (!"REFRESH".equals(jwtTokenProvider.getTokenType(refreshToken))) {
+
+            return ResponseEntity .status(HttpStatus.UNAUTHORIZED) .build();
+        }
+
+        // 4. Refresh Token에서 회원 ID 추출
+        Long memberId = jwtTokenProvider.getMemberId(refreshToken);
+
+        // 5. Redis에 저장된 Refresh Token과 비교
+        if (!refreshTokenService.validateRefreshToken( memberId, deviceId, refreshToken)) {
+
+            return ResponseEntity .status(HttpStatus.UNAUTHORIZED) .build();
+        }
+
+        // 6. 회원 조회
+        UserDto user = service.findByMemberId(memberId);
+
+        if (user == null) {
+
+            return ResponseEntity .status(HttpStatus.UNAUTHORIZED) .build();
+        }
+
+        // 7. 새로운 Access Token 발급
+        String accessToken = jwtTokenProvider.createAccessToken( user.getMemberId(), user.getLoginId(), deviceId );
+
+        // 8. 새로운 Refresh Token 발급
+        String newRefreshToken = jwtTokenProvider.createRefreshToken( user.getMemberId() );
+
+        // 9. Redis Refresh Token 교체
+        refreshTokenService.saveRefreshToken(
+                user.getMemberId(),
+                deviceId,
+                newRefreshToken,
+                jwtTokenProvider.getRefreshTokenExpiration()
+        );
+
+        // 10. 응답
+        return ResponseEntity.ok( new RefreshResponseDto( accessToken, newRefreshToken ) );
     }
     
     // 로그아웃
     @Operation( summary = "로그아웃", description = "Redis에 저장된 Token 삭제" )
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(Authentication authentication) {
+    public ResponseEntity<?> logout(
+    		@RequestBody Map<String, String> request,
+    		Authentication authentication
+    		) {
     	
     	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
     	
     	Long memberId = userDetails.getAppUserId();
+    	String deviceId = request.get("deviceId");
     	
-    	refreshTokenService.deleteRefreshToken(memberId);
+    	if (deviceId == null || deviceId.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
     	
-    	return ResponseEntity.ok().build();
+    	refreshTokenService.deleteRefreshToken(memberId, deviceId);
+    	
+    	// 로그인 provider 확인
+        String provider = userDetails.getProvider();
+    	
+     // 카카오 로그인인 경우
+        if ("kakao".equals(provider)) {
+
+            String logoutUrl =
+                    "https://kauth.kakao.com/oauth/logout"
+                    + "?client_id=d1065db6fa6b99aa2d26a3d28c80143a"
+                    + "&logout_redirect_uri=http://localhost:8080/user/member/kakaologout";
+
+            return ResponseEntity.ok( Map.of( "kakaoLogout", true, "logoutUrl", logoutUrl ) );
+        }
+
+        // 일반 / 네이버 / 구글
+        return ResponseEntity.ok( Map.of( "kakaoLogout", false ) );
     }
     
     // 회원정보 수정
@@ -547,8 +643,8 @@ public class MemberRestController {
             // 5. 회원 논리삭제
             service.deleteMember(memberId);
 
-            // 6. Redis Refresh Token 삭제
-            refreshTokenService.deleteRefreshToken(memberId);
+            // 6. 모든 기기의 Refresh Token 삭제
+            refreshTokenService.deleteAllRefreshTokens(memberId);
 
             // 7. 성공
             return ResponseEntity.ok( Map.of( "message", "회원탈퇴가 완료되었습니다." ) );
@@ -592,6 +688,27 @@ public class MemberRestController {
             return ResponseEntity .status(HttpStatus.UNAUTHORIZED) .build();
         }
         return ResponseEntity.ok( UserResponseDto.from(user) );
+    }
+    
+    // 로그인 기록 조회
+    @Operation(
+        summary = "로그인 기록 조회",
+        description = "현재 로그인한 회원의 로그인 기록을 조회합니다."
+    )
+    @GetMapping("/login-history")
+    public ResponseEntity<List<LoginHistoryResponseDto>> getMyLoginHistory(
+            Authentication authentication) {
+
+        // 1. JWT 인증 정보에서 회원 ID 가져오기
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        Long memberId = userDetails.getAppUserId();
+
+        // 2. 로그인 기록 조회
+        List<LoginHistoryResponseDto> histories = loginHistoryService.getMyLoginHistory(memberId);
+
+        // 3. 결과 반환
+        return ResponseEntity.ok(histories);
     }
     
     // 마이페이지 조회
@@ -698,74 +815,174 @@ public class MemberRestController {
         }
     }
     
-    // 프로필 이미지 수정
-//    @Operation( summary = "프로필 이미지 수정", description = "로그인한 회원의 프로필 이미지를 업로드하고 변경합니다." )
-//    @PostMapping("/me/profile-image")
-//    public ResponseEntity<?> updateProfileImage(
-//            @RequestParam("file") MultipartFile file,
-//            Authentication authentication) {
-//
-//        try {
-//
-//            // 1. 로그인 회원 ID
-//            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-//
-//            Long memberId = userDetails.getAppUserId();
-//
-//            // 2. 파일 존재 여부 확인
-//            if (file == null || file.isEmpty()) {
-//                return ResponseEntity
-//                        .badRequest()
-//                        .body(Map.of( "message", "프로필 이미지를 선택해주세요." ));
-//            }
-//
-//            // 3. 이미지 파일인지 확인
-//            String contentType = file.getContentType();
-//
-//            if (contentType == null || !contentType.startsWith("image/")) {
-//                return ResponseEntity
-//                        .badRequest()
-//                        .body(Map.of( "message", "이미지 파일만 업로드할 수 있습니다." ));
-//            }
-//
-//            // 4. 확장자 추출
-//            String originalFilename = file.getOriginalFilename();
-//
-//            String extension = "";
-//
-//            if (originalFilename != null && originalFilename.contains(".")) {
-//                extension = originalFilename.substring( originalFilename.lastIndexOf(".") );
-//            }
-//
-//            // 5. UUID로 파일명 생성
-//            String savedFilename = UUID.randomUUID() + extension;
-//
-//            // 6. 저장 경로
-//            Path uploadPath = Paths.get("uploads/profile");
-//
-//            Files.createDirectories(uploadPath);
-//
-//            // 7. 실제 파일 저장
-//            Path filePath = uploadPath.resolve(savedFilename);
-//
-//            Files.write( filePath, file.getBytes() );
-//
-//            // 8. DB에 저장할 URL
-//            String profileUrl = "/images/profile/" + savedFilename;
-//
-//            // 9. 회원정보 업데이트
-//            service.updateProfileImage( memberId, profileUrl );
-//
-//            // 10. 응답
-//            return ResponseEntity.ok(
-//                    Map.of( "message", "프로필 이미지가 변경되었습니다.", "profileUrl", profileUrl ) );
-//
-//        } catch (IOException e) {
-//
-//            return ResponseEntity
-//                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body(Map.of( "message", "프로필 이미지 업로드에 실패했습니다." )); }
-//    }
+    // 로그인 기기 조회
+    @Operation(
+    	    summary = "로그인 기기 조회",
+    	    description = "현재 로그인한 회원의 로그인 기기를 조회합니다."
+    	)
+	@GetMapping("/login-devices")
+	public ResponseEntity<List<LoginDeviceDto>> getLoginDevices(
+	        Authentication authentication) {
+
+	    CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+	    Long memberId = userDetails.getAppUserId();
+	    String currentDeviceId = userDetails.getDeviceId();
+
+	    List<LoginDeviceDto> devices = loginDeviceService.getLoginDevices(memberId, currentDeviceId);
+
+	    return ResponseEntity.ok(devices);
+	}
     
+    // 특정 기기 로그아웃
+    @Operation(
+    	    summary = "특정 기기 로그아웃",
+    	    description = "현재 로그인한 회원의 특정 기기를 로그아웃합니다."
+    	)
+    @DeleteMapping("/login-devices/{deviceId}")
+	public ResponseEntity<Void> deleteLoginDevice(
+			@PathVariable("deviceId") String deviceId,
+	        Authentication authentication) {
+    	
+    	System.out.println("===== 특정 기기 로그아웃 CONTROLLER =====");
+        System.out.println("deviceId = " + deviceId);
+        System.out.println("authentication = " + authentication);
+    	
+    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    	
+    	Long memberId = userDetails.getAppUserId();
+    	
+    	loginDeviceService.deleteLoginDevice(memberId, deviceId);
+    	refreshTokenService.deleteRefreshToken(memberId, deviceId);
+    	
+    	return ResponseEntity.noContent().build();    	
+    }
+    
+    // 모든 기기 로그아웃
+    @Operation(
+    	    summary = "모든 기기 로그아웃",
+    	    description = "현재 로그인한 회원의 모든 로그인 기기를 로그아웃합니다."
+    	)
+    	@DeleteMapping("/login-devices/all")
+    	public ResponseEntity<Void> deleteAllLoginDevices(
+    	        Authentication authentication) {
+    	
+    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    	
+    	Long memberId = userDetails.getAppUserId();
+    	
+    	loginDeviceService.deleteAllLoginDevices(memberId);
+    	
+    	return ResponseEntity.noContent().build();   	
+    }
+    
+    // 포인트
+    @Operation(
+            summary = "현재 보유 포인트 조회",
+            description = "현재 로그인한 회원의 보유 포인트를 조회합니다."
+    )
+    @GetMapping("/me/point")
+    public ResponseEntity<Integer> getMyPoint( Authentication authentication) {
+
+        // 1. JWT 인증 정보에서 회원 ID 가져오기
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        Long memberId = userDetails.getAppUserId();
+
+        // 2. 현재 포인트 조회
+        Integer point = pointService.getCurrentPoint(memberId);
+
+        // 3. 포인트 반환
+        return ResponseEntity.ok(point);
+    }
+    
+    // 포인트 내역 조회
+    @Operation(
+            summary = "포인트 내역 조회",
+            description = "현재 로그인한 회원의 포인트 적립 및 사용 내역을 조회합니다."
+    )
+    @GetMapping("/me/point/history")
+    public ResponseEntity<List<PointHistoryDto>> getMyPointHistory( Authentication authentication) {
+
+        // 1. JWT 인증 정보에서 회원 ID 가져오기
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        Long memberId = userDetails.getAppUserId();
+
+        // 2. 포인트 내역 조회
+        List<PointHistory> histories = pointService.getPointHistory(memberId);
+
+        // 3. Entity → DTO 변환
+        List<PointHistoryDto> response = histories.stream().map(history -> {
+
+                            PointHistoryDto dto = new PointHistoryDto();
+
+                            dto.setHistoryId(history.getHistoryId());
+                            dto.setPointPm(history.getPointPm());
+                            dto.setPointType(history.getPointType());
+                            dto.setPointReason(history.getPointReason());
+                            dto.setCreatedAt(history.getCreatedAt());
+
+                            return dto;
+                        }).toList();
+        // 4. 반환
+        return ResponseEntity.ok(response);
+    }
+    
+    // 출석체크
+    @Operation(
+            summary = "출석체크",
+            description = "하루에 한 번 출석체크하고 포인트를 지급합니다."
+    )
+    @PostMapping("/me/point/attendance")
+    public ResponseEntity<?> checkAttendance(
+            Authentication authentication) {
+
+        try {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+            Long memberId = userDetails.getAppUserId();
+            Integer currentPoint = pointService.checkAttendance(memberId);
+
+            return ResponseEntity.ok( Map.of( "message", "출석체크가 완료되었습니다.", "point", 10, "currentPoint", currentPoint ) );
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity .badRequest() .body(Map.of( "message", e.getMessage() ));
+        }
+    }
+    
+    // 월별 출석 기록 조회
+    @Operation(
+            summary = "월별 출석 기록 조회",
+            description = "현재 로그인한 회원의 특정 연도와 월의 출석 기록을 조회합니다."
+    )
+    @GetMapping("/me/point/attendance")
+    public ResponseEntity<List<PointHistoryDto>> getAttendanceHistory(
+            @RequestParam int year,
+            @RequestParam int month,
+            Authentication authentication) {
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        Long memberId = userDetails.getAppUserId();
+
+        List<PointHistory> histories = pointService.getAttendanceHistory(memberId, year, month);
+
+        List<PointHistoryDto> response = histories.stream()
+                .map(history -> {
+                    PointHistoryDto dto = new PointHistoryDto();
+
+                    dto.setHistoryId(history.getHistoryId());
+                    dto.setPointPm(history.getPointPm());
+                    dto.setPointType(history.getPointType());
+                    dto.setPointReason(history.getPointReason());
+                    dto.setCreatedAt(history.getCreatedAt());
+
+                    return dto;
+                }).toList();
+
+        return ResponseEntity.ok(response);
+    }
     
 }

@@ -19,6 +19,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
     fetchMeetupDetailRequest,
     resetMeetupState,
+    fetchRecommendedMeetupsRequest,
 } from "../../../reducers/meetupReducer";
 import { fetchWeatherRequest } from "../../../reducers/commonReducer";
 
@@ -61,21 +62,30 @@ function MeetupDetailPage() {
   }, [router.isReady, router.asPath, router.query.tab]);
 
     // meetup
-    const { meetup } = useSelector((state) => state.meetup);
+    const { meetup, recommendedMeetups } = useSelector((state) => state.meetup);
     const { weather } = useSelector((state) => state.common);
     const { user } = useSelector((state) => state.user);
     const { meetupId } = router.query;
     const isOwner = user?.memberId === meetup?.memberId; //user?.id === meetup?.memberId;
-
+    
+    // 1. 현재 모임 ID 추출
+    const currentMeetupId = router.query.meetupId
+        ? Number(router.query.meetupId)
+        : 1;    
+    
     // qna
     const { meetupQnaList, loading: qnaLoading } = useSelector(
         (state) => state.qna,
     );
 
     useEffect(() => {
-        if (!meetup?.meetupId) return;
-        dispatch(qnaMeetupListRequest(meetup.meetupId));
-    }, [meetup?.meetupId, dispatch]);
+        if (!router.isReady || !currentMeetupId) return;
+
+        console.log("===== 모임 Q&A 조회 =====");
+        console.log("currentMeetupId =", currentMeetupId);
+
+        dispatch(qnaMeetupListRequest(currentMeetupId));
+    }, [router.isReady, currentMeetupId, dispatch]);
     //console.log(isOwner);
     //console.log(user);
 
@@ -84,11 +94,6 @@ function MeetupDetailPage() {
         if (!state) return {};
         return state.review || state.reviewReducer || {};
     });
-    //console.log(meetup);
-    // 1. 현재 모임 ID 추출
-    const currentMeetupId = router.query.meetupId
-        ? Number(router.query.meetupId)
-        : 1;
 
     // URL tab 쿼리 파라미터 처리 (탭 변경)
     useEffect(() => {
@@ -183,25 +188,6 @@ function MeetupDetailPage() {
               )
             : ["http://localhost:8080/upload/no-image.png"];
 
-    // 추천 모임
-    const recommendedMeetups = [
-        {
-            id: 1,
-            title: "한강 자전거 모임",
-            location: "서울",
-        },
-        {
-            id: 2,
-            title: "주말 등산 모임",
-            location: "서울",
-        },
-        {
-            id: 3,
-            title: "러닝 초보 모임",
-            location: "인천",
-        },
-    ];
-
     // ★ 후기 데이터 변환 (isPublic 및 isLiked 포함)
     const rawReviews =
         reduxReviews?.map((review) => ({
@@ -241,6 +227,16 @@ function MeetupDetailPage() {
             }),
         );
     }, [meetup, dispatch]);
+
+    // console.log("추천모임:", recommendedMeetups);
+    // console.log("현재 meetupId:", meetupId);
+
+    //인기모임
+    useEffect(() => {
+        if (!router.isReady || !meetupId) return;
+
+        dispatch(fetchRecommendedMeetupsRequest(Number(meetupId)));
+    }, [router.isReady, meetupId, dispatch]);
 
     //로딩처리
     if (!meetup) {
@@ -351,10 +347,16 @@ function MeetupDetailPage() {
                     {/* 모집 정보 */}
                     <MeetupRecruitInfo meetup={meetup} isOwner={isOwner} />
                     {/* 작성자 */}
-                    <MeetupAuthor meetup={meetup} />
+                    <MeetupAuthor meetup={meetup} meetupId={currentMeetupId} />
                     {/* 추천 모임 */}
                     <RecommendedMeetups
                         recommendedMeetups={recommendedMeetups}
+                        onMeetupClick={(meetupId) => {
+                            router.push({
+                                pathname: "/user/meetup/detail",
+                                query: { meetupId },
+                            });
+                        }}
                     />
                     {/* 지도 */}
                     <MeetupMap

@@ -28,13 +28,15 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
+import com.moit.advertisement.dto.AdvertisementPaymentDto;
+import com.moit.advertisement.dto.AdvertisementPositionPriceDto;
+import com.moit.advertisement.dto.AdvertisementPriceDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.PaymentConfirmRequestDto;
-import com.moit.advertisement.entity.AdvertisementPayment;
+//import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.AdPosition;
-import com.moit.advertisement.enums.PaymentHistoryStatus;
 import com.moit.advertisement.enums.PaymentType;
-import com.moit.advertisement.repository.AdvertisementPaymentRepository;
+//import com.moit.advertisement.repository.AdvertisementPaymentRepository;
 import com.moit.advertisement.service.AdvertisementCalculationService;
 import com.moit.advertisement.service.AdvertisementService;
 import com.moit.advertisement.service.TossPaymentService;
@@ -42,6 +44,7 @@ import com.moit.security.CustomUserDetails;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -56,14 +59,17 @@ public class AdvertisementController {
     private final AdvertisementService advertisementService;
     private final AdvertisementCalculationService calculationService;
     private final TossPaymentService tossPaymentService;
-    private final AdvertisementPaymentRepository advertisementPaymentRepository;
+//    private final AdvertisementPaymentRepository advertisementPaymentRepository;
 
     private static final String UPLOAD_PATH = "C:/upload/ad/";
     
     
     // 사용자 id
     private Long getLoginMemberId(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
+    	if (authentication == null
+                || !authentication.isAuthenticated()
+                || !(authentication.getPrincipal()
+                        instanceof CustomUserDetails)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
         CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
@@ -323,29 +329,97 @@ public class AdvertisementController {
         }
 
         // 서비스에서 파일 + 이미지DB + 광고 삭제 모두 처리
-        advertisementService.deleteAdvertisement(adId);
+        advertisementService.deleteAdvertisement(adId, memberId);
 
         return ResponseEntity.noContent().build();
     }
     
-    // =========================================================
-    // 결제 정보(주문번호) 조회
-    // =========================================================
-    @Operation(summary = "결제 대기 중인 주문번호 조회", description = "광고 ID로 결제에 사용할 orderId를 조회합니다.")
-    @GetMapping("/payment/orderId/{adId}")
-    public ResponseEntity<String> getOrderIdByAdId(@PathVariable("adId") Long adId, Authentication authentication) {
-        // DB에서 해당 adId에 묶인 결제 대기(REQUESTED) 상태의 orderId를 찾아옵니다.
-        AdvertisementPayment payment = advertisementPaymentRepository
-                .findByAdvertisement_AdIdAndPaymentStatus(adId, PaymentHistoryStatus.REQUESTED)
-                .orElseThrow(() -> new IllegalArgumentException("결제 대기 중인 주문 정보를 찾을 수 없습니다."));
+    
+    @GetMapping("/prices")
+    public ResponseEntity<List<AdvertisementPriceDto>> getRegistrationPrices() {
 
-        return ResponseEntity.ok(payment.getOrderId());
+        return ResponseEntity.ok(
+                advertisementService.getInitialPrices()
+        );
     }
+    
+    @GetMapping("/prices/position")
+    public ResponseEntity<List<AdvertisementPositionPriceDto>> getPositionPrices() {
+
+        return ResponseEntity.ok(
+                advertisementService.getPositionPrices()
+        );
+    }
+    
+	 // =========================================================
+	 // 최초 결제 생성
+	 // =========================================================
+	 @Operation(
+	     summary = "광고 최초 결제 생성",
+	     description = "결제하기 요청 시 광고 결제 정보를 생성하고 Toss 결제에 사용할 주문번호를 반환합니다."
+	 )
+	 @PostMapping("/payment/initial/{adId}")
+	 public ResponseEntity<AdvertisementPaymentDto> createInitialPayment(
+	         @PathVariable("adId") Long adId,
+	         Authentication authentication) {
+	
+	     Long memberId = getLoginMemberId(authentication);
+	
+	     AdvertisementPaymentDto payment =
+	             advertisementService.createInitialPayment(
+	                     adId,
+	                     memberId
+	             );
+	
+	     return ResponseEntity.ok(payment);
+	 }
+	 
+	// =========================================================
+	// 광고 연장 결제 생성
+	// =========================================================
+	@Operation(
+	    summary = "광고 연장 결제 생성",
+	    description = "광고 연장 기간을 기준으로 결제 정보를 생성합니다."
+	)
+	@PostMapping("/payment/extension/{adId}")
+	public ResponseEntity<AdvertisementPaymentDto> createExtensionPayment(
+	        @PathVariable("adId") Long adId,
+	        @RequestParam("days") int days,
+	        Authentication authentication) {
+
+	    Long memberId = getLoginMemberId(authentication);
+
+	    AdvertisementPaymentDto payment =
+	            advertisementService.createExtensionPayment(
+	                    adId,
+	                    memberId,
+	                    days
+	            );
+
+	    return ResponseEntity.ok(payment);
+	}
+	 
+	// 연장 가격 조회
+	 @GetMapping("/{adId}/extension-prices")
+	 public ResponseEntity<List<AdvertisementPriceDto>> getExtensionPrices(
+	         @PathVariable("adId") Long adId,
+	         Authentication authentication) {
+
+	     Long memberId = getLoginMemberId(authentication);
+
+	     List<AdvertisementPriceDto> priceList =
+	             advertisementService.getExtensionPrices(
+	                     adId,
+	                     memberId
+	             );
+
+	     return ResponseEntity.ok(priceList);
+	 }
     
     // =========================================================
     // 토스 결제 최종 승인
     // =========================================================
-    @Operation(summary = "결제 승인 (Confirm)", description = "프론트엔드 결제 성공 후 토스 서버에 최종 승인을 요청합니다.")
+    @Operation(summary = "결제 승인 (Confirm)", description = "프론트엔드 결제 성공 후 토스 서버에 최종 승인을 d요청합니다.")
     @PostMapping("/payment/confirm")
     public ResponseEntity<?> confirmPayment(@RequestBody PaymentConfirmRequestDto requestDto) {
         try {
@@ -363,36 +437,107 @@ public class AdvertisementController {
     }
 
 
-//    // 광고 클릭
-//    @GetMapping("/click")
-//    public String click(
-//            @RequestParam Long adId,
-//            @RequestParam String position,
-//            HttpServletRequest request,
-//            HttpSession session) {
-//
-//
-//    	// 클릭 로그 확인 (1시간에 한번만 +1 인정)
-//    	boolean counted = advertisementService.insertClickLog(
-//    	        adId,
-//    	        position,
-//    	        request,
-//    	        session
-//    	);
-//    	// 한시간 내에 기록 x면 증가
-//    	if (counted) {
-//    	    advertisementService.updateAdvertisementClick(adId);
-//    	}
-//
-//        AdvertisementDto dto =
-//                advertisementService.selectAdvertisementOne(adId);
-//
-//
-//        if(dto == null || dto.getLandingUrl() == null){
-//            return "redirect:/";
-//        }
-//
-//
-//        return "redirect:" + dto.getLandingUrl();
-//    }
+    // 광고 클릭
+    @PostMapping("/click")
+    public ResponseEntity<Void> increaseClick(
+            @RequestParam("adId") Long adId,
+            @RequestParam(name = "position") String position,
+            Authentication authentication,
+            HttpServletRequest request) {
+
+        Long memberId = null;
+
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getPrincipal()
+                        instanceof CustomUserDetails) {
+
+            CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+
+            memberId = user.getUser().getMemberId();
+        }
+
+        String ip = request.getRemoteAddr();
+        String userAgent = request.getHeader("User-Agent");
+        String referrer = request.getHeader("Referer");
+
+        advertisementService.insertClickLog(
+                adId,
+                position,
+                memberId,
+                ip,
+                userAgent,
+                referrer
+        );
+
+        return ResponseEntity.ok().build();
+    }
+    
+    @PostMapping("/impression")
+    public ResponseEntity<Void> increaseImpression(
+    		@RequestParam(name = "adId") Long adId,
+            @RequestParam(name = "position") String position,
+            Authentication authentication,
+            HttpServletRequest request) {
+
+        Long memberId = null;
+
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getPrincipal() instanceof CustomUserDetails) {
+
+            CustomUserDetails user =
+                    (CustomUserDetails) authentication.getPrincipal();
+
+            memberId = user.getUser().getMemberId();
+        }
+
+        String ip = request.getRemoteAddr();
+        String userAgent = request.getHeader("User-Agent");
+
+        advertisementService.insertImpressionLog(
+                adId,
+                position,
+                memberId,
+                ip,
+                userAgent
+        );
+
+        return ResponseEntity.ok().build();
+    }
+    
+    @GetMapping("/top")
+    public ResponseEntity<AdvertisementDto> getTopAdvertisement(
+            @RequestParam(name = "position") String position,
+            Authentication authentication,
+            HttpServletRequest request) {
+
+        Long memberId = null;
+
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getPrincipal() instanceof CustomUserDetails) {
+
+            CustomUserDetails user =
+                    (CustomUserDetails) authentication.getPrincipal();
+
+            memberId = user.getUser().getMemberId();
+        }
+
+        // 비로그인 사용자도 광고 피로도를 계산할 수 있도록 세션 사용
+        String sessionId = request.getSession().getId();
+
+        AdvertisementDto advertisement =
+                advertisementService.selectAdvertisement(
+                        position,
+                        memberId,
+                        sessionId
+                );
+
+        if (advertisement == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(advertisement);
+    }
 }

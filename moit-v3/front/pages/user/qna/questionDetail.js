@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -6,6 +6,7 @@ import {
   qnaDeleteRequest,
   qnaAnswerDeleteRequest,
   qnaSatisfactionRequest,
+  qnaSatisfactionDeleteRequest,
 } from '../../../reducers/qnaReducer';
 
 import {
@@ -13,7 +14,6 @@ import {
 } from '../../../reducers/meetupReducer';
 
 import {
-  Breadcrumb,
   Button,
   Card,
   Descriptions,
@@ -21,6 +21,7 @@ import {
   Space,
   Tag,
   Typography,
+  Input,
 } from 'antd';
 
 const { Title, Text, Paragraph } = Typography;
@@ -34,6 +35,11 @@ function questionDetail() {
 
   const { user } = useSelector((state) => state.user);
   const { meetup } = useSelector((state) => state.meetup);
+
+  const [selectedRating, setSelectedRating] = useState(null);
+  const [satisfactionComment, setSatisfactionComment] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isAnswerDeleting, setIsAnswerDeleting] = useState(false);
 
   // 상세 조회
   useEffect(() => {
@@ -53,22 +59,26 @@ function questionDetail() {
   
   // 삭제 성공 시 알림 후 목록 이동
   useEffect(() => {
-    if (!deleteSuccess) return;
+    if (!isDeleting || !deleteSuccess) return;
 
     alert('문의가 삭제되었습니다.');
+    setIsDeleting(false);
     router.push('/user/mypage/question');
-  }, [deleteSuccess, router]);
+  }, [isDeleting, deleteSuccess, router]);
 
   // 답변 삭제 성공
   useEffect(() => {
-    if (!answerDeleteSuccess) return;
+    if (!isAnswerDeleting || !answerDeleteSuccess) return;
 
     alert('답변이 삭제되었습니다.');
+    setIsAnswerDeleting(false);
     dispatch(qnaDetailRequest(Number(questionId)));
-  }, [answerDeleteSuccess, questionId, dispatch]);
+  }, [isAnswerDeleting, answerDeleteSuccess, questionId, dispatch]);
 
   useEffect(() => {
-    if (error) { alert(error); }
+    if (error) { 
+      alert(error); 
+    }
   }, [error]);
 
   const isMeetup = qna?.category === 'MEETUP';
@@ -100,6 +110,51 @@ function questionDetail() {
 
   const answer = qna?.answer || {};
 
+  // =========================================================
+  // 만족도 평가 권한
+  // =========================================================
+
+  // 문의 작성자 여부
+  const isQuestionWriter =
+    Number(user?.memberId) === Number(qna?.memberId);
+
+  // 관리자 여부
+  const isAdmin =
+    Number(user?.memberTypeId) === 3 ||
+    Number(user?.memberTypeId) === 4;
+
+  // 관리자 문의에만 만족도 기능 사용
+  const canUseSatisfaction =
+    !isMeetup;
+
+  // 만족도 등록/수정 - 관리자 문의의 문의 작성자만 가능
+  const canEvaluateSatisfaction =
+    canUseSatisfaction &&
+    isQuestionWriter;
+
+  // 만족도 삭제 - 문의 작성자 또는 관리자 가능
+  const canDeleteSatisfaction =
+    canUseSatisfaction &&
+    (
+      isQuestionWriter ||
+      isAdmin
+    );
+
+  // 기존 만족도 평가가 있으면 화면에 표시
+  useEffect(() => {
+    if (answer.rating) {
+      setSelectedRating(answer.rating);
+    } else {
+      setSelectedRating(null);
+    }
+
+    if (answer.feedback) {
+      setSatisfactionComment(answer.feedback);
+    } else {
+      setSatisfactionComment('');
+    }
+  }, [answer.rating, answer.feedback]);
+
   const createdAt = qna?.createdAt
   ? new Date(qna.createdAt).toLocaleString('ko-KR', {
       year: 'numeric',
@@ -127,12 +182,16 @@ function questionDetail() {
   const handleDelete = () => {
     if (!questionId) return;
     if (!window.confirm('문의를 삭제하시겠습니까?')) return;
-    dispatch(qnaDeleteRequest(Number(questionId)));
+    setIsDeleting(true);
+    dispatch(
+      qnaDeleteRequest(Number(questionId))
+    );
   };
 
   const handleAnswerDelete = () => {
     if (!qna?.questionId || !answer.answerId) return;
     if (!window.confirm('답변을 삭제하시겠습니까?')) return;
+    setIsAnswerDeleting(true);
     dispatch(
       qnaAnswerDeleteRequest({
         questionId: Number(qna.questionId),
@@ -141,21 +200,54 @@ function questionDetail() {
     );
   };
 
-  const handleSatisfaction = (score) => {
+  const handleSatisfaction = () => {
     if (!answer.answerId) return;
-    if (answer.satisfaction) {
-      if (!window.confirm('이미 만족도 평가를 하셨습니다. 다시 평가하시겠습니까?')) {
-        return;
-      }
+    if (!selectedRating) {
+      alert('만족도를 선택해주세요.'); return;
+    }
+
+    if (answer.rating) {
+      if (!window.confirm('이미 만족도 평가를 하셨습니다. 수정하시겠습니까?')) {return;}
     }
 
     dispatch(
       qnaSatisfactionRequest({
         answerId: Number(answer.answerId),
-        data: {satisfaction: score,},
+        data: {
+          rating: selectedRating,
+          feedback: satisfactionComment,
+        },
       })
     );
-    alert(`${score}점으로 평가되었습니다.`);
+
+    alert(
+      answer.rating
+        ? '만족도 평가가 수정되었습니다.'
+        : `${selectedRating}점으로 평가되었습니다.`
+    );
+  };
+
+  // =========================================================
+  // 만족도 삭제
+  // =========================================================
+  const handleSatisfactionDelete = () => {
+    if (!answer.answerId) return;
+
+    if (
+      !window.confirm(
+        '등록된 만족도 평가를 삭제하시겠습니까?'
+      )
+    ) {
+      return;
+    }
+
+    dispatch(
+      qnaSatisfactionDeleteRequest(
+        Number(answer.answerId)
+      )
+    );
+
+    alert('만족도 평가가 삭제되었습니다.');
   };
 
   return (
@@ -171,27 +263,50 @@ function questionDetail() {
         </Text>
 
       </div>
+
         <div className="qna-write-actions">
           <Space>
 
               {status === 'PENDING' && canAnswer && (
-                <Button type="primary" onClick={() =>
-                    router.push(`/user/qna/answerWrite?questionId=${qna?.questionId}`)}>
+                <Button
+                  type="primary"
+                  onClick={() =>
+                    router.push(
+                      `/user/qna/answerWrite?questionId=${qna?.questionId}`
+                    )
+                  }
+                >
                   답변 등록
                 </Button>
               )}
             
-            <Button onClick={() => router.push(`/user/qna/questionEdit?questionId=${qna?.questionId}`)}>
+            <Button
+              onClick={() => {
+                if (qna?.answer) {
+                  alert('답변이 등록되어 문의 내용을 수정할 수 없습니다.');
+                  return;
+                }
+
+                router.push(
+                  `/user/qna/questionEdit?questionId=${qna?.questionId}`
+                );
+              }}
+            >
               수정
             </Button>
 
-            <Button danger onClick={handleDelete}>
+            <Button
+              danger
+              onClick={handleDelete}
+            >
               삭제
             </Button>
+
           </Space>
         </div>
 
       <Card className="qna-write-card">
+
         <Title level={4}>
           문의 정보
         </Title>
@@ -201,6 +316,7 @@ function questionDetail() {
           column={1}
           size="middle"
         >
+
           <Descriptions.Item label="제목">
             {qna?.title || '-'}
           </Descriptions.Item>
@@ -222,6 +338,7 @@ function questionDetail() {
           <Descriptions.Item label="비공개 여부">
             {publicText}
           </Descriptions.Item>
+
         </Descriptions>
 
         <Divider />
@@ -245,23 +362,63 @@ function questionDetail() {
           </Paragraph>
         </Card>
 
+        {/* =================================================
+            첨부파일
+        ================================================= */}
+        {qna?.images && qna.images.length > 0 && (
+          <>
+            <Divider />
+
+            <Title level={5}>
+              첨부파일
+            </Title>
+
+            <div style={{ marginTop: 12 }}>
+              {qna.images.map((image) => (
+                <div
+                  key={image.imageId}
+                  style={{
+                    padding: '10px 12px',
+                    border: '1px solid #eee',
+                    borderRadius: 6,
+                    marginBottom: 8,
+                  }}
+                >
+                  📎{' '}
+                  <a
+                    href={`http://localhost:8080${image.imagePath}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {image.originalName}
+                  </a>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
       </Card>
 
       <Card
         className="qna-write-card"
         style={{ marginTop: 16 }}
       >
+
         <Title level={4}>
           답변 정보
         </Title>
 
         {status === 'ANSWERED' && qna?.answer ? (
+
           <>
+
             <Descriptions
               bordered
               column={1}
               size="middle"
             >
+
               <Descriptions.Item label="답변자">
                 {answer.nickname || answer.memberId || '-'}
               </Descriptions.Item>
@@ -269,6 +426,7 @@ function questionDetail() {
               <Descriptions.Item label="답변 등록일">
                 {answerCreatedAt}
               </Descriptions.Item>
+
             </Descriptions>
 
             <Divider />
@@ -294,6 +452,7 @@ function questionDetail() {
 
             <div className="qna-write-actions">
               <Space>
+
                 {canAnswer && (
                   <Button
                     type="primary"
@@ -308,68 +467,180 @@ function questionDetail() {
                 )}
 
                 {canAnswer && (
-                  <Button danger onClick={handleAnswerDelete}>
+                  <Button
+                    danger
+                    onClick={handleAnswerDelete}
+                  >
                     답변 삭제
                   </Button>
                 )}
+
               </Space>
             </div>
 
-            <Divider />
+            {/* =================================================
+                만족도 평가는 관리자 문의에만 표시
+            ================================================= */}
+            {canUseSatisfaction && (
 
-            <Title level={5}>
-              답변 만족도
-            </Title>
+              <>
 
-            <Text type="secondary">
-              답변이 도움이 되었나요?
-            </Text>
+                <Divider />
 
-            <div style={{ marginTop: 12 }}>
-              <Space>
-                <Button
-                  type={answer.satisfaction === 1 ? 'primary' : 'default'}
-                  onClick={() => handleSatisfaction(1)}
-                >
-                  1점
-                </Button>
+                <Title level={5}>
+                  답변 만족도
+                </Title>
 
-                <Button
-                  type={answer.satisfaction === 2 ? 'primary' : 'default'}
-                  onClick={() => handleSatisfaction(2)}
-                >
-                  2점
-                </Button>
+                {/* =================================================
+                    등록된 만족도 결과
+                ================================================= */}
+                {answer.rating ? (
 
-                <Button
-                  type={answer.satisfaction === 3 ? 'primary' : 'default'}
-                  onClick={() => handleSatisfaction(3)}
-                >
-                  3점
-                </Button>
+                  <Descriptions
+                    bordered
+                    column={1}
+                    size="middle"
+                    style={{ marginTop: 16 }}
+                  >
 
-                <Button
-                  type={answer.satisfaction === 4 ? 'primary' : 'default'}
-                  onClick={() => handleSatisfaction(4)}
-                >
-                  4점
-                </Button>
+                    <Descriptions.Item label="만족도">
+                      {answer.rating}점 / 5점
+                    </Descriptions.Item>
 
-                <Button
-                  type={answer.satisfaction === 5 ? 'primary' : 'default'}
-                  onClick={() => handleSatisfaction(5)}
-                >
-                  5점
-                </Button>
-              </Space>
-            </div>
+                    <Descriptions.Item label="의견">
+                      {answer.feedback || '작성된 의견이 없습니다.'}
+                    </Descriptions.Item>
+
+                  </Descriptions>
+                ) : (
+                  <Text type="secondary">
+                    아직 등록된 만족도 평가가 없습니다.
+                  </Text>
+                )}
+
+
+                {/* =================================================
+                    만족도 등록/수정 - 문의 작성자만
+                ================================================= */}
+                {canEvaluateSatisfaction && (
+
+                  <>
+
+                    <Divider />
+
+                    <Text type="secondary">
+                      답변이 도움이 되었나요?
+                    </Text>
+
+                    <div style={{ marginTop: 12 }}>
+                      <Space>
+
+                        <Button
+                          type={selectedRating === 1 ? 'primary' : 'default'}
+                          onClick={() => setSelectedRating(1)}
+                        >
+                          1점
+                        </Button>
+                        <Button
+                          type={selectedRating === 2 ? 'primary' : 'default'}
+                          onClick={() => setSelectedRating(2)}
+                        >
+                          2점
+                        </Button>
+                        <Button
+                          type={selectedRating === 3 ? 'primary' : 'default'}
+                          onClick={() => setSelectedRating(3)}
+                        >
+                          3점
+                        </Button>
+                        <Button
+                          type={selectedRating === 4 ? 'primary' : 'default'}
+                          onClick={() => setSelectedRating(4)}
+                        >
+                          4점
+                        </Button>
+                        <Button
+                          type={selectedRating === 5 ? 'primary' : 'default'}
+                          onClick={() => setSelectedRating(5)}
+                        >
+                          5점
+                        </Button>
+
+                      </Space>
+                    </div>
+
+                    <div style={{ marginTop: 20 }}>
+
+                      <Text strong>
+                        의견 남기기
+                      </Text>
+
+                      <Input
+                        value={satisfactionComment}
+                        onChange={(e) =>
+                          setSatisfactionComment(e.target.value)
+                        }
+                        maxLength={100}
+                        showCount
+                        placeholder="답변에 대한 의견을 남겨주세요. (선택)"
+                        style={{ marginTop: 8 }}
+                      />
+
+                    </div>
+
+                    <div style={{ marginTop: 16 }}>
+                      <Space>
+
+                        <Button
+                          type="primary"
+                          onClick={handleSatisfaction}
+                        >
+                          {answer.rating
+                            ? '만족도 수정'
+                            : '만족도 등록'}
+                        </Button>
+
+
+                        {/* 문의 작성자 삭제 가능 */}
+                        {answer.rating && (
+
+                          <Button
+                            danger
+                            onClick={handleSatisfactionDelete}
+                          >
+                            만족도 삭제
+                          </Button>
+                        )}
+                      </Space>
+                    </div>
+                  </>
+                )}
+
+                {/* =================================================
+                    관리자 삭제 버튼
+                ================================================= */}
+                {!canEvaluateSatisfaction &&
+                  answer.rating &&
+                  canDeleteSatisfaction && (
+
+                  <div style={{ marginTop: 16 }}>
+
+                    <Button
+                      danger
+                      onClick={handleSatisfactionDelete}
+                    >
+                      만족도 삭제
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
           </>
         ) : (
           <>
             <Text type="secondary">
               아직 등록된 답변이 없습니다.
             </Text>
-
           </>
         )}
       </Card>

@@ -127,7 +127,7 @@ public class AdvertisementPayment {
 	 // 가격 변경 이후에도 과거 결제 내역에서 확인할 수 있도록 저장
 	 // MAIN / MEETUP_LIST_BANNER / MEETUP_LIST_SIDEBAR / MEETUP_DETAIL_SIDEBAR
 	 @Enumerated(EnumType.STRING)
-	 @Column(name = "POSITION", length = 30, nullable = false)
+	 @Column(name = "POSITION", length = 30)
 	 private AdPosition position;
 
 
@@ -234,9 +234,30 @@ public class AdvertisementPayment {
     }
     
     // 결제 성공 시 상태 변경 메서드 추가
-    public void updatePaymentSuccess(String paymentKey) {
+    public void updatePaymentSuccess(String paymentKey, String paymentMethod) {
         this.paymentStatus = PaymentHistoryStatus.PAID;
         this.paymentKey = paymentKey;
+        this.paymentMethod = paymentMethod;
         this.paidAt = LocalDateTime.now();
+    }
+    
+    public void updateAmount(
+            BigDecimal baseAmount,
+            BigDecimal positionAmount,
+            BigDecimal amount) {
+
+        this.baseAmount = baseAmount;
+        this.positionAmount = positionAmount;
+        this.amount = amount;
+    }
+    
+    public void updatePeriod(
+            int periodDays,
+            LocalDateTime startDatetime,
+            LocalDateTime endDatetime) {
+
+        this.periodDays = periodDays;
+        this.startDatetime = startDatetime;
+        this.endDatetime = endDatetime;
     }
 }

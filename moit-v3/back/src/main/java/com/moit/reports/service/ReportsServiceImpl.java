@@ -1,8 +1,11 @@
 package com.moit.reports.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +18,8 @@ import com.moit.member.entity.Member;
 import com.moit.member.entity.MemberInfo;
 import com.moit.member.repository.MemberInfoRepository;
 import com.moit.member.repository.MemberRepository;
-import com.moit.reports.dto.MemberTrustInfoDto;
+import com.moit.reports.api.ApiEmail;
+import com.moit.reports.dto.EmailRequestDto;
 import com.moit.reports.dto.ReportAuditLogDto;
 import com.moit.reports.dto.ReportSearchDto;
 import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
@@ -43,13 +47,18 @@ public class ReportsServiceImpl implements ReportsService {
 	private final ReportRepository reportRepository;
 	private final MemberReportStatusRepository memberReportStatusRepository;
 	private final ReportAuditLogRepository reportAuditLogRepository;
-//	private final ApiEmail apiEmail;
+	private final ApiEmail apiEmail;
 	
 	private final MemberRepository memberRepository;
 	private final MemberInfoRepository memberInfoRepository;
 	
 	private final MeetupRepository meetupRepository;
 	private final ReviewRepository reviewRepository;
+	
+	// redis
+	private final ReportLockService reportLockService;
+	private final SendEmailService sendEmailService;
+	private final ApplicationEventPublisher eventPublisher;
 	
 	
 	// 사용자 신고 작성
@@ -169,125 +178,62 @@ public class ReportsServiceImpl implements ReportsService {
 	}
 
 	// 관리자 처리 상태 (승인/반려/신뢰도점수/감사로그) 변경
-	@Override
 	@Transactional
+	@Override
 	public ReportResponseDto updateAdminReport(Long reportId, Long memberId, ReportProcessDto processDto) {
-		Report report = reportRepository
-				.findByReportIdAndStatus(reportId, ReportStatus.PENDING)
-				.orElseThrow(()-> new IllegalArgumentException("관리자 신고 처리 조회 오류! reportId: " + reportId));
 		
-		// 상태 변경 - 변경 전
-		ReportStatus previousStatus = report.getStatus();
-		// 상태 변경 - 변경 후
-		ReportStatus changedStatus = processDto.getStatus();
-		// APPROVED / REJECTED 검증
-	    if (changedStatus != ReportStatus.APPROVED && changedStatus != ReportStatus.REJECTED) {
-	        throw new IllegalArgumentException("신고 상태는 APPROVED 또는 REJECTED만 가능합니다.");
+		// 신고 처리 가능? tryLock
+		boolean acquired = reportLockService.tryLock(reportId);
+	    
+		// 현재 처리중
+	    if (!acquired) {
+	        throw new IllegalStateException("현재 처리중");
 	    }
-	    // changeStatus 처리 상태 반영
-	    report.changeStatus(changedStatus);
-	    
-	    
-		// 신뢰도점수
-		int trustScoreChange = 0;
-		
-		if (changedStatus == ReportStatus.APPROVED) {	// status가 APPROVED라면
-			
-			trustScoreChange = -5;
-			Long targetMemberId = null;
-			
-			if (report.getTargetType() == TargetType.MEETUP) {
-				Long meetupId = report.getTargetId();	// report.getTargetId()로 MeetupId 조회
-				Meetup meetup = meetupRepository		// Meetup 작성자의 memberId 가져오기
-						.findById(meetupId)
-						.orElseThrow(()-> new IllegalArgumentException("Meetup 불러오기 실패!"));
-						
-				targetMemberId = meetup.getMember().getId();
-				
-			} else if (report.getTargetType() == TargetType.REVIEW) {
-				Long reviewId = report.getTargetId();	// report.getTargetId()로 ReviewId 조회
-				Review review = reviewRepository		// Review 작성자의 memberId 가져오기
-						.findById(reviewId)
-						.orElseThrow(()-> new IllegalArgumentException("Review 불러오기 실패!"));
-				
-				targetMemberId = review.getMember().getId();
-			
-			} else {
-				throw new IllegalArgumentException("MEETUP, REVIEW 가 아닌 다른 targetType 입니다.");
-			}
-			
-			// memberInfo 조회
-			MemberInfo memberInfo = memberInfoRepository
-					.findById(targetMemberId)
-					.orElseThrow(()-> new IllegalArgumentException("신고 대상 회원 MemberInfo 조회 불가!"));
-			
-			// 신뢰도 점수 반영
-			int currentTrustScore = memberInfo.getTrustScore();
-			int changedTrustScore = currentTrustScore + trustScoreChange;
-			
-			System.out.println("변경 전 점수 = " + currentTrustScore);
-		    System.out.println("변경량 = " + trustScoreChange);
-		    System.out.println("변경 후 점수 = " + changedTrustScore);
-			
-			memberInfo.setTrustScore(changedTrustScore);
-			
-			// 뱃지 변경
-			String statusCode;
-			
-			if (changedTrustScore >= 80) {
-				statusCode = "ACTIVE";
-			} else if (changedTrustScore >= 40) {
-				statusCode = "WARNING";
-			} else {
-				statusCode = "DANGER";
-			}
-			
-			MemberReportStatus memberReportStatus = memberReportStatusRepository
-					.findByStatusCode(statusCode)
-					.orElseThrow(()-> new IllegalArgumentException("회원 신고 상태 조회 불가!"));
-			
-			memberInfo.setMemberReportStatus(memberReportStatus);
-		}
-		
-		// 관리자 Member 조회
-	    Member adminMember = memberRepository
-	    		.findById(memberId)
-				.orElseThrow(()-> new IllegalArgumentException("관리자 조회 오류! MemberId: " + memberId));
-	    
-		// 관리자 처리 감사 로그 (상태) 저장
-		ReportAuditLog reportAuditLog = ReportAuditLog.statusChanged (
-				report,
-				adminMember,
-				previousStatus,
-				changedStatus,
-				processDto.getProcessReason(),
-				trustScoreChange
-		);
-		
-		reportAuditLogRepository.save(reportAuditLog);
-			
-		// 이메일 조회 및 전송
-		String email = report.getMember().getEmail();
-		String subject = "신고 처리되지 않음.";
-		String content = "신고 처리되지 않음.";
-		
-		if(changedStatus == ReportStatus.APPROVED) {
-		subject = "[APPROVED] 신고 처리가 승인 되었습니다.";
-		content = "[APPROVED] 신고 처리가 승인 되었습니다.";
-		
-		} else if(changedStatus == ReportStatus.REJECTED) {
-		subject = "[REJECTED] 신고 처리가 반려 되었습니다.";
-		content = "[REJECTED] 신고 처리가 반려 되었습니다.";
-		}
-		
-		// 메일 전송 test
-//	    if (email != null && !email.isBlank()) { apiEmail.sendMail(subject, content, email); }
-//	    else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
-		
-		ReportResponseDto responseDto = ReportResponseDto.from(report);
-		setTargetMemberInfo(report, responseDto);
 
-		return responseDto;
+	    try {
+	    	// PEDING 상태 조회
+	    	Report report = getPendingReport(reportId);
+			
+			// 상태 변경 - 변경 전
+			ReportStatus previousStatus = report.getStatus();
+			// 상태 변경 - 변경 후
+			ReportStatus changedStatus = processDto.getStatus();
+			
+			// APPROVED / REJECTED 검증
+			ReportStatus reportStatus = validateChangedStatus(changedStatus);
+		    
+		    // changeStatus 처리 상태 반영
+		    report.changeStatus(changedStatus);
+		    
+			// 신뢰도점수
+			int trustScoreChange = updateTargetMemberTrustScore(changedStatus, report);
+			
+			// 관리자 Member 조회
+			Member adminMember = getAdminMember(memberId);
+			
+			// 관리자 처리 감사 로그 (상태) 저장
+			ReportAuditLog reportAuditLog = ReportAuditLog.statusChanged (
+					report,
+					adminMember,
+					previousStatus,
+					changedStatus,
+					processDto.getProcessReason(),
+					trustScoreChange
+			);
+			reportAuditLogRepository.save(reportAuditLog);
+				
+			// 메일 전송 test -	이메일 보내야 한다는 이벤트만 발생
+			EmailRequestDto emailDto = sendEmailService.adminReportStatusSendEmail(report, changedStatus);
+			eventPublisher.publishEvent(emailDto);
+	    	
+			ReportResponseDto responseDto = ReportResponseDto.from(report);
+			setTargetMemberInfo(report, responseDto);
+
+			return responseDto;
+	        
+	    } finally {
+	        reportLockService.unlock(reportId);
+	    }
 	}
 
 	// 관리자 신고 삭제 (물리삭제 -> 논리삭제 변경 + 감사 로그 processReason 포함)
@@ -321,16 +267,9 @@ public class ReportsServiceImpl implements ReportsService {
 		);
 		reportAuditLogRepository.save(reportAuditLog);
 		
-		// 신고 작성자 이메일 조회 (신고 작성자 회원 = Report.member)
-	    String email = report.getMember().getEmail();
-	    
-	    // 삭제 완료 메일 발송
-	    String subject = "[DELETE] Moit 신고 문의 처리";
-	    String content = "신고 글이 삭제 되었습니다.";
-
-	    // 메일 전송 test
-//	    if (email != null && !email.isBlank()) { apiEmail.sendMail(subject, content, email); }
-//	    else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
+		////////////////////////////////////////////////////////////
+		EmailRequestDto emailDto = sendEmailService.adminReportDeleteSendEmail(report);
+		eventPublisher.publishEvent(emailDto);
 	}
 
 	// 관리자 신고 목록 조회 + 검색 + 페이징
@@ -404,51 +343,46 @@ public class ReportsServiceImpl implements ReportsService {
 		return logs;
 	}
 
-	// 신고당한 회원 (신뢰도점수/뱃지) 조회
-	@Override
-	public MemberTrustInfoDto getMemberTrustInfo(Long targetMemberId) {
-		Member member = memberRepository
-				.findById(targetMemberId)
-				.orElseThrow(()-> new IllegalArgumentException("회원 member 조회 오류! targetMemberId: " + targetMemberId));
-		
-		MemberInfo memberInfo = memberInfoRepository
-				.findById(targetMemberId)
-				.orElseThrow(()-> new IllegalArgumentException("신고 대상 회원 MemberInfo 조회 오류! targetMemberId: " + targetMemberId));
-		
-		MemberTrustInfoDto memberInfoDto = new MemberTrustInfoDto();
-		memberInfoDto.setTargetMemberId(targetMemberId);			// 신고당한 회원 아이디
-		memberInfoDto.setTargetNickname(member.getNickname());		// 신고당한 회원 닉네임
-		
-		memberInfoDto.setTrustScore(memberInfo.getTrustScore());	// 신뢰도 점수
-		
-		if (memberInfo.getMemberReportStatus() != null) {					// 뱃지 정보
-			MemberReportStatus reportStatus = memberInfo.getMemberReportStatus();
-			memberInfoDto.setReportStatusId( reportStatus.getReportStatusId() );
-			memberInfoDto.setStatusCode( reportStatus.getStatusCode());
-			memberInfoDto.setStatusName( reportStatus.getStatusName());
-		}
-		
-		return memberInfoDto;
-	}
 
-//	신고 처리 3일 후 만족도 조사 이메일 발송
+	// 신고 처리 3일 후 만족도 조사 이메일 발송 (8월 24일 기준 - 8월 21일 00:00 ~ 23:59:59)
 	@Override
 	public void sendThreeDaysAgoReportEmails() {
-//	    for (Report report : reports) {
-//	        String email = report.getMember().getEmail();	// 메일주소 조회
-//	        
-//	        if( email != null && !email.isEmpty() ) {
-//				String subject = "[만족도 참여] Moit 문의 처리 결과는 어떠셨나요?";
-//				String content = "Moit 문의 처리 결과는 어떠셨나요?"
-//								+ "마음에 드셨다면 만족도 참여에 동참해주세요!"
-//								+ "링크첨부...";
-//
-//				//메일 전송 test
-//				try { apiEmail.sendMail(subject, content, email); }
-//				catch (Exception e) { e.printStackTrace(); }
-//
-//	        } else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
-//	    }
+		
+		// 오늘 기준 3일 전 날짜
+		LocalDate targetDate = LocalDate.now().minusDays(3);
+		
+		// 3일 전 00:00:00
+		LocalDateTime start = targetDate.atStartOfDay();
+		// 3일 전 23:59:59.999999999
+		LocalDateTime end = targetDate.atTime(LocalTime.MAX);
+		
+		// 3일 전에 처리된 신고 감사 로그 조회
+		List<ReportAuditLog> logs = reportAuditLogRepository
+				.findByProcessedAtBetweenAndThreeDayEmailSentYn(start, end, 'N');
+		
+	    for (ReportAuditLog log : logs) {
+	    	
+	    	Report report = log.getReport();
+	        String email = report.getMember().getEmail();	// 메일주소 조회
+	        
+	        if( email != null && !email.isEmpty() ) {
+				String subject = "[만족도 참여] Moit 문의 처리 결과는 어떠셨나요?";
+				String content = "Moit 신고 처리 결과는 어떠셨나요?"
+								+ "\n\n마음에 드셨다면 만족도 참여에 동참해주세요!"
+								+ "\n\n링크첨부...";
+
+				try {
+					//메일 전송 test
+					apiEmail.sendMail(subject, content, email);
+					
+					// 메일 전송 성공 → 다시 발송되지 않도록 Y 처리
+					log.setThreeDayEmailSentYn('Y');
+					
+				} catch (Exception e) { e.printStackTrace(); }
+
+	        } else { System.out.println("이메일이 없습니다. 메일 전송 실패..."); }
+	    }
+		
 	}
 	
 	
@@ -461,39 +395,30 @@ public class ReportsServiceImpl implements ReportsService {
 
 	    if (report.getTargetType() == TargetType.MEETUP) {
 	        Meetup meetup = meetupRepository
-	                .findById(report.getTargetId())
-	                .orElseThrow(() ->
-	                        new IllegalArgumentException("모임 조회 실패!")
-	                );
+					.findById(report.getTargetId()).orElseThrow(() -> new IllegalArgumentException("모임 조회 실패!"));
+	        
 	        targetMember = meetup.getMember();
 
 	    } else if (report.getTargetType() == TargetType.REVIEW) {
 	        Review review = reviewRepository
-	                .findById(report.getTargetId())
-	                .orElseThrow(() ->
-	                        new IllegalArgumentException("리뷰 조회 실패!")
-	                );
+					.findById(report.getTargetId()).orElseThrow(() -> new IllegalArgumentException("리뷰 조회 실패!"));
+	      
 	        targetMember = review.getMember();
 	        
 	        // 리뷰가 속한 모임 ID
 	        responseDto.setMeetupId(review.getMeetup().getId());
 
-	    } else {
-	        throw new IllegalArgumentException("잘못된 targetType입니다.");
-	    }
+	    } else { throw new IllegalArgumentException("잘못된 targetType입니다."); }
 
+	    
+	    
 	    // 신고 대상 회원 정보찾기 시작... id & nickname
 	    responseDto.setTargetMemberId(targetMember.getId());
 	    responseDto.setTargetMemberNickname(targetMember.getNickname());
 
 	    // 신고 대상 회원의... memberInfo 조회
-	    MemberInfo targetMemberInfo = memberInfoRepository
-	            .findById(targetMember.getId())
-	            .orElseThrow(() ->
-	                    new IllegalArgumentException(
-	                            "신고 대상 회원 MemberInfo 조회 불가!"
-	                    )
-	            );
+		MemberInfo targetMemberInfo = memberInfoRepository.findById(targetMember.getId())
+				.orElseThrow(() -> new IllegalArgumentException("신고 대상 회원 MemberInfo 조회 불가!"));
 
 	    // 신고 대상 회원의... 신뢰도
 	    responseDto.setTargetTrustScore(targetMemberInfo.getTrustScore());
@@ -509,4 +434,89 @@ public class ReportsServiceImpl implements ReportsService {
 	    }
 	   
 	}
-} 
+	
+	
+	
+	//////////////////////////////////////////////////////////////////////////////
+	// PEDING 상태 조회
+	private Report getPendingReport(Long reportId) {
+		return reportRepository.findByReportIdAndStatus(reportId, ReportStatus.PENDING)
+				.orElseThrow(() -> new IllegalArgumentException("관리자 신고 처리 조회 오류! reportId: " + reportId));
+	}
+
+	// APPROVED / REJECTED 검증
+	private ReportStatus validateChangedStatus(ReportStatus changedStatus) {
+		if (changedStatus != ReportStatus.APPROVED && changedStatus != ReportStatus.REJECTED) {
+			throw new IllegalArgumentException("신고 상태는 APPROVED 또는 REJECTED만 가능합니다.");
+		}
+		return changedStatus;
+	}
+
+	// 신뢰도 점수
+	private int updateTargetMemberTrustScore(ReportStatus changedStatus, Report report) {
+		if (changedStatus != ReportStatus.APPROVED) {
+			return 0;
+		}
+		// 신뢰도 점수 변경량
+		int trustScoreChange = -5;
+		
+		// 신고 대상 회원 ID 찾기
+		Long targetMemberId = findTargetMemberId(report);
+		
+		// 신고 대상 회원 정보 조회
+		MemberInfo memberInfo = memberInfoRepository
+				.findById(targetMemberId)
+				.orElseThrow(()-> new IllegalArgumentException("신고 대상 회원 MemberInfo 조회 불가!"));
+		
+		// 신뢰도 점수 반영
+		int currentTrustScore = memberInfo.getTrustScore();
+		int changedTrustScore = currentTrustScore + trustScoreChange;
+		
+		memberInfo.setTrustScore(changedTrustScore);
+		
+		// 뱃지 변경
+		String statusCode;
+		
+		if (changedTrustScore >= 80) {
+			statusCode = "ACTIVE";
+		} else if (changedTrustScore >= 40) {
+			statusCode = "WARNING";
+		} else {
+			statusCode = "DANGER";
+		}
+		
+		MemberReportStatus memberReportStatus = memberReportStatusRepository
+				.findByStatusCode(statusCode)
+				.orElseThrow(()-> new IllegalArgumentException("회원 신고 상태 조회 불가!"));
+		
+		memberInfo.setMemberReportStatus(memberReportStatus);
+		
+		return trustScoreChange;
+	}
+	
+	// 신고 대상 회원 ID 찾기
+	private Long findTargetMemberId(Report report) {
+		if (report.getTargetType() == TargetType.MEETUP) {
+			Meetup meetup = meetupRepository.findById(report.getTargetId())
+					.orElseThrow(() -> new IllegalArgumentException("Meetup 불러오기 실패!"));
+			return meetup.getMember().getId();
+		}
+
+		if (report.getTargetType() == TargetType.REVIEW) {
+			Review review = reviewRepository.findById(report.getTargetId())
+					.orElseThrow(() -> new IllegalArgumentException("Review 불러오기 실패!"));
+			return review.getMember().getId();
+		}
+
+		throw new IllegalArgumentException("MEETUP, REVIEW가 아닌 targetType입니다.");
+	}
+
+	// 관리자 Member 조회
+	private Member getAdminMember(Long memberId) {
+		return memberRepository.findById(memberId)
+				.orElseThrow(() -> new IllegalArgumentException("관리자 조회 오류! MemberId: " + memberId));
+	}
+
+	// 관리자처리이력 - 관리자 처리 감사 로그 (상태) 저장
+	// entity.ReportAuditLog 사용
+}

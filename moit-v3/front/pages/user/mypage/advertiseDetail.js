@@ -80,7 +80,7 @@ function AdvertiseDetailPage() {
 
   // 삭제
   const handleDelete = async () => {
-    if (!window.confirm('정말 삭제하시겠습니까?')) {
+    if (!window.confirm('정말 삭제하시겠습니까?\n삭제한 광고는 목록에서 더 이상 확인할 수 없습니다.')) {
       return;
     }
 
@@ -148,9 +148,11 @@ function AdvertiseDetailPage() {
             목록
           </Button>
 
-          <Button onClick={handleEdit}>
-            수정
-          </Button>
+          {advertise.paymentStatus !== 'PAID' && (
+            <Button onClick={handleEdit}>
+              수정
+            </Button>
+          )}
 
           <Button
             danger
@@ -232,12 +234,6 @@ function AdvertiseDetailPage() {
             {formatDateTime(advertise.endDatetime)}
           </Descriptions.Item>
 
-          <Descriptions.Item label="광고 기간">
-            {formatDateTime(advertise.startDatetime)}
-            {' ~ '}
-            {formatDateTime(advertise.endDatetime)}
-          </Descriptions.Item>
-
           <Descriptions.Item label="가격 계산">
             <div>
               <div>
@@ -266,7 +262,7 @@ function AdvertiseDetailPage() {
 
       {/* 반려 사유 */}
       {advertise.rejectReason && (
-        <Card title="반려 정보" style={{ marginBottom: 20, borderColor: '#ffa39e' }}>
+        <Card title="반려 정보 (수정해서 다시 제출해주세요.)" style={{ marginBottom: 20, borderColor: '#ffa39e' }}>
           <Descriptions bordered column={1}>
             <Descriptions.Item label="반려 사유" labelStyle={{ color: '#cf1322' }}>
               <span style={{ color: '#cf1322', fontWeight: 'bold' }}>{advertise.rejectReason}</span>
@@ -327,12 +323,12 @@ function AdvertiseDetailPage() {
         {advertise.imageList && advertise.imageList.length > 0 ? (
           <Row gutter={[16, 16]}> 
             {advertise.imageList.map((image) => (
-              <Col xs={24} sm={12} md={8} key={image.imageId || image.imageUrl}>
+              <Col xs={24} sm={12} md={12} key={image.imageId || image.imageUrl}>
                 <div style={{ background: '#fafafa', padding: 10, borderRadius: 8, border: '1px solid #f0f0f0' }}>
                   <Image
                     src={`${BASE_URL}${image.imageUrl}`}
                     alt={advertise.title}
-                    style={{ width: '100%', height: 180, objectFit: 'contain' }} 
+                    style={{ width: '100%', height: 200, objectFit: 'contain' }} 
                   />
                   <div style={{ marginTop: 8, textAlign: 'center', color: '#888', fontWeight: 'bold' }}>
                     {image.imageType || '기본 이미지'}

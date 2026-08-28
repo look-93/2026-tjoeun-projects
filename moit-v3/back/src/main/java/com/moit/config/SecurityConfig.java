@@ -104,7 +104,8 @@ public class SecurityConfig {
                 "/api/members/check-loginId",
                 "/api/members/check-email",
                 "/api/members/check-nickname",
-                "/api/members/check-mobile",
+                "/api/members/phone/send",
+                "/api/members/phone/verify",
                 "/api/members/refresh",
                 "/api/members/email/send",
                 "/api/members/email/verify",
@@ -125,7 +126,10 @@ public class SecurityConfig {
                 "/user/member/checkPassword",
                 "/admin/member/join",
                 "/meetup/list",
-                "/user/advertisement/click"
+                "/user/advertisement/click",
+                "/user/member/kakaologout",
+                "/api/meetups/**"
+
             ).permitAll()
 
             // -------------------------------------------------
@@ -149,17 +153,21 @@ public class SecurityConfig {
             ).authenticated()
 
             // -------------------------------------------------
+            // 제휴업체 광고
+            // -------------------------------------------------
+            .requestMatchers(
+            		"/api/advertisement/prices",
+            	    "/api/advertisement/*/extension-prices",
+            	    "/api/advertisement/**" 
+            )
+            .hasRole("PARTNER")
+
+            // -------------------------------------------------
             // 관리자
             // -------------------------------------------------
-            // 추후 활성화
              .requestMatchers("/api/admin/**", "/api/reports/admin/**")
              .hasAnyRole("ADMIN", "SUPERADMIN")
 
-            // -------------------------------------------------
-            // 제휴업체 광고
-            // -------------------------------------------------
-            .requestMatchers("/user/advertisement/aiAdvertise")
-            .hasRole("PARTNER")
 
             // -------------------------------------------------
             // 나머지
@@ -255,7 +263,8 @@ public class SecurityConfig {
             List.of(
                 "Authorization",
                 "Content-Type",
-                "Accept"
+                "Accept",
+                "X-Device-Id"
             )
         );
 

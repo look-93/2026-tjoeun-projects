@@ -35,6 +35,11 @@ public class UserRequestDto {
 	private MultipartFile profileImage;
 	private List<Integer> interestIds;
 	
+	private String deviceId;
+	
+	// 회원가입 행동 데이터
+	private SignupBehaviorDto signupBehavior;
+	
 	// requestDto -> 기존 UserDto로 반환
 	public UserDto toUserDto() {
 		UserDto dto = new UserDto();

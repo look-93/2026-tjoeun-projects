@@ -4,7 +4,7 @@
 
 	<!-- 관리자측 페이징 -->
 	<select id="findAll" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto" parameterType="map">
-	    SELECT q.*, m.nickname, qa.analysis_status, qa.aggression_score
+	    SELECT q.*, m.nickname, qa.analysis_status, qa.aggression_score, qa.ai_category
 	    FROM questions q
 	    LEFT JOIN members m ON q.member_id = m.member_id
 	    LEFT JOIN question_ai_analysis qa ON q.question_id = qa.question_id
@@ -22,6 +22,9 @@
 	        <if test="status != null and status != '' and status != 'all'">
 	            AND q.qna_status = #{status}
 	        </if>
+	        <if test="aiCategory != null and aiCategory != '' and aiCategory != 'all'">
+			    AND qa.ai_category = #{aiCategory}
+			</if>
 	        <if test="startDate != null and startDate != ''">
 	            AND q.created_at >= TO_DATE(#{startDate}, 'YYYY-MM-DD')
 	        </if>
@@ -46,7 +49,8 @@
 	    SELECT COUNT(*)
 	    FROM questions q
 	    LEFT JOIN members m ON q.member_id = m.member_id
-	    <where>>
+	    LEFT JOIN question_ai_analysis qa ON q.question_id = qa.question_id
+	    <where>
 	        q.delete_yn = 'N'
 	        <if test="type == 'title' and keyword != null and keyword != ''">
 	            AND q.title LIKE '%' || #{keyword} || '%'
@@ -60,27 +64,14 @@
 	        <if test="status != null and status != '' and status != 'all'">
 	            AND q.qna_status = #{status}
 	        </if>
+	        <if test="aiCategory != null and aiCategory != '' and aiCategory != 'all'">
+			    AND qa.ai_category = #{aiCategory}
+			</if>
 	        <if test="startDate != null and startDate != ''">
 	            AND q.created_at >= TO_DATE(#{startDate}, 'YYYY-MM-DD')
 	        </if>
 	        <if test="endDate != null and endDate != ''">
 	            AND q.created_at <![CDATA[ < ]]> TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
-	        </if>
-	    </where>
-	</select>
-	
-	<!-- 내 문의 총 개수 -->
-	<select id="findMyQuestionCnt" parameterType="map" resultType="int">
-	    SELECT COUNT(*)
-	    FROM questions
-	    <where>
-	        member_id = #{memberId}
-	        AND delete_yn = 'N'
-	        <if test="type == 'title' and keyword != null and keyword != ''">
-	            AND title LIKE '%' || #{keyword} || '%'
-	        </if>
-	        <if test="type == 'content' and keyword != null and keyword != ''">
-	            AND content LIKE '%' || #{keyword} || '%'
 	        </if>
 	    </where>
 	</select>
@@ -108,8 +99,42 @@
 	    WHERE TRUNC(created_at) = TRUNC(SYSDATE)
 	      AND delete_yn = 'N'
 	</select>
+		
+	<!-- 내 문의 총 개수 -->
+	<select id="findMyQuestionCnt" parameterType="map" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    <where>
+	        member_id = #{memberId}
+	        AND delete_yn = 'N'
+	        <if test="type == 'title' and keyword != null and keyword != ''">
+	            AND title LIKE '%' || #{keyword} || '%'
+	        </if>
+	        <if test="type == 'content' and keyword != null and keyword != ''">
+	            AND content LIKE '%' || #{keyword} || '%'
+	        </if>
+	    </where>
+	</select>
 
-	<!-- 상세보기 -->
+	<!-- 내 문의 답변 대기 전체 건수 -->
+	<select id="findMyPendingCnt" parameterType="long" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    WHERE member_id = #{memberId}
+	      AND qna_status = 'PENDING'
+	      AND delete_yn = 'N'
+	</select>
+	
+	<!-- 내 문의 답변 완료 전체 건수 -->
+	<select id="findMyAnsweredCnt" parameterType="long" resultType="int">
+	    SELECT COUNT(*)
+	    FROM questions
+	    WHERE member_id = #{memberId}
+	      AND qna_status = 'ANSWERED'
+	      AND delete_yn = 'N'
+	</select>
+
+	<!-- 상세보기 조회 -->
 	<select id="findById" parameterType="long" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto">
 	    SELECT q.*,
 	        NVL(qa.analysis_status, 'NORMAL') AS analysis_status,
@@ -178,6 +203,30 @@
      #{isPublic}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	</insert>
 
+	<!-- 문의 이미지 등록 -->
+	<insert id="insertQuestionImage" parameterType="com.moit.qna.dto.QuestionImageDto">
+	    INSERT INTO question_images (image_id, question_id, original_name, stored_name, image_path, image_size, content_type, delete_yn, created_at, updated_at)
+	    VALUES (question_image_seq.NEXTVAL, #{questionId}, #{originalName}, #{storedName}, #{imagePath}, #{imageSize}, #{contentType}, 'N', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+	</insert>
+	
+	<!-- 문의 이미지 조회 -->
+	<select id="findQuestionImages" parameterType="long" resultType="com.moit.qna.dto.QuestionImageDto">
+	    SELECT image_id, question_id, original_name, stored_name, image_path, image_size, content_type, delete_yn, created_at, updated_at
+	    FROM question_images
+	    WHERE question_id = #{questionId}
+	      AND delete_yn = 'N'
+	    ORDER BY image_id ASC
+	</select>
+	
+	<!-- 문의 삭제 시 첨부파일 논리삭제 -->
+	<update id="deleteQuestionImages" parameterType="long">
+	    UPDATE question_images
+	    SET delete_yn = 'Y',
+	        updated_at = CURRENT_TIMESTAMP
+	    WHERE question_id = #{questionId}
+	      AND delete_yn = 'N'
+	</update>
+
 	<!-- 답변 달리면 상태 변경 -->
 	<update id="updateStatusAnswered">
 		UPDATE questions
@@ -191,8 +240,21 @@
 		SET
 		title = #{title},
 		content = #{content},
-		is_public = #{isPublic}
+		is_public = #{isPublic},
+        updated_at = CURRENT_TIMESTAMP
 		WHERE question_id = #{questionId}
+	</update>
+
+	<!-- 문의 수정시 선택한 기존 이미지 논리삭제 -->
+	<update id="deleteQuestionImagesByIds">
+	    UPDATE question_images
+	    SET delete_yn = 'Y',
+	        updated_at = CURRENT_TIMESTAMP
+	    WHERE image_id IN
+	    <foreach collection="list" item="imageId" open="(" separator="," close=")">
+	        #{imageId}
+	    </foreach>
+	    AND delete_yn = 'N'
 	</update>
 
 	<!-- 문의 삭제 (논리삭제) -->
@@ -219,19 +281,32 @@
 	    </foreach>
 	</update>
 	
-	<!-- 모임 문의 목록(다른 사람들이 보는 페이지) -->
-	<select id="selectByParentId" parameterType="long" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto">
+	<!-- 모임 문의 목록(일반 사용자 + 모임장 + 관리자) -->
+	<select id="selectByMeetupQuestions" parameterType="map" resultType="com.moit.qna.dto.QuestionDto$QuestionResponseDto">
 	    SELECT q.*, m.nickname, qa.analysis_status, qa.aggression_score
 	    FROM questions q LEFT JOIN members m ON q.member_id = m.member_id
 			LEFT JOIN question_ai_analysis qa ON q.question_id = qa.question_id
-	    WHERE q.parent_id = #{parentId}
+			LEFT JOIN meetups mt ON q.parent_id = mt.id
+	    WHERE q.parent_id = #{meetupId}
 	      AND q.category = 'MEETUP'
 	      AND q.delete_yn = 'N'
-	      AND q.is_public = 'Y'
+
+	      <!-- 공개 문의는 모든 사용자 조회 가능 -->
+	      <!-- 비공개 문의는 본인, 해당 모임장 또는 관리자만 조회 가능 -->
 	      AND (
-            qa.analysis_status IS NULL
-            OR qa.analysis_status = 'NORMAL'
-          )
+	            q.is_public = 'Y'
+	            OR q.member_id = #{memberId}
+	            OR mt.member_id = #{memberId}
+	            OR #{memberTypeId} = 3
+	            OR #{memberTypeId} = 4
+	          )
+
+	      <!-- AI 검토 대기 문의는 일반 목록에서 제외 -->
+	      AND (
+	            qa.analysis_status IS NULL
+	            OR qa.analysis_status = 'NORMAL'
+	          )
+
 	    ORDER BY q.question_id DESC
 	</select>
 	

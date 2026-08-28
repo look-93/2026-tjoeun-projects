@@ -1,6 +1,7 @@
 package com.moit.advertisement.service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,10 +15,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.moit.advertisement.dto.PaymentConfirmRequestDto;
 import com.moit.advertisement.entity.Advertisement;
 import com.moit.advertisement.entity.AdvertisementPayment;
 import com.moit.advertisement.enums.AdStatus;
+import com.moit.advertisement.enums.PaymentType;
 // import com.moit.advertisement.enums.PaymentHistoryStatus; // 본인 패키지에 맞게 주석 해제
 // import com.moit.advertisement.enums.PaymentStatus; // 본인 패키지에 맞게 주석 해제
 import com.moit.advertisement.repository.AdvertisementPaymentRepository;
@@ -32,7 +35,6 @@ public class TossPaymentServiceImpl implements TossPaymentService {
     private final AdvertisementPaymentRepository paymentRepository;
     private final AdvertisementRepository advertisementRepository;
 
-    
     @Value("${toss.secret-key}")
     private String tossSecretKey;
 
@@ -45,7 +47,7 @@ public class TossPaymentServiceImpl implements TossPaymentService {
         
         // 1. 주문번호로 결제 내역 조회
         AdvertisementPayment payment = paymentRepository.findByOrderId(requestDto.getOrderId())
-                .orElseThrow(() -> {
+        		.orElseThrow(() -> {
                     System.out.println("❌ DB에 이 orderId가 없음!!");
                     return new IllegalArgumentException("존재하지 않는 주문번호입니다.");
                 });
@@ -61,7 +63,7 @@ public class TossPaymentServiceImpl implements TossPaymentService {
         
         // 시크릿 키 Base64 인코딩 (Toss 요구사항: 시크릿키 뒤에 콜론(:)을 붙여 인코딩)
         String authHeader = "Basic " + Base64.getEncoder()
-                .encodeToString((tossSecretKey + ":").getBytes(StandardCharsets.UTF_8));
+                .encodeToString((tossSecretKey+ ":").getBytes(StandardCharsets.UTF_8));
         
         headers.set("Authorization", authHeader);
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -75,31 +77,98 @@ public class TossPaymentServiceImpl implements TossPaymentService {
 
         try {
             // 4. API 통신
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    "https://api.tosspayments.com/v1/payments/confirm",
-                    requestEntity,
-                    String.class
-            );
+        	ResponseEntity<JsonNode> response = restTemplate.postForEntity(
+        	        "https://api.tosspayments.com/v1/payments/confirm",
+        	        requestEntity,
+        	        JsonNode.class
+        	);
 
-            if (response.getStatusCode().is2xxSuccessful()) {
+        	if (response.getStatusCode().is2xxSuccessful()) {
+
+        	    JsonNode rootNode = response.getBody();
+
+        	    String tossMethod = rootNode.path("method").asText();
+
+        	    System.out.println("🔥 Toss 결제수단: [" + tossMethod + "]");
+
+        	    String paymentMethod;
+
+        	    switch (tossMethod) {
+
+        	        case "카드":
+        	            paymentMethod = "CARD";
+        	            break;
+
+        	        case "간편결제":
+        	            paymentMethod = "EASY_PAY";
+        	            break;
+
+        	        case "가상계좌":
+        	            paymentMethod = "VIRTUAL_ACCOUNT";
+        	            break;
+
+        	        case "계좌이체":
+        	            paymentMethod = "TRANSFER";
+        	            break;
+
+        	        case "휴대폰":
+        	            paymentMethod = "MOBILE";
+        	            break;
+
+        	        default:
+        	            paymentMethod = "OTHER";
+        	            break;
+        	    }
+
+        	    System.out.println("🔥 DB 저장용 결제수단: [" + paymentMethod + "]");
+        	    
             	// 1. 결제 이력(History) 성공 처리
-                payment.updatePaymentSuccess(requestDto.getPaymentKey()); 
+                payment.updatePaymentSuccess(requestDto.getPaymentKey(), paymentMethod); 
                 
                 // 2. 광고 본체 가져오기
                 Advertisement advertisement = payment.getAdvertisement();
                 
-                // 3. 광고 결제 완료 상태로 변경 (엔티티에 이미 만들어져 있는 메서드 호출!)
-                advertisement.completeInitialPayment();
-                
-                // 4. 운영 상태를 OPEN (진행중)으로 변경
-                advertisement.changeStatus(AdStatus.OPEN);
+             // 결제 유형에 따른 광고 상태 처리
+                if (payment.getPaymentType() == PaymentType.INITIAL) {
+
+                    // 최초 결제
+                    advertisement.completeInitialPayment();
+
+                    LocalDateTime now = LocalDateTime.now();
+                    LocalDateTime startDateTime =
+                            advertisement.getStartDatetime();
+
+                    if (startDateTime != null && now.isBefore(startDateTime)) {
+                        advertisement.changeStatus( AdStatus.PENDING );
+                    } else {
+                        advertisement.changeStatus( AdStatus.OPEN );
+                    }
+
+                } else if (payment.getPaymentType() == PaymentType.EXTENSION) {
+
+                    // 연장 결제
+                    advertisement.completeExtensionPayment();
+
+                    // 연장 일수 가져오기
+                    Integer periodDays =
+                            payment.getPeriodDays();
+
+                    if (periodDays == null) {
+                        throw new IllegalArgumentException(
+                                "연장 기간 정보가 없습니다."
+                        );
+                    }
+
+                    advertisement.extendEndDatetime( periodDays );
+                } else {
+                    throw new IllegalArgumentException( "지원하지 않는 결제 유형입니다." );
+                }
             } else {
                 throw new RuntimeException("토스 결제 승인 실패");
             }
         } catch (Exception e) {
-            // 통신 실패나 잔액 부족 등
-            // payment.updatePaymentFailed("승인 실패: " + e.getMessage());
-            throw new RuntimeException("결제 승인 중 오류가 발생했습니다: " + e.getMessage());
+        	e.printStackTrace();
+        	throw new RuntimeException("토스 결제 승인 실패: " + e.getMessage(), e);
         }
     }
 }

@@ -216,21 +216,61 @@ function AdvertiseDetailPage() {
       <Card title="결제 정보" style={{ marginBottom: 20 }}>
         <Descriptions bordered column={2}>
 
+          <Descriptions.Item label="예상 결제 금액">
+            {formatPrice(advertise.calculatedAmount)}
+          </Descriptions.Item>
+
+          <Descriptions.Item label="기본 / 추가 금액">
+            {formatPrice(
+              advertise.baseAmount ?? advertise.basePrice
+            )}
+            {' / '}
+            {formatPrice(
+              advertise.positionAmount ?? advertise.positionPrice
+            )}
+          </Descriptions.Item>
+
           <Descriptions.Item label="결제 유형">
-            {advertise.paymentType || '-'}
+            {formatPaymentType(advertise.paymentType)}
           </Descriptions.Item>
 
           <Descriptions.Item label="결제 상태">
-            <PaymentStatusTag value={advertise.paymentHistoryStatus} />
+            <PaymentStatusTag
+              value={advertise.paymentHistoryStatus}
+            />
           </Descriptions.Item>
 
           <Descriptions.Item label="결제 금액">
-            {formatPrice(advertise.paymentAmount)}
+            {formatPrice(advertise.paymentAmount ?? '-')}
           </Descriptions.Item>
 
           <Descriptions.Item label="결제일">
             {formatDateTime(advertise.paidAt)}
           </Descriptions.Item>
+
+          <Descriptions.Item label="주문 번호(토스)">
+            {advertise.orderId || '-'}
+          </Descriptions.Item>
+
+          <Descriptions.Item label="결제 키(토스)">
+            {advertise.paymentKey || '-'}
+          </Descriptions.Item>
+
+          <Descriptions.Item label="결제 수단">
+            {formatPaymentMethod(advertise.paymentMethod)}
+          </Descriptions.Item>
+
+          {advertise.paymentHistoryStatus === 'CANCELLED' && (
+            <>
+              <Descriptions.Item label="취소 일시">
+                {formatDateTime(advertise.cancelledAt)}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="취소 사유">
+                {advertise.cancelReason || '-'}
+              </Descriptions.Item>
+            </>
+          )}
 
         </Descriptions>
       </Card>
@@ -301,11 +341,28 @@ function formatPrice(value) {
   return `${Number(value).toLocaleString()}원`;
 }
 
+function formatPaymentMethod(value) {
+  if (value === 'CARD') return '카드';
+  if (value === 'EASY_PAY') return '간편결제';
+  if (value === 'VIRTUAL_ACCOUNT') return '가상계좌';
+  if (value === 'TRANSFER') return '계좌이체';
+  if (value === 'MOBILE') return '휴대폰';
+  if (value === 'OTHER') return '기타';
+
+  return value || '-';
+}
+
 function calculateCtr(impressions, clicks) {
   const impressionCount = Number(impressions || 0);
   const clickCount = Number(clicks || 0);
   if (impressionCount === 0) return '0.00%';
   return ((clickCount / impressionCount) * 100).toFixed(2) + '%';
+}
+
+function formatPaymentType(value) {
+  if (value === 'INITIAL') return '신규 결제'; // '최초 결제', '신규 등록' 등으로 자유롭게 변경 가능
+  if (value === 'EXTENSION') return '기간 연장';
+  return value || '-';
 }
 
 export default AdvertiseDetailPage;

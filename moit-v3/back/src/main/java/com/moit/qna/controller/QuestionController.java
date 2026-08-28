@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,10 +55,18 @@ public class QuestionController {
     @Operation(summary = "특정 모임 Q&A 목록 조회", description = "특정 모임에 등록된 문의 목록을 조회합니다.")
     @GetMapping("/meetup/{meetupId}")
     public ResponseEntity<List<QuestionResponseDto>> meetupQuestions(
-            @PathVariable("meetupId") Long meetupId) {
-        List<QuestionResponseDto> list = questionService.selectByParentId(meetupId);
-        return ResponseEntity.ok(list);
-    }
+            @PathVariable("meetupId") Long meetupId,
+	        Authentication authentication) {
+	    CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+	    Long memberId = userDetails.getUser().getMemberId();
+	    Long memberTypeId = userDetails.getUser().getMemberTypeId();
+	    List<QuestionResponseDto> list =
+	            questionService.selectByMeetupQuestions(
+	                    meetupId,
+	                    memberId,
+	                    memberTypeId);
+	    return ResponseEntity.ok(list);
+	}
     
     // 답변 만족도 평가
     @Operation(summary = "답변 만족도 평가", description = "답변에 대한 만족도 점수와 의견을 등록합니다.")
@@ -115,7 +125,9 @@ public class QuestionController {
         int startPage = ((page - 1) / pageBlock) * pageBlock + 1;
         int endPage = startPage + pageBlock - 1;
         if (endPage > totalPage) { endPage = totalPage; }
-
+        int pendingCnt = questionService.getMyPendingCnt(memberId);
+        int answeredCnt = questionService.getMyAnsweredCnt(memberId);
+        
         QuestionMyResponseDto response = new QuestionMyResponseDto();
 
         response.setList(list);
@@ -126,7 +138,8 @@ public class QuestionController {
         response.setEndPage(endPage);
         response.setType(type);
         response.setKeyword(keyword);
-
+        response.setPendingCnt(pendingCnt);
+        response.setAnsweredCnt(answeredCnt);
         return ResponseEntity.ok(response);
     }
     
@@ -138,13 +151,14 @@ public class QuestionController {
             @RequestParam(value = "type", required = false) String type,
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "aiCategory", required = false) String aiCategory,
             @RequestParam(value = "startDate", required = false) String startDate,
             @RequestParam(value = "endDate", required = false) String endDate) {
         int pageSize = 10;
         int start = (page - 1) * pageSize;
 
-        List<QuestionResponseDto> list = questionService.getList( start, pageSize, type, keyword, status, startDate, endDate );
-        int totalCnt = questionService.getSearchCnt( type, keyword, status, startDate, endDate );
+        List<QuestionResponseDto> list = questionService.getList( start, pageSize, type, keyword, status, aiCategory, startDate, endDate );
+        int totalCnt = questionService.getSearchCnt( type, keyword, status, aiCategory, startDate, endDate );
         int totalPage = (int) Math.ceil((double) totalCnt / pageSize);
         int pageBlock = 10;
         int startPage = ((page - 1) / pageBlock) * pageBlock + 1;
@@ -179,22 +193,20 @@ public class QuestionController {
         return ResponseEntity.ok(response);
     }
     
-    // 모임글 문의 등록   
+    // 모임글 문의 등록
     @Operation(summary = "문의 등록", description = "문의를 등록합니다.")
-    @PostMapping
-    public ResponseEntity<?> create(@RequestBody QuestionRequestDto dto, Authentication authentication) {
-    	try {
-    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        Long memberId = userDetails.getUser().getMemberId();
-        dto.setMemberId(memberId);
-        // 관리자 문의일 경우 parentId = 0
-        if (dto.getParentId() == null) { dto.setParentId(0L); }
-        QuestionResponseDto result = questionService.register(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> create(@ModelAttribute QuestionRequestDto dto, Authentication authentication) {
+        try {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            Long memberId = userDetails.getUser().getMemberId();
+            dto.setMemberId(memberId);
+            // 관리자 문의일 경우 parentId = 0
+            if (dto.getParentId() == null) { dto.setParentId(0L); }
+            QuestionResponseDto result = questionService.register(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (IllegalStateException e) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
         }
     }
     
@@ -208,8 +220,8 @@ public class QuestionController {
 
     // 문의 수정 화면 이동
     @Operation(summary = "문의 수정", description = "문의를 수정합니다.")
-    @PutMapping("/{questionId}")
-    public ResponseEntity<Void> edit(@PathVariable("questionId") Long questionId, @RequestBody QuestionRequestDto dto, Authentication authentication) {
+    @PutMapping(value = "/{questionId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> edit(@PathVariable("questionId") Long questionId, @ModelAttribute QuestionRequestDto dto, Authentication authentication) {
         QuestionResponseDto question = questionService.getDetail(questionId);
         // 작성자 또는 관리자 권한 확인
         if (!canEdit(question, authentication)) {

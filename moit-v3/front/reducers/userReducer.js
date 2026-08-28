@@ -3,10 +3,12 @@ import { createSlice } from "@reduxjs/toolkit";
 //1. 초기화 상태(공용)
 const initialState = {
     user: null,
+    point: 0,
     members: [],
 
     accessToken: null,
     refreshToken: null,
+    deviceId: null,
 
     // =========================
     // 로그인 상태
@@ -45,13 +47,23 @@ const initialState = {
         loginId: null,
         email: null,
         nickname: null,
-        mobile: null,
     },
 
     // =========================
     // 이메일 인증
     // =========================
     emailVerification: {
+        sending: false,
+        verifying: false,
+        sent: false,
+        verified: false,
+        error: null,
+    },
+
+    // =========================
+    // 전화번호 인증
+    // =========================
+    mobileVerification: {
         sending: false,
         verifying: false,
         sent: false,
@@ -126,10 +138,61 @@ const initialState = {
 
     // 로그아웃
     logout: {
-    loading: false,
-    success: false,
-    error: null,
-},
+        loading: false,
+        success: false,
+        error: null,
+    },
+
+    // 로그인 기록 조회
+    loginHistory: {
+        loading: false,
+        data: [],
+        error: null,
+    },
+
+    // =========================
+    // 로그인 기기 관리
+    // =========================
+    loginDevices: {
+        loading: false,
+        data: [],
+        error: null,
+    },
+
+    // 특정 기기 로그아웃
+    deleteLoginDevice: {
+        loading: false,
+        success: false,
+        error: null,
+    },
+
+    // 모든 기기 로그아웃
+    deleteAllLoginDevices: {
+        loading: false,
+        success: false,
+        error: null,
+    },
+
+    // =========================
+    // 포인트
+    // =========================
+    pointHistory: {
+        loading: false,
+        data: [],
+        error: null,
+    },
+    // =========================
+    // 출석체크
+    // =========================
+    attendance: {
+        loading: false,
+        success: false,
+        attendedToday: false,
+        point: 0,
+        currentPoint: 0,
+        error: null,
+    },
+
 };
 
 //2. 상태변화
@@ -154,6 +217,7 @@ const userReducer = createSlice({
 
             state.accessToken = action.payload.accessToken;
             state.refreshToken = action.payload.refreshToken;
+            state.deviceId = action.payload.deviceId || null;
 
             state.user = {
                 memberId: action.payload.memberId,
@@ -223,6 +287,13 @@ const userReducer = createSlice({
             state.signup.loading = false;
             state.signup.success = false;
             state.signup.error = action.payload;
+        },
+        resetSignup: (state) => {
+            state.signup = {
+                loading: false,
+                success: false,
+                error: null,
+            };
         },
 
         // =========================
@@ -348,23 +419,63 @@ const userReducer = createSlice({
         },
 
         // =========================
-        // 전화번호 중복검사
+        // 전화번호 인증번호 발송
         // =========================
-        checkMobileRequest: (state)=>{
-            state.loading = true;
-            state.error = null;
-            state.duplicateCheck.mobile = null;
+        mobileSendRequest: (state) => {
+            state.mobileVerification.sending = true;
+            state.mobileVerification.sent = false;
+            state.mobileVerification.verified = false;
+            state.mobileVerification.error = null;
         },
-        checkMobileSuccess: (state,action)=>{
-            state.loading = false;
-            state.error = null;
-            state.duplicateCheck.mobile = action.payload;
+
+        mobileSendSuccess: (state) => {
+            state.mobileVerification.sending = false;
+            state.mobileVerification.sent = true;
+            state.mobileVerification.verified = false;
+            state.mobileVerification.error = null;
         },
-        checkMobileFailure: (state,action)=>{
-            state.loading = false;
-            state.error = action.payload;
-            state.duplicateCheck.mobile = null;
+
+        mobileSendFailure: (state, action) => {
+            state.mobileVerification.sending = false;
+            state.mobileVerification.sent = false;
+            state.mobileVerification.verified = false;
+            state.mobileVerification.error = action.payload;
         },
+
+        // =========================
+        // 전화번호 인증번호 확인
+        // =========================
+        mobileVerifyRequest: (state) => {
+            state.mobileVerification.verifying = true;
+            state.mobileVerification.verified = false;
+            state.mobileVerification.error = null;
+        },
+
+        mobileVerifySuccess: (state) => {
+            state.mobileVerification.verifying = false;
+            state.mobileVerification.verified = true;
+            state.mobileVerification.error = null;
+        },
+
+        mobileVerifyFailure: (state, action) => {
+            state.mobileVerification.verifying = false;
+            state.mobileVerification.verified = false;
+            state.mobileVerification.error = action.payload;
+        },
+
+        // =========================
+        // 전화번호 인증 상태 초기화
+        // =========================
+        resetMobileVerification: (state) => {
+            state.mobileVerification = {
+                sending: false,
+                verifying: false,
+                sent: false,
+                verified: false,
+                error: null,
+            };
+        },
+
         // =========================
         // 전체 회원 조회
         // =========================
@@ -380,6 +491,121 @@ const userReducer = createSlice({
         findMembersFailure: (state, action) => {
             state.membersLoading = false;
             state.membersError = action.payload;
+        },
+
+        // =========================
+        // 로그인 기록 조회
+        // =========================
+        getLoginHistoryRequest: (state) => {
+            state.loginHistory.loading = true;
+            state.loginHistory.error = null;
+        },
+        getLoginHistorySuccess: (state, action) => {
+            state.loginHistory.loading = false;
+            state.loginHistory.data = action.payload;
+            state.loginHistory.error = null;
+        },
+        getLoginHistoryFailure: (state, action) => {
+            state.loginHistory.loading = false;
+            state.loginHistory.error = action.payload;
+        },
+        // =========================
+        // 로그인 기록 조회 상태 초기화
+        // =========================
+        resetLoginHistory: (state) => {
+            state.loginHistory = {
+                loading: false,
+                data: [],
+                error: null,
+            };
+        },
+
+        // =========================
+        // 로그인 기기 조회
+        // =========================
+        getLoginDevicesRequest: (state) => {
+            state.loginDevices.loading = true;
+            state.loginDevices.error = null;
+        },
+
+        getLoginDevicesSuccess: (state, action) => {
+            state.loginDevices.loading = false;
+            state.loginDevices.data = action.payload;
+            state.loginDevices.error = null;
+        },
+
+        getLoginDevicesFailure: (state, action) => {
+            state.loginDevices.loading = false;
+            state.loginDevices.error = action.payload;
+        },
+
+        // =========================
+        // 특정 기기 로그아웃
+        // =========================
+        deleteLoginDeviceRequest: (state) => {
+            state.deleteLoginDevice.loading = true;
+            state.deleteLoginDevice.success = false;
+            state.deleteLoginDevice.error = null;
+        },
+
+        deleteLoginDeviceSuccess: (state) => {
+            state.deleteLoginDevice.loading = false;
+            state.deleteLoginDevice.success = true;
+            state.deleteLoginDevice.error = null;
+        },
+
+        deleteLoginDeviceFailure: (state, action) => {
+            state.deleteLoginDevice.loading = false;
+            state.deleteLoginDevice.success = false;
+            state.deleteLoginDevice.error = action.payload;
+        },
+
+        resetDeleteLoginDevice: (state) => {
+            state.deleteLoginDevice = {
+                loading: false,
+                success: false,
+                error: null,
+            };
+        },
+
+        // =========================
+        // 모든 기기 로그아웃
+        // =========================
+        deleteAllLoginDevicesRequest: (state) => {
+            state.deleteAllLoginDevices.loading = true;
+            state.deleteAllLoginDevices.success = false;
+            state.deleteAllLoginDevices.error = null;
+        },
+
+        deleteAllLoginDevicesSuccess: (state) => {
+            state.deleteAllLoginDevices.loading = false;
+            state.deleteAllLoginDevices.success = true;
+            state.deleteAllLoginDevices.error = null;
+        },
+
+        deleteAllLoginDevicesFailure: (state, action) => {
+            state.deleteAllLoginDevices.loading = false;
+            state.deleteAllLoginDevices.success = false;
+            state.deleteAllLoginDevices.error = action.payload;
+        },
+
+        resetDeleteAllLoginDevices: (state) => {
+            state.deleteAllLoginDevices = {
+                loading: false,
+                success: false,
+                error: null,
+            };
+        },
+
+        // =========================
+        // 로그인 기기 조회 상태 초기화
+        // =========================
+        resetLoginDevices: (state) => {
+            state.loginDevices = {
+                loading: false,
+                data: [],
+                error: null,
+            };
         },
 
         // =========================
@@ -565,6 +791,79 @@ const userReducer = createSlice({
             };
         },
 
+        // =========================
+        // 포인트 내역 조회
+        // =========================
+        getPointHistoryRequest: (state) => {
+            state.pointHistory.loading = true;
+            state.pointHistory.error = null;
+        },
+        getPointHistorySuccess: (state, action) => {
+            state.pointHistory.loading = false;
+            state.pointHistory.data = action.payload;
+            state.pointHistory.error = null;
+
+            // 포인트 내역을 기준으로 현재 포인트 계산
+            state.point = action.payload.reduce(
+                (total, item) => {
+                    return total + (Number(item.pointPm) || 0);
+                },
+                0
+            );
+        },
+        getPointHistoryFailure: (state, action) => {
+            state.pointHistory.loading = false;
+            state.pointHistory.error = action.payload;
+        },
+        resetPointHistory: (state) => {
+            state.pointHistory = {
+                loading: false,
+                data: [],
+                error: null,
+            };
+        },
+
+        // =========================
+        // 출석체크
+        // =========================
+        checkAttendanceRequest: (state) => {
+            state.attendance.loading = true;
+            state.attendance.success = false;
+            state.attendance.error = null;
+        },
+
+        checkAttendanceSuccess: (state, action) => {
+            state.attendance.loading = false;
+            state.attendance.success = true;
+
+            state.attendance.attendedToday = true;
+
+            state.attendance.point = action.payload.point;
+            state.attendance.currentPoint = action.payload.currentPoint;
+            state.attendance.error = null;
+
+            // 현재 보유 포인트도 바로 갱신
+            state.point = action.payload.currentPoint;
+        },
+
+        checkAttendanceFailure: (state, action) => {
+            state.attendance.loading = false;
+            state.attendance.success = false;
+            state.attendance.error = action.payload;
+
+            // 이미 출석한 경우
+            if (action.payload === "오늘은 이미 출석체크를 완료했습니다.") {
+                state.attendance.attendedToday = true;
+            }
+        },
+
+        resetAttendance: (state) => {
+            state.attendance.loading = false;
+            state.attendance.success = false;
+            state.attendance.error = null;
+        },
+
+
         // =================================================
         // 중복확인 상태 초기화
         // =================================================
@@ -604,16 +903,22 @@ const userReducer = createSlice({
         // 로그아웃
         // =========================
         logoutRequest: (state) => {
-            state.loading = true;
+            // 로그아웃 자체의 loading
+            state.logout.loading = true;
+            state.logout.success = false;
+            state.logout.error = null;
 
-            // 로그인 성공 상태 초기화
+            // 기존 전역 loading은 사용하지 않음
+            state.loading = false;
+
+            // 로그인 상태 초기화
             state.login = {
                 loading: false,
                 success: false,
                 error: null,
             };
 
-            // 로그인 관련 사용자 정보 초기화
+            // 사용자 정보 초기화
             state.user = null;
             state.accessToken = null;
             state.refreshToken = null;
@@ -623,6 +928,9 @@ const userReducer = createSlice({
             state.logout.loading = false;
             state.logout.success = true;
             state.logout.error = null;
+
+            // 전역 loading도 반드시 해제
+            state.loading = false;
 
             state.user = null;
             state.accessToken = null;
@@ -639,6 +947,20 @@ const userReducer = createSlice({
             state.logout.loading = false;
             state.logout.success = false;
             state.logout.error = action.payload;
+
+            state.loading = false;
+
+            // 로그아웃 실패하더라도
+            // 프론트 로그인 상태는 초기화
+            state.user = null;
+            state.accessToken = null;
+            state.refreshToken = null;
+
+            state.login = {
+                loading: false,
+                success: false,
+                error: null,
+            };
         },
     }
 });
@@ -652,8 +974,7 @@ export const {
     checkLoginIdRequest,checkLoginIdSuccess,checkLoginIdFailure,
     checkEmailRequest,checkEmailSuccess,checkEmailFailure,
     checkNicknameRequest,checkNicknameSuccess,checkNicknameFailure,
-    checkMobileRequest,checkMobileSuccess,checkMobileFailure,
-    logout, logoutRequest, resetDuplicateCheck,resetEmailVerification,
+    logoutRequest,logoutSuccess,logoutFailure, resetDuplicateCheck,resetEmailVerification,
     checkPasswordLeakRequest,checkPasswordLeakSuccess,checkPasswordLeakFailure,
     resetPasswordLeak,findMembersRequest,findMembersSuccess,findMembersFailure,
     getMyInfoRequest, getMyInfoSuccess, getMyInfoFailure,
@@ -665,6 +986,14 @@ export const {
     updateMyInfoSuccess,updateMyInfoFailure, resetUpdateMyInfo,
     uploadProfileImageRequest,uploadProfileImageSuccess,uploadProfileImageFailure,
     resetProfileImage, deleteAccountRequest,deleteAccountSuccess,deleteAccountFailure,resetDeleteAccount,
+    getLoginHistoryRequest,getLoginHistorySuccess,getLoginHistoryFailure,resetLoginHistory,resetSignup,
+    getLoginDevicesRequest,getLoginDevicesSuccess,getLoginDevicesFailure,resetLoginDevices,
+    deleteLoginDeviceRequest,deleteLoginDeviceSuccess,deleteLoginDeviceFailure,resetDeleteLoginDevice,
+    deleteAllLoginDevicesRequest,deleteAllLoginDevicesSuccess,deleteAllLoginDevicesFailure,resetDeleteAllLoginDevices,  
+    mobileSendRequest,mobileSendSuccess, mobileSendFailure,mobileVerifyRequest,
+    mobileVerifySuccess,mobileVerifyFailure,resetMobileVerification,
+    getPointHistoryRequest,getPointHistorySuccess,getPointHistoryFailure,resetPointHistory,
+    checkAttendanceRequest,checkAttendanceSuccess,checkAttendanceFailure,resetAttendance,
 } = userReducer.actions;
 
 //4. export

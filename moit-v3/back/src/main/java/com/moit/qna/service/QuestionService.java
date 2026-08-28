@@ -1,16 +1,25 @@
 package com.moit.qna.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.qna.dao.QuestionMapper;
 import com.moit.qna.dto.AnswerDto.AnswerResponseDto;
 import com.moit.qna.dto.QuestionDto.QuestionRequestDto;
 import com.moit.qna.dto.QuestionDto.QuestionResponseDto;
+import com.moit.qna.dto.QuestionImageDto;
+import com.moit.qna.enums.QnaStatus;
+import com.moit.qna.repository.QuestionRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,14 +28,16 @@ import lombok.RequiredArgsConstructor;
 public class QuestionService {
     private final QuestionMapper questionMapper;
     private final QuestionAiAnalysisService questionAiAnalysisService;
+    private final QuestionRepository questionRepository;
 
-    // 전체 문의 목록 조회 (페이징)
+    // 관리자 전체 문의 목록 조회 (페이징)
     public List<QuestionResponseDto> getList(
             int start,
             int end,
             String type,
             String keyword,
             String status,
+            String aiCategory,
             String startDate,
             String endDate) {
 
@@ -38,6 +49,7 @@ public class QuestionService {
         map.put("type", type);
         map.put("keyword", keyword);
         map.put("status", status);
+        map.put("aiCategory", aiCategory);
         map.put("startDate", startDate);
         map.put("endDate", endDate);
 
@@ -51,7 +63,7 @@ public class QuestionService {
         return list;
     }
 
-    // 문의 상세 조회 + 답변 정보 조회
+    // 문의 상세 조회 + 답변 + 이미지 정보 조회
     public QuestionResponseDto getDetail(Long id) {
         // 문의 정보 조회
         QuestionResponseDto question = questionMapper.findById(id);
@@ -60,8 +72,11 @@ public class QuestionService {
 
         // 해당 문의의 답변 조회
         AnswerResponseDto answer = questionMapper.findByQuestionId(id);
-
         question.setAnswer(answer);
+        
+        // 해당 문의의 이미지 조회
+        question.setImages(questionMapper.findQuestionImages(id));
+        
         return question;
     }
 
@@ -79,6 +94,41 @@ public class QuestionService {
         }
         // questions 테이블 저장
         questionMapper.insertQuestion(dto);
+        // 문의 이미지 저장
+        if (dto.getImages() != null && !dto.getImages().isEmpty()) {
+            Path uploadPath = Paths.get("uploads/qna").toAbsolutePath();
+            try {
+            	Files.createDirectories(uploadPath);
+                for (MultipartFile file : dto.getImages()) {
+                    if (file == null || file.isEmpty()) continue;
+
+                    String originalName = file.getOriginalFilename();
+                    String extension = "";
+
+                    if (originalName != null && originalName.contains(".")) {
+                        extension = originalName.substring(originalName.lastIndexOf("."));
+                    }
+
+                    String storedName = UUID.randomUUID() + extension;
+                    Path filePath = uploadPath.resolve(storedName);
+
+                    file.transferTo(filePath.toFile());
+
+                    QuestionImageDto image = new QuestionImageDto();
+                    image.setQuestionId(dto.getQuestionId());
+                    image.setOriginalName(originalName);
+                    image.setStoredName(storedName);
+                    image.setImagePath("/images/qna/" + storedName);
+                    image.setImageSize(file.getSize());
+                    image.setContentType(file.getContentType());
+
+                    questionMapper.insertQuestionImage(image);
+                }
+            } catch (IOException e) {
+                throw new IllegalStateException("문의 이미지 저장에 실패했습니다.", e);
+            }
+        }
+
         // AI 분석 + QUESTION_AI_ANALYSIS 저장
         String text = dto.getTitle() + "\n" + dto.getContent();
         questionAiAnalysisService.analyzeAndSave(dto.getQuestionId(), text);
@@ -88,15 +138,78 @@ public class QuestionService {
     }
 
     // 문의 수정
+    @Transactional
     public void updateQuestion(QuestionRequestDto dto) {
-    	String status = questionMapper.findStatusByQuestionId(dto.getQuestionId());
+        String status = questionMapper.findStatusByQuestionId(dto.getQuestionId());
+        if ("ANSWERED".equals(status)) {
+            throw new IllegalStateException("답변이 등록된 문의는 수정할 수 없습니다.");
+        }
 
-        if ("ANSWERED".equals(status)) { throw new IllegalStateException("답변이 등록된 문의는 수정할 수 없습니다."); }
+        // 문의 내용 수정
         questionMapper.updateQuestion(dto);
+        // 기존 이미지 삭제
+        if (dto.getDeleteImageIds() != null && !dto.getDeleteImageIds().isEmpty()) {
+            questionMapper.deleteQuestionImagesByIds(dto.getDeleteImageIds());
+        }
+        // 새 이미지 저장
+        if (dto.getImages() != null && !dto.getImages().isEmpty()) {
+            Path uploadPath = Paths.get("uploads/qna").toAbsolutePath();
+            try {
+                Files.createDirectories(uploadPath);
+                for (MultipartFile file : dto.getImages()) {
+                    if (file == null || file.isEmpty()) continue;
+
+                    String originalName = file.getOriginalFilename();
+                    String extension = "";
+
+                    if (originalName != null && originalName.contains(".")) {
+                        extension = originalName.substring(originalName.lastIndexOf("."));
+                    }
+
+                    String storedName = UUID.randomUUID() + extension;
+                    Path filePath = uploadPath.resolve(storedName);
+
+                    file.transferTo(filePath.toFile());
+
+                    QuestionImageDto image = new QuestionImageDto();
+                    image.setQuestionId(dto.getQuestionId());
+                    image.setOriginalName(originalName);
+                    image.setStoredName(storedName);
+                    image.setImagePath("/images/qna/" + storedName);
+                    image.setImageSize(file.getSize());
+                    image.setContentType(file.getContentType());
+
+                    questionMapper.insertQuestionImage(image);
+                }
+            } catch (IOException e) {
+                throw new IllegalStateException("문의 이미지 저장에 실패했습니다.", e);
+            }
+        }
     }
 
     // 문의 삭제
+    @Transactional
     public void deleteQuestion(Long questionId) {
+        // 1. 해당 문의의 첨부파일 조회
+        List<QuestionImageDto> images = questionMapper.findQuestionImages(questionId);
+        // 2. 실제 파일 삭제
+        if (images != null) {
+            Path uploadPath = Paths.get("uploads/qna").toAbsolutePath();
+            for (QuestionImageDto image : images) {
+                if (image.getStoredName() == null) {continue;}
+                Path filePath = uploadPath.resolve(image.getStoredName());
+                try {
+                    Files.deleteIfExists(filePath);
+                } catch (IOException e) {
+                    throw new IllegalStateException(
+                            "문의 첨부파일 삭제에 실패했습니다.", e
+                    );
+                }
+            }
+        }
+        // 3. 첨부파일 DB 삭제
+        questionMapper.deleteQuestionImages(questionId);
+        // 4. 문의 삭제
         questionMapper.deleteQuestion(questionId);
     }
 
@@ -110,6 +223,7 @@ public class QuestionService {
             String type,
             String keyword,
             String status,
+            String aiCategory,
             String startDate,
             String endDate) {
 
@@ -118,6 +232,7 @@ public class QuestionService {
         map.put("type", type);
         map.put("keyword", keyword);
         map.put("status", status);
+        map.put("aiCategory", aiCategory);
         map.put("startDate", startDate);
         map.put("endDate", endDate);
 
@@ -126,7 +241,7 @@ public class QuestionService {
 
     // 답변 대기 문의 수 조회
     public int getPendingCnt() {
-        return questionMapper.findPendingCnt();
+    	return (int) questionRepository.countByStatusAndDeleteYn(QnaStatus.PENDING, 'N');
     }
 
     // 답변 완료 문의 수 조회
@@ -176,6 +291,16 @@ public class QuestionService {
 
         return questionMapper.findMyQuestionCnt(map);
     }
+    
+    // 내 문의 전체 답변 대기 건수
+    public int getMyPendingCnt(Long memberId) {
+        return questionMapper.findMyPendingCnt(memberId);
+    }
+
+    // 내 문의 전체 답변 완료 건수
+    public int getMyAnsweredCnt(Long memberId) {
+        return questionMapper.findMyAnsweredCnt(memberId);
+    }
 
     //관리자용 선택 삭제
     public void deleteSelected(List<Long> ids){
@@ -183,7 +308,14 @@ public class QuestionService {
     }
 
     //해당 모임의 문의 목록
-    public List<QuestionResponseDto> selectByParentId(Long parentId){
-        return questionMapper.selectByParentId(parentId);
+    public List<QuestionResponseDto> selectByMeetupQuestions(
+            Long meetupId,
+            Long memberId,
+            Long memberTypeId) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("meetupId", meetupId);
+        map.put("memberId", memberId);
+        map.put("memberTypeId", memberTypeId);
+        return questionMapper.selectByMeetupQuestions(map);
     }
 }

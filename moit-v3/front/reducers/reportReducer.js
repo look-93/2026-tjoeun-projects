@@ -9,7 +9,6 @@ const initialState= {
     checkDoubleReport: null,    // 모임,리뷰 중복신고 더블체크
 
     auditLogs: [],               // 관리자 처리 로그
-    trustInfo: null,             // 신고 대상 회원 신뢰도
     aiReportDetail: null,        // AI 신고 상세 내용
 
     totalCount: 0,
@@ -117,16 +116,6 @@ const initialState= {
         loading: false,
         error: null,
     },
-    
-    
-    // =====================================================
-    // 회원 신뢰도 조회
-    // =====================================================
-    trustInfoFetch: {
-        loading: false,
-        error: null,
-        data: null,
-    },
 
 
     // =====================================================
@@ -137,6 +126,11 @@ const initialState= {
         error: null,
         success: false,
     },
+
+    // 관리자 처리 보조 기능 ai 분석
+    aiAnalysis: {},     // AI가 분석해서 보내준 최종 결과
+    aiAnalysisLoading: false,
+    aiAnalysisError: null,
 };
 
 const reportReducer = createSlice({
@@ -144,6 +138,7 @@ const reportReducer = createSlice({
     initialState,
     reducers: {
 
+        // 초기화 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         resetReportState: (state) => {
             state.create.success = false;
             state.create.error = null;
@@ -162,6 +157,16 @@ const reportReducer = createSlice({
 
             state.aiCreate.success = false;
             state.aiCreate.error = null;
+
+            // 이전 AI 작성 내용 삭제
+            state.aiReportDetail = null;
+        },
+
+        // 관리자 처리 이력 AI 분석결과만 초기화 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        resetAiAnalysisState: (state) => {
+            state.aiAnalysis = null;
+            state.aiAnalysisLoading = false;
+            state.aiAnalysisError = null;
         },
 
         // --- 신고글 작성 ---
@@ -283,11 +288,6 @@ const reportReducer = createSlice({
             state.adminUpdate.success = true;
             state.currentReport = action.payload;
 
-            state.currentReport = {
-                ...state.currentReport,
-                ...action.payload,
-            };
-
             state.reports = state.reports.map((report) =>
                 report.reportId === action.payload.reportId
                     ? { ...report, ...action.payload, }
@@ -364,20 +364,6 @@ const reportReducer = createSlice({
             state.auditLogFetch.error = action.payload;
         },
 
-        // --- 신고당한 회원 (신뢰도점수/뱃지) 조회 -
-        fetchMemberReportTrustInfoRequest: (state) => {
-            state.trustInfoFetch.loading = true;
-            state.trustInfoFetch.error = null;
-        },
-        fetchMemberReportTrustInfoSuccess: (state, action) => {
-            state.trustInfoFetch.loading = false;
-            state.trustInfoFetch.data = action.payload;
-        },
-        fetchMemberReportTrustInfoFailure: (state, action) => {
-            state.trustInfoFetch.loading = false;
-            state.trustInfoFetch.error = action.payload;
-        },
-
         // openAi 기능
         createAIReportDetailRequest: (state) => {
             state.aiCreate.loading = true;
@@ -393,6 +379,23 @@ const reportReducer = createSlice({
             state.aiCreate.loading = false;
             state.aiCreate.success = false;
             state.aiCreate.error = action.payload;
+        },
+
+        // 관리자 처리 보조 기능 openAi 분석
+        aiReportAnalysisRequest: (state) => {
+            state.aiAnalysisLoading = true;
+            state.aiAnalysisError = null;
+        },
+        aiReportAnalysisSuccess: (state, action) => {
+            const { reportId, result } = action.payload;
+
+            state.aiAnalysisLoading = false;
+            state.aiAnalysis[reportId] = result;
+            state.aiAnalysisError = null;
+        },
+        aiReportAnalysisFailure: (state, action) => {
+            state.aiAnalysisLoading = false;
+            state.aiAnalysisError = action.payload;
         },
     }
 
@@ -412,9 +415,10 @@ export const {
     fetchAdminReportsDetailRequest, fetchAdminReportsDetailSuccess, fetchAdminReportsDetailFailure,
     
     fetchAdminReportAuditLogsRequest, fetchAdminReportAuditLogsSuccess, fetchAdminReportAuditLogsFailure,
-    fetchMemberReportTrustInfoRequest, fetchMemberReportTrustInfoSuccess, fetchMemberReportTrustInfoFailure,
     
-    createAIReportDetailRequest, createAIReportDetailSuccess, createAIReportDetailFailure
+    createAIReportDetailRequest, createAIReportDetailSuccess, createAIReportDetailFailure,
+    aiReportAnalysisRequest, aiReportAnalysisSuccess, aiReportAnalysisFailure,
+    resetAiAnalysisState
 } = reportReducer.actions;
 
 export default reportReducer.reducer;

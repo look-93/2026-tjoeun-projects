@@ -1,5 +1,6 @@
 package com.moit.meetup.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.moit.common.entity.Sigungu;
@@ -26,7 +27,7 @@ public class MeetupDto {
 		private Long sigunguId;
 		private Long categoryId;
 		private String address;
-		private String meetupAt;
+		private LocalDateTime meetupAt;
 		private MeetupStatus meetupStatus;
 		private Double latitude;
 		private Double longitude;
@@ -46,7 +47,7 @@ public class MeetupDto {
 		private Integer minParticipants;
 
 		private String address;
-		private String meetupAt;
+		private LocalDateTime meetupAt;
 		private MeetupStatus meetupStatus;
 		private Double latitude;
 		private Double longitude;
@@ -97,6 +98,10 @@ public class MeetupDto {
 			response.setSigunguName(sigungu.getName());
 			response.setHidden(meetup.getHidden());
 			
+			response.setCategoryId(meetup.getMeetupCategory().getId());
+			response.setCategoryName(
+			        meetup.getMeetupCategory().getCategoryName()
+			);
 			 // 대표 이미지
 		    if (meetup.getMeetupImages() != null
 		            && !meetup.getMeetupImages().isEmpty()) {

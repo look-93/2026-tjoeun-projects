@@ -3,7 +3,9 @@ package com.moit.qna.dto;
 import java.sql.Timestamp;
 import java.util.List;
 
-import com.moit.qna.entity.QnaStatus;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.moit.qna.enums.QnaStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +25,12 @@ public class QuestionDto {
         private String title;
         private String content;
         private String isPublic;
+        
+        // 문의 이미지
+        private List<MultipartFile> images;
+        
+        // 문의 수정시 삭제할 이미지 ID
+        private List<Long> deleteImageIds;
     }
 
     // 질문 조회 응답 DTO
@@ -46,10 +54,14 @@ public class QuestionDto {
         // JOIN
         private String nickname;
         private AnswerDto.AnswerResponseDto answer;
+        
+        // 문의 이미지
+        private List<QuestionImageDto> images;
 
         // AI 분석 결과
         private String analysisStatus;
         private int aggressionScore;
+        private String aiCategory;
     }
     
     // 관리자 문의 목록 응답 DTO
@@ -83,7 +95,6 @@ public class QuestionDto {
     // 내 문의 목록 응답 DTO
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class QuestionMyResponseDto {
-
         // 문의 목록
         private List<QuestionResponseDto> list;
 
@@ -98,6 +109,10 @@ public class QuestionDto {
         // 검색 조건
         private String type;
         private String keyword;
+
+        // 전체 내 id 문의 기준 통계
+        private int pendingCnt;
+        private int answeredCnt;
     }
     
 }

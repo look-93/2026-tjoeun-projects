@@ -8,6 +8,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import com.moit.advertisement.entity.Advertisement;
 import com.moit.advertisement.enums.AdGrade;
+import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.AdStatus;
 import com.moit.advertisement.enums.ApprovalStatus;
 import com.moit.advertisement.enums.PaymentHistoryStatus;
@@ -69,6 +70,15 @@ public class AdvertisementDto {
     private PaymentHistoryStatus paymentHistoryStatus;
     private BigDecimal paymentAmount;
     private LocalDateTime paidAt;
+    
+    // 추가할 필드들
+    private String orderId;
+    private String paymentKey;
+    private String paymentMethod;
+    private BigDecimal baseAmount;
+    private BigDecimal positionAmount;
+    private LocalDateTime cancelledAt;
+    private String cancelReason;
 
     private BigDecimal fatigueScore;
 
@@ -111,6 +121,8 @@ public class AdvertisementDto {
         private LocalDateTime endDatetime;
 
         private BigDecimal totalBudget;        
+        
+        private List<AdPosition> positions;
     }
     
     // =========================================================

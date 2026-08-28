@@ -16,4 +16,6 @@ public interface AdvertisementPositionPriceRepository
     );
 
 	List<AdvertisementPositionPrice> findByPositionIn(List<AdPosition> positions);
+	
+	List<AdvertisementPositionPrice> findAllByOrderByPositionAsc();
 }

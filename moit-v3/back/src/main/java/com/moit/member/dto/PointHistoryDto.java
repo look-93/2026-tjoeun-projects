@@ -6,7 +6,8 @@ import lombok.Data;
 
 @Data
 public class PointHistoryDto {
-	private Integer historyId;
+	
+	private Long  historyId;
 	private Integer pointPm;
 	private String pointType;
 	private String pointReason;

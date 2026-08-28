@@ -2,20 +2,23 @@
 // 관리자 신고 상세 페이지
 // 신고 상세 조회 + 승인/반려 + 삭제
 
-import { memo, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+// Redux에 액션 전송, Redux에 저장된 값을 꺼내오기
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 
 import {
     fetchAdminReportsDetailRequest,
     updateAdminReportRequest,
-    fetchMemberReportTrustInfoRequest,
     deleteAdminReportRequest,
     fetchAdminReportAuditLogsRequest,
+    aiReportAnalysisRequest,
+    resetReportState,
 } from '../../../reducers/reportReducer';
+
 import {
-    Card, Radio, Input, Button, Typography, Space, Divider, message,
-    Descriptions, Tag, Modal, Spin
+    Card, Input, Button, Typography, Space, Alert,
+    message, Descriptions, Modal, Spin, Text
 } from 'antd';
 
 import ReportStatusTag from '../../../components/ReportStatusTag';
@@ -29,19 +32,26 @@ function ReportDetailPage() {
 
     const [processReason, setProcessReason] = useState('');
 
+    
     const { reportId } = router.query; // 동적라우팅
-
+    
     const {
         currentReport,
         adminFetchDetail,
         adminUpdate,
-        trustInfoFetch,     // 신뢰도 점수 조회
         adminDelete,
-
+        
         auditLogs,
         auditLogFetch,
+        
+        aiAnalysis,         // reportId별 전체 AI 결과 객체
+        aiAnalysisLoading,
+        aiAnalysisError,
 
     } = useSelector((state) => state.report);
+    
+    // 현재 reportId에 해당하는 AI 분석 결과만 가져오기
+    const currentAiAnalysis = aiAnalysis?.[reportId];
 
 
 
@@ -54,38 +64,15 @@ function ReportDetailPage() {
         dispatch( fetchAdminReportsDetailRequest({reportId: Number(reportId)}) );
         dispatch( fetchAdminReportAuditLogsRequest({reportId: Number(reportId)}) );
     }, [router.isReady, dispatch, reportId]);
-
-    // --- 페이지 진입 ---
-    useEffect(() => {
-        if (currentReport?.memberId) {
-            dispatch(
-                fetchMemberReportTrustInfoRequest({
-                    targetMemberId: currentReport.memberId,
-                })
-            );
-        }
-    }, [currentReport?.memberId]);
     
     // --- 신고 처리 후 재조회 ---
     useEffect(() => {
         if (adminUpdate.success) {
             message.success('신고 처리가 완료되었습니다.');
 
-            // 신고 상세 재조회
-            dispatch(
-                fetchAdminReportsDetailRequest({
-                    reportId: router.query.reportId,
-                })
-            );
-
-            // 신고당한 사람의 신뢰도점수 재조회
-            if (currentReport?.memberId) {
-                dispatch(
-                    fetchMemberReportTrustInfoRequest({
-                        targetMemberId: currentReport.memberId,
-                    })
-                );
-            }
+            // ServiceImpl updateAdminReport
+            // 반환형 return responseDto (ReportResponseDto)
+            // 승인 처리 / 신뢰도 변경 포함
 
             // 관리자 처리 감사 로그 재조회
             dispatch(
@@ -94,7 +81,7 @@ function ReportDetailPage() {
                 })
             );
         }
-    }, [adminUpdate.success]);
+    }, [adminUpdate.success, dispatch, reportId]);
     
     // --- 신고 삭제 성공 ---
     useEffect(() => {
@@ -174,10 +161,18 @@ function ReportDetailPage() {
 
         // 리뷰 신고
         if (currentReport.targetType === 'REVIEW') {
+
             router.push(
-                `/user/meetup/review/detail?reviewId=${currentReport.targetId}`
+                // http://localhost:3000/user/meetup/review/detailreview?reviewId=10&meetupId=3
+                `/user/meetup/review/detailreview?reviewId=${currentReport.targetId}&meetupId=${currentReport.meetupId}`
             );
         }
+    };
+
+    // 관리자 신고 AI 판단 보조 요청
+    const handleAiAnalysis = () => {
+        if (!reportId) { return; }
+        dispatch( aiReportAnalysisRequest({reportId}) );
     };
 
     // 신고 수정 - 승인 (신뢰도점수/뱃지/처리상태 변경)
@@ -214,7 +209,6 @@ function ReportDetailPage() {
                 }
             })
         )
-
     };
     
     // 신고 삭제 요청
@@ -261,8 +255,8 @@ function ReportDetailPage() {
                         {' '}
                         ({currentReport.memberId ?? '-'}번)
                         {' => '}
-                        {currentReport.trustScore}점{' '}
-                        <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
+                        {currentReport?.trustScore}점{' '}
+                        <ReportStatusCodeTag statusCode={currentReport.statusCode} />
                     </Descriptions.Item>
 
                     <Descriptions.Item label="신고 대상 회원 (targetMemberId)">
@@ -270,7 +264,7 @@ function ReportDetailPage() {
                         {' '}
                         ({currentReport.targetMemberId ?? '-'}번)
                         {' => '}
-                        {currentReport.targetTrustScore}점{' '}
+                        {currentReport?.targetTrustScore}점{' '}
                         <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
                     </Descriptions.Item>
 
@@ -322,6 +316,66 @@ function ReportDetailPage() {
                     }
                 </Descriptions>
 
+                {/* ============================== */}
+                {/* AI 신고 판단 보조 */}
+                {/* ============================== */}
+                <Card title="AI 판단 보조" style={{ marginTop: 24 }}>
+                    <Space
+                        direction="vertical"
+                        size="middle"
+                        style={{ width: '100%' }}
+                    >
+                        <p>
+                            신고 내용과 신고 대상 원문,
+                            운영 기준 및 과거 유사 사례를 기반으로 분석합니다.
+                        </p>
+
+                        <span style={{color: '#888'}}>
+                            ※ AI 결과는 참고용이며 최종 승인 및 반려 결정은 관리자가 수행합니다.
+                        </span>
+
+                        <Button
+                            type="primary"
+                            onClick={handleAiAnalysis}
+                            loading={aiAnalysisLoading}
+                            disabled={!reportId}
+                        >   
+                            {aiAnalysisLoading ? (
+                                <>
+                                    분석 중... ⏳
+                                </>
+                            ) : (
+                                "AI 판단 보조 요청"
+                            )}
+                        </Button>
+
+                        {/* AI가 분석해서 보내준 최종 결과 Error */}
+                        {aiAnalysisError && (
+                            <Alert
+                                type="error"
+                                showIcon
+                                message="AI 분석 실패"
+                                description={aiAnalysisError}
+                            />
+                        )}
+
+                        {/* AI가 분석해서 보내준 최종 결과가 있다면 */}
+                        {currentAiAnalysis && (
+                            <Card size="small" title="AI 분석 결과">
+                                <div
+                                    style={{
+                                        whiteSpace: 'pre-wrap',
+                                        wordBreak: 'break-word',
+                                        lineHeight: 1.7,
+                                    }}
+                                >
+                                    {currentAiAnalysis}
+                                </div>
+                            </Card>
+                        )}
+                    </Space>
+                </Card>
+
 
                 {/* 관리자 처리 사유 */}
                 {currentReport.status === 'PENDING' && (
@@ -355,9 +409,29 @@ function ReportDetailPage() {
                     {
                         currentReport.status === 'PENDING' && (
                             <Space>
-                                <Button type="primary" onClick={handleApproved}>승인</Button>
-                                <Button danger onClick={handleRejected}>반려</Button>
-                                <Button type="danger" onClick={handleDelete}>삭제</Button>
+                                <Button
+                                    type="primary"
+                                    onClick={handleApproved}
+                                    loading={adminUpdate.loading}
+                                >
+                                    승인
+                                </Button>
+
+                                <Button
+                                    danger
+                                    onClick={handleRejected}
+                                    loading={adminUpdate.loading}
+                                >
+                                    반려
+                                </Button>
+
+                                <Button
+                                    type="danger"
+                                    onClick={handleDelete}
+                                    loading={adminDelete.loading}
+                                >
+                                    삭제
+                                </Button>
                             </Space>
                         )
                     }

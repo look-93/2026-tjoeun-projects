@@ -4,22 +4,36 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moit.common.dto.SigunguDto;
+import com.moit.common.dto.SolapiSmsDto.SolapiSmsRequestDto;
+import com.moit.common.dto.WeatherInfoRequest;
+import com.moit.common.dto.WeatherInfoResponse;
 import com.moit.common.entity.Image;
 import com.moit.common.entity.Sigungu;
 import com.moit.common.repository.ImageRepository;
+import com.moit.common.service.OpenApiService;
+import com.moit.config.ThymeleafConfig;
 import com.moit.exception.ResourceNotFoundException;
 import com.moit.meetup.client.OpenAiApiClient;
 import com.moit.meetup.dto.MeetupApplicationDto.MeetupApplicantResponseDto;
@@ -41,20 +55,28 @@ import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
 import com.moit.meetup.entity.Meetup;
 import com.moit.meetup.entity.MeetupApplication;
+import com.moit.meetup.entity.MeetupBoost;
 import com.moit.meetup.entity.MeetupCategory;
 import com.moit.meetup.entity.MeetupImage;
 import com.moit.meetup.entity.MeetupLike;
+import com.moit.meetup.entity.MeetupNotification;
 import com.moit.meetup.enums.ApplyStatus;
+import com.moit.meetup.enums.MeetupNotificationSendStatus;
+import com.moit.meetup.enums.MeetupNotificationType;
 import com.moit.meetup.enums.MeetupStatus;
 import com.moit.meetup.repository.MeetupApplicationRepository;
+import com.moit.meetup.repository.MeetupBoostRepository;
 import com.moit.meetup.repository.MeetupCategoryRepository;
 import com.moit.meetup.repository.MeetupImageRepository;
 import com.moit.meetup.repository.MeetupLikesRepository;
+import com.moit.meetup.repository.MeetupNotificationRepository;
 import com.moit.meetup.repository.MeetupRepository;
 import com.moit.meetup.repository.MeetupSigunguRepository;
 import com.moit.member.entity.Member;
 import com.moit.member.entity.MemberInfo;
+import com.moit.member.entity.PointHistory;
 import com.moit.member.repository.MemberRepository;
+import com.moit.member.repository.PointHistoryRepository;
 import com.moit.util.UtilUpload;
 
 import lombok.RequiredArgsConstructor;
@@ -63,6 +85,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MeetupServiceImpl implements MeetupService{
+
+    private final ThymeleafConfig thymeleafConfig;
+	
+	private static final String BOOST_KEY_PREFIX = "meetup:boost:";
+	private static final int BOOST_POINT = 200; // 끌어올리기 비용
 	
 	private final MeetupRepository meetupRepository;
 	private final MeetupApplicationRepository meetupApplicationRepository;
@@ -74,7 +101,12 @@ public class MeetupServiceImpl implements MeetupService{
 	private final MeetupImageRepository meetupImageRepository;
 	private final ImageRepository imageRepository;
 	private final OpenAiApiClient openAiApiClient;
-		
+    private final MeetupBoostRepository meetupBoostRepository;
+    private final PointHistoryRepository pointHistoryRepository;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final OpenApiService openApiService;
+    private final MeetupNotificationRepository meetupNotificationRepository;
+
 	//모임리스트조회
 	@Override
 	public MeetupListResponseDto search(
@@ -316,11 +348,13 @@ public class MeetupServiceImpl implements MeetupService{
 	                "삭제된 게시글 입니다. MEETUPID" + meetupId
 	        );
 	    }
-
+	    
+	    // 기존 개설상태
+	    MeetupStatus previousStatus = meetup.getMeetupStatus();
+	    
 	    // =========================
 	    // 모임 정보 수정
 	    // =========================
-
 	    meetup.setTitle(meetupRequestDto.getTitle());
 	    meetup.setContent(meetupRequestDto.getContent());
 	    meetup.setMaxParticipants(meetupRequestDto.getMaxParticipants());
@@ -336,10 +370,23 @@ public class MeetupServiceImpl implements MeetupService{
 	    meetup.setNx(meetupRequestDto.getNx());
 	    meetup.setNy(meetupRequestDto.getNy());
 	    
+	    // =========================
+	    // 모임 완료 시 신청승인 상태의 참여자에게만 신뢰도 +10
+	    // =========================
+	    if (previousStatus != MeetupStatus.COMPLETED
+	            && meetupRequestDto.getMeetupStatus() == MeetupStatus.COMPLETED) {
+
+	        meetup.getMeetupApplications().stream()
+	                .filter(meetupApplications ->
+	                meetupApplications.getApplyStatus() == ApplyStatus.APPROVED)
+	                .forEach(meetupApplications ->
+	                        changeTrustScore(meetupApplications.getMember(), 10));
+	    }
+	    
 		 // =========================
 		 // 기존 이미지 삭제
 		 // =========================
-	
+
 		 List<String> keepImagePaths = (existingImagePaths != null) ? existingImagePaths : new ArrayList<>();
 	
 		 // 삭제해야 할 MeetupImage 추출
@@ -430,15 +477,22 @@ public class MeetupServiceImpl implements MeetupService{
 	        // 신청 중이면 → 취소
 	        if (meetupApplication.getApplyStatus() == ApplyStatus.PENDING) {
 	        	
-	        	//오늘 신청한 경우
-	        	if(meetupApplication.getCreatedAt().toLocalDate().isEqual(LocalDate.now())) {
-	        		
-		        	// 신청 1시간 이후 취소 시 신뢰도 점수 차감 - -5점
-		        	if(meetupApplication.getCreatedAt().plusHours(1).isBefore(LocalDateTime.now())) {
-		        	    changeTrustScore(member, -5);
-		        	}
-	        	}
+	            // 모임 날짜
+	        	LocalDateTime meetupDate = meetup.getMeetupAt();          
+
+	            /* 당일취소 1시간 경과 취소하면 -5점 */
+	            
+	        	// 오늘 진행되는 모임인지 확인
+	        	boolean isTodayMeetup = meetupDate.isEqual(LocalDateTime.now());
 	        	
+	        	//신청 후 경과 시간
+	        	long elapsedMinutes  = ChronoUnit.MINUTES.between(meetupApplication.getCreatedAt(), LocalDateTime.now());
+	            
+	        	// 오늘 모임 + 신청 후 1시간 초과
+	            if (isTodayMeetup && elapsedMinutes > 1) {
+	                changeTrustScore(member, -5);
+	            }
+
 	            meetupApplication.setApplyStatus(ApplyStatus.CANCELED);
 	            return;
 	        }
@@ -546,7 +600,13 @@ public class MeetupServiceImpl implements MeetupService{
 	@Override
 	public MeetupApplyMemberListResponseDto getMyMeetupApplicants(Long meetupId, Long memberId, Pageable pageable) {
 
-		Page<MeetupApplication> page = meetupApplicationRepository.findByMeetup_IdAndMeetup_Member_Id(meetupId, memberId, pageable);
+		List<ApplyStatus> excludedStatuses = List.of(
+				ApplyStatus.CANCELED,
+				ApplyStatus.CANCEL_LAST_MINUTE
+		);	
+		
+		Page<MeetupApplication> page = meetupApplicationRepository.findByMeetup_IdAndMeetup_Member_IdAndApplyStatusNotIn(
+																	meetupId, memberId, excludedStatuses, pageable);
 		
 		MeetupApplyMemberListResponseDto response = new MeetupApplyMemberListResponseDto();
 		
@@ -670,11 +730,154 @@ public class MeetupServiceImpl implements MeetupService{
 	
 	//인기모임
 	@Override
-	public List<PopularMeetupResponseDto> getPopularMeetups() {
+	public List<PopularMeetupResponseDto> getPopularMeetups(Long memberId) {
 
 	    Pageable pageable = PageRequest.of(0, 4);
 
-	    return meetupRepository.findPopularMeetups(pageable);
+	    // 좋아요 수 기준 인기 모임 4개
+	    List<PopularMeetupResponseDto> list =
+	            meetupRepository.findPopularMeetups(pageable);
+	    
+	    //System.out.println("인기모임 원본 조회: " + list);
+	    
+	    // 인기 모임 ID 추출
+	    List<Long> meetupIds = list.stream()
+	            .map(PopularMeetupResponseDto::getId)
+	            .toList();
+	    
+	    //System.out.println("인기모임 ID: " + meetupIds);
+	    
+	    // 로그인 사용자라면 내가 좋아요했는지 조회
+	    if (memberId != null && !meetupIds.isEmpty()) {
+
+	        List<MeetupLikeDto> likeResult =
+	                meetupLikesRepository.findLikedMeetups(
+	                        meetupIds,
+	                        memberId
+	                );
+	        //System.out.println("내가 좋아요한 인기모임: " + likeResult);
+	        // hasLike 세팅
+	        list.forEach(meetup -> {
+
+	            boolean hasLike = likeResult.stream()
+	                    .anyMatch(like ->
+	                            like.getMeetupId().equals(meetup.getId())
+	                    );
+
+	            meetup.setHasLike(hasLike);
+	        });
+	    }
+
+	    return list;
+	}
+	
+	// 추천모임
+	@Override
+	public List<MeetupResponseDto> getRecommendedMeetups(Long memberId, Long meetupId) {
+	    Pageable pageable = PageRequest.of(0, 3);
+
+	    List<Meetup> recommended;
+
+	    // 로그인한 회원 → 관심사 기반 추천
+	    if (memberId != null) {
+	        recommended = meetupRepository.findRecommendedMeetups(
+	                memberId,
+	                meetupId,
+	                pageable
+	        );
+	    } else {
+	        // 비로그인 → 전체 랜덤
+	        recommended = meetupRepository.findRandomMeetups(
+	                meetupId,
+	                pageable
+	        );
+	    }
+
+	    // 관심사에 맞는 모임이 없으면 전체 랜덤
+	    if (recommended.isEmpty()) {
+	        recommended = meetupRepository.findRandomMeetups(
+	                meetupId,
+	                pageable
+	        );
+	    }
+	    return recommended.stream()
+	            .map(MeetupResponseDto::listFrom)
+	            .toList();	    
+	}
+	
+	//모임끌어올리기
+	@Transactional
+	@Override
+	public void boostMeetup(Long memberId, Long meetupId) {
+		
+        // 회원 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "존재하지 않는 회원입니다. MEMBERID" + memberId
+                        )
+                );
+        // 모임 조회
+        Meetup meetup = meetupRepository.findById(meetupId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "존재하지 않는 모임입니다. MEETUPID" + meetupId
+                        )
+                );
+        
+        // 모임 개설자 본인 확인
+        if(!meetup.getMember().getId().equals(memberId)) {
+        	throw new IllegalStateException("모임 개설자만 끌어올리기 할 수 있습니다.");
+        }
+        
+        // Redis에서 최근 7일 이내 끌어올리기 여부 확인
+        String key = BOOST_KEY_PREFIX + meetupId;
+
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+            throw new IllegalStateException(
+                    "최근 7일 이내 이미 끌어올린 모임입니다."
+            );
+        }
+        
+        // 회원 포인트 확인
+        MemberInfo memberInfo = member.getMemberInfo();
+        
+        if(memberInfo.getPoint() < BOOST_POINT) {
+        	throw new IllegalStateException(
+                    "포인트가 부족합니다."
+            );
+        }
+
+        // 포인트 차감
+        memberInfo.setPoint(memberInfo.getPoint() - BOOST_POINT);
+        
+     // PointHistory 저장
+        PointHistory pointHistory = new PointHistory();
+        pointHistory.setMember(member);
+        pointHistory.setPointPm(-BOOST_POINT);
+        pointHistory.setPointType("USE");
+        pointHistory.setPointReason("MEETUP_BOOST");
+        
+        pointHistoryRepository.save(pointHistory);
+        
+        // MeetupBoost 저장
+        MeetupBoost meetupBoost = MeetupBoost.builder()
+        									 .meetup(meetup)
+        									 .pointHistory(pointHistory)
+        									 .endDate(LocalDate.now().plus(7, ChronoUnit.DAYS))
+        									 .build();
+        
+        meetupBoostRepository.save(meetupBoost);  
+        
+        // Redis 7일동안 저장
+        redisTemplate.opsForValue().set(key, "1", 7, TimeUnit.DAYS);
+        
+        /*
+        key             → 저장할 Redis Key "meetup:boost:10"
+		"1"             → 저장할 Value
+		7               → 만료 시간
+		TimeUnit.DAYS   → 7의 단위 = 일  
+        */
 	}
 	
 	// ################### open api ###################
@@ -733,7 +936,10 @@ public class MeetupServiceImpl implements MeetupService{
 
 	    int currentScore = memberInfo.getTrustScore();
 
-	    int newScore = currentScore + amount;
+	    int newScore = Math.max(
+	            0,
+	            Math.min(100, currentScore + amount)
+	    );
 
 	    memberInfo.setTrustScore(newScore);
 
@@ -769,6 +975,146 @@ public class MeetupServiceImpl implements MeetupService{
 	    }
 
 	    member.getMemberInfo().setAiSummary(aiSummary);
+	}
+	
+	// 날씨 알림 sms
+	@Override
+	@Transactional
+	public void sendTomorrowWeatherNotification() {
 
-	}	
+	    // 내일 날짜 구하기
+	    LocalDate tomorrow = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(1);
+
+	    // 내일의 시작 시간(00:00:00) 구하기
+	    LocalDateTime start = tomorrow.atStartOfDay();
+
+	    // 모레 시작 시간
+	    LocalDateTime end = tomorrow.plusDays(1).atStartOfDay();
+
+	    // 내일 모임 조회
+	    List<Meetup> meetups = meetupRepository.findTomorrowMeetups(start, end);
+
+	    // 같은 지역(nx, ny)의 날씨 API 중복 호출 방지
+	    Map<String, WeatherInfoResponse> weatherCache = new HashMap<>();
+
+	    // 해당 모임 날씨 조회
+	    for (Meetup meetup : meetups) {
+
+	        // 날씨 정보 요청
+	        WeatherInfoRequest request = new WeatherInfoRequest();
+
+	        request.setNx(meetup.getNx());
+	        request.setNy(meetup.getNy());
+
+	        // 비 예보 확인
+	        request.setMeetupDate(
+	                meetup.getMeetupAt()
+	                      .toLocalDate()
+	                      .format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+	        );
+
+	        request.setMeetupTime(meetup.getMeetupAt().getHour());
+
+	        // nx + ny를 지역 캐시 키로 사용
+	        String cacheKey = request.getNx() + "_" + request.getNy();
+	        
+	        // 캐시에서 꺼냄
+	        WeatherInfoResponse weather = weatherCache.get(cacheKey);
+
+	        // 캐시에 없으면 API 호출
+	        if (weather == null) {
+	            try {
+	            	
+	                weather = openApiService.getWeathreInfo(request);
+	                
+	                //캐시에 저장
+	                weatherCache.put(cacheKey, weather);
+	                
+	            } catch (Exception e) {
+	                System.out.println("날씨 조회 실패 - meetupId: " + meetup.getId() + ", error: " + e.getMessage());
+	                continue;
+	            }
+	        }
+
+	        // 강수확률 확인 (null 체크로 NPE 방지)
+	        if (weather.getPop() == null || weather.getPop() < 50) { // 강수확률 50%이상 문자발송
+	            continue;
+	        }
+
+	        // 이 모임에 대해 이미 알림 보낸 참여자 ID를 한 번에 조회 (참여자별 개별 쿼리 방지)
+	        Set<Long> alreadyNotifiedMemberIds;
+	        try {
+	            alreadyNotifiedMemberIds = meetupNotificationRepository
+	                    .findByMeetupAndMeetupNotificationType(meetup, MeetupNotificationType.RAIN)
+	                    .stream()
+	                    .map(n -> n.getMember().getId())
+	                    .collect(Collectors.toSet());
+	        } catch (Exception e) {
+	            System.out.println("알림 이력 조회 실패 - meetupId: " + meetup.getId() + ", error: " + e.getMessage());
+	            continue;
+	        }
+
+	        // 승인된 참여자에게 SMS 발송
+	        for (MeetupApplication application : meetup.getMeetupApplications()) {
+
+	            // 승인된 참여자가 아니면 continue
+	            if (application.getApplyStatus() != ApplyStatus.APPROVED) {
+	                continue;
+	            }
+
+	            Member member = application.getMember();
+
+	            // 이미 이 모임에 대해 날씨 알림을 보냈으면 스킵 (중복 발송 방지)
+	            if (alreadyNotifiedMemberIds.contains(member.getId())) {
+	                continue;
+	            }
+
+	            DateTimeFormatter smsDateFormatter = DateTimeFormatter.ofPattern("M/d(E) HH:mm", Locale.KOREAN); 
+	            
+	            String mobile = member.getMobile();
+	            String messageText =
+	                    "☔ [MOIT 날씨 알림]\n"
+	                  + "[" + meetup.getMeetupCategory().getCategoryName() + "] " + meetup.getMeetupAt().format(smsDateFormatter) + "\n"
+	                  + "내일 비소식이 있습니다.\n"
+	                  + "모임 참여 시 참고하세요.\n"
+	                  + "강수확률: " + weather.getPop() + "%\n";
+
+	            // 참여자 한 명 SMS 발송 실패해도 나머지는 계속 발송되도록 개별 try-catch
+	            MeetupNotificationSendStatus status;
+	            try {
+	                SolapiSmsRequestDto smsRequest = new SolapiSmsRequestDto();
+	                smsRequest.setPhoneNumber(mobile);
+	                smsRequest.setMessage(messageText);
+
+	                openApiService.sendSms(smsRequest);
+	                status = MeetupNotificationSendStatus.SENT;
+
+	            } catch (Exception e) {
+	                status = MeetupNotificationSendStatus.FAILED;
+	                System.out.println("SMS 발송 실패 - memberId: " + member.getId() + ", error: " + e.getMessage());
+	            }
+
+	            // 저장 실패가 SMS 발송(위 블록)에 영향 주지 않도록 별도 try-catch로 분리
+	            try {
+	                MeetupNotification notification = MeetupNotification.builder()
+	                        .meetup(meetup)
+	                        .member(member)
+	                        .meetupNotificationType(MeetupNotificationType.RAIN)
+	                        .phoneNumber(mobile)
+	                        .message(messageText)
+	                        .meetupNotificationSendStatus(status)
+	                        .sentAt(status == MeetupNotificationSendStatus.SENT ? LocalDateTime.now() : null)
+	                        .build();
+
+	                meetupNotificationRepository.save(notification);
+
+	            } catch (Exception e) {
+	                System.out.println("⚠️ 알림 이력 저장 실패 (SMS 발송 결과: " + status + ") - memberId: "
+	                        + member.getId() + ", error: " + e.getMessage());
+	            }
+	        }
+	    }
+	    
+	} // end sendTomorrowWeatherNotification
+    
 }

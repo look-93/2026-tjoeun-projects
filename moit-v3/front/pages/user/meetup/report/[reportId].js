@@ -8,11 +8,11 @@ import { useRouter } from 'next/router';
 import {
     fetchReportsDetailRequest,
     deleteReportRequest,
-    deleteReportSuccess
+    resetReportState
 } from '../../../../reducers/reportReducer';
 import {
-    Card, Radio, Input, Button, Typography, Space, Divider, message,
-    Descriptions, Tag, Modal, Spin
+    Card, Button, Typography, Space, message,
+    Descriptions, Modal, Spin
 } from 'antd';
 
 import ReportStatusTag from '../../../../components/ReportStatusTag';
@@ -27,6 +27,7 @@ function ReportDetailPage() {
     const dispatch = useDispatch();
 
     const { reportId } = router.query; // 동적라우팅
+
     const {
         currentReport,
         fetchDetail,
@@ -34,6 +35,12 @@ function ReportDetailPage() {
     } = useSelector((state) => state.report);
 
 
+    // 페이지 나갈 때 success 초기화
+    useEffect(() => {
+        return () => {
+            dispatch(resetReportState());
+        };
+    }, [dispatch]);
 
     // --- 신고 상세 조회 ---
     useEffect(() => {
@@ -54,7 +61,7 @@ function ReportDetailPage() {
     useEffect(() => {
         if (deleteState.success) {
             message.success('신고 내역이 삭제되었습니다.');
-            router.push('/user/meetup/report');
+            router.push('/user/mypage/report');
         }
     }, [deleteState.success, router]);
     
@@ -93,7 +100,6 @@ function ReportDetailPage() {
     };
 
 
-
     //////////////////////////////////////////////////////
     // 해당 신고 대상 글 보기
     const handleTargetView = () => {
@@ -108,6 +114,7 @@ function ReportDetailPage() {
 
         // 리뷰 신고
         if (currentReport.targetType === 'REVIEW') {
+
             router.push(
                 // http://localhost:3000/user/meetup/review/detailreview?reviewId=10&meetupId=3
                 `/user/meetup/review/detailreview?reviewId=${currentReport.targetId}&meetupId=${currentReport.meetupId}`
@@ -172,7 +179,7 @@ function ReportDetailPage() {
                         ({currentReport.memberId ?? '-'}번)
                         {' => '}
                         {currentReport.trustScore}점{' '}
-                        <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
+                        <ReportStatusCodeTag statusCode={currentReport.statusCode} />
                     </Descriptions.Item>
 
                     <Descriptions.Item label="신고 대상 회원 (targetMemberId)">
@@ -237,7 +244,7 @@ function ReportDetailPage() {
                     {/* 신고 목록 */}
                     <Button
                         onClick={() =>
-                            router.push('/user/meetup/report')
+                            router.push('/user/mypage/report')
                         }
                     >
                         목록

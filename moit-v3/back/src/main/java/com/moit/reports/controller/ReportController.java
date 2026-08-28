@@ -17,18 +17,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.moit.reports.api.ApiOpenAi;
-import com.moit.reports.dto.AiReportsDto;
-
-import com.moit.reports.dto.MemberTrustInfoDto;
 import com.moit.reports.dto.ReportAuditLogDto;
 import com.moit.reports.dto.ReportSearchDto;
 import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
 import com.moit.reports.dto.ReportsDto.ReportProcessDto;
 import com.moit.reports.dto.ReportsDto.ReportRequestDto;
 import com.moit.reports.dto.ReportsDto.ReportResponseDto;
-import com.moit.reports.enums.ReasonCode;
-import com.moit.reports.enums.ReportStatus;
 import com.moit.reports.enums.TargetType;
 import com.moit.reports.service.ReportsService;
 import com.moit.security.CustomUserDetails;
@@ -45,8 +39,6 @@ import lombok.RequiredArgsConstructor;
 public class ReportController {
 
 	private final ReportsService reportsService;
-	private final ApiOpenAi apiOpenAi;
-//	private final ApiEmail apiEmail;
 
 	// test button
 //	@RequestMapping("/user/meetup/report/button")
@@ -54,7 +46,7 @@ public class ReportController {
 //        return "user/meetup/report/button";
 //    }
 
-	// 사용자 로그인 헬퍼
+	// 로그인 헬퍼
 	private Long getLoginMemberId(Authentication authentication) {
 		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
@@ -160,13 +152,10 @@ public class ReportController {
 			@Parameter(description = "처리할 신고글 ID") @PathVariable(name = "reportId") Long reportId,
 			@RequestBody ReportProcessDto processDto) {
 
-		// 관리자 로그인 하드코딩
-		Long MemberId = 99L;
-		
 		// 로그인한 adminMemberId 꺼내오기
-//		Long memberId = getLoginMemberId(authentication);
+		Long adminMemberId = getLoginMemberId(authentication);
 		
-		ReportResponseDto response = reportsService.updateAdminReport(reportId, MemberId, processDto);
+		ReportResponseDto response = reportsService.updateAdminReport(reportId, adminMemberId, processDto);
 		return ResponseEntity.ok(response);
 	};
 
@@ -178,11 +167,8 @@ public class ReportController {
 			@PathVariable("reportId") Long reportId,
 			@RequestParam("processReason") String processReason) {
 
-		// 로그인 하드코딩
-		Long adminMemberId = 99L;
-
 		// 로그인한 adminMemberId 꺼내오기
-//		Long memberId = getLoginMemberId(authentication);
+		Long adminMemberId = getLoginMemberId(authentication);
 		
 		reportsService.deleteAdminReport(reportId, adminMemberId, processReason);
 		return ResponseEntity.ok(reportId);
@@ -192,15 +178,8 @@ public class ReportController {
 	@Operation(summary = "관리자 신고 목록 조회", description = "필터(버튼)이랑 서치(키워드)를 혼합하여 검색합니다.")
 	@GetMapping("/admin/adminReportsList")
 	public ResponseEntity<ReportListResponseDto> getReportsAdmin(
-			Authentication authentication,
 			@ModelAttribute ReportSearchDto searchDto, // 검색조건
 			@PageableDefault(size = 10) Pageable pageable) {
-
-		// 로그인 하드코딩
-		Long adminMemberId = 99L;
-
-		// 로그인한 adminMemberId 꺼내오기
-//		Long memberId = getLoginMemberId(authentication);
 
 		ReportListResponseDto response = reportsService.getAdminReports(searchDto, pageable);
 		return ResponseEntity.ok(response);
@@ -210,14 +189,7 @@ public class ReportController {
 	@Operation(summary = "관리자 리스트 상세 조회", description = "관리자 리스트를 상세 조회합니다.")
 	@GetMapping("/admin/{reportId}")
 	public ResponseEntity<ReportResponseDto> getReportAdminDetail(
-			Authentication authentication,
 			@PathVariable("reportId") Long reportId) {
-		
-		// 로그인 하드코딩
-		Long adminMemberId = 99L;
-
-		// 로그인한 adminMemberId 꺼내오기
-//		Long memberId = getLoginMemberId(authentication);
 		
 		ReportResponseDto report = reportsService.getAdminReportDetail(reportId);
 		return ResponseEntity.ok(report);
@@ -233,36 +205,4 @@ public class ReportController {
 		List<ReportAuditLogDto> response = reportsService.getReportAuditLogs(reportId);
 		return ResponseEntity.ok(response);
 	}
-
-	// 신고당한 회원 신뢰도 점수 / 뱃지 조회
-	@Operation(summary = "신고 대상 회원 신뢰도 정보 조회", description = "신고 대상 회원의 신뢰도 점수와 신고 상태 뱃지를 조회합니다.")
-	@GetMapping("/admin/member/{targetMemberId}/trustInfo")
-	public ResponseEntity<MemberTrustInfoDto> getMemberTrustInfo(
-			@PathVariable("targetMemberId") Long targetMemberId) {
-
-		MemberTrustInfoDto response = reportsService.getMemberTrustInfo(targetMemberId);
-		return ResponseEntity.ok(response);
-	}
-
-	//////////////////////////////////////////////////////////
-	// ApiOpenAi
-	@Operation(summary = "AI 신고 내용 작성", description = "키워드, 사유, 타겟타입 기반으로 AI가 신고 내용을 작성합니다.")
-	@PostMapping("/openai")
-	public ResponseEntity<String> createReportApiOpenAi(
-			@RequestBody AiReportsDto dto) {
-
-		String response = apiOpenAi.getAIResponse(dto);
-		return ResponseEntity.ok(response);
-	}
-
-	//////////////////////////////////////////////////////////
-	// ApiEmail
-//	@Operation(summary = "AI 신고 내용 작성", description = "사용자가 입력한 키워드를 기반으로 AI가 신고 내용을 작성합니다.")
-//	@PostMapping("/openai")
-//	public ResponseEntity<String> createReportApiOpenAi (
-//			@RequestBody Map<String, String> request ) {
-//		
-//		String keywords = request.get("keywords");
-//		return ResponseEntity.ok(apiOpenAi.getAIResponse(keywords));
-//	}
 }

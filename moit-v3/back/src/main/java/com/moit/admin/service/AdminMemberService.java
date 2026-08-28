@@ -85,10 +85,14 @@ public class AdminMemberService {
     	// 정지 회원
     	Long suspendedCount = memberRepository.countByMemberStatus_StatusIdAndDeleteYn(3L, DELETE_NO);
     	
+    	// 오늘 가입자 수
+    	Long todayCount = memberRepository.countTodayMembers();
+    	
     	dto.setAllCount(allCount);
     	dto.setAdminCount(adminCount + superAdminCount);
     	dto.setMemberCount(memberCount);
     	dto.setSuspendedCount(suspendedCount);
+    	dto.setTodayCount(todayCount);
     	
     	return dto;
     }

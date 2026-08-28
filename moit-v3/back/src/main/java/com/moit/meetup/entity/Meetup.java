@@ -1,12 +1,12 @@
 package com.moit.meetup.entity;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.moit.common.entity.Sigungu;
 import com.moit.meetup.enums.MeetupStatus;
 import com.moit.member.entity.Member;
-import com.moit.review.entity.Review;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -62,7 +62,7 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	private String addressDetail;
 	
 	@Column
-	private String meetupAt;
+	private LocalDateTime meetupAt;
 	
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
@@ -85,7 +85,7 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	private Boolean hidden = false;
 	
 	@ManyToOne
-	@JoinColumn(name="member_id", nullable = false)
+	@JoinColumn(name = "member_id", nullable = false)
 	private  Member member;
 	
 	@OneToMany(mappedBy = "meetup", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -95,11 +95,11 @@ public class Meetup extends BaseEntity{ //  extends BaseEntity -> 이렇게하�
 	private List<MeetupImage> meetupImages = new ArrayList<>();
 	
 	@ManyToOne
-	@JoinColumn(name="meetupCategory_id", nullable = false)
+	@JoinColumn(name = "meetupCategory_id", nullable = false)
 	private MeetupCategory meetupCategory;	
 	
 	@ManyToOne
-	@JoinColumn(name="sigungu_id", nullable = false)
+	@JoinColumn(name = "sigungu_id", nullable = false)
 	private Sigungu sigungu;
 	
 	@OneToMany(mappedBy = "meetup", cascade = CascadeType.ALL, orphanRemoval = true)

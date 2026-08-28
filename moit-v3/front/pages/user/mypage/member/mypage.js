@@ -2,9 +2,9 @@ import React, { useEffect } from "react";
 import { Layout, Spin, message } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 
-import MyPageUserInfo from "../../../components/MyPageUserInfo";
+import MyPageUserInfo from "../../../../components/MyPageUserInfo";
 
-import { getMyPageRequest } from "../../../reducers/userReducer";
+import { getMyPageRequest } from "../../../../reducers/userReducer";
 
 const { Content } = Layout;
 
