@@ -181,9 +181,10 @@ function AdminReviewPage() {
                 ))}
             </Row>
 
-            <AdminListTabs tabs={listTabs} activeTab={listType} onChange={setListType} />
+            {/* <AdminListTabs tabs={listTabs} activeTab={listType} onChange={setListType} /> */}
 
             {/* 🌟 상단 필터 컨트롤 영역 (공개/비공개 탭 Select + 검색 박스) */}
+            <div style={{ height: '20px' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
                 <Space>
                     <span>상태 필터:</span>
@@ -200,18 +201,19 @@ function AdminReviewPage() {
                 </Space>
 
                 <AdminSearchBox
-                    conditions={[
-                        {
-                            key: 'category',
-                            defaultValue: 'all',
-                            options: [
-                                { value: 'all', label: '전체' },
-                                { value: 'content', label: '내용' },
-                                { value: 'nickname', label: '작성자' },
-                            ],
-                        },
-                    ]}
+                    // conditions={[
+                    //     {
+                    //         key: 'category',
+                    //         defaultValue: 'all',
+                    //         options: [
+                    //             { value: 'all', label: '전체' },
+                    //             { value: 'content', label: '내용' },
+                    //             { value: 'nickname', label: '작성자' },
+                    //         ],
+                    //     },
+                    // ]}
                     onSearch={handleSearch}
+                    
                 />
             </div>
 

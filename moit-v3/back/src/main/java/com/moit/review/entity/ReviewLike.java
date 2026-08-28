@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,7 +22,15 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Table(name="REVIEW_LIKES")
+@Table(
+	    name="REVIEW_LIKES",
+	    uniqueConstraints = {
+	        @UniqueConstraint(
+	            name = "UK_REVIEW_MEMBER_LIKE",
+	            columnNames = {"REVIEW_ID", "MEMBER_ID"}
+	        )
+	    }
+	)
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA용 기본 생성자
 public class ReviewLike extends BaseEntity {
 

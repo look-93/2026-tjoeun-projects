@@ -286,7 +286,7 @@ export const {
     deleteReviewSuccess,
     deleteReviewFailure,
     getReviewListRequest,
-    getAdminReviewListRequest, // 🌟 [추가] 관리자 목록 조회 액션 내보내기
+    getAdminReviewListRequest, 
     getReviewListSuccess,
     getReviewListFailure,
     toggleReviewLikeRequest,
