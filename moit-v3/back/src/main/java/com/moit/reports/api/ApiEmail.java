@@ -55,7 +55,7 @@ public class ApiEmail {
 			// 받는 사람
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
 			message.setSubject(subject);
-			message.setText(content + "\n(이 메일은 자동 발송된 안내 메일입니다.)", "UTF-8");
+			message.setText(content + "\n\n(이 메일은 자동 발송된 안내 메일입니다.)", "UTF-8");
 			
 			Transport.send(message);
 			System.out.println("\n....... sendEmail successfully .......");

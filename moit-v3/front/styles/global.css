@@ -2,27 +2,27 @@
 html,
 body,
 #__next {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+    margin: 0;
+    padding: 0;
+    height: 100%;
 }
 
 /* 폰트 및 배경 */
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #f5f5f5;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #f5f5f5;
 }
 
 /* 링크 스타일 */
 a {
-  color: inherit;
-  text-decoration: none;
+    color: inherit;
+    text-decoration: none;
 }
 
 /* Ant Design Layout 기본 높이 */
 .ant-layout {
-  min-height: 100vh;
+    min-height: 100vh;
 }
 
 /* UserLayout */
@@ -32,85 +32,85 @@ a {
 ========================= */
 
 .moit-header {
-  height: 80px;
-  padding: 0 60px;
-  background: #fafafa;
-  border-bottom: 1px solid #eee;
+    height: 80px;
+    padding: 0 60px;
+    background: #fafafa;
+    border-bottom: 1px solid #eee;
 }
 
 .moit-header-row {
-  height: 100%;
+    height: 100%;
 }
 
 .moit-logo {
-  font-size: 28px;
-  font-weight: 800;
-  color: #4a7dff;
-  letter-spacing: -1px;
-  text-decoration: none;
-  cursor: pointer;
+    font-size: 28px;
+    font-weight: 800;
+    color: #4a7dff;
+    letter-spacing: -1px;
+    text-decoration: none;
+    cursor: pointer;
 }
 
 .moit-logo:hover {
-  color: #222;
+    color: #222;
 }
 
 .moit-slogan {
-  font-size: 14px;
-  color: #888;
-  white-space: nowrap;
+    font-size: 14px;
+    color: #888;
+    white-space: nowrap;
 }
 
 .moit-header-link {
-  color: #333;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
+    color: #333;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
 }
 
 .moit-header-link:hover {
-  color: #333;
+    color: #333;
 }
 
 .moit-inquiry {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 .moit-alarm-icon {
-  font-size: 20px;
-  color: #333;
-  cursor: pointer;
+    font-size: 20px;
+    color: #333;
+    cursor: pointer;
 }
 
 .moit-profile-info {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.3;
-  white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+    white-space: nowrap;
 }
 
 .moit-profile-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #222;
+    font-size: 14px;
+    font-weight: 600;
+    color: #222;
 }
 
 .moit-profile-type {
-  font-size: 12px;
-  color: #999;
+    font-size: 12px;
+    color: #999;
 }
 
 .moit-logout-btn {
-  padding: 0;
-  color: #666;
-  font-size: 14px;
-  white-space: nowrap;
+    padding: 0;
+    color: #666;
+    font-size: 14px;
+    white-space: nowrap;
 }
 
 .moit-mobile-menu-btn {
-  font-size: 22px;
-  color: #333;
+    font-size: 22px;
+    color: #333;
 }
 
 /* =========================
@@ -118,19 +118,19 @@ a {
 ========================= */
 
 .moit-mobile-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .moit-mobile-menu a {
-  color: #333;
-  font-size: 15px;
+    color: #333;
+    font-size: 15px;
 }
 
 .moit-mobile-menu-item {
-  padding: 0;
-  text-align: left;
+    padding: 0;
+    text-align: left;
 }
 
 /* =========================
@@ -138,9 +138,9 @@ a {
 ========================= */
 
 .moit-content {
-  flex: 1;
-  padding: 40px 60px;
-  background: #fff;
+    flex: 1;
+    padding: 40px 60px;
+    background: #fff;
 }
 
 /* =========================
@@ -148,40 +148,40 @@ a {
 ========================= */
 
 .moit-footer {
-  background: #fafafa;
-  padding: 32px 60px;
+    background: #fafafa;
+    padding: 32px 60px;
 }
 
 .moit-footer-inner {
-  max-width: 1200px;
-  margin: 0 auto;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .moit-footer-divider {
-  margin: 20px 0;
+    margin: 20px 0;
 }
 
 .moit-footer a {
-  color: #666;
-  font-size: 14px;
+    color: #666;
+    font-size: 14px;
 }
 
 .moit-footer a:hover {
-  color: #333;
+    color: #333;
 }
 
 .moit-footer .moit-policy {
-  color: #333;
-  font-weight: 700;
+    color: #333;
+    font-weight: 700;
 }
 
 .moit-footer-copyright {
-  margin-top: 12px;
+    margin-top: 12px;
 }
 
 .moit-footer-copyright span {
-  color: #999;
-  font-size: 13px;
+    color: #999;
+    font-size: 13px;
 }
 /* UserLayout */
 
@@ -190,14 +190,14 @@ a {
 ========================= */
 
 .admin-layout {
-  min-height: 100vh;
-  background: #f4f7fc;
+    min-height: 100vh;
+    background: #f4f7fc;
 }
 
 /* 관리자 콘텐츠 */
 
 .admin-content {
-  padding: 20px;
+    padding: 20px;
 }
 
 /* =========================
@@ -205,26 +205,26 @@ a {
 ========================= */
 
 .admin-header {
-  margin: 0 0 20px 0;
-  border-radius: 15px;
-  background: #fff;
+    margin: 0 0 20px 0;
+    border-radius: 15px;
+    background: #fff;
 }
 
 .admin-header .ant-card-body {
-  padding: 20px;
+    padding: 20px;
 }
 
 .admin-header-title {
-  margin: 0 !important;
-  font-size: 22px !important;
-  font-weight: 700;
-  color: #222;
+    margin: 0 !important;
+    font-size: 22px !important;
+    font-weight: 700;
+    color: #222;
 }
 
 .admin-header-user {
-  font-size: 14px;
-  font-weight: 600;
-  color: #666;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
 }
 
 /* =========================
@@ -232,74 +232,74 @@ a {
 ========================= */
 
 .admin-sidebar {
-  min-height: 100vh;
-  background: #fff !important;
-  border-right: 1px solid #ddd;
+    min-height: 100vh;
+    background: #fff !important;
+    border-right: 1px solid #ddd;
 }
 
 .admin-logo {
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  font-size: 26px;
-  font-weight: 800;
-  color: #4a7dff;
+    font-size: 26px;
+    font-weight: 800;
+    color: #4a7dff;
 
-  border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #eee;
 }
 
 .admin-menu {
-  border-right: none !important;
-  padding-top: 10px;
+    border-right: none !important;
+    padding-top: 10px;
 }
 
 /* 메뉴 */
 
 .admin-menu .ant-menu-item {
-  height: 48px;
-  line-height: 48px;
-  margin: 4px 10px;
-  width: calc(100% - 20px);
+    height: 48px;
+    line-height: 48px;
+    margin: 4px 10px;
+    width: calc(100% - 20px);
 
-  border-radius: 8px;
+    border-radius: 8px;
 
-  font-size: 15px;
-  font-weight: 500;
+    font-size: 15px;
+    font-weight: 500;
 }
 /* =========================
    관리자 통계 카드
 ========================= */
 
 .admin-stat-card {
-  background: #fff;
+    background: #fff;
 
-  border: none;
-  border-radius: 15px;
+    border: none;
+    border-radius: 15px;
 
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
 
 /* =========================
    관리자 목록 버튼
 ========================= */
 .admin-list-tabs {
-  margin-top: 24px;
-  display: flex;
-  gap: 8px;
+    margin-top: 24px;
+    display: flex;
+    gap: 8px;
 }
 
 .admin-list-button {
-  border-radius: 8px;
-  background: #4a7dff;
-  color: #fff;
-  font-size: 13px;
-  cursor: pointer;
+    border-radius: 8px;
+    background: #4a7dff;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
 }
 
 .admin-list-button:hover {
-  background: #f7f9ff;
+    background: #f7f9ff;
 }
 
 /* =========================
@@ -307,46 +307,46 @@ a {
 ========================= */
 
 .admin-search-box {
-  width: 100%;
-  margin-top: 16px;
-  padding: 20px;
+    width: 100%;
+    margin-top: 16px;
+    padding: 20px;
 
-  display: flex;
-  align-items: center;
-  gap: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 
-  background: #fff;
-  border-radius: 8px;
-  box-sizing: border-box;
+    background: #fff;
+    border-radius: 8px;
+    box-sizing: border-box;
 }
 
 .admin-search-condition {
-  width: 100%;
+    width: 100%;
 }
 
 .admin-search-condition .ant-select-selector {
-  border-radius: 6px !important;
+    border-radius: 6px !important;
 }
 
 .admin-search-input {
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  outline: none;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    outline: none;
 }
 
 .admin-search-input:focus {
-  border-color: #4a7dff;
+    border-color: #4a7dff;
 }
 
 .admin-search-button {
-  border-radius: 6px;
-  background: #4a7dff;
-  color: #fff;
-  cursor: pointer;
+    border-radius: 6px;
+    background: #4a7dff;
+    color: #fff;
+    cursor: pointer;
 }
 
 .admin-search-button:hover {
-  background: #f7f9ff;
+    background: #f7f9ff;
 }
 
 /* =========================
@@ -354,13 +354,13 @@ a {
 ========================= */
 
 .admin-table-box {
-  width: 100%;
-  margin-top: 16px;
-  padding: 20px;
+    width: 100%;
+    margin-top: 16px;
+    padding: 20px;
 
-  background: #fff;
-  border-radius: 8px;
-  box-sizing: border-box;
+    background: #fff;
+    border-radius: 8px;
+    box-sizing: border-box;
 }
 
 /* =========================
@@ -368,9 +368,9 @@ a {
 ========================= */
 
 .mypage-body {
-  padding: 20px 60px 40px;
-  gap: 20px;
-  background: #f5f5f5;
+    padding: 20px 60px 40px;
+    gap: 20px;
+    background: #f5f5f5;
 }
 
 /* =========================
@@ -378,14 +378,14 @@ a {
 ========================= */
 
 .mypage-sidebar {
-  flex: 0 0 220px !important;
-  max-width: 220px !important;
-  min-width: 220px !important;
-  width: 220px !important;
+    flex: 0 0 220px !important;
+    max-width: 220px !important;
+    min-width: 220px !important;
+    width: 220px !important;
 
-  background: #fff !important;
-  border-radius: 15px;
-  overflow: hidden;
+    background: #fff !important;
+    border-radius: 15px;
+    overflow: hidden;
 }
 
 /* =========================
@@ -393,25 +393,25 @@ a {
 ========================= */
 
 .mypage-sidebar .ant-menu {
-  border-inline-end: none !important;
-  padding: 10px 0;
+    border-inline-end: none !important;
+    padding: 10px 0;
 }
 
 .mypage-sidebar .ant-menu-item {
-  height: 44px;
-  line-height: 44px;
+    height: 44px;
+    line-height: 44px;
 
-  margin: 4px 10px;
-  width: calc(100% - 20px);
+    margin: 4px 10px;
+    width: calc(100% - 20px);
 
-  border-radius: 8px;
+    border-radius: 8px;
 
-  font-size: 14px;
-  font-weight: 500;
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .mypage-sidebar .ant-menu-item-selected {
-  font-weight: 600;
+    font-weight: 600;
 }
 
 /* =========================
@@ -419,13 +419,13 @@ a {
 ========================= */
 
 .mypage-body .moit-content {
-  min-height: 600px;
-  padding: 30px;
+    min-height: 600px;
+    padding: 30px;
 
-  background: #fff;
-  border-radius: 15px;
+    background: #fff;
+    border-radius: 15px;
 
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 /* =========================
@@ -433,16 +433,16 @@ a {
 ========================= */
 
 .mypage-profile-card {
-  margin: 20px 60px 0;
-  padding: 20px 30px;
+    margin: 20px 60px 0;
+    padding: 20px 30px;
 
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
 
-  background: #fff;
-  border-radius: 15px;
+    background: #fff;
+    border-radius: 15px;
 
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 /* =========================
@@ -450,8 +450,8 @@ a {
 ========================= */
 
 .mypage-container {
-  width: 100%;
-  box-sizing: border-box;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* 마이페이지 배경 */
@@ -466,26 +466,26 @@ a {
 ========================= */
 
 .mypage-dashboard {
-  margin-bottom: 24px;
+    margin-bottom: 24px;
 }
 
 .mypage-dashboard .ant-card {
-  border-radius: 12px;
-  border: none;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
 
 .mypage-dashboard .ant-card-body {
-  padding: 24px;
+    padding: 24px;
 }
 
 .mypage-dashboard .ant-statistic-title {
-  margin-bottom: 10px;
-  font-size: 14px;
+    margin-bottom: 10px;
+    font-size: 14px;
 }
 
 .mypage-dashboard .ant-statistic-content {
-  font-size: 26px;
+    font-size: 26px;
 }
 
 /* =========================
@@ -493,36 +493,36 @@ a {
 ========================= */
 
 .mypage-user-info {
-  margin-bottom: 24px;
-  border-radius: 12px;
-  border: none;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    margin-bottom: 24px;
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
 
 .mypage-user-info .ant-card-body {
-  padding: 28px;
+    padding: 28px;
 }
 
 .mypage-user-info h3 {
-  margin-top: 0;
-  margin-bottom: 24px;
+    margin-top: 0;
+    margin-bottom: 24px;
 }
 
 .mypage-info-box {
-  padding: 18px 20px;
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  background: #fafafa;
+    padding: 18px 20px;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    background: #fafafa;
 }
 
 .mypage-info-box .ant-typography {
-  display: block;
-  margin-bottom: 6px;
+    display: block;
+    margin-bottom: 6px;
 }
 
 .mypage-info-box > div {
-  font-size: 15px;
-  font-weight: 500;
+    font-size: 15px;
+    font-weight: 500;
 }
 
 /* =========================
@@ -530,32 +530,32 @@ a {
 ========================= */
 
 .mypage-meetup-section {
-  border-radius: 12px;
-  border: none;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
 
 .mypage-meetup-section .ant-card-body {
-  padding: 28px;
+    padding: 28px;
 }
 
 .mypage-meetup-section h3 {
-  margin-top: 0;
-  margin-bottom: 24px;
+    margin-top: 0;
+    margin-bottom: 24px;
 }
 
 .mypage-meetup-section .ant-table {
-  border-radius: 8px;
-  overflow: hidden;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .mypage-meetup-section .ant-table-thead > tr > th {
-  background: #fafafa;
-  font-weight: 600;
+    background: #fafafa;
+    font-weight: 600;
 }
 
 .mypage-meetup-section .ant-table-tbody > tr > td {
-  padding: 16px;
+    padding: 16px;
 }
 
 /* =========================
@@ -563,47 +563,47 @@ a {
 ========================= */
 
 @media (max-width: 575px) {
-  .mypage-container {
-    padding: 0 16px;
-  }
+    .mypage-container {
+        padding: 0 16px;
+    }
 
-  .mypage-dashboard .ant-card-body {
-    padding: 20px;
-  }
+    .mypage-dashboard .ant-card-body {
+        padding: 20px;
+    }
 
-  .mypage-user-info .ant-card-body,
-  .mypage-meetup-section .ant-card-body {
-    padding: 20px 16px;
-  }
+    .mypage-user-info .ant-card-body,
+    .mypage-meetup-section .ant-card-body {
+        padding: 20px 16px;
+    }
 
-  .mypage-info-box {
-    padding: 15px;
-  }
+    .mypage-info-box {
+        padding: 15px;
+    }
 }
 /* =========================
    MY PAGE EDIT
 ========================= */
 
 .mypage-edit-page {
-  width: 100%;
+    width: 100%;
 }
 
 .mypage-edit-card {
-  border: none;
-  border-radius: 15px;
-  box-shadow: none;
+    border: none;
+    border-radius: 15px;
+    box-shadow: none;
 }
 
 .mypage-edit-card .ant-card-body {
-  padding: 0;
+    padding: 0;
 }
 
 .mypage-edit-header {
-  margin-bottom: 30px;
+    margin-bottom: 30px;
 }
 
 .mypage-edit-header h2 {
-  margin-bottom: 8px !important;
+    margin-bottom: 8px !important;
 }
 
 /* =========================
@@ -611,36 +611,36 @@ a {
 ========================= */
 
 .mypage-edit-profile {
-  display: flex;
-  align-items: center;
-  gap: 50px;
+    display: flex;
+    align-items: center;
+    gap: 50px;
 
-  margin-bottom: 35px;
-  padding-bottom: 30px;
+    margin-bottom: 35px;
+    padding-bottom: 30px;
 
-  border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 .mypage-profile-upload {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .mypage-grade-box {
-  min-width: 180px;
-  padding: 18px 22px;
+    min-width: 180px;
+    padding: 18px 22px;
 
-  background: #fafafa;
-  border: 1px solid #f0f0f0;
-  border-radius: 10px;
+    background: #fafafa;
+    border: 1px solid #f0f0f0;
+    border-radius: 10px;
 }
 
 .mypage-grade {
-  margin-top: 8px;
+    margin-top: 8px;
 
-  font-size: 16px;
-  font-weight: 600;
+    font-size: 16px;
+    font-weight: 600;
 }
 
 .mypage-profile-image {
@@ -709,18 +709,18 @@ a {
 ========================= */
 
 .mypage-edit-card .ant-form-item-label > label {
-  font-weight: 600;
+    font-weight: 600;
 }
 
 .mypage-edit-card .ant-input,
 .mypage-edit-card .ant-select-selector,
 .mypage-edit-card .ant-picker {
-  border-radius: 8px !important;
+    border-radius: 8px !important;
 }
 
 .mypage-edit-card .ant-input,
 .mypage-edit-card .ant-picker {
-  height: 42px;
+    height: 42px;
 }
 
 /* =========================
@@ -728,20 +728,20 @@ a {
 ========================= */
 
 .mypage-edit-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
 
-  margin-top: 20px;
-  padding-top: 24px;
+    margin-top: 20px;
+    padding-top: 24px;
 
-  border-top: 1px solid #f0f0f0;
+    border-top: 1px solid #f0f0f0;
 }
 
 .mypage-edit-actions .ant-btn {
-  min-width: 100px;
-  height: 42px;
-  border-radius: 8px;
+    min-width: 100px;
+    height: 42px;
+    border-radius: 8px;
 }
 
 /* =========================
@@ -749,73 +749,73 @@ a {
 ========================= */
 
 @media (max-width: 575px) {
-  .mypage-edit-profile {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 20px;
-  }
+    .mypage-edit-profile {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
 
-  .mypage-grade-box {
-    width: 100%;
-    box-sizing: border-box;
-  }
+    .mypage-grade-box {
+        width: 100%;
+        box-sizing: border-box;
+    }
 
-  .mypage-edit-actions {
-    justify-content: stretch;
-  }
+    .mypage-edit-actions {
+        justify-content: stretch;
+    }
 
-  .mypage-edit-actions .ant-btn {
-    flex: 1;
-  }
+    .mypage-edit-actions .ant-btn {
+        flex: 1;
+    }
 }
 /* =========================
    Main Page
 ========================= */
 
 .main-page {
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
 }
 
 .main-hero-card {
-  border-radius: 12px;
+    border-radius: 12px;
 }
 
 .main-hero-card .ant-card-body {
-  padding: 48px 56px;
+    padding: 48px 56px;
 }
 
 .main-hero-buttons {
-  margin-top: 28px;
+    margin-top: 28px;
 }
 
 .main-hero-buttons .ant-btn + .ant-btn {
-  margin-left: 10px;
+    margin-left: 10px;
 }
 
 .main-hero-icon {
-  width: 180px;
-  height: 180px;
+    width: 180px;
+    height: 180px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  border-radius: 50%;
-  background: #f0f5ff;
+    border-radius: 50%;
+    background: #f0f5ff;
 
-  font-size: 80px;
+    font-size: 80px;
 }
 
 .category-card {
-  text-align: center;
-  border-radius: 8px;
+    text-align: center;
+    border-radius: 8px;
 }
 
 .category-icon {
-  margin-bottom: 8px;
-  font-size: 32px;
+    margin-bottom: 8px;
+    font-size: 32px;
 }
 
 /* .main-ad-card {
@@ -835,11 +835,11 @@ a {
 ========================= */
 
 .meetup-detail-page {
-  width: 100%;
+    width: 100%;
 }
 
 .meetup-back-button {
-  padding-left: 0;
+    padding-left: 0;
 }
 
 .meetup-weather-card,
@@ -848,58 +848,58 @@ a {
 .meetup-tabs-card,
 .meetup-side-card,
 .meetup-ad-card {
-  margin-bottom: 20px;
-  border-radius: 8px;
+    margin-bottom: 20px;
+    border-radius: 8px;
 }
 
 /* 날씨 */
 .meetup-weather-card {
-  background: #fafafa;
+    background: #fafafa;
 }
 
 /* 이미지 */
 .meetup-image-card {
-  overflow: hidden;
-  border-radius: 8px;
+    overflow: hidden;
+    border-radius: 8px;
 }
 
 .meetup-main-image {
-  width: 100%;
-  height: 400px;
-  object-fit: cover;
-  display: block;
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    display: block;
 }
 
 .meetup-image-placeholder {
-  height: 400px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  background: #f5f5f5;
-  color: #8c8c8c;
+    background: #f5f5f5;
+    color: #8c8c8c;
 
-  font-size: 24px;
+    font-size: 24px;
 }
 
 /* 제목 */
 .meetup-title-card {
-  padding: 4px;
+    padding: 4px;
 }
 
 /* 추천 모임 */
 .recommended-meetup-card {
-  border-radius: 8px;
+    border-radius: 8px;
 }
 
 .recommended-image {
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f5f5f5;
-  border-radius: 6px;
-  font-size: 24px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    border-radius: 6px;
+    font-size: 24px;
 }
 
 .recommended-image img {
@@ -911,35 +911,35 @@ a {
 
 /* 지도 */
 .meetup-map-placeholder {
-  height: 300px;
-  background: #f5f5f5;
-  border-radius: 8px;
+    height: 300px;
+    background: #f5f5f5;
+    border-radius: 8px;
 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
-  gap: 8px;
-  font-size: 24px;
+    gap: 8px;
+    font-size: 24px;
 }
 
 /* 평점 */
 .review-rating-card {
-  background: #fafafa;
+    background: #fafafa;
 }
 
 .review-score {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
 }
 
 /* 후기 */
 .review-card,
 .qna-card {
-  border-radius: 8px;
+    border-radius: 8px;
 }
 
 /* =========================
@@ -947,11 +947,20 @@ a {
 ========================= */
 
 .meetup-list-page {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px;
-  box-sizing: border-box;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+.meetup-category-sticky {
+    position: sticky;
+    top: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
 }
 
 /* =========================
@@ -960,40 +969,56 @@ a {
 
 .main-ad-card,
 .meetup-list-ad {
-  width: 100%;
-  border-radius: 8px;
-  overflow: hidden;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
-/* 광고 이미지 */
+/* 메인/목록 상단 광고 이미지 */
 .ad-image,
 .meetup-ad-image {
-  width: 100%;
-  height: 160px;
+    width: 100%;
+    height: 160px;
+    display: block;
+    object-fit: cover;
+}
 
-  display: block;
+/* =========================
+   목록 사이드 광고
+========================= */
 
-  object-fit: cover;
+.meetup-list-side-ad {
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* 사이드 광고 이미지 */
+.meetup-side-ad-image {
+    width: 100%;
+    height: 180px;
+    display: block;
+    object-fit: cover;
 }
 
 /* 이미지가 없을 때 */
 .ad-placeholder {
-  width: 100%;
-  height: 160px;
+    width: 100%;
+    height: 160px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  box-sizing: border-box;
+    box-sizing: border-box;
 
-  background: #fafafa;
-  color: #8c8c8c;
+    background: #fafafa;
+    color: #8c8c8c;
 }
 
-/* 리스트 광고 아래 여백 */
+/* 리스트 상단 광고 아래 여백 */
 .meetup-list-ad {
-  margin-bottom: 24px;
+    margin-bottom: 24px;
 }
 
 /* =========================
@@ -1001,32 +1026,32 @@ a {
 ========================= */
 
 .meetup-search-filter {
-  width: 100%;
-  margin-bottom: 24px;
-  padding: 20px;
+    width: 100%;
+    margin-bottom: 24px;
+    padding: 20px;
 
-  background: #fff;
-  border: 1px solid #f0f0f0;
-  border-radius: 12px;
+    background: #fff;
+    border: 1px solid #f0f0f0;
+    border-radius: 12px;
 
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 .meetup-search-filter .ant-input,
 .meetup-search-filter .ant-select {
-  width: 100%;
+    width: 100%;
 }
 
 .meetup-search-filter .ant-btn {
-  height: 40px;
+    height: 40px;
 }
 
 .meetup-search-button {
-  width: 100%;
+    width: 100%;
 }
 
 .meetup-create-button {
-  width: 100%;
+    width: 100%;
 }
 
 /* =========================
@@ -1034,7 +1059,7 @@ a {
 ========================= */
 
 .meetup-list {
-  width: 100%;
+    width: 100%;
 }
 
 /* =========================
@@ -1042,19 +1067,19 @@ a {
 ========================= */
 
 .meetup-card {
-  height: 100%;
-  overflow: hidden;
+    height: 100%;
+    overflow: hidden;
 
-  border-radius: 12px;
+    border-radius: 12px;
 
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .meetup-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 /* =========================
@@ -1062,31 +1087,31 @@ a {
 ========================= */
 
 .meetup-card .meetup-image {
-  width: 100%;
-  height: 200px;
+    width: 100%;
+    height: 200px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  overflow: hidden;
+    overflow: hidden;
 
-  background: #f5f5f5;
+    background: #f5f5f5;
 }
 
 .meetup-card .meetup-image img {
-  width: 100%;
-  height: 100%;
+    width: 100%;
+    height: 100%;
 
-  display: block;
+    display: block;
 
-  object-fit: cover;
+    object-fit: cover;
 
-  transition: transform 0.3s ease;
+    transition: transform 0.3s ease;
 }
 
 .meetup-card:hover .meetup-image img {
-  transform: scale(1.03);
+    transform: scale(1.03);
 }
 
 /* =========================
@@ -1094,22 +1119,22 @@ a {
 ========================= */
 
 .meetup-no-image {
-  width: 100%;
-  height: 100%;
+    width: 100%;
+    height: 100%;
 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
-  gap: 8px;
+    gap: 8px;
 
-  color: #999;
-  font-size: 13px;
+    color: #999;
+    font-size: 13px;
 }
 
 .meetup-no-image .icon {
-  font-size: 36px;
+    font-size: 36px;
 }
 
 /* =========================
@@ -1117,11 +1142,11 @@ a {
 ========================= */
 
 .meetup-card .ant-card-body {
-  padding: 16px;
+    padding: 16px;
 }
 
 .meetup-card-body {
-  width: 100%;
+    width: 100%;
 }
 
 /* =========================
@@ -1129,11 +1154,11 @@ a {
 ========================= */
 
 .meetup-card-body .ant-tag {
-  margin-bottom: 10px;
+    margin-bottom: 10px;
 
-  border-radius: 6px;
-  font-size: 12px;
-  line-height: 22px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 22px;
 }
 
 /* =========================
@@ -1141,22 +1166,22 @@ a {
 ========================= */
 
 .meetup-card-title {
-  margin-bottom: 12px;
+    margin-bottom: 12px;
 
-  font-size: 17px;
-  font-weight: 600;
-  line-height: 1.45;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.45;
 
-  color: #222;
+    color: #222;
 
-  /* 2줄까지만 표시 */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+    /* 2줄까지만 표시 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 
-  overflow: hidden;
+    overflow: hidden;
 
-  min-height: 49px;
+    min-height: 49px;
 }
 
 /* =========================
@@ -1164,20 +1189,20 @@ a {
 ========================= */
 
 .meetup-card-info {
-  margin-bottom: 7px;
+    margin-bottom: 7px;
 
-  color: #666;
-  font-size: 14px;
-  line-height: 1.5;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
 
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* 마지막 정보 아래 여백 제거 */
 .meetup-card-info:last-of-type {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
 
 /* =========================
@@ -1185,27 +1210,27 @@ a {
 ========================= */
 
 .meetup-card-footer {
-  min-height: 32px;
+    min-height: 32px;
 
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-  margin-top: 16px;
-  padding-top: 12px;
+    margin-top: 16px;
+    padding-top: 12px;
 
-  border-top: 1px solid #f0f0f0;
+    border-top: 1px solid #f0f0f0;
 
-  color: #888;
-  font-size: 13px;
+    color: #888;
+    font-size: 13px;
 }
 
 /* 날짜 */
 
 .meetup-card-footer > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* =========================
@@ -1213,20 +1238,20 @@ a {
 ========================= */
 
 .meetup-like-button {
-  flex-shrink: 0;
+    flex-shrink: 0;
 
-  height: 30px;
-  padding: 0 6px;
+    height: 30px;
+    padding: 0 6px;
 
-  color: #666 !important;
-  font-size: 13px;
+    color: #666 !important;
+    font-size: 13px;
 
-  border-radius: 6px;
+    border-radius: 6px;
 }
 
 .meetup-like-button:hover {
-  background: #fff1f0 !important;
-  color: #ff4d4f !important;
+    background: #fff1f0 !important;
+    color: #ff4d4f !important;
 }
 
 /* =========================
@@ -1234,43 +1259,43 @@ a {
 ========================= */
 
 .meetup-category {
-  position: sticky;
-  top: 24px;
+    position: sticky;
+    top: 24px;
 }
 
 .meetup-category .ant-card {
-  border-radius: 12px;
+    border-radius: 12px;
 }
 
 .meetup-category-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .meetup-category-item {
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
 
-  padding: 11px 14px;
+    padding: 11px 14px;
 
-  border-radius: 8px;
+    border-radius: 8px;
 
-  cursor: pointer;
+    cursor: pointer;
 
-  color: #555;
+    color: #555;
 
-  transition: all 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .meetup-category-item:hover {
-  background: #f5f5f5;
+    background: #f5f5f5;
 }
 
 .meetup-category-item.active {
-  background: #e6f4ff;
-  color: #1677ff;
-  font-weight: 600;
+    background: #e6f4ff;
+    color: #1677ff;
+    font-weight: 600;
 }
 
 /* =========================
@@ -1278,11 +1303,11 @@ a {
 ========================= */
 
 .common-pagination {
-  display: flex;
-  justify-content: center;
+    display: flex;
+    justify-content: center;
 
-  margin-top: 36px;
-  margin-bottom: 20px;
+    margin-top: 36px;
+    margin-bottom: 20px;
 }
 
 /* =========================
@@ -1290,17 +1315,17 @@ a {
 ========================= */
 
 @media (max-width: 991px) {
-  .meetup-list-page {
-    padding: 20px;
-  }
+    .meetup-list-page {
+        padding: 20px;
+    }
 
-  .meetup-category {
-    position: static;
-  }
+    .meetup-category {
+        position: static;
+    }
 
-  .meetup-card .meetup-image {
-    height: 190px;
-  }
+    .meetup-card .meetup-image {
+        height: 190px;
+    }
 }
 
 /* =========================
@@ -1308,43 +1333,43 @@ a {
 ========================= */
 
 @media (max-width: 575px) {
-  .meetup-list-page {
-    padding: 16px;
-  }
+    .meetup-list-page {
+        padding: 16px;
+    }
 
-  .meetup-list-ad {
-    margin-bottom: 16px;
-  }
+    .meetup-list-ad {
+        margin-bottom: 16px;
+    }
 
-  .meetup-list-ad-image {
-    height: 140px;
-  }
+    .meetup-list-ad-image {
+        height: 140px;
+    }
 
-  .meetup-search-filter {
-    padding: 16px;
-    margin-bottom: 16px;
-  }
+    .meetup-search-filter {
+        padding: 16px;
+        margin-bottom: 16px;
+    }
 
-  .meetup-card .meetup-image {
-    height: 180px;
-  }
+    .meetup-card .meetup-image {
+        height: 180px;
+    }
 
-  .meetup-card .ant-card-body {
-    padding: 14px;
-  }
+    .meetup-card .ant-card-body {
+        padding: 14px;
+    }
 
-  .meetup-card-title {
-    font-size: 16px;
-    min-height: 46px;
-  }
+    .meetup-card-title {
+        font-size: 16px;
+        min-height: 46px;
+    }
 
-  .meetup-card-info {
-    font-size: 13px;
-  }
+    .meetup-card-info {
+        font-size: 13px;
+    }
 
-  .common-pagination {
-    margin-top: 28px;
-  }
+    .common-pagination {
+        margin-top: 28px;
+    }
 }
 /* =========================
    QNA / Report / Review Write Common
@@ -1353,11 +1378,11 @@ a {
 .qna-write-page,
 .report-write-page,
 .review-write-page {
-  width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 30px 0;
-  box-sizing: border-box;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 30px 0;
+    box-sizing: border-box;
 }
 
 /* =========================
@@ -1367,16 +1392,16 @@ a {
 .qna-write-card,
 .report-write-card,
 .review-write-card {
-  width: 100%;
-  border-radius: 15px;
-  border: none;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
 
 .qna-write-card .ant-card-body,
 .report-write-card .ant-card-body,
 .review-write-card .ant-card-body {
-  padding: 32px;
+    padding: 32px;
 }
 
 /* =========================
@@ -1384,36 +1409,36 @@ a {
 ========================= */
 
 .qna-write-header {
-  margin-bottom: 24px;
+    margin-bottom: 24px;
 }
 
 .qna-write-header .ant-breadcrumb {
-  margin-bottom: 16px;
+    margin-bottom: 16px;
 }
 
 .qna-write-title {
-  margin: 0 0 8px !important;
-  font-size: 28px !important;
-  font-weight: 700;
+    margin: 0 0 8px !important;
+    font-size: 28px !important;
+    font-weight: 700;
 }
 
 .qna-write-card-header {
-  margin-bottom: 28px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 28px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 .qna-write-card-header h4 {
-  margin: 0 !important;
+    margin: 0 !important;
 }
 
 .qna-write-card .ant-input,
 .qna-write-card .ant-input-affix-wrapper {
-  border-radius: 8px;
+    border-radius: 8px;
 }
 
 .qna-write-card .ant-form-item {
-  margin-bottom: 24px;
+    margin-bottom: 24px;
 }
 
 /* =========================
@@ -1423,21 +1448,21 @@ a {
 .qna-write-actions,
 .report-write-actions,
 .review-write-actions {
-  display: flex;
-  justify-content: flex-end;
+    display: flex;
+    justify-content: flex-end;
 
-  margin-top: 32px;
-  padding-top: 20px;
+    margin-top: 32px;
+    padding-top: 20px;
 
-  border-top: 1px solid #f0f0f0;
+    border-top: 1px solid #f0f0f0;
 }
 
 .qna-write-actions .ant-btn,
 .report-write-actions .ant-btn,
 .review-write-actions .ant-btn {
-  min-width: 110px;
-  height: 42px;
-  border-radius: 8px;
+    min-width: 110px;
+    height: 42px;
+    border-radius: 8px;
 }
 
 /* =========================
@@ -1445,12 +1470,12 @@ a {
 ========================= */
 
 .report-write-card > .ant-typography {
-  margin-top: 0;
-  margin-bottom: 8px;
+    margin-top: 0;
+    margin-bottom: 8px;
 }
 
 .report-write-card > .ant-typography + .ant-divider {
-  margin: 24px 0 30px;
+    margin: 24px 0 30px;
 }
 
 /* =========================
@@ -1458,17 +1483,17 @@ a {
 ========================= */
 
 .report-write-field {
-  margin-bottom: 30px;
+    margin-bottom: 30px;
 }
 
 .report-write-field h5 {
-  margin-bottom: 12px !important;
+    margin-bottom: 12px !important;
 }
 
 .report-required {
-  color: #ff4d4f;
-  font-size: 12px;
-  font-weight: 400;
+    color: #ff4d4f;
+    font-size: 12px;
+    font-weight: 400;
 }
 
 /* =========================
@@ -1476,12 +1501,12 @@ a {
 ========================= */
 
 .report-reason-group {
-  width: 100%;
+    width: 100%;
 }
 
 .report-reason-group .ant-radio-wrapper {
-  font-size: 14px;
-  color: #555;
+    font-size: 14px;
+    color: #555;
 }
 
 /* =========================
@@ -1489,20 +1514,20 @@ a {
 ========================= */
 
 .report-ai-button {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
 }
 
 .report-ai-message {
-  margin-top: 10px;
-  padding: 10px 12px;
+    margin-top: 10px;
+    padding: 10px 12px;
 
-  background: #f7f9ff;
-  border-radius: 6px;
+    background: #f7f9ff;
+    border-radius: 6px;
 
-  color: #666;
-  font-size: 13px;
+    color: #666;
+    font-size: 13px;
 }
 
 /* =========================
@@ -1510,32 +1535,32 @@ a {
 ========================= */
 
 .review-write-header {
-  margin-bottom: 10px;
+    margin-bottom: 10px;
 }
 
 .review-write-badge {
-  display: inline-block;
+    display: inline-block;
 
-  margin-bottom: 18px;
-  padding: 6px 12px;
+    margin-bottom: 18px;
+    padding: 6px 12px;
 
-  border-radius: 6px;
+    border-radius: 6px;
 
-  background: #f0f5ff;
-  color: #1677ff;
+    background: #f0f5ff;
+    color: #1677ff;
 
-  font-size: 13px;
-  font-weight: 600;
+    font-size: 13px;
+    font-weight: 600;
 }
 
 .review-write-title {
-  margin: 0 0 8px !important;
-  font-size: 28px !important;
-  font-weight: 700;
+    margin: 0 0 8px !important;
+    font-size: 28px !important;
+    font-weight: 700;
 }
 
 .review-write-title span {
-  color: #1677ff;
+    color: #1677ff;
 }
 
 /* =========================
@@ -1543,11 +1568,11 @@ a {
 ========================= */
 
 .review-write-field {
-  margin-bottom: 32px;
+    margin-bottom: 32px;
 }
 
 .review-write-field .ant-typography {
-  margin-bottom: 12px;
+    margin-bottom: 12px;
 }
 
 /* =========================
@@ -1555,24 +1580,24 @@ a {
 ========================= */
 
 .review-star-rating {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
 }
 
 .review-star {
-  font-size: 38px;
-  cursor: pointer;
-  color: #d9d9d9;
-  transition: 0.2s;
+    font-size: 38px;
+    cursor: pointer;
+    color: #d9d9d9;
+    transition: 0.2s;
 }
 
 .review-star:hover {
-  transform: scale(1.1);
+    transform: scale(1.1);
 }
 
 .review-star.active {
-  color: #faad14;
+    color: #faad14;
 }
 
 /* =========================
@@ -1580,20 +1605,20 @@ a {
 ========================= */
 
 .review-public-box {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-  padding: 20px;
+    padding: 20px;
 
-  border: 1px solid #f0f0f0;
-  border-radius: 10px;
+    border: 1px solid #f0f0f0;
+    border-radius: 10px;
 
-  background: #fafafa;
+    background: #fafafa;
 }
 
 .review-public-box .ant-radio-group {
-  white-space: nowrap;
+    white-space: nowrap;
 }
 
 /* =========================
@@ -1603,7 +1628,7 @@ a {
 .qna-write-card .ant-input,
 .report-write-card .ant-input,
 .review-write-card .ant-input {
-  border-radius: 8px;
+    border-radius: 8px;
 }
 
 /* =========================
@@ -1611,56 +1636,56 @@ a {
 ========================= */
 
 @media (max-width: 575px) {
-  .qna-write-page,
-  .report-write-page,
-  .review-write-page {
-    padding: 20px 16px;
-  }
+    .qna-write-page,
+    .report-write-page,
+    .review-write-page {
+        padding: 20px 16px;
+    }
 
-  .qna-write-title,
-  .review-write-title {
-    font-size: 23px !important;
-  }
+    .qna-write-title,
+    .review-write-title {
+        font-size: 23px !important;
+    }
 
-  .qna-write-card .ant-card-body,
-  .report-write-card .ant-card-body,
-  .review-write-card .ant-card-body {
-    padding: 24px 20px;
-  }
+    .qna-write-card .ant-card-body,
+    .report-write-card .ant-card-body,
+    .review-write-card .ant-card-body {
+        padding: 24px 20px;
+    }
 
-  .qna-write-actions,
-  .report-write-actions,
-  .review-write-actions {
-    justify-content: stretch;
-  }
+    .qna-write-actions,
+    .report-write-actions,
+    .review-write-actions {
+        justify-content: stretch;
+    }
 
-  .qna-write-actions .ant-space,
-  .report-write-actions .ant-space,
-  .review-write-actions .ant-space {
-    width: 100%;
-  }
+    .qna-write-actions .ant-space,
+    .report-write-actions .ant-space,
+    .review-write-actions .ant-space {
+        width: 100%;
+    }
 
-  .qna-write-actions .ant-space-item,
-  .report-write-actions .ant-space-item,
-  .review-write-actions .ant-space-item {
-    flex: 1;
-  }
+    .qna-write-actions .ant-space-item,
+    .report-write-actions .ant-space-item,
+    .review-write-actions .ant-space-item {
+        flex: 1;
+    }
 
-  .qna-write-actions .ant-btn,
-  .report-write-actions .ant-btn,
-  .review-write-actions .ant-btn {
-    width: 100%;
-  }
+    .qna-write-actions .ant-btn,
+    .report-write-actions .ant-btn,
+    .review-write-actions .ant-btn {
+        width: 100%;
+    }
 
-  .review-public-box {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
+    .review-public-box {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
 
-  .review-star {
-    font-size: 32px;
-  }
+    .review-star {
+        font-size: 32px;
+    }
 }
 
 /* ================================
@@ -1668,94 +1693,94 @@ a {
 ================================ */
 
 .meetup-image-preview {
-  position: relative;
-  width: 100%;
-  height: 350px;
-  border-radius: var(--radius);
-  overflow: hidden;
-  background: #f5f5f5;
+    position: relative;
+    width: 100%;
+    height: 350px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: #f5f5f5;
 }
 
 .meetup-image-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .meetup-image-empty {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: #999;
-  font-size: 14px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #999;
+    font-size: 14px;
 }
 
 .meetup-image-empty .anticon {
-  font-size: 40px;
-  color: #bfbfbf;
+    font-size: 40px;
+    color: #bfbfbf;
 }
 
 .meetup-image-arrow {
-  position: absolute !important;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  border: none !important;
-  background: rgba(255, 255, 255, 0.85) !important;
+    position: absolute !important;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    border: none !important;
+    background: rgba(255, 255, 255, 0.85) !important;
 }
 
 .meetup-image-arrow.left {
-  left: 15px;
+    left: 15px;
 }
 
 .meetup-image-arrow.right {
-  right: 15px;
+    right: 15px;
 }
 
 .meetup-image-count {
-  position: absolute;
-  right: 15px;
-  bottom: 15px;
-  padding: 5px 10px;
-  border-radius: 20px;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  font-size: 12px;
+    position: absolute;
+    right: 15px;
+    bottom: 15px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 12px;
 }
 
 /* 지도 */
 
 .meetup-map {
-  width: 100%;
-  height: 300px;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #f5f5f5;
+    width: 100%;
+    height: 300px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f5f5f5;
 }
 
 .meetup-map-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  color: #999;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    color: #999;
 }
 
 /* 모바일 */
 
 @media (max-width: 768px) {
-  .meetup-image-preview {
-    height: 280px;
-  }
+    .meetup-image-preview {
+        height: 280px;
+    }
 
-  .meetup-map {
-    height: 250px;
-  }
+    .meetup-map {
+        height: 250px;
+    }
 }

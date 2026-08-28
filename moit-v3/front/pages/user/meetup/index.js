@@ -14,7 +14,11 @@ import MeetupSearchFilter from "../../../components/MeetupSearchFilter";
 import MeetupCategory from "../../../components/MeetupCategory";
 import MeetupList from "../../../components/MeetupList";
 import CommonPagination from "../../../components/CommonPagination";
+<<<<<<< HEAD
 import AdBanner from "../../../components/AdBanner";
+=======
+import MeetupAd from "../../../components/MeetupAd";
+>>>>>>> main
 
 function MeetupListPage() {
     const router = useRouter();
@@ -194,13 +198,17 @@ function MeetupListPage() {
             사이드바
         ====================== */}
                 <Col xs={24} lg={6}>
-                    <MeetupCategory
-                        categories={categories.filter(
-                            (cate) => cate.parentId === null,
-                        )}
-                        selectedCategoryId={categoryId}
-                        onChange={handleCategoryChange}
-                    />
+                    <div className="meetup-category-sticky">
+                        <MeetupCategory
+                            categories={categories.filter(
+                                (cate) => cate.parentId === null,
+                            )}
+                            selectedCategoryId={categoryId}
+                            onChange={handleCategoryChange}
+                        />
+
+                        <MeetupAd ad={ad} />
+                    </div>
                 </Col>
             </Row>
         </div>
