@@ -200,18 +200,18 @@ function AdminReviewPage() {
                 </Space>
 
                 <AdminSearchBox
-                    conditions={[
-                        {
-                            key: 'category',
-                            defaultValue: 'all',
-                            options: [
-                                { value: 'all', label: '전체' },
-                                { value: 'content', label: '내용' },
-                                { value: 'nickname', label: '작성자' },
-                            ],
-                        },
-                    ]}
-                    onSearch={handleSearch}
+                    // conditions={[
+                    //     {
+                    //         key: 'category',
+                    //         defaultValue: 'all',
+                    //         options: [
+                    //             { value: 'all', label: '전체' },
+                    //             { value: 'content', label: '내용' },
+                    //             { value: 'nickname', label: '작성자' },
+                    //         ],
+                    //     },
+                    // ]}
+                    // onSearch={handleSearch}
                 />
             </div>
 
