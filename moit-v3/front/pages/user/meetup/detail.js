@@ -156,11 +156,17 @@ function MeetupDetailPage() {
     };
 
     // 신고 핸들러
-    const handleReport = async () => {
+    const handleReport = async (
+        targetType,
+        targetId,
+        targetMemberId
+    ) => {
         try {
             // 본인이 만든 모임
-            if (user?.memberId === meetup?.memberId) {
-                alert("본인이 만든 모임은 신고할 수 없습니다.");
+            if (user?.memberId === targetMemberId) {
+                alert(targetType === "MEETUP"
+                    ? "본인이 만든 모임은 신고할 수 없습니다."
+                    : "본인이 작성한 후기는 신고할 수 없습니다.");
                 return;
             }
 
@@ -168,8 +174,8 @@ function MeetupDetailPage() {
                 "/api/reports/checkDoubleReport",
                 {
                     params: {
-                        targetType: "MEETUP",
-                        targetId: meetup.id,
+                        targetType: targetType,
+                        targetId: targetId,
                     },
                 }
             );
@@ -180,7 +186,7 @@ function MeetupDetailPage() {
             }
 
             router.push(
-                `/user/meetup/report/write?targetType=MEETUP&targetId=${meetup.id}`
+                `/user/meetup/report/write?targetType=${targetType}&targetId=${targetId}`
             );
 
         } catch (error) {
@@ -213,6 +219,7 @@ function MeetupDetailPage() {
         if (!meetup || !meetupId) return;
 
         if (Number(meetup.id) !== Number(meetupId)) return;
+
 
         if (meetup.hidden) {
             alert("모임이 관리자에 의해 비공개 처리되었습니다.");
@@ -381,6 +388,7 @@ function MeetupDetailPage() {
                         onLikeReview={handleLikeReview}
                         onSortChange={handleSortChange}
                         onSearch={handleSearch}
+                        onReport={handleReport}
                     />
                 </Col>
 

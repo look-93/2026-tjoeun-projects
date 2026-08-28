@@ -7,12 +7,11 @@ import { useRouter } from 'next/router';
 import { Row, Col, Button, Table, Tag, message } from 'antd';
 import AdminStatCard from '../../../components/AdminStatCard';
 import AdminReportSearchBox from '../../../components/AdminReportSearchBox';
-import AdminListTabs from '../../../components/AdminListTabs';
 import { fetchAdminReportsRequest } from '../../../reducers/reportReducer';
 
 import ReportStatusTag from '../../../components/ReportStatusTag';
 import ReportStatusCodeTag from '../../../components/ReportStatusCodeTag';
-
+import api from '../../../api/axios';
 
 // http://localhost:3000/admin/report
 
@@ -29,44 +28,53 @@ function AdminReportPage() {
     adminFetch
   } = useSelector((state) => state.report);
 
-  //테스트용 테이터
-  const serverData = {
-    pending:
-      reports?.filter(
-        (report) => report.status === 'PENDING'
-      ).length || 0,
-    approved:
-      reports?.filter(
-        (report) => report.status === 'APPROVED'
-      ).length || 0,
-    rejected:
-      reports?.filter(
-        (report) => report.status === 'REJECTED'
-      ).length || 0,
-  };
+
+  // 관리자 통계
+  const [reportStats, setReportStats] = useState({
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+  });
+
+  useEffect(() => {
+    const fetchReportStats = async () => {
+      try {
+        const response = await api.get(
+          '/api/reports/admin/stats'
+        );
+        setReportStats(response.data);
+
+      } catch (error) {
+        console.error('관리자 신고 통계 조회 실패:', error);
+      }
+    };
+
+    fetchReportStats();
+  }, []);
 
   const stats = [
-    { 
+    {
       title: '전체 신고',
-      value: totalCount || 0,
+      value: reportStats.total || 0,
       suffix: '개'
     },
 
     {
       title: '처리 대기',
-      value: serverData.pending,
+      value: reportStats.pending || 0,
       suffix: '개'
     },
 
-    { 
+    {
       title: '승인',
-      value: serverData.approved,
+      value: reportStats.approved || 0,
       suffix: '개'
     },
-    
-    { 
+
+    {
       title: '반려',
-      value: serverData.rejected,
+      value: reportStats.rejected || 0,
       suffix: '개'
     },
   ];
@@ -86,7 +94,7 @@ function AdminReportPage() {
     targetType: '',
     status: '',
     reasonCode: '',
-    deleteYn: '',
+    deleteYn: 'N',
     memberNickname: '',
   });
 
@@ -355,7 +363,8 @@ function AdminReportPage() {
         values.reasonCode === 'all' ? '' : values.reasonCode,
 
       deleteYn:
-        values.deleteYn === 'all' ? '' : values.deleteYn,
+        values.deleteYn,
+        // values.deleteYn === 'all' ? '' : values.deleteYn,
 
       memberNickname:
         values.memberNickname || '',
@@ -381,7 +390,6 @@ function AdminReportPage() {
       {/* 목록 */}
       <div className="admin-table-box">
         <Table
-          // rowSelection={rowSelection}
           columns={adminColumns}
           dataSource={reports}
           pagination={

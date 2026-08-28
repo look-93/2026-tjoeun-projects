@@ -1,6 +1,7 @@
 package com.moit.reports.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Pageable;
 
@@ -55,6 +56,9 @@ public interface ReportsService {
 
 	// 관리자 신고 상세 조회
 	ReportResponseDto getAdminReportDetail(Long reportId);
+	
+	// 관리자 통계
+    Map<String, Long> getAdminReportStats();
 	
 	
 	// =====================

@@ -262,11 +262,11 @@ public class MeetupServiceImpl implements MeetupService{
                         startOfNextDay
                 );
 
-//        if (todayCount >= 3) {
-//            throw new IllegalArgumentException(
-//                    "하루 최대 3개의 모임만 등록할 수 있습니다."
-//            );
-//        }		
+        if (todayCount >= 3) {
+            throw new IllegalArgumentException(
+                    "하루 최대 3개의 모임만 등록할 수 있습니다."
+            );
+        }		
 		
 	    Meetup meetup = Meetup.builder()
 							  .title(meetupRequestDto.getTitle())

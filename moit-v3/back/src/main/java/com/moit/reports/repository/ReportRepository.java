@@ -64,5 +64,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 	);
 	
 
-	
+	// 관리자 통계
+	long countByDeleteYn(Character deleteYn);
+
+	long countByStatusAndDeleteYn(ReportStatus status, Character deleteYn);
 } 
