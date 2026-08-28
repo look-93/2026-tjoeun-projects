@@ -66,7 +66,7 @@ function MeetupSearchFilter({
         />
     </Col>
 
-    <Col xs={12} md={4}>
+    <Col xs={24} md={4}>
         <Button
             type="primary"
             icon={<SearchOutlined />}
@@ -77,9 +77,9 @@ function MeetupSearchFilter({
         </Button>
     </Col>
 
-    <Col xs={12} md={4}>
+    <Col xs={24} md={4}>
         <Button
-            icon={<PlusOutlined />}
+            //icon={<PlusOutlined />}
             block
             onClick={onCreate}
         >
