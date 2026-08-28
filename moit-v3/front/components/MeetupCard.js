@@ -56,12 +56,33 @@ function MeetupCard({ meetup, onClick, onToggleLike }) {
 
                 {/* 하단 */}
                 <div className="meetup-card-footer">
-                    {meetup.meetupAt && (
-                        <span>
-                            {" "}
-                            {meetup.meetupAt.replace("T", " ").slice(0, 16)}
-                        </span>
-                    )}
+                    <div className="meetup-card-dates">
+                        {meetup.meetupAt && (
+                            <div className="meetup-date">
+                                <span className="meetup-date-label">
+                                    📅 모임일
+                                </span>
+                                <span>
+                                    {meetup.meetupAt
+                                        .replace("T", " ")
+                                        .slice(0, 16)}
+                                </span>
+                            </div>
+                        )}
+
+                        {meetup.createdAt && (
+                            <div className="meetup-date">
+                                <span className="meetup-date-label">
+                                    📝 등록일
+                                </span>
+                                <span>
+                                    {meetup.createdAt
+                                        .replace("T", " ")
+                                        .slice(0, 16)}
+                                </span>
+                            </div>
+                        )}
+                    </div>
 
                     {meetup.likeCount !== undefined && (
                         <Button

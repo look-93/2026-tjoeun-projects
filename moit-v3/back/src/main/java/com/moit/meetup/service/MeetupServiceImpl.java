@@ -577,7 +577,7 @@ public class MeetupServiceImpl implements MeetupService{
 	@Override
 	public MyApplicationListResponseDto getMyApplications(Long memberId, Pageable pageable) {
 		
-	    Page<MeetupApplication> page = meetupApplicationRepository.findByMember_Id(memberId, pageable);
+	    Page<MeetupApplication> page = meetupApplicationRepository.findByMember_IdOrderByUpdatedAtDesc(memberId, pageable);
 
 	    MyApplicationListResponseDto response =
 	            new MyApplicationListResponseDto();

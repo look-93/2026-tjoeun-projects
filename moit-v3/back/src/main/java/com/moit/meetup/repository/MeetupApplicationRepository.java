@@ -21,7 +21,7 @@ public interface MeetupApplicationRepository extends JpaRepository<MeetupApplica
 	Optional<MeetupApplication> findByMeetup_IdAndMember_Id(Long meetupId, Long memberId);
 	
 	//마이페이지 내가 신청한 모집글 목록 조회(페이징)
-	Page<MeetupApplication> findByMember_Id(Long memberId, Pageable pageable);	
+	Page<MeetupApplication> findByMember_IdOrderByUpdatedAtDesc(Long memberId, Pageable pageable);	
 	
 	//신청자 목록 조회
 	Page<MeetupApplication>findByMeetup_IdAndMeetup_Member_IdAndApplyStatusNotIn(Long meetupId, Long memberId, List<ApplyStatus> applyStatuses, Pageable pageable);
