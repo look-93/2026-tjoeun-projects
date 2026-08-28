@@ -10,9 +10,9 @@ import com.moit.qna.dto.AnswerDto.AnswerRequestDto;
 import com.moit.qna.dto.AnswerDto.AnswerResponseDto;
 import com.moit.qna.dto.NotificationDto;
 import com.moit.qna.dto.QuestionAiAnalysisDto;
-import com.moit.qna.dto.QuestionDto.QuestionImageDto;
 import com.moit.qna.dto.QuestionDto.QuestionRequestDto;
 import com.moit.qna.dto.QuestionDto.QuestionResponseDto;
+import com.moit.qna.dto.QuestionImageDto;
 import com.moit.qna.dto.QuestionSearchDto;
 
 @Mapper

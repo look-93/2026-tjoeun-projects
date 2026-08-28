@@ -8,9 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.moit.qna.entity.Question;
+import com.moit.qna.enums.QnaStatus;
 
 public interface QuestionRepository extends JpaRepository<Question, Long> {
-
     // 답변 등록 시 문의 상태 변경
     @Modifying
     @Query("""
@@ -45,6 +45,6 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     List<Question> findByParentId(Integer parentId);
 
     // 상태별 개수
-    long countByStatus(String status);
+    long countByStatusAndDeleteYn(QnaStatus status, Character deleteYn);
 
 }

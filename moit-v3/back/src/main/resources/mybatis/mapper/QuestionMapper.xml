@@ -204,13 +204,13 @@
 	</insert>
 
 	<!-- 문의 이미지 등록 -->
-	<insert id="insertQuestionImage" parameterType="com.moit.qna.dto.QuestionDto$QuestionImageDto">
+	<insert id="insertQuestionImage" parameterType="com.moit.qna.dto.QuestionImageDto">
 	    INSERT INTO question_images (image_id, question_id, original_name, stored_name, image_path, image_size, content_type, delete_yn, created_at, updated_at)
 	    VALUES (question_image_seq.NEXTVAL, #{questionId}, #{originalName}, #{storedName}, #{imagePath}, #{imageSize}, #{contentType}, 'N', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	</insert>
 	
 	<!-- 문의 이미지 조회 -->
-	<select id="findQuestionImages" parameterType="long" resultType="com.moit.qna.dto.QuestionDto$QuestionImageDto">
+	<select id="findQuestionImages" parameterType="long" resultType="com.moit.qna.dto.QuestionImageDto">
 	    SELECT image_id, question_id, original_name, stored_name, image_path, image_size, content_type, delete_yn, created_at, updated_at
 	    FROM question_images
 	    WHERE question_id = #{questionId}

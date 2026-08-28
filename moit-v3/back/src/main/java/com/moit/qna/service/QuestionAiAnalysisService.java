@@ -10,6 +10,7 @@ import com.moit.qna.ai.ProfanityFilter;
 import com.moit.qna.ai.dto.AiAnalysisResult;
 import com.moit.qna.dao.QuestionMapper;
 import com.moit.qna.dto.QuestionAiAnalysisDto;
+import com.moit.qna.repository.QuestionAiAnalysisRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,8 +20,8 @@ public class QuestionAiAnalysisService {
     private final OpenAiService openAiService;
     private final QuestionMapper questionMapper;
     private final ProfanityFilter profanityFilter;
+    private final QuestionAiAnalysisRepository questionAiAnalysisRepository;
 
-    @Transactional
     public void analyzeAndSave(Long questionId, String text) {
         QuestionAiAnalysisDto dto = new QuestionAiAnalysisDto();
         dto.setQuestionId(questionId);
@@ -49,8 +50,9 @@ public class QuestionAiAnalysisService {
     }
 
     // 검토 완료 처리
+    @Transactional
     public void changeToNormal(List<Long> ids) {
-        for (Long id : ids) { questionMapper.changeToNormal(id);
+        for (Long id : ids) { questionAiAnalysisRepository.changeToNormal(id);
         }
     }
 }
