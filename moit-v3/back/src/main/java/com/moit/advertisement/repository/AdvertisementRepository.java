@@ -307,4 +307,10 @@ public interface AdvertisementRepository
 	          com.moit.advertisement.enums.AdStatus.OPEN
 	""")
 	List<Advertisement> findPriorityUpdateTargets();
+
+
+	Optional<Advertisement> findByAdIdAndAdvertiser_Id(
+	        Long adId,
+	        Long memberId
+	);
 }

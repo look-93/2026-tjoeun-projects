@@ -206,7 +206,7 @@ export default function AdvertiseExtensionPayment({
           `${window.location.origin}/user/mypage/advertiseExtensionSuccess`,
 
         failUrl:
-          `${window.location.origin}/user/mypage/advertiseExtensionFail`,
+          `${window.location.origin}/user/mypage/advertiseExtensionSuccess`,
 
       });
 

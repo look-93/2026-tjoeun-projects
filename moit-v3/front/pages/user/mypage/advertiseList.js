@@ -50,7 +50,7 @@ function AdvertiseListPage() {
   const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false);
   const [extensionTarget, setExtensionTarget] = useState(null);
 
-  // 연장 결제 상태
+  // 연장 결제
   const [isExtensionPaymentOpen, setIsExtensionPaymentOpen] = useState(false);
   const [extensionPaymentTarget, setExtensionPaymentTarget] = useState(null);
 
@@ -345,7 +345,9 @@ function AdvertiseListPage() {
            (
               record.reminder30dSent === 'Y' ||
               record.reminder14dSent === 'Y'
-            ) && (
+            ) && 
+            !(record.paymentType === 'EXTENSION' &&
+              record.paymentStatus === 'PAID') && (
             <Button
               type="primary"
               size="small"
@@ -521,9 +523,10 @@ function AdvertiseListPage() {
 
           setIsExtensionModalOpen(false);
 
-          setExtensionPaymentTarget(
-            extensionData
-          );
+          setExtensionPaymentTarget({
+            ...extensionData,
+            title: extensionTarget?.title,
+          });
 
           setIsExtensionPaymentOpen(true);
 
@@ -544,7 +547,7 @@ function AdvertiseListPage() {
           <AdvertiseExtensionPayment
             adId={extensionPaymentTarget.adId}
             days={extensionPaymentTarget.days}
-            adTitle={extensionTarget?.title}
+            adTitle={extensionPaymentTarget.title}
           />
         )}
       </Modal>

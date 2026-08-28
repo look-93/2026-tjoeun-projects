@@ -22,6 +22,7 @@ import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
+import com.moit.advertisement.dto.AdvertisementPositionPriceDto;
 import com.moit.advertisement.dto.AdvertisementPriceDto;
 import com.moit.advertisement.dto.AdvertisementScore;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
@@ -42,6 +43,7 @@ import com.moit.advertisement.repository.AdvertisementClickLogRepository;
 import com.moit.advertisement.repository.AdvertisementImageRepository;
 import com.moit.advertisement.repository.AdvertisementImpressionLogRepository;
 import com.moit.advertisement.repository.AdvertisementPaymentRepository;
+import com.moit.advertisement.repository.AdvertisementPositionPriceRepository;
 import com.moit.advertisement.repository.AdvertisementPriceRepository;
 import com.moit.advertisement.repository.AdvertisementRepository;
 import com.moit.member.entity.Member;
@@ -68,6 +70,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     private final AdvertisementImpressionLogRepository impressionLogRepository;
     private final AdvertisementPaymentRepository advertisementPaymentRepository;
     private final AdvertisementPriceRepository advertisementPriceRepository;
+    private final AdvertisementPositionPriceRepository advertisementPositionPriceRepository;
         
     private final MemberRepository memberRepository;
     private final MemberInfoRepository memberInfoRepository;
@@ -764,6 +767,48 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         );
     }
     
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdvertisementPriceDto> getInitialPrices() {
+
+        List<AdvertisementPrice> priceList =
+                advertisementPriceRepository
+		                .findByPaymentTypeOrderByPeriodDaysAsc(
+		                        PaymentType.INITIAL
+		                );
+
+        return priceList.stream()
+                .map(price -> AdvertisementPriceDto.builder()
+                        .priceId(price.getPriceId())
+                        .adGrade(price.getAdGrade())
+                        .periodDays(price.getPeriodDays())
+                        .paymentType(price.getPaymentType())
+                        .basePrice(price.getBasePrice())
+                        .build())
+                .toList();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdvertisementPositionPriceDto> getPositionPrices() {
+
+        return advertisementPositionPriceRepository
+                .findAllByOrderByPositionAsc()
+                .stream()
+                .map(price -> {
+                    AdvertisementPositionPriceDto dto =
+                            new AdvertisementPositionPriceDto();
+
+                    dto.setPositionPriceId(price.getPositionPriceId());
+                    dto.setPosition(price.getPosition());
+                    dto.setAdditionalPrice(price.getAdditionalPrice());
+
+                    return dto;
+                })
+                .toList();
+    }
+    
     // =========================================================
     // 결제 생성
     // =========================================================
@@ -914,10 +959,80 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
         return toPaymentDto(payment);
     }
+    
+    
+    @Override
+    @Transactional
+    public AdvertisementPaymentDto createExtensionPayment(
+            Long adId,
+            Long memberId,
+            int days) {
+    	
+    	// 광고주 본인의 광고인지 확인
+        Advertisement advertisement =
+                advertisementRepository
+                        .findByAdIdAndAdvertiser_Id(adId, memberId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "광고를 찾을 수 없습니다."
+                                )
+                        );
 
+        // 연장 가능 기간 검증
+        if (days != 7 &&
+            days != 14 &&
+            days != 30 &&
+            days != 60 &&
+            days != 90) {
+
+            throw new IllegalArgumentException(
+                    "지원하지 않는 연장 기간입니다."
+            );
+        }
+
+        // DB에서 연장 가격 조회
+        AdvertisementPrice price =
+                advertisementPriceRepository
+                        .findByPaymentTypeAndAdGradeAndPeriodDays(
+                                PaymentType.EXTENSION,
+                                advertisement.getAdGrade(),
+                                days
+                        )
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "해당 연장 기간의 가격을 찾을 수 없습니다."
+                                )
+                        );
+
+        BigDecimal amount = price.getBasePrice();
+
+        // 연장 결제 대기 상태
+        advertisement.waitForExtensionPayment();
+
+        // 결제 주문번호 생성
+        String orderId = "AD_EXT_" + adId + "_" + UUID.randomUUID();
+
+        AdvertisementPayment payment =
+                AdvertisementPayment.builder()
+                        .advertisement(advertisement)
+                        .advertiser(advertisement.getAdvertiser())
+                        .orderId(orderId)
+                        .baseAmount(amount)
+                        .positionAmount(BigDecimal.ZERO)
+                        .amount(amount)
+                        .paymentType(PaymentType.EXTENSION)
+                        .periodDays(days)
+                        .build();
+
+        advertisementPaymentRepository.save(payment);
+
+        return AdvertisementPaymentDto.from(payment);
+    }
+
+    // 연장 가격 조회
     @Override
     @Transactional(readOnly = true)
-    public List<AdvertisementPriceDto> getExtensionPrices(Long adId) {
+    public List<AdvertisementPriceDto> getExtensionPrices(Long adId, Long memberId) {
 
         Advertisement advertisement =
                 advertisementRepository.findById(adId)
@@ -926,6 +1041,12 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                                         "광고를 찾을 수 없습니다."
                                 )
                         );
+
+			    advertisementRepository
+			        .findByAdIdAndAdvertiser_Id(adId, memberId)
+			        .orElseThrow(() ->
+			            new IllegalArgumentException("본인의 광고만 조회할 수 있습니다.")
+			        );
 
         AdGrade adGrade = advertisement.getAdGrade();
 
@@ -1125,7 +1246,6 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     // 광고 노출 / 클릭
     // =========================================================
 
-    // 클릭 & 노툴 로그
     @Override
     public AdvertisementDto selectAdvertisement(
             String position,
@@ -2026,6 +2146,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                       .filter(score -> score > 0)
                       .sum();
 
+        // 모든 광고 점수가 0 이하라면 전체 후보 중 랜덤
         if (totalScore <= 0) {
 
             return scores.get(
@@ -2053,9 +2174,16 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             }
         }
 
-        return scores.get(
-                ThreadLocalRandom.current()
-                        .nextInt(scores.size())
-        ).getAdvertisement();
+        // 거의 오지 않지만 안전장치
+        return scores.stream()
+                .filter(item -> item.getScore() > 0)
+                .findFirst()
+                .map(AdvertisementScore::getAdvertisement)
+                .orElse(
+                        scores.get(
+                                ThreadLocalRandom.current()
+                                        .nextInt(scores.size())
+                        ).getAdvertisement()
+                );
     }
 }
