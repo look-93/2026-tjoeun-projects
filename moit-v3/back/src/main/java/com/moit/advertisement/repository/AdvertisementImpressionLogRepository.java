@@ -12,8 +12,15 @@ public interface AdvertisementImpressionLogRepository
 	
 	boolean existsByAdvertisement_AdIdAndIpAddressAndPositionAndViewedAtAfter(
             Long adId,
-            String ipAddress,
+            Long memberId,
             AdPosition position,
             LocalDateTime after
     );
+
+	boolean existsByAdvertisement_AdIdAndSessionIdAndPositionAndViewedAtAfter(
+			Long adId, 
+			String sessionId,
+			AdPosition adPosition, 
+			LocalDateTime tenMinutesAgo
+	);
 }

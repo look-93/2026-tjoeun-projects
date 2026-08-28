@@ -1303,6 +1303,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	         Long adId,
 	         String position,
 	         Long memberId,
+	         String sessionId,
 	         String ip,
 	         String userAgent,
 	         String referrer) {
@@ -1341,12 +1342,12 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	     } else {
 	
 	         // 비로그인 사용자
-	         // 광고 + IP + 위치 기준
+	         // 광고 + session + 위치 기준
 	         alreadyClicked =
 	                 clickLogRepository
 	                         .existsByAdvertisement_AdIdAndIpAddressAndPositionAndClickedAtAfter(
 	                                 adId,
-	                                 ip,
+	                                 sessionId,
 	                                 adPosition,
 	                                 oneHourAgo
 	                         );
@@ -1447,6 +1448,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	        Long adId,
 	        String position,
 	        Long memberId,
+	        String sessionId,
 	        String ip,
 	        String userAgent) {
 
@@ -1464,14 +1466,32 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	    // 최근 10분 이내 동일 광고 + IP + 위치 노출 여부 확인
 	    LocalDateTime tenMinutesAgo = LocalDateTime.now().minusMinutes(10);
 
-	    boolean alreadyViewed =
-	            impressionLogRepository
-	                    .existsByAdvertisement_AdIdAndIpAddressAndPositionAndViewedAtAfter(
-	                            adId,
-	                            ip,
-	                            adPosition,
-	                            tenMinutesAgo
-	                    );
+	    boolean alreadyViewed;
+
+	    if (memberId != null) {
+
+	        // 로그인 사용자
+	        alreadyViewed =
+	                impressionLogRepository
+	                        .existsByAdvertisement_AdIdAndIpAddressAndPositionAndViewedAtAfter(
+	                                adId,
+	                                memberId,
+	                                adPosition,
+	                                tenMinutesAgo
+	                        );
+
+	    } else {
+
+	        // 비로그인 사용자
+	        alreadyViewed =
+	                impressionLogRepository
+	                        .existsByAdvertisement_AdIdAndSessionIdAndPositionAndViewedAtAfter(
+	                                adId,
+	                                sessionId,
+	                                adPosition,
+	                                tenMinutesAgo
+	                        );
+	    }
 
 	    // 10분 이내 이미 노출됨
 	    if (alreadyViewed) { return false; }
@@ -1487,6 +1507,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 		        AdvertisementImpressionLog.builder()
 		                .advertisement(advertisement)
 		                .member(member)
+		                .sessionId(sessionId)
 		                .deviceType(getDeviceType(userAgent))
 		                .ipAddress(ip)
 		                .position(adPosition)

@@ -127,6 +127,7 @@ public interface AdvertisementService {
             Long adId,
             String position,
             Long memberId,
+            String sessionId,
             String ip,
             String userAgent,
             String referrer);
@@ -136,6 +137,7 @@ public interface AdvertisementService {
             Long adId,
             String position,
             Long memberId,
+            String sessionId,
             String ip,
             String userAgent);
     

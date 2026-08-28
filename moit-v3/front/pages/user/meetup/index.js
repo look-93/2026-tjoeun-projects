@@ -14,6 +14,7 @@ import MeetupSearchFilter from "../../../components/MeetupSearchFilter";
 import MeetupCategory from "../../../components/MeetupCategory";
 import MeetupList from "../../../components/MeetupList";
 import CommonPagination from "../../../components/CommonPagination";
+import AdBanner from "../../../components/AdBanner";
 
 function MeetupListPage() {
     const router = useRouter();
@@ -158,7 +159,7 @@ function MeetupListPage() {
         ====================== */}
                 <Col xs={24} lg={18}>
                     {/* 광고 */}
-                    <MeetupListAd ad={ad} />
+                    <AdBanner position="MEETUP_LIST_BANNER" />
 
                     {/* 검색 */}
                     <MeetupSearchFilter
