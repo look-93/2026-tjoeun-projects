@@ -82,6 +82,18 @@ public class QuestionController {
         return ResponseEntity.noContent().build();
     }
     
+    // 답변 만족도 평가 삭제
+    @Operation(summary = "답변 만족도 평가 삭제", description = "답변에 등록된 만족도 점수와 의견을 삭제합니다.")
+    @DeleteMapping("/answer/{answerId}/satisfaction")
+    public ResponseEntity<Void> deleteSatisfaction(
+            @PathVariable("answerId") Long answerId,
+            Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long memberId = userDetails.getUser().getMemberId();
+        answerService.deleteSatisfaction(answerId, memberId);
+        return ResponseEntity.noContent().build();
+    }
+    
     // 관리자용 선택 삭제
     @Operation(summary = "관리자용 선택 삭제", description = "관리자가 글을 삭제합니다.")
     @DeleteMapping("/deleteSelected")
