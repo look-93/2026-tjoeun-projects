@@ -185,19 +185,7 @@ function AdminReviewPage() {
 
             {/* 🌟 상단 필터 컨트롤 영역 (공개/비공개 탭 Select + 검색 박스) */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
-                <Space>
-                    <span>상태 필터:</span>
-                    <Select
-                        value={status}
-                        onChange={handleStatusChange}
-                        style={{ width: 120 }}
-                        options={[
-                            { value: 'all', label: '전체 상태' },
-                            { value: 'public', label: '공개' },
-                            { value: 'hidden', label: '비공개' },
-                        ]}
-                    />
-                </Space>
+                
 
                 <AdminSearchBox
                     // conditions={[
@@ -212,6 +200,8 @@ function AdminReviewPage() {
                     //     },
                     // ]}
                     // onSearch={handleSearch}
+                    
+
                 />
             </div>
 
