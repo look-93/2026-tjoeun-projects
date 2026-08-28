@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 
 import com.moit.qna.dao.QuestionMapper;
 import com.moit.qna.dto.NotificationDto;
+import com.moit.qna.enums.IsRead;
+import com.moit.qna.repository.QuestionNotificationRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NotificationService {
     private final QuestionMapper questionMapper;
+    private final QuestionNotificationRepository questionNotificationRepository;
 
     public List<NotificationDto> selectUnread(Long memberId) {
         return questionMapper.selectUnread(memberId);
@@ -31,7 +34,10 @@ public class NotificationService {
     }
     
     public int unreadCount(Long memberId) {
-        return questionMapper.unreadCount(memberId);
+    	return (int) questionNotificationRepository.countByMember_IdAndIsRead(
+                memberId,
+                IsRead.N
+        );
     }
     
     public void deleteNotification(Long notificationId,Long memberId) {

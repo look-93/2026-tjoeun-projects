@@ -15,9 +15,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.moit.qna.dao.QuestionMapper;
 import com.moit.qna.dto.AnswerDto.AnswerResponseDto;
-import com.moit.qna.dto.QuestionDto.QuestionImageDto;
 import com.moit.qna.dto.QuestionDto.QuestionRequestDto;
 import com.moit.qna.dto.QuestionDto.QuestionResponseDto;
+import com.moit.qna.dto.QuestionImageDto;
+import com.moit.qna.enums.QnaStatus;
+import com.moit.qna.repository.QuestionRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class QuestionService {
     private final QuestionMapper questionMapper;
     private final QuestionAiAnalysisService questionAiAnalysisService;
+    private final QuestionRepository questionRepository;
 
     // 관리자 전체 문의 목록 조회 (페이징)
     public List<QuestionResponseDto> getList(
@@ -238,7 +241,7 @@ public class QuestionService {
 
     // 답변 대기 문의 수 조회
     public int getPendingCnt() {
-        return questionMapper.findPendingCnt();
+    	return (int) questionRepository.countByStatusAndDeleteYn(QnaStatus.PENDING, 'N');
     }
 
     // 답변 완료 문의 수 조회

@@ -1,5 +1,6 @@
 package com.moit.review.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,5 +29,5 @@ public interface ReviewNotificationRepository extends JpaRepository<ReviewNotifi
 		      WHERE n.meetup.id = m.id AND n.member.id = m.member.id
 		  )
 	""")
-	List<Meetup> findFinishedMeetupsWithoutNotification(@Param("targetTimeStr") String targetTimeStr);
+	List<Meetup> findFinishedMeetupsWithoutNotification(@Param("targetTimeStr") LocalDateTime targetTimeStr);
 }

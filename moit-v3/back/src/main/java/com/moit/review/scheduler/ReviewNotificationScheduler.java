@@ -35,9 +35,9 @@ public class ReviewNotificationScheduler {
         log.info("🔔 [스케줄러] 리뷰 작성 알림 생성 작업 시작...");
 
         LocalDateTime targetTime = LocalDateTime.now().minusMinutes(1);
-        String targetTimeStr = targetTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        //String targetTimeStr = targetTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        List<Meetup> finishedMeetups = notificationRepository.findFinishedMeetupsWithoutNotification(targetTimeStr);
+        List<Meetup> finishedMeetups = notificationRepository.findFinishedMeetupsWithoutNotification(targetTime);
 
         for (Meetup meetup : finishedMeetups) {
             var member = meetup.getMember();
