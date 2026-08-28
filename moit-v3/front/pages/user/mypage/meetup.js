@@ -134,6 +134,7 @@ function UserMyMeetupPage() {
             },
         });
     };
+
     // 통계
     const stats = [
         {
@@ -210,6 +211,8 @@ function UserMyMeetupPage() {
         message.error(error);
     }, [error]);
 
+    console.log(myMeetups);
+
     // 테이블
     const columns = [
         {
@@ -235,19 +238,20 @@ function UserMyMeetupPage() {
             ),
         },
         {
-            title: "모임일",
-            dataIndex: "meetupAt",
-            key: "meetupAt",
-            render: (meetupAt) =>
-                meetupAt ? meetupAt.replace("T", " ").slice(0, 16) : "-",
-        },
-        {
             title: "신청 인원",
             dataIndex: "totalParticipants",
             key: "totalParticipants",
             align: "center",
             render: (totalParticipants) => `${totalParticipants ?? 0}명`,
         },
+        {
+            title: "모임일",
+            dataIndex: "meetupAt",
+            key: "meetupAt",
+            render: (meetupAt) =>
+                meetupAt ? meetupAt.replace("T", " ").slice(0, 16) : "-",
+        },
+
         {
             title: "작성일",
             dataIndex: "createdAt",

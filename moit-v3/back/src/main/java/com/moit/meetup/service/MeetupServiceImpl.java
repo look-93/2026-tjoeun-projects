@@ -628,16 +628,38 @@ public class MeetupServiceImpl implements MeetupService{
 	@Override
 	public MeetupListResponseDto getMyMeetups(Long memberId, Pageable pageable) {
 		Page<Meetup> page = meetupRepository.findByMember_IdAndDeleteYnOrderByCreatedAtDesc(memberId, 'N', pageable);
-		MeetupListResponseDto response = new MeetupListResponseDto();
-		
-		response.setTotalCount(page.getTotalElements());
-		response.setTotalPage((long) page.getTotalPages());
 		
 		List<MeetupResponseDto> meetups = page.getContent()
 											.stream()
 											.map(MeetupResponseDto::listFrom)
 											.toList();
-		response.setMeetups(meetups);
+		//현재 페이지에서 조회된 모임 id
+		List<Long> ids = meetups.stream()
+				.map(MeetupResponseDto::getId)
+				.toList();
+		
+		//모임별 승인된 신청자 수 조회
+		
+		if(!ids.isEmpty()) {
+			List<MeetupParticipantCountDto> result = 
+					meetupApplicationRepository.countByMeetup_IdInAndApplyStatusAndDeleteYn(ids, ApplyStatus.APPROVED, 'N');
+			
+			meetups.forEach(item->{
+				result.stream()
+					.filter(cnt-> item.getId().equals(cnt.getMeetupId()))
+					.findFirst()
+					.ifPresent(cnt ->
+						item.setTotalParticipants(cnt.getTotalParticipants())
+					);
+			});			
+		}
+		
+		MeetupListResponseDto response = new MeetupListResponseDto();
+
+	    response.setTotalCount(page.getTotalElements());
+	    response.setTotalPage((long) page.getTotalPages());
+	    response.setMeetups(meetups);
+	    
 		return response;
 	}	
 	
