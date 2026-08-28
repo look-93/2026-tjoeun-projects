@@ -1,29 +1,23 @@
-// pages/user/mypage/report.js
+// pages/user/meetup/report/index.js
+// 사용자 신고 목록 페이지
+// 내가 작성한 신고 내역 목록 + 페이징
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
+import { fetchReportsRequest } from '../../../../reducers/reportReducer';
+import { Card, Table, Button, Typography, Spin, message } from 'antd';
 
-import {
-    fetchReportsRequest
-} from '../../../reducers/reportReducer';
+import ReportStatusTag from '../../../../components/ReportStatusTag';
+import ReportStatusCodeTag from '../../../../components/ReportStatusCodeTag';
 
-import {
-    Card, Table, Button, Typography, Spin, message
-} from 'antd';
-
-import ReportStatusTag from '../../../components/ReportStatusTag';
-import ReportStatusCodeTag from '../../../components/ReportStatusCodeTag';
 
 const { Title } = Typography;
 
-
-
-function UserMyReportPage() {
+function ReportListPage() {
 
     const dispatch = useDispatch();
     const router = useRouter();
-
 
     // =====================================================
     // Redux 신고 상태
@@ -36,12 +30,14 @@ function UserMyReportPage() {
 
 
     // =====================================================
-    // 현재 페이지
-    // Ant Design = 1부터 시작
-    // Spring Pageable = 0부터 시작
+    // 현재 페이지 번호
+    // Ant Design은 1부터 시작
+    // Spring Pageable은 0부터 시작
     // =====================================================
     const [page, setPage] = useState(1);
 
+
+    console.log('reports: ', reports);
 
     // =====================================================
     // 신고 목록 조회
@@ -50,7 +46,7 @@ function UserMyReportPage() {
 
         dispatch(
             fetchReportsRequest({
-                page: page - 1,
+                page: page - 1,     // Spring Pageable은 0부터
                 size: 10
             })
         );
@@ -59,7 +55,7 @@ function UserMyReportPage() {
 
 
     // =====================================================
-    // 조회 오류
+    // 목록 조회 오류
     // =====================================================
     useEffect(() => {
 
@@ -71,7 +67,7 @@ function UserMyReportPage() {
 
 
     // =====================================================
-    // 신고 대상 한글 변환
+    // 신고 대상 한글
     // =====================================================
     const getTargetTypeText = (targetType) => {
 
@@ -88,7 +84,7 @@ function UserMyReportPage() {
 
 
     // =====================================================
-    // 신고 사유 한글 변환
+    // 신고 사유 한글
     // =====================================================
     const getReasonCodeText = (reasonCode) => {
 
@@ -113,10 +109,27 @@ function UserMyReportPage() {
                 return '기타';
         }
     };
+    
+
+    // const ReportStatusCodeTag = ({ statusCode }) => {
+    //     if (statusCode === 'ACTIVE') {
+    //         return <Tag color="green">정상</Tag>;
+    //     }
+
+    //     if (statusCode === 'WARNING') {
+    //         return <Tag color="orange">주의</Tag>;
+    //     }
+
+    //     if (statusCode === 'DANGER') {
+    //         return <Tag color="red">위험</Tag>;
+    //     }
+
+    //     return null;
+    // };
 
 
     // =====================================================
-    // 상세 페이지 이동
+    // 상세페이지 이동
     // =====================================================
     const handleDetail = (reportId) => {
 
@@ -133,69 +146,67 @@ function UserMyReportPage() {
         {
             title: '신고번호',
             dataIndex: 'reportId',
-            key: 'reportId',
-            align: 'center'
+            key: 'reportId'
+        },
+
+        {
+            title: '신고자 (test 나중에 빼야함!~!!~~!!~!!!)',
+            dataIndex: 'memberNickname',
+            key: 'memberNickname'
         },
 
         {
             title: '신고 대상',
             dataIndex: 'targetMemberNickname',
-            key: 'targetMemberNickname',
-            align: 'center'
+            key: 'targetMemberNickname'
         },
 
         {
             title: '매너 점수',
             dataIndex: 'targetTrustScore',
-            key: 'targetTrustScore',
-            align: 'center'
+            key: 'targetTrustScore'
         },
 
         {
             title: '뱃지',
             dataIndex: 'targetStatusCode',
             key: 'targetStatusCode',
-            align: 'center',
 
             render: (targetStatusCode) => (
-                <ReportStatusCodeTag
-                    statusCode={targetStatusCode}
-                />
+                <ReportStatusCodeTag statusCode={targetStatusCode} />
             )
         },
 
         {
-            title: '신고 대상 유형',
-            dataIndex: 'targetType',
-            key: 'targetType',
-            align: 'center',
+            title: '신고 대상',
+            dataIndex: 'targetType',    // 각 객체에서 어떤 필드를 가져올 것인가
+            key: 'targetType',          // 컬럼 자체의 식별자
 
-            render: (targetType) =>
+            render: (targetType) => (   // 가져온 값을 어떻게 가공해서 보여줄 것인가
                 getTargetTypeText(targetType)
+            )
         },
 
         {
             title: '글 번호',
             dataIndex: 'targetId',
-            key: 'targetId',
-            align: 'center'
+            key: 'targetId'
         },
 
         {
             title: '신고 사유',
             dataIndex: 'reasonCode',
             key: 'reasonCode',
-            align: 'center',
 
-            render: (reasonCode) =>
+            render: (reasonCode) => (
                 getReasonCodeText(reasonCode)
+            )
         },
 
         {
             title: '처리 상태',
             dataIndex: 'status',
             key: 'status',
-            align: 'center',
 
             render: (status) => (
                 <ReportStatusTag status={status} />
@@ -206,23 +217,16 @@ function UserMyReportPage() {
             title: '신고일',
             dataIndex: 'createdAt',
             key: 'createdAt',
-            align: 'center',
 
-            render: (createdAt) =>
-                createdAt?.slice(0, 10)
+            render: (createdAt) => createdAt?.slice(0, 10)
         },
 
         {
-            title: '관리',
+            title: '상세',
             key: 'detail',
-            align: 'center',
 
             render: (_, report) => (
-                <Button
-                    onClick={() =>
-                        handleDetail(report.reportId)
-                    }
-                >
+                <Button onClick={()=> handleDetail(report.reportId)}>
                     상세보기
                 </Button>
             )
@@ -235,38 +239,26 @@ function UserMyReportPage() {
     // =====================================================
     if (fetch.loading) {
         return (
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    padding: 50
-                }}
-            >
-                <Spin size="large" />
-            </div>
+            <Spin size="large" />
         );
     }
 
 
-    // =====================================================
-    // 화면
-    // =====================================================
     return (
         <div className="report-list-page">
             <Card>
-                <Title level={3}>
-                    내 신고 내역
+                <Title level={2}>
+                    나의 신고 내역
                 </Title>
 
                 <Table
                     columns={columns}
-                    dataSource={reports || []}
+                    dataSource={ reports || [] }
                     rowKey="reportId"
                     pagination={{
                         current: page,
                         pageSize: 10,
                         total: totalCount,
-                        showSizeChanger: false,
 
                         onChange: (newPage) => {
                             setPage(newPage);
@@ -278,4 +270,5 @@ function UserMyReportPage() {
     );
 }
 
-export default UserMyReportPage;
+
+export default ReportListPage;

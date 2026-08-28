@@ -28,6 +28,7 @@ import {
     ArrowLeftOutlined,
     ExclamationCircleOutlined,
 } from "@ant-design/icons";
+import api from '../../../api/axios';
 
 const { Title } = Typography;
 
@@ -154,6 +155,52 @@ function MeetupDetailPage() {
         );
     };
 
+    // 신고 핸들러
+    const handleReport = async (
+        targetType,
+        targetId,
+        targetMemberId
+    ) => {
+        try {
+            // 본인이 만든 모임
+            if (user?.memberId === targetMemberId) {
+                alert(targetType === "MEETUP"
+                    ? "본인이 만든 모임은 신고할 수 없습니다."
+                    : "본인이 작성한 후기는 신고할 수 없습니다.");
+                return;
+            }
+
+            const response = await api.get(
+                "/api/reports/checkDoubleReport",
+                {
+                    params: {
+                        targetType: targetType,
+                        targetId: targetId,
+                    },
+                }
+            );
+
+            if (response.data === true) {
+                alert("이미 신고한 글입니다.");
+                return;
+            }
+
+            router.push(
+                `/user/meetup/report/write?targetType=${targetType}&targetId=${targetId}`
+            );
+
+        } catch (error) {
+            console.error("중복 신고 확인 실패:", error);
+            console.error("에러 이름:", error?.name);
+            console.error("에러 메시지:", error?.message);
+            console.error("응답 상태:", error?.response?.status);
+            console.error("응답 데이터:", error?.response?.data);
+            console.error("요청 주소:", error?.config?.url);
+
+            alert("신고 여부 확인 중 오류가 발생했습니다.");
+        }
+    };
+
     // 모임 데이터
     useEffect(() => {
         if (!router.isReady || !meetupId) {
@@ -172,6 +219,7 @@ function MeetupDetailPage() {
         if (!meetup || !meetupId) return;
 
         if (Number(meetup.id) !== Number(meetupId)) return;
+
 
         if (meetup.hidden) {
             alert("모임이 관리자에 의해 비공개 처리되었습니다.");
@@ -192,6 +240,7 @@ function MeetupDetailPage() {
     const rawReviews =
         reduxReviews?.map((review) => ({
             id: review.id,
+            memberId: review.memberId,  // 신고 추가 ...
             nickname: review.memberNickname || review.nickname || "익명",
             rating: review.rating,
             content: review.content,
@@ -310,10 +359,10 @@ function MeetupDetailPage() {
                                 <Button
                                     danger
                                     onClick={() =>
-                                        router.push(
-                                            `/user/meetup/report/write?targetType=MEETUP&targetId=${meetup.id}`,
-                                            // `/user/meetup/report/write?targetType=MEETUP&targetId=${meetup.meetupId}`,
-                                            // `/user/meetup/report/write?targetType=MEETUP&targetId=2`,
+                                        handleReport(
+                                            "MEETUP",
+                                            meetup.id,
+                                            meetup.memberId
                                         )
                                     }
                                 >
@@ -339,6 +388,7 @@ function MeetupDetailPage() {
                         onLikeReview={handleLikeReview}
                         onSortChange={handleSortChange}
                         onSearch={handleSearch}
+                        onReport={handleReport}
                     />
                 </Col>
 
