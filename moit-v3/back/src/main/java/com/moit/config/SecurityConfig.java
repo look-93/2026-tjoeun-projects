@@ -112,7 +112,8 @@ public class SecurityConfig {
                 "/api/members/check-password",
                 "/api/members/social-info",
                 "/api/members/find-id",
-                "/api/members/reset-password"
+                "/api/members/reset-password",
+                "/api/members/signup/behavior/analyze"
             ).permitAll()
 
             // -------------------------------------------------
