@@ -75,6 +75,7 @@ public class MeetupDto {
 		private Long hostMeetupCount; // 개설한 모임 수
 		private Long completedMeetupCount;  // 완료된 모임 수
 		private Long noShowCount;  // 노쇼 횟수
+		private LocalDateTime createdAt;
 		
 		public static MeetupResponseDto listFrom(Meetup meetup) { // list에만 보여줄 MeetupResponse
 			MeetupResponseDto response = new MeetupResponseDto();
@@ -102,6 +103,9 @@ public class MeetupDto {
 			response.setCategoryName(
 			        meetup.getMeetupCategory().getCategoryName()
 			);
+			
+			response.setCreatedAt(meetup.getCreatedAt());
+			
 			 // 대표 이미지
 		    if (meetup.getMeetupImages() != null
 		            && !meetup.getMeetupImages().isEmpty()) {

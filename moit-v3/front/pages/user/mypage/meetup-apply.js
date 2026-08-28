@@ -66,7 +66,7 @@ function UserMyMeetupApplyPage() {
             icon: HeartOutlined,
         },
     ];
-
+    console.log(myApplications);
     // 테이블
     const columns = [
         {
@@ -137,7 +137,7 @@ function UserMyMeetupApplyPage() {
                     case "모집중":
                         return <Tag color="processing">{status}</Tag>;
 
-                    case "모집마감":
+                    case "모임완료":
                         return <Tag>{status}</Tag>;
 
                     case "모임취소":
