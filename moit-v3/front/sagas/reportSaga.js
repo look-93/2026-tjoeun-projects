@@ -311,7 +311,7 @@ export function* fetchAdminReportAuditLogs(action) {
     }
 }
 
-// AI 신고 내용 작성
+// openAi 신고 내용 작성
 export const createAIReportDetailAPI = (dto) => {
     // @RequestBody AiReportsDto { keywords, reasonCode, targetType }
     return api.post(

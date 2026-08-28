@@ -5,7 +5,12 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
-import { createReportRequest, createAIReportDetailRequest, resetReportState } from '../../../../reducers/reportReducer';
+
+import {
+  createReportRequest,
+  createAIReportDetailRequest,
+  resetReportState
+} from '../../../../reducers/reportReducer';
 import { Card, Radio, Input, Button, Typography, Space, Divider, message } from 'antd';
 
 const { Title, Text } = Typography;
@@ -19,6 +24,8 @@ function ReportWritePage() {
   // const { user } = useSelector();
   const { targetType, targetId } = router.query;
   const { aiReportDetail, create } = useSelector((state)=> state.report);
+
+  const { aiCreate } = useSelector((state)=> state.report);
 
   // 검색 기능
   const [reasonCode, setReasonCode] = useState(null);
@@ -42,7 +49,7 @@ function ReportWritePage() {
     { value: 'ETC', label: '기타' },
   ];
 
-  // 신고 작성 페이지를 나갈 때 신고 성공 상태 초기화
+  // 페이지 나갈 때 success 초기화
   useEffect(() => {
     return () => {
       dispatch(resetReportState());
@@ -60,7 +67,7 @@ function ReportWritePage() {
   useEffect(() => {
     if (create.success) {
       message.success('신고가 등록되었습니다.');
-      router.push('/user/meetup/report');
+      router.push('/user/mypage/report');
     }
   }, [create.success]);
   
@@ -165,10 +172,11 @@ function ReportWritePage() {
           <Button
             type="primary"
             style={{ marginTop: 10 }}
-            disabled={!reasonCode || !keywords.trim()}
+            disabled={!reasonCode || !keywords.trim() || aiCreate.loading}
             onClick={handleAICreate}
+            loading={aiCreate.loading}
           >
-            키워드 작성
+            {aiCreate.loading ? "AI 작성 중... ⏳" : "키워드 작성"}
           </Button>
         </div>
 

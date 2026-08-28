@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.moit.reports.dto.AiReportAnalysisDto;
+
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
@@ -144,18 +146,20 @@ public class RagService {	// 실제 RAG 작업
 	
 	public String analyzeReport(Long reportId) {
 
-		// reportContext -	DB에서 조회한 현재 신고 데이터 + 신고 대상 원문 가져오기
+		// reportContext -	DB에서 조회한 현재 신고 데이터 + 신고 대상 원문 조회
 		ReportAiContext reportContext = reportAiContextService.getReportContext(reportId);
 
 		// query -	유사 문서 Embedding 검색용 문자열 생성
 		String query = """
 				신고 유형: %s
 				신고 내용: %s
-
 				신고 대상 원문:
 				%s
-				""".formatted(reportContext.getReasonCode(), reportContext.getReasonDetail(),
-				reportContext.getTargetContent());
+				""".formatted(
+						reportContext.getReasonCode(),
+						reportContext.getReasonDetail(),
+						reportContext.getTargetContent()
+				);
 
 		// similarChunks -	현재 사건과 비슷한 운영 기준 / 사례 Top 3 검색
 		List<RagChunk> similarChunks = searchSimilarChunks(query, 3);
@@ -176,24 +180,16 @@ public class RagService {	// 실제 RAG 작업
 		String ragContext = contextBuilder.toString();
 
 		// currentReport -	GPT에게 알려줄 현재 신고 정보
-		String currentReport = """
-				[현재 신고]
+		AiReportAnalysisDto aiReportContext = new AiReportAnalysisDto();
 
-				신고 유형:
-				%s
-
-				신고 내용:
-				%s
-
-				신고 대상:
-				%s
-
-				신고 대상 원문:
-				%s
-				""".formatted(reportContext.getReasonCode(), reportContext.getReasonDetail(),
-				reportContext.getTargetType(), reportContext.getTargetContent());
+		aiReportContext.setReasonCode(reportContext.getReasonCode());
+		aiReportContext.setReasonDetail(reportContext.getReasonDetail());
+		aiReportContext.setTargetType(reportContext.getTargetType());
+		aiReportContext.setTargetId(reportContext.getTargetId());
+		aiReportContext.setTargetTitle(reportContext.getTargetTitle());
+		aiReportContext.setTargetContent(reportContext.getTargetContent());
 
 		// 현재 신고 + 검색 근거를 GPT에게 전달
-		return aiService.askToGptWithContext(ragContext, currentReport);
+		return aiService.askToGptWithContext(ragContext, aiReportContext);
 	}
 }

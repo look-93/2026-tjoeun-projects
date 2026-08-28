@@ -157,9 +157,12 @@ const reportReducer = createSlice({
 
             state.aiCreate.success = false;
             state.aiCreate.error = null;
+
+            // 이전 AI 작성 내용 삭제
+            state.aiReportDetail = null;
         },
 
-        // AI 분석결과만 초기화 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // 관리자 처리 이력 AI 분석결과만 초기화 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         resetAiAnalysisState: (state) => {
             state.aiAnalysis = null;
             state.aiAnalysisLoading = false;
