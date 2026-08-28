@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SignupBehaviorService {
 	
-	private final AiService aiService;
+	private final SignupAiService signupAiService;
 	private final ObjectMapper objectMapper;
 	
 	/** * 회원가입 행동 데이터를 분석하여 * 
@@ -176,7 +176,7 @@ public class SignupBehaviorService {
 				답변은 1~2문장으로 작성하고 도움말만 반환하세요.
 				""".formatted(dto.getField(),behaviorData);
 		
-		return aiService.askToGptWithContext("", question);
+		return signupAiService.askSignupAi(question);
 		
 	}
 }
