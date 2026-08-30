@@ -37,6 +37,7 @@ public class MeetupApplicationDto {
 		private LocalDateTime meetupAt;
 		private String applyStatus;
 		private String meetupStatus;
+		private LocalDateTime updateAt;
 		
 		public static MeetupApplicationResponseDto fromEntity(MeetupApplication application) {
 			return MeetupApplicationResponseDto.builder()
@@ -47,6 +48,7 @@ public class MeetupApplicationDto {
 						                .meetupTitle(application.getMeetup().getTitle())
 						                .meetupAt(application.getMeetup().getMeetupAt())
 						                .meetupStatus(application.getMeetup().getMeetupStatus().getDesc())
+						                .updateAt(application.getUpdatedAt())
 						                .build();
 		}
 	}

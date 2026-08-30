@@ -97,8 +97,15 @@ function UserMyMeetupApplyPage() {
             title: "모임일",
             dataIndex: "meetupAt",
             key: "meetupAt",
-            render: (createdAt) =>
-                createdAt ? createdAt.replace("T", " ").slice(0, 16) : "-",
+            render: (meetupAt) =>
+                meetupAt ? meetupAt.replace("T", " ").slice(0, 16) : "-",
+        },
+        {
+            title: "신청일",
+            dataIndex: "updateAt",
+            key: "updateAt",
+            render: (updateAt) =>
+                updateAt ? updateAt.replace("T", " ").slice(0, 16) : "-",
         },
         {
             title: "상태",
