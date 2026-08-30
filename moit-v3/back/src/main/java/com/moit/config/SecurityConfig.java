@@ -128,7 +128,13 @@ public class SecurityConfig {
                 "/admin/member/join",
                 "/meetup/list",
                 "/user/advertisement/click",
-                "/user/member/kakaologout"
+                "/user/member/kakaologout",
+                "/upload/**",
+                
+                //운영환경에서는 yml로 제어 
+                "/swagger-ui/**",
+                "/swagger-ui.html",
+                "/v3/api-docs/**"
 
             ).permitAll()
             
@@ -198,7 +204,7 @@ public class SecurityConfig {
             // 나머지
             // -------------------------------------------------
             .anyRequest()
-            .permitAll()
+            .authenticated() // 20260830 bora수정
         );
 
         // =====================================================
