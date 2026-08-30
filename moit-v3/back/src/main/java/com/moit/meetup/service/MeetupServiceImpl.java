@@ -509,6 +509,11 @@ public class MeetupServiceImpl implements MeetupService{
 			
 		Optional<MeetupApplication> apply = meetupApplicationRepository.findByMeetup_IdAndMember_Id(meetupId, memberId);
 		
+	    // 오늘 날짜 (한국 시간)
+	    ZoneId zoneId = ZoneId.of("Asia/Seoul");
+	    LocalDate today = LocalDate.now(zoneId);
+	    LocalDateTime now = LocalDateTime.now(zoneId);
+		
 	    // 이미 신청했으면 → 신청 취소
 	    if (apply.isPresent()) {	    	
 	    	MeetupApplication meetupApplication = apply.get();
@@ -516,19 +521,23 @@ public class MeetupServiceImpl implements MeetupService{
 	        // 신청 중이면 → 취소
 	        if (meetupApplication.getApplyStatus() == ApplyStatus.PENDING) {
 	        	
-	            // 모임 날짜
-	        	LocalDateTime meetupDate = meetup.getMeetupAt();          
-
-	            /* 당일취소 1시간 경과 취소하면 -5점 */
+	        	/* 오늘 신청한 모임을 1시간 초과 후 취소하면 -5점 */
 	            
-	        	// 오늘 진행되는 모임인지 확인
-	        	boolean isTodayMeetup = meetupDate.isEqual(LocalDateTime.now());
+	        	// 신청한 날짜가 오늘인지 확인
+	            boolean isTodayApplication =
+	                    meetupApplication.getCreatedAt()
+	                            .toLocalDate()
+	                            .isEqual(today);
 	        	
-	        	//신청 후 경과 시간
-	        	long elapsedMinutes  = ChronoUnit.MINUTES.between(meetupApplication.getCreatedAt(), LocalDateTime.now());
+	            // 신청 후 경과 시간
+	            long elapsedMinutes =
+	                    ChronoUnit.MINUTES.between(
+	                            meetupApplication.getCreatedAt(),
+	                            now
+	                    );
 	            
-	        	// 오늘 모임 + 신청 후 1시간 초과
-	            if (isTodayMeetup && elapsedMinutes > 1) {
+	            // 오늘 신청 + 신청 후 1시간 초과 → 신뢰도 -5점
+	            if (isTodayApplication && elapsedMinutes > 60) {
 	                changeTrustScore(member, -5);
 	            }
 
@@ -537,22 +546,32 @@ public class MeetupServiceImpl implements MeetupService{
 	        }
 
 	        // 취소된 상태면 → 다시 신청
-	        if (meetupApplication.getApplyStatus() == ApplyStatus.CANCELED) {	 
-	            
-	        	// ⭐ 다시 신청할 때 정원 
-	            long applicantCount = meetupApplicationRepository.countByMeetupIdAndApplyStatus(meetupId, ApplyStatus.PENDING);
+	        if (meetupApplication.getApplyStatus() == ApplyStatus.CANCELED) {
+
+	            long applicantCount =
+	                    meetupApplicationRepository
+	                            .countByMeetupIdAndApplyStatus(
+	                                    meetupId,
+	                                    ApplyStatus.PENDING
+	                            );
 
 	            if (applicantCount >= meetup.getMaxParticipants()) {
-	                throw new IllegalStateException( "모임 정원이 가득 찼습니다.");
+	                throw new IllegalStateException(
+	                        "모임 정원이 가득 찼습니다."
+	                );
 	            }
-	        	
+
 	            meetupApplication.setApplyStatus(ApplyStatus.PENDING);
 	            return;
 	        }
 	    }
 	    
 	    // 신규 신청 → 정원 확인
-	    long applicantCount = meetupApplicationRepository.countByMeetupIdAndApplyStatus( meetupId, ApplyStatus.PENDING);
+	    long applicantCount =
+	            meetupApplicationRepository.countByMeetupIdAndApplyStatus(
+	                    meetupId,
+	                    ApplyStatus.PENDING
+	            );
 	    
 	    if (applicantCount >= meetup.getMaxParticipants()) {
 	        throw new IllegalStateException("모임 정원이 가득 찼습니다.");
