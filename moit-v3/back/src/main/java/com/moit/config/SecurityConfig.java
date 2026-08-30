@@ -128,11 +128,28 @@ public class SecurityConfig {
                 "/admin/member/join",
                 "/meetup/list",
                 "/user/advertisement/click",
-                "/user/member/kakaologout",
-                "/api/meetups/**"
+                "/user/member/kakaologout"
 
             ).permitAll()
-
+            
+			// -------------------------------------------------
+			// 모집글 공개/비공개 변경 → 관리자만 20260830 bora추가
+			// -------------------------------------------------
+			.requestMatchers(
+			    HttpMethod.PATCH,
+			    "/api/meetups/*/visibility"
+			)
+			.hasAnyRole("ADMIN", "SUPERADMIN")
+			
+			// -------------------------------------------------
+			// 모집글 조회 → 공개 20260830 bora추가
+			// -------------------------------------------------
+			.requestMatchers(
+			    HttpMethod.GET,
+			    "/api/meetups/**"
+			)
+			.permitAll()
+			
             // -------------------------------------------------
             // 회원 API
             // -------------------------------------------------
