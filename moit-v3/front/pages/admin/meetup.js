@@ -45,7 +45,7 @@ function AdminMeetupPage() {
         },
     ];
 
-    console.log(meetupCount);
+    //console.log(meetupCount);
     const adminColumns = [
         {
             title: "번호",

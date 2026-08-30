@@ -140,11 +140,16 @@ export function* fetchMeetupDetail(action) {
         //console.log(result.data);
         yield put(fetchMeetupDetailSuccess(result.data));
     } catch (err) {
-        yield put(
-            fetchMeetupDetailFailure(
-                err.response?.data?.message || err.message,
-            ),
-        );
+        const status = err.response?.status;
+
+        const message =
+            status === 403
+                ? "비공개 처리된 모집글입니다."
+                : err.response?.data?.message ||
+                  err.message ||
+                  "모집글 조회에 실패했습니다.";
+
+        yield put(fetchMeetupDetailFailure(message));
     }
 }
 

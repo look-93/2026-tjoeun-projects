@@ -20,9 +20,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moit.common.dto.SigunguDto;
@@ -75,6 +77,7 @@ import com.moit.meetup.repository.MeetupSigunguRepository;
 import com.moit.member.entity.Member;
 import com.moit.member.entity.MemberInfo;
 import com.moit.member.entity.PointHistory;
+import com.moit.member.enums.MemberTypeEnum;
 import com.moit.member.repository.MemberRepository;
 import com.moit.member.repository.PointHistoryRepository;
 import com.moit.util.UtilUpload;
@@ -195,15 +198,51 @@ public class MeetupServiceImpl implements MeetupService{
 
 	}
 	
-	//상세조회
+	// 상세조회
 	@Override
-	public MeetupResponseDto detail(Long meetupId, Long memberId) {		
-		Meetup meetup = meetupRepository.findById(meetupId)
-										.orElseThrow(()->new ResourceNotFoundException("존재하지 않는 게시글입니다. ID: "+ meetupId));
-		
-		if(meetup.getDeleteYn() == 'Y') {
-			throw new IllegalArgumentException("삭제된 게시글 입니다.");
-		}		
+	public MeetupResponseDto detail(Long meetupId, Long memberId) {
+
+	    Meetup meetup = meetupRepository.findById(meetupId)
+	            .orElseThrow(() ->
+	                    new ResourceNotFoundException(
+	                            "존재하지 않는 게시글입니다. MEETUPID: " + meetupId
+	                    ));
+
+	    if (meetup.getDeleteYn() == 'Y') {
+	        throw new IllegalArgumentException("삭제된 게시글 입니다.");
+	    }
+
+	    // 비공개 모집글 접근 권한 확인
+	    if (Boolean.TRUE.equals(meetup.getHidden())) {
+
+	        // 작성자 여부
+	        boolean isOwner = memberId != null
+	                && meetup.getMember().getId().equals(memberId);
+
+	        // 관리자 여부
+	        boolean isAdmin = false;
+
+	        if (memberId != null) {
+
+	            Member member = memberRepository.findById(memberId)
+	                    .orElseThrow(() ->
+	                            new ResourceNotFoundException("존재하지 않는 회원입니다."));
+
+	            Long memberTypeId = member.getMemberType().getMemberTypeId();
+
+	            isAdmin =
+	                    MemberTypeEnum.ROLE_ADMIN.getId().equals(memberTypeId)
+	                    || MemberTypeEnum.ROLE_SUPERADMIN.getId().equals(memberTypeId);
+	        }
+
+	        // 작성자도 아니고 관리자도 아니면 403
+	        if (!isOwner && !isAdmin) {
+	            throw new ResponseStatusException(
+	                    HttpStatus.FORBIDDEN,
+	                    "비공개 처리된 모집글입니다."
+	            );
+	        }
+	    }
 		
 	    // 모임 개설자 ID
 	    Long hostId = meetup.getMember().getId();
