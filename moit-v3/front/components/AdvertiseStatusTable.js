@@ -149,6 +149,34 @@ function AdvertiseStatusTable({
       render: (value) => value ?? 0,
     },
     {
+      title: '우선도',
+      dataIndex: 'priorityScore',
+      key: 'priorityScore',
+      width: 100,
+      align: 'center',
+
+      render: (value) => {
+        if (value == null) {
+          return '-';
+        }
+
+        const score = Number(value);
+
+        return (
+          <Tag
+            color={score >= 8 ? 'blue' : score >= 5 ? 'geekblue' : 'default'}
+            style={{
+              fontWeight: 600,
+              minWidth: 45,
+              textAlign: 'center',
+            }}
+          >
+            {score}
+          </Tag>
+        );
+      },
+    },
+    {
       title: '관리',
       key: 'action',
       align: 'center',

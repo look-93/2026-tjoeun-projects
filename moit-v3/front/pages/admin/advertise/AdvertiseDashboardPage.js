@@ -143,6 +143,17 @@ const PURPLE_2 = '#c7c5ed';
 const PURPLE_3 = '#d6d5f1';
 const PURPLE_4 = '#e3e2f5';
 
+// =========================================================
+// 광고 위치 고정 순서
+// =========================================================
+
+const POSITION_ORDER = [
+    'MAIN',
+    'MEETUP_LIST_BANNER',
+    'MEETUP_LIST_SIDEBAR',
+    'MEETUP_DETAIL_SIDEBAR',
+];
+
 
 function AdvertiseDashboardPage() {
 
@@ -416,9 +427,28 @@ function AdvertiseDashboardPage() {
     // =========================================================
     // 위치별 노출
     // =========================================================
+
+    const sortedPositionData = POSITION_ORDER.map(
+        position => {
+
+            const found =
+                positionData.find(
+                    item => item.position === position
+                );
+
+            return {
+                position,
+
+                impressions:
+                    found?.impressions ?? 0,
+            };
+        }
+    );
+
+
     const positionChartData = {
 
-        labels: positionData.map(
+        labels: sortedPositionData.map(
             item => item.position
         ),
 
@@ -427,8 +457,8 @@ function AdvertiseDashboardPage() {
             {
                 label: '노출수',
 
-                data: positionData.map(
-                    item => item.impressions ?? 0
+                data: sortedPositionData.map(
+                    item => item.impressions
                 ),
 
                 backgroundColor: [
@@ -486,13 +516,31 @@ function AdvertiseDashboardPage() {
         },
     };
 
-
     // =========================================================
     // 위치별 CTR
     // =========================================================
+
+    const sortedPositionCtrData = POSITION_ORDER.map(
+        position => {
+
+            const found =
+                positionCtrData.find(
+                    item => item.position === position
+                );
+
+            return {
+                position,
+
+                ctr:
+                    found?.ctr ?? 0,
+            };
+        }
+    );
+
+
     const positionCtrChartData = {
 
-        labels: positionCtrData.map(
+        labels: sortedPositionCtrData.map(
             item => item.position
         ),
 
@@ -501,8 +549,8 @@ function AdvertiseDashboardPage() {
             {
                 label: 'CTR (%)',
 
-                data: positionCtrData.map(
-                    item => item.ctr ?? 0
+                data: sortedPositionCtrData.map(
+                    item => item.ctr
                 ),
 
                 backgroundColor: [

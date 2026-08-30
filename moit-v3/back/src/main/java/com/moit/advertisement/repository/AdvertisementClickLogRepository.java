@@ -20,9 +20,9 @@ public interface AdvertisementClickLogRepository extends JpaRepository<Advertise
     );
 	
 	// 비로그인 사용자
-	boolean existsByAdvertisement_AdIdAndIpAddressAndPositionAndClickedAtAfter(
+	boolean existsByAdvertisement_AdIdAndSessionIdAndPositionAndClickedAtAfter(
             Long adId,
-            String ipAddress,
+            String sessionId,
             AdPosition position,
             LocalDateTime after
     );

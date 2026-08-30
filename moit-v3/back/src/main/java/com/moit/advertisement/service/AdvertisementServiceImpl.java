@@ -1359,7 +1359,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	         // 광고 + session + 위치 기준
 	         alreadyClicked =
 	                 clickLogRepository
-	                         .existsByAdvertisement_AdIdAndIpAddressAndPositionAndClickedAtAfter(
+	                         .existsByAdvertisement_AdIdAndSessionIdAndPositionAndClickedAtAfter(
 	                                 adId,
 	                                 sessionId,
 	                                 adPosition,
@@ -1386,6 +1386,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	             AdvertisementClickLog.builder()
 	                     .advertisement(advertisement)
 	                     .member(member)
+	                     .sessionId(sessionId)
 	                     .deviceType(getDeviceType(userAgent))
 	                     .ipAddress(ip)
 	                     .referrer(referrer)
@@ -1396,10 +1397,17 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	
 	     // 광고 클릭수 증가
 	     advertisement.increaseClicks();
+	     
+	     System.out.println("===== 광고 클릭 =====");
+	     System.out.println("memberId = " + memberId);
+	     System.out.println("member = " + member);
 	
 	     // 로그인 사용자 포인트 적립
 	     if (member != null) {
 	
+	    	 System.out.println("===== 광고 클릭 포인트 적립 실행 =====");
+
+	    	 
 	         final int POINT = 10;
 	
 	         MemberInfo memberInfo =
@@ -1418,8 +1426,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	         memberInfo.setPoint(currentPoint + POINT);
 	
 	         // 포인트 적립 이력
-	         PointHistory history =
-	                 new PointHistory();
+	         PointHistory history = new PointHistory();
 	
 	         history.setMember(member);
 	         history.setPointPm(POINT);
@@ -1567,110 +1574,256 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	 // =========================================================
 	 // 통계 차트
 	 // =========================================================
-    @Override
-    @Transactional
-    public void insertDailyStatistics() {
-
-    	System.out.println("🔥🔥🔥 INSERT DAILY STATISTICS CALLED 🔥🔥🔥");
-    	
-    	record StatisticsKey(
-    	        Long adId,
-    	        AdPosition position
-    	) {}
-    	
-        LocalDate statDate = LocalDate.now().minusDays(1);
-
-        List<AdvertisementImpressionLog> impressionLogs =
-                impressionLogRepository.findByViewedAtBetween(
-                        statDate.atStartOfDay(),
-                        statDate.plusDays(1).atStartOfDay()
-                );
-
-        Map<StatisticsKey, Long> impressionMap =
-                impressionLogs.stream()
-                        .collect(Collectors.groupingBy(
-                                log -> new StatisticsKey(
-                                        log.getAdvertisement().getAdId(),
-                                        log.getPosition()
-                                ),
-                                Collectors.counting()
-                        ));
-
-        List<AdvertisementClickLog> clickLogs =
-                clickLogRepository.findByClickedAtBetween(
-                        statDate.atStartOfDay(),
-                        statDate.plusDays(1).atStartOfDay()
-                );
-
-        Map<StatisticsKey, Long> clickMap =
-                clickLogs.stream()
-                        .collect(Collectors.groupingBy(
-                                log -> new StatisticsKey(
-                                        log.getAdvertisement().getAdId(),
-                                        log.getPosition()
-                                ),
-                                Collectors.counting()
-                        ));
-
-        Set<StatisticsKey> keys = new HashSet<>();
-
-        keys.addAll(impressionMap.keySet());
-        keys.addAll(clickMap.keySet());
-
-        for (StatisticsKey key : keys) {
-
-            Long adId = key.adId();
-            AdPosition position = key.position();
-
-            if (dailyStatisticsRepository
-                    .existsByAdvertisement_AdIdAndStatDateAndPosition(
-                            adId,
-                            statDate,
-                            position)) {
-                continue;
-            }
-
-            Advertisement advertisement =
-                    advertisementRepository.findById(adId)
-                            .orElse(null);
-
-            if (advertisement == null) {
-                continue;
-            }
-
-            long impressions =
-                    impressionMap.getOrDefault(key, 0L);
-
-            long clicks =
-                    clickMap.getOrDefault(key, 0L);
-
-            BigDecimal ctr =
-                    impressions == 0
-                            ? BigDecimal.ZERO
-                            : BigDecimal.valueOf(
-                                    ((double) clicks / impressions) * 100
-                            ).setScale(2, RoundingMode.HALF_UP);
-
-            BigDecimal fatigueScore =
-                    calculateFatigueScore(
-                            adId,
-                            statDate
-                    );
-
-            AdvertisementDailyStatistics statistics =
-                    AdvertisementDailyStatistics.builder()
-                            .advertisement(advertisement)
-                            .statDate(statDate)
-                            .impressions(impressions)
-                            .clicks(clicks)
-                            .ctr(ctr)
-                            .fatigueScore(fatigueScore)
-                            .position(position)
-                            .build();
-
-            dailyStatisticsRepository.save(statistics);
-        }
-    }
+	 @Override
+	 @Transactional
+	 public void insertDailyStatistics() {
+	
+	     System.out.println("🔥🔥🔥 INSERT DAILY STATISTICS CALLED 🔥🔥🔥");
+	
+	     record StatisticsKey(
+	             Long adId,
+	             AdPosition position
+	     ) {}
+	
+	     LocalDate statDate = LocalDate.now().minusDays(1);
+//	     LocalDate statDate = LocalDate.now(); // 당일통계 저장
+	
+	     System.out.println("🔥 통계 기준일 = " + statDate);
+	
+	     // =========================================================
+	     // 노출 로그 조회
+	     // =========================================================
+	
+	     List<AdvertisementImpressionLog> impressionLogs =
+	             impressionLogRepository.findByViewedAtBetween(
+	                     statDate.atStartOfDay(),
+	                     statDate.plusDays(1).atStartOfDay()
+	             );
+	
+	     System.out.println(
+	             "🔥 노출 로그 조회 건수 = " + impressionLogs.size()
+	     );
+	
+	     impressionLogs.forEach(log ->
+	             System.out.println(
+	                     "🔥 노출 로그"
+	                     + " | adId=" + log.getAdvertisement().getAdId()
+	                     + " | position=" + log.getPosition()
+	                     + " | viewedAt=" + log.getViewedAt()
+	             )
+	     );
+	
+	     // =========================================================
+	     // 노출 Map
+	     // =========================================================
+	
+	     Map<StatisticsKey, Long> impressionMap =
+	             impressionLogs.stream()
+	                     .collect(Collectors.groupingBy(
+	                             log -> new StatisticsKey(
+	                                     log.getAdvertisement().getAdId(),
+	                                     log.getPosition()
+	                             ),
+	                             Collectors.counting()
+	                     ));
+	
+	     System.out.println("===== IMPRESSION MAP =====");
+	
+	     impressionMap.forEach((key, value) ->
+	             System.out.println(
+	                     "adId=" + key.adId()
+	                     + " | position=" + key.position()
+	                     + " | impressions=" + value
+	             )
+	     );
+	
+	     // =========================================================
+	     // 클릭 로그 조회
+	     // =========================================================
+	
+	     List<AdvertisementClickLog> clickLogs =
+	             clickLogRepository.findByClickedAtBetween(
+	                     statDate.atStartOfDay(),
+	                     statDate.plusDays(1).atStartOfDay()
+	             );
+	
+	     System.out.println(
+	             "🔥 클릭 로그 조회 건수 = " + clickLogs.size()
+	     );
+	
+	     // =========================================================
+	     // 클릭 Map
+	     // =========================================================
+	
+	     Map<StatisticsKey, Long> clickMap =
+	             clickLogs.stream()
+	                     .collect(Collectors.groupingBy(
+	                             log -> new StatisticsKey(
+	                                     log.getAdvertisement().getAdId(),
+	                                     log.getPosition()
+	                             ),
+	                             Collectors.counting()
+	                     ));
+	
+	     System.out.println("===== CLICK MAP =====");
+	
+	     clickMap.forEach((key, value) ->
+	             System.out.println(
+	                     "adId=" + key.adId()
+	                     + " | position=" + key.position()
+	                     + " | clicks=" + value
+	             )
+	     );
+	
+	     // =========================================================
+	     // 광고 + 위치 조합
+	     // =========================================================
+	
+	     Set<StatisticsKey> keys = new HashSet<>();
+	
+	     keys.addAll(impressionMap.keySet());
+	     keys.addAll(clickMap.keySet());
+	
+	     System.out.println("===== STATISTICS KEYS =====");
+	
+	     keys.forEach(key ->
+	             System.out.println(
+	                     "adId=" + key.adId()
+	                     + " | position=" + key.position()
+	             )
+	     );
+	
+	     // =========================================================
+	     // 일일 통계 저장
+	     // =========================================================
+	
+	     for (StatisticsKey key : keys) {
+	
+	         Long adId = key.adId();
+	         AdPosition position = key.position();
+	
+	         System.out.println(
+	                 "===== STATISTICS PROCESS ====="
+	                 + " | adId=" + adId
+	                 + " | position=" + position
+	         );
+	
+	         // -----------------------------------------------------
+	         // 이미 존재하는 통계인지 확인
+	         // -----------------------------------------------------
+	
+	         boolean exists =
+	                 dailyStatisticsRepository
+	                         .existsByAdvertisement_AdIdAndStatDateAndPosition(
+	                                 adId,
+	                                 statDate,
+	                                 position
+	                         );
+	
+	         System.out.println(
+	                 "이미 존재 여부 = " + exists
+	         );
+	
+	         if (exists) {
+	
+	             System.out.println(
+	                     "⏭️ 이미 존재하므로 SKIP"
+	                     + " | adId=" + adId
+	                     + " | position=" + position
+	             );
+	
+	             continue;
+	         }
+	
+	         // -----------------------------------------------------
+	         // 광고 조회
+	         // -----------------------------------------------------
+	
+	         Advertisement advertisement =
+	                 advertisementRepository.findById(adId)
+	                         .orElse(null);
+	
+	         if (advertisement == null) {
+	
+	             System.out.println(
+	                     "⚠️ 광고 없음 → SKIP"
+	                     + " | adId=" + adId
+	             );
+	
+	             continue;
+	         }
+	
+	         // -----------------------------------------------------
+	         // 노출 / 클릭
+	         // -----------------------------------------------------
+	
+	         long impressions =
+	                 impressionMap.getOrDefault(key, 0L);
+	
+	         long clicks =
+	                 clickMap.getOrDefault(key, 0L);
+	
+	         System.out.println(
+	                 "📊 저장 데이터"
+	                 + " | adId=" + adId
+	                 + " | position=" + position
+	                 + " | impressions=" + impressions
+	                 + " | clicks=" + clicks
+	         );
+	
+	         // -----------------------------------------------------
+	         // CTR
+	         // -----------------------------------------------------
+	
+	         BigDecimal ctr =
+	                 impressions == 0
+	                         ? BigDecimal.ZERO
+	                         : BigDecimal.valueOf(
+	                                 ((double) clicks / impressions) * 100
+	                         ).setScale(
+	                                 2,
+	                                 RoundingMode.HALF_UP
+	                         );
+	
+	         // -----------------------------------------------------
+	         // 피로도
+	         // -----------------------------------------------------
+	
+	         BigDecimal fatigueScore =
+	                 calculateFatigueScore(
+	                         adId,
+	                         statDate
+	                 );
+	
+	         // -----------------------------------------------------
+	         // 일일 통계 Entity
+	         // -----------------------------------------------------
+	
+	         AdvertisementDailyStatistics statistics =
+	                 AdvertisementDailyStatistics.builder()
+	                         .advertisement(advertisement)
+	                         .statDate(statDate)
+	                         .impressions(impressions)
+	                         .clicks(clicks)
+	                         .ctr(ctr)
+	                         .fatigueScore(fatigueScore)
+	                         .position(position)
+	                         .build();
+	
+	         dailyStatisticsRepository.save(statistics);
+	
+	         System.out.println(
+	                 "✅ 일일 통계 저장 완료"
+	                 + " | adId=" + adId
+	                 + " | position=" + position
+	                 + " | impressions=" + impressions
+	                 + " | clicks=" + clicks
+	                 + " | ctr=" + ctr
+	         );
+	     }
+	
+	     System.out.println("🔥🔥🔥 INSERT DAILY STATISTICS END 🔥🔥🔥");
+	 }
 	
     @Override
     @Transactional(readOnly = true)
@@ -2462,7 +2615,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         if (advertisement.getAdGrade() == AdGrade.PREMIUM) {
             score = 7;
         } else {
-            score = 3;
+            score = 1;
         }
 
 

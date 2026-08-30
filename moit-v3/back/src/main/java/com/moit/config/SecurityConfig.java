@@ -129,7 +129,10 @@ public class SecurityConfig {
                 "/meetup/list",
                 "/user/advertisement/click",
                 "/user/member/kakaologout",
-                "/api/meetups/**"
+                "/api/meetups/**",
+                "/api/advertisement/top",
+                "/api/advertisement/click",
+                "/api/advertisement/impression"
 
             ).permitAll()
 
