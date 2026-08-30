@@ -149,20 +149,35 @@ public class RagService {	// 실제 RAG 작업
 		// reportContext -	DB에서 조회한 현재 신고 데이터 + 신고 대상 원문 조회
 		ReportAiContext reportContext = reportAiContextService.getReportContext(reportId);
 
+		
+		String reasonKeyword = switch (reportContext.getReasonCode()) {
+		    case ABUSE -> "욕설 비방 모욕";
+		    case SPAM -> "도배 스팸 반복 게시";
+		    case FAKE_INFO -> "허위 정보 사실 불일치";
+		    case AD -> "광고 홍보 상업성 구매 유도 외부 링크";
+		    case NOSHOW -> "노쇼 불참 주최자 불참";
+		    case ETC -> "기타 신고";
+		};
+		
 		// query -	유사 문서 Embedding 검색용 문자열 생성
-		String query = """
-				신고 유형: %s
-				신고 내용: %s
-				신고 대상 원문:
-				%s
-				""".formatted(
-						reportContext.getReasonCode(),
-						reportContext.getReasonDetail(),
-						reportContext.getTargetContent()
-				);
+		String searchQuery = """
+		        신고 사유: %s
+		        관련 키워드: %s
+		        신고 내용: %s
+		        신고 대상 유형: %s
+		        신고 대상 제목: %s
+		        신고 대상 원문: %s
+		        """.formatted(
+		            reportContext.getReasonCode(),
+		            reasonKeyword,
+		            reportContext.getReasonDetail(),
+		            reportContext.getTargetType(),
+		            reportContext.getTargetTitle(),
+		            reportContext.getTargetContent()
+		        );
 
 		// similarChunks -	현재 사건과 비슷한 운영 기준 / 사례 Top 3 검색
-		List<RagChunk> similarChunks = searchSimilarChunks(query, 3);
+		List<RagChunk> similarChunks = searchSimilarChunks(searchQuery, 3);
 
 		// contextBuilder -	검색된 참고자료를 하나의 문자열로 합치기
 		StringBuilder contextBuilder = new StringBuilder();

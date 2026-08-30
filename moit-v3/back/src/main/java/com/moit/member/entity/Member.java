@@ -91,5 +91,6 @@ public class Member extends BaseEntity{
     // 관리자가 처리한 신고 이력 로그
     @OneToMany(mappedBy = "adminMember")
     private List<ReportAuditLog> reportAuditLogs = new ArrayList<>();
+    
 	
 }

@@ -102,6 +102,28 @@ function AdvertiseStatusTable({
       },
     },
     {
+      title: '광고 등급',
+      dataIndex: 'adGrade',
+      key: 'adGrade',
+      align: 'center',
+      width: 100,
+      render: (value) => {
+        if (value === 'PREMIUM') {
+          return (
+            <Tag color="gold">
+              PREMIUM
+            </Tag>
+          );
+        }
+
+        return (
+          <Tag>
+            GENERAL
+          </Tag>
+        );
+      },
+    },
+    {
       title: '광고 기간',
       key: 'period',
       render: (_, record) => (

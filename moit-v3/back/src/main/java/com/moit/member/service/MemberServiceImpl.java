@@ -24,7 +24,6 @@ import com.moit.member.repository.MemberTypeRepository;
 import com.moit.reports.entity.MemberReportStatus;
 import com.moit.reports.repository.MemberReportStatusRepository;
 import com.moit.security.PasswordLeakService;
-
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -166,7 +165,7 @@ public class MemberServiceImpl implements MemberService{
 		}
 		
 		// 휴대폰 인증 완료 상태 삭제
-		phoneVerificationService.removePhoneVerified(dto.getMobile());
+		phoneVerificationService.removePhoneVerified(dto.getMobile());		
 		
 		// DTO에 반영
 		dto.setMemberId(member.getId());
@@ -187,6 +186,10 @@ public class MemberServiceImpl implements MemberService{
 		
 		if(member == null) { return null; }
 		
+		// 회원 상세정보 조회
+	    MemberInfo memberInfo = memberInfoRepository.findById(member.getId())
+	            .orElse(null);
+		
 		UserDto dto = new UserDto();
 		
 		dto.setMemberId(member.getId());
@@ -199,6 +202,10 @@ public class MemberServiceImpl implements MemberService{
 
 	    dto.setMemberTypeId(member.getMemberType().getMemberTypeId());
 	    dto.setStatusId(member.getMemberStatus().getStatusId());
+	    
+	    if(memberInfo != null) {
+	        dto.setPoint(memberInfo.getPoint());
+	    }
 		
 		return dto;
 	}
@@ -239,6 +246,7 @@ public class MemberServiceImpl implements MemberService{
 	    if(memberInfo != null) {
 	    	dto.setGender(memberInfo.getGender());
 	        dto.setBirth(memberInfo.getBirth());
+	        dto.setPoint(memberInfo.getPoint());
 	    }
 	    
 	    // 회원 관심사
@@ -354,7 +362,7 @@ public class MemberServiceImpl implements MemberService{
 	    // 회원 상세정보
 	    result.setGender(memberInfo.getGender());
 	    result.setBirth(memberInfo.getBirth());
-
+	    result.setPoint(memberInfo.getPoint());
 
 	    // 관심사
 	    List<MemberInterest> memberInterests = memberInterestRepository.findByMember_Id(memberId);

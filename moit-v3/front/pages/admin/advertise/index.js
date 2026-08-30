@@ -306,7 +306,14 @@ const currentSortOptions =
       {/* 탭 + 가격표 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '24px 0 16px' }}>
         <AdminListTabs tabs={listTabs} activeTab={tab} onChange={handleTabChange} />
-        <Button type="primary" onClick={() => setPriceModalOpen(true)}>광고 가격표</Button>
+
+        <div style={{ display: 'flex', gap: 8 }}> 
+          <Button onClick={() => {
+           window.location.href = '/admin/advertise/AdvertiseDashboardPage'; 
+          }} > 📊 광고 대시보드 </Button>
+
+          <Button type="primary" onClick={() => setPriceModalOpen(true)}>광고 가격표</Button>
+        </div>
       </div>
 
       {/* 검색 상자 */}

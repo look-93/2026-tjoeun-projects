@@ -64,4 +64,16 @@ public class AnswerService {
                 dto.getFeedback()
         );
     }
+    
+    // 답변 만족도 삭제
+    @Transactional
+    public void deleteSatisfaction(Long answerId, Long memberId) {
+        // 질문 작성자 확인
+        Long questionWriterId = questionAnswerRepository.findQuestionWriterIdByAnswerId(answerId);
+        if (questionWriterId == null || !questionWriterId.equals(memberId)) {
+            throw new IllegalStateException("질문 작성자만 만족도 평가를 삭제할 수 있습니다.");
+        }
+        questionAnswerRepository.deleteSatisfaction(answerId);
+    }
+    
 }

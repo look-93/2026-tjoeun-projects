@@ -39,12 +39,12 @@ public class ReviewDto {
 				ReviewImageResponseDto response = new ReviewImageResponseDto();
 				response.setReviewImageId(reviewImage.getId());
 				
-				// LazyLoading 에러 방지 및 Null 체크
+				
 				try {
 					if (reviewImage.getImage() != null) {
 						response.setImageId(reviewImage.getImage().getId());
 						
-						// 💡 Image 엔티티의 경로를 가져와서 셋팅해 줍니다!
+						
 						response.setImageUrl(reviewImage.getImage().getImagePath());
 					}
 				} catch (Exception e) {

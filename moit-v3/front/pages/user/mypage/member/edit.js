@@ -121,7 +121,7 @@ function UserMyMemberEditPage() {
 
     dispatch(resetUpdateMyInfo());
 
-    router.push('/user/member/mypage');
+    router.push('/user/mypage/member/mypage');
   }, [updateSuccess, dispatch, router]);
 
   // 수정 실패

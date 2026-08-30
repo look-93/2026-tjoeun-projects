@@ -4,7 +4,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.AdPosition;
+import com.moit.advertisement.enums.AdStatus;
+import com.moit.advertisement.enums.ApprovalStatus;
+import com.moit.advertisement.enums.PaymentStatus;
+import com.moit.advertisement.enums.PaymentType;
+import com.moit.advertisement.enums.TargetGender;
+import com.moit.member.entity.Member;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,9 +27,12 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Builder
 @Entity
 @Table(
     name = "ADVERTISEMENT_DAILY_STATISTICS",
@@ -35,6 +45,7 @@ import lombok.NoArgsConstructor;
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class AdvertisementDailyStatistics {
 
     // 광고 일일 통계 PK
