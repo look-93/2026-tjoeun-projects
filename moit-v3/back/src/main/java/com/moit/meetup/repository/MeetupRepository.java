@@ -147,15 +147,24 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 	
 	//관리자 통계
 	@Query("""
-			SELECT new com.moit.meetup.dto.MeetupCountResponseDto(
-			    COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.RECRUITING THEN 1 END),
-			    COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.COMPLETED THEN 1 END),
-			    COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.CANCELED THEN 1 END),
-			    COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.WEATHER_CANCELED THEN 1 END)
-			)
-			FROM Meetup m
-			WHERE m.deleteYn = 'N'
-			""")
+		    SELECT new com.moit.meetup.dto.MeetupCountResponseDto(
+		        COUNT(m),
+		        COUNT(CASE 
+		            WHEN m.meetupStatus = com.moit.meetup.enums.MeetupStatus.RECRUITING 
+		            THEN 1 
+		        END),
+		        COUNT(CASE 
+		            WHEN m.meetupStatus = com.moit.meetup.enums.MeetupStatus.COMPLETED 
+		            THEN 1 
+		        END),
+		        COUNT(CASE 
+		            WHEN m.meetupStatus = com.moit.meetup.enums.MeetupStatus.WEATHER_CANCELED 
+		            THEN 1 
+		        END)
+		    )
+		    FROM Meetup m
+		    WHERE m.deleteYn = 'N'
+		""")
 	MeetupCountResponseDto getMeetupCount();
 	
 	//마이페이지 통계
