@@ -120,7 +120,7 @@ function ReviewSection({
     const sortParam = value === 'likes' ? 'likesCount,desc' : 'id,desc';
 
     if (onSortChange) {
-      onSortChange(sortParam);
+      onSortChange(sortParam,searchText);
     }
   };
 
