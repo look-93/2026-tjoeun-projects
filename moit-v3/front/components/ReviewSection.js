@@ -31,6 +31,7 @@ function ReviewSection({
   onWriteReview, 
   onLikeReview,
   onSortChange,
+  meetupStatus,
   onSearch,
   onReport  // 신고 추가 ...
 }) {
@@ -99,8 +100,16 @@ function ReviewSection({
     dispatch(analyzeReviewsRequest(targetMeetupId));
   };
 
+
   // 후기 작성 이동
   const handleWriteClick = () => {
+    // 💡 [추가] 모임 상태가 종료 상태('COMPLETED' 등)인지 확인
+    // 백엔드의 MeetupStatus Enum 값에 맞춰서 문자열을 비교해 주세요 (예: 'COMPLETED', 'FINISH' 등)
+    if (meetupStatus !== 'COMPLETED') {
+      alert('종료된 모임에만 후기를 작성할 수 있습니다.');
+      return; // 🛑 여기서 막아주기 때문에 작성 페이지로 넘어가지 않습니다!
+    }
+
     dispatch(resetReviewState()); 
 
     if (onWriteReview) {
@@ -154,11 +163,13 @@ function ReviewSection({
           </Space>
         </Col>
 
-        <Col>
-          <Button type="primary" onClick={handleWriteClick}>
-            후기 작성하기
-          </Button>
-        </Col>
+        {!isHost && (
+          <Col>
+            <Button type="primary" onClick={handleWriteClick}>
+              후기 작성하기
+            </Button>
+          </Col>
+        )}
       </Row>
 
       {/* 검색 및 정렬 */}

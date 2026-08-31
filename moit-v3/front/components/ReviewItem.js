@@ -40,7 +40,7 @@ export default function ReviewItem({ review, targetMeetupId, onLikeReview }) {
   const [isLiked, setIsLiked] = useState(serverLiked);
   const [likesCount, setLikesCount] = useState(serverLikesCount);
 
-  // 🌟 핵심: 서버 응답이 와서 props(review)가 바뀌면 로컬 상태도 정확히 동기화해 줍니다.
+  
   useEffect(() => {
     setIsLiked(serverLiked);
     setLikesCount(serverLikesCount);

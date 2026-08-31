@@ -59,7 +59,6 @@ public class ReviewController {
             }
         }
         
-        // 💡 인증 정보가 없거나 추출 실패 시 1L 대신 예외를 던져 잘못된 요청/인증 실패를 알립니다.
         throw new IllegalArgumentException("로그인 정보가 유효하지 않습니다. 다시 로그인해 주세요.");
     }
 
@@ -114,8 +113,7 @@ public class ReviewController {
 			Authentication authentication) {
 		
 		Long memberId = null;
-		
-		// 로그인을 한 유저인 경우에만 안전하게 memberId를 추출합니다. (비로그인은 null 유지)
+				
 		if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
 			try {
 				if (userDetails.getUser() != null) {
@@ -126,7 +124,6 @@ public class ReviewController {
 			}
 		}
 
-		// 검색어 유무 및 memberId 유무에 따라 알맞은 서비스 오버로딩 메서드가 호출됩니다.
 		ReviewListResponseDto response = reviewService.getReviewsByMeetup(meetupId, keyword, pageable, memberId);
 		return ResponseEntity.ok(response);
 	}
@@ -164,19 +161,21 @@ public class ReviewController {
     
     @Operation(summary = "리뷰 이미지 업로드", description = "리뷰 작성에 사용할 이미지들을 업로드하고 ID 목록을 반환합니다.")
     @PostMapping(value = "/images", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadImages( // 👈 응답 타입을 List<Long> 대신 ? 로 해두면 에러 메시지(문자열)도 같이 보낼 수 있습니다.
+    public ResponseEntity<?> uploadImages( 
             @RequestParam("images") List<MultipartFile> images,
             Authentication authentication) {
         try {
             Long memberId = extractMemberId(authentication);
+             //이미지 제한       
+            if (images != null && images.size() > 5) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미지는 최대 5개까지만 업로드할 수 있습니다.");
+            }
             List<Long> imageIds = reviewService.uploadImages(images, memberId);
             return ResponseEntity.ok(imageIds);
         } catch (Exception e) {
-            // 💡 1. 콘솔에 빨간색으로 에러 스택트레이스를 전체 출력합니다!
             e.printStackTrace(); 
             System.out.println("❌ 이미지 업로드 중 발생한 에러 메시지: " + e.getMessage());
             
-            // 💡 2. 프론트엔드에서도 에러 원인을 알 수 있게 body에 메시지를 담아 보냅니다.
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }

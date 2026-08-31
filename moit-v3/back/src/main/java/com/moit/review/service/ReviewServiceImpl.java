@@ -357,6 +357,10 @@ public class ReviewServiceImpl implements ReviewService {
 		if (images == null || images.isEmpty()) {
 			return imageIds;
 		}
+		//이미지 5개 초과 체크
+		if (images.size() > 5) {
+				throw new IllegalArgumentException("이미지는 최대 5개까지만 업로드할 수 있습니다.");
+		}
 
 		try {
 			for (MultipartFile file : images) {
