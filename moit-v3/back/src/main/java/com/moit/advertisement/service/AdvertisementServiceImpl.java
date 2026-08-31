@@ -2402,20 +2402,11 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             if (paymentType == null) {
                 paymentType = PaymentType.INITIAL;
             }
-            
-            AdvertisementCalculationResultDto calculation =
-                    calculationService.calculate(
-                            ad.getStartDatetime(),
-                            ad.getEndDatetime(),
-                            ad.getAdGrade(),
-                            paymentType,
-                            positions
-                    );
-
-            dto.setTotalDays( calculation.getTotalDays() );  
-            dto.setBasePrice( calculation.getBasePrice() );  
-            dto.setPositionPrice( calculation.getPositionPrice() );  
-            dto.setCalculatedAmount( calculation.getTotalAmount() );
+           
+            dto.setBasePrice(ad.getBasePrice());
+            dto.setPositionPrice(ad.getPositionPrice());
+            dto.setCalculatedAmount(ad.getTotalBudget());
+            dto.setTotalBudget(ad.getTotalBudget());
         }
         
      // 결제 정보

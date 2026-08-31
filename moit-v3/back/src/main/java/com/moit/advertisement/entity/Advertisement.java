@@ -182,6 +182,13 @@ public class Advertisement extends BaseEntity{
         this.reminder14dSent = "Y";
     }
 
+    // 기본 광고비
+    @Column(name = "BASE_PRICE", precision = 12, scale = 2)
+    private BigDecimal basePrice;
+
+    // 위치 추가금
+    @Column(name = "POSITION_PRICE", precision = 12, scale = 2)
+    private BigDecimal positionPrice;
 
     // 광고 총 예산
     @Column(name = "TOTAL_BUDGET", precision = 12, scale = 2)
