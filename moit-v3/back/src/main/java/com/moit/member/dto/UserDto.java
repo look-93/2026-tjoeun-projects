@@ -38,6 +38,7 @@ public class UserDto {
 	private List<Integer> interestIds;
 	
 	private Integer point;
+	private Integer trustScore;	// 신고 매너점수(신뢰도점수) & 뱃지
 	
 	// 회원가입 행동 데이터
 	private SignupBehaviorDto signupBehavior;

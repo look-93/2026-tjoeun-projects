@@ -205,6 +205,7 @@ public class MemberServiceImpl implements MemberService{
 	    
 	    if(memberInfo != null) {
 	        dto.setPoint(memberInfo.getPoint());
+	        dto.setTrustScore(memberInfo.getTrustScore());	// 신고... 매너점수(신뢰도점수) & 뱃지
 	    }
 		
 		return dto;
@@ -247,6 +248,7 @@ public class MemberServiceImpl implements MemberService{
 	    	dto.setGender(memberInfo.getGender());
 	        dto.setBirth(memberInfo.getBirth());
 	        dto.setPoint(memberInfo.getPoint());
+	        dto.setTrustScore(memberInfo.getTrustScore());	// 신고... 매너점수(신뢰도점수) & 뱃지
 	    }
 	    
 	    // 회원 관심사
