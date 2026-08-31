@@ -46,7 +46,7 @@ public class AdvertisementScheduler {
     
     // 매일 새벽 1시  일일통계 저장
 //    @Scheduled(cron = "0 0 1 * * *")
-    @Scheduled(cron = "0 */5 * * * *")
+    @Scheduled(cron = "0 */1 * * * *")
     public void createDailyStatistics(){
     	System.out.println("===== 광고 일일 통계 생성 시작 =====");
         advertisementService.insertDailyStatistics();
@@ -56,7 +56,7 @@ public class AdvertisementScheduler {
     
     // 매일 오전 9시 광고기간 만료 30/14일자 발송
 //    @Scheduled(cron = "0 0 9 * * *")
-    @Scheduled(cron = "0 */5 * * * *")
+    @Scheduled(cron = "0 */1 * * * *")
     public void advertisementReminder() {
     	System.out.println("만료 메일 스케줄러 실행");
         advertisementService.sendReminderMail();
@@ -66,7 +66,7 @@ public class AdvertisementScheduler {
     
     // 3시간마다 통계 ai 요약 저장
 //    @Scheduled(cron = "0 0 */3 * * *")
-    @Scheduled(cron = "0 */5 * * * *")
+    @Scheduled(cron = "0 */1 * * * *")
     public void generateAiSummary() {
     	System.out.println("ai 요약 시작");
     	try {
