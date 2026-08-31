@@ -227,6 +227,19 @@
 	      AND delete_yn = 'N'
 	</update>
 
+	<!-- 문의 수정 시 이미지 조회 (실제삭제용) -->
+	<select id="findQuestionImagesByIds" resultType="com.moit.qna.dto.QuestionImageDto">
+	    SELECT image_id, question_id, original_name, stored_name,
+	           image_path, image_size, content_type,
+	           delete_yn, created_at, updated_at
+	    FROM question_images
+	    WHERE image_id IN
+	    <foreach collection="list" item="imageId" open="(" separator="," close=")">
+	        #{imageId}
+	    </foreach>
+	    AND delete_yn = 'N'
+	</select>
+
 	<!-- 답변 달리면 상태 변경 -->
 	<update id="updateStatusAnswered">
 		UPDATE questions
@@ -386,6 +399,19 @@
 	        )
 	        WHERE ROWNUM = 1
 	    )
+	</delete>
+	
+	<!-- 답변 삭제 시 알림도 삭제 -->
+	<delete id="deleteAnswerNotification">
+	    DELETE FROM notifications
+	    WHERE question_id = #{questionId}
+	      AND type = 'ANSWER_CREATED'
+	</delete>
+	
+	<!-- 문의 삭제 시 알림도 삭제-->
+	<delete id="deleteNotificationsByQuestionId">
+	    DELETE FROM notifications
+	    WHERE question_id = #{questionId}
 	</delete>
 	
 	<!-- 회원의 전체 알림 개수 -->

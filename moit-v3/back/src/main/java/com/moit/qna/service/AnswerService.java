@@ -21,6 +21,7 @@ public class AnswerService {
     private final QuestionAnswerRepository questionAnswerRepository;
 
     // 답변 등록 + 문의 상태 업데이트
+    @Transactional
     public void register(AnswerRequestDto dto, Long memberId) {
     	dto.setMemberId(memberId);
         AnswerResponseDto oldAnswer = questionMapper.findByQuestionIdAll(dto.getQuestionId());
@@ -44,6 +45,7 @@ public class AnswerService {
     public void delete(Long answerId, Long questionId) {
         questionMapper.deleteAnswer(answerId);
         questionMapper.updateStatusPending(questionId);
+        questionMapper.deleteAnswerNotification(questionId);
     }
 
     // 답변 조회
