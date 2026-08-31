@@ -71,7 +71,8 @@ public class SecurityConfig {
                 "/api/reviews/**",
                 "/api/admin/**",
                 "/api/payment/**",
-                "/user/advertisement/aiAdvertise"
+                "/user/advertisement/aiAdvertise",
+                "/api/common/**"              
 
             )
         );
@@ -159,7 +160,10 @@ public class SecurityConfig {
             // -------------------------------------------------
             // 회원 API
             // -------------------------------------------------
-            .requestMatchers("/api/members/**")
+            .requestMatchers(
+            		"/api/members/**",
+            		"/api/common/**"
+            )
             .authenticated()
 
             // -------------------------------------------------

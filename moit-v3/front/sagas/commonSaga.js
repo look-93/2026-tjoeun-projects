@@ -1,5 +1,5 @@
 import { call, put, takeLatest } from "redux-saga/effects";
-import axios from "axios";
+import api from "../api/axios";
 
 import {
     fetchWeatherRequest,
@@ -16,7 +16,7 @@ const COMMON_API_BASE = "http://localhost:8080/api/common";
 // 날씨 API
 // =========================
 function fetchWeatherAPI(params) {
-    return axios.get(`${COMMON_API_BASE}/weather`, {
+    return api.get(`${COMMON_API_BASE}/weather`, {
         params,
     });
 }
@@ -27,7 +27,7 @@ function* fetchWeather(action) {
 
         yield put(fetchWeatherSuccess(response.data));
     } catch (error) {
-        console.error("날씨 조회 실패:", error);
+        //console.error("날씨 조회 실패:", error);
 
         yield put(
             fetchWeatherFailure(
@@ -41,7 +41,7 @@ function* fetchWeather(action) {
 // 주소 검색 API
 // =========================
 function searchAddressAPI(params) {
-    return axios.get(`${COMMON_API_BASE}/address-search`, {
+    return api.get(`${COMMON_API_BASE}/address-search`, {
         params,
     });
 }
@@ -53,7 +53,7 @@ function* searchAddress(action) {
         //console.log("주소 API data:", response.data);
         yield put(searchAddressSuccess(response.data));
     } catch (error) {
-        console.error("주소 검색 실패:", error);
+        //console.error("주소 검색 실패:", error);
 
         yield put(
             searchAddressFailure(
