@@ -32,8 +32,6 @@ function Hero() {
                                 >
                                     모임 찾기
                                 </Button>
-
-                                <Button size="large">행사 보기</Button>
                             </div>
                         </Col>
 
