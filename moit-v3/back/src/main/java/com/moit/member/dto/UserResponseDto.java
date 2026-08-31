@@ -27,6 +27,7 @@ public class UserResponseDto {
 	private List<Integer> interestIds;
 	
 	private Integer point;
+	private Integer trustScore;	// 신고... 매너점수(신뢰도점수) & 뱃지
 	
 	private String createdAt;
 	private String updatedAt; 
@@ -46,6 +47,7 @@ public class UserResponseDto {
 				.provider(user.getProvider())
 				.interestIds(user.getInterestIds())
 				.point(user.getPoint())
+				.trustScore(user.getTrustScore())	// 신고... 매너점수(신뢰도점수) & 뱃지
 				.createdAt(user.getCreatedAt())
 				.updatedAt(user.getUpdatedAt())
 				.build();
