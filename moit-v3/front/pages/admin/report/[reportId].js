@@ -484,13 +484,16 @@ function ReportDetailPage() {
                         </Descriptions.Item>
                     </Descriptions>
                 ))
-
+            ) : currentReport?.status === 'APPROVED' || currentReport.status === 'REJECTED' ? (
+                <div>
+                    처리 이력이 삭제되었습니다. (유효기간 3년 만료)
+                </div>
             ) : (
                 <div>
                     처리 이력이 없습니다.
                 </div>
             )}
-        </Card>
+            </Card>
         </div>
     );
 }
