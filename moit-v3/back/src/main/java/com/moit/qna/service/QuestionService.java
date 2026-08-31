@@ -218,6 +218,8 @@ public class QuestionService {
         questionMapper.deleteQuestionImages(questionId);
         // 4. 문의 삭제
         questionMapper.deleteQuestion(questionId);
+        // 5. 알림 삭제
+        questionMapper.deleteNotificationsByQuestionId(questionId);
     }
 
     // 전체 문의 수 조회

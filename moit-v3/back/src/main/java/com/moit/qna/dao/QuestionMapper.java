@@ -142,6 +142,8 @@ public interface QuestionMapper {
     	    @Param("memberId") Long memberId
     	);
     void deleteOldestNotification(Long memberId);
+    void deleteAnswerNotification(Long questionId);
+    void deleteNotificationsByQuestionId(Long questionId);
     int countNotifications(Long memberId);
     List<NotificationDto> selectUnread(Long memberId);
     List<NotificationDto> selectAll(Long memberId);
