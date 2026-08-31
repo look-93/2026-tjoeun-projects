@@ -1,5 +1,5 @@
 import React , { useEffect }from 'react';
-import { Layout } from 'antd';
+import { Layout, Spin } from 'antd';
 import PropTypes from 'prop-types';
 import { useRouter } from 'next/router';
 import { useSelector,useDispatch } from 'react-redux';
@@ -21,6 +21,12 @@ function UserLayout({ children }) {
   const dispatch = useDispatch();
 
   const isMypage = router.pathname.includes('/mypage');
+  // 로그인 없이 접근 가능한 경로
+  const publicPaths = ['/', '/user/meetup', '/user/member/login'];
+  const isPublicPage = publicPaths.includes(router.pathname);
+
+  //user 정보 없으면 loginPage 이동
+  const { isInitialized } = useSelector((state) => state.user ?? {});
 
   // Redux 회원정보
   const user = useSelector((state) => state.user?.user);
@@ -28,6 +34,24 @@ function UserLayout({ children }) {
   // Redux 보유 포인트
   const point = useSelector((state) => state.user?.point ?? 0);
 
+  useEffect(() => {
+
+    if (isPublicPage) return; // 로그인 필요없는 페이지는 체크 skip
+
+    const accessToken = localStorage.getItem("accessToken");
+
+    if (!accessToken) {
+      console.log(2)
+      router.replace("/user/member/login");
+    }
+
+    if (!isInitialized) return;
+
+    if (!user) {
+      router.replace("/user/member/login");
+    }
+  }, [user, isInitialized, isPublicPage, router]);
+  
   useEffect(() => {
     if (isMypage) {
       dispatch(getMyPageRequest());
