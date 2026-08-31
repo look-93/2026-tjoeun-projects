@@ -178,15 +178,17 @@ public class SecurityConfig {
 
             // -------------------------------------------------
             // 제휴업체 광고
+
             // -------------------------------------------------
             // 20260830 bora추가
             .requestMatchers(
-            	    "/api/advertisement/top",
+                    "/api/advertisement/top",
                     "/api/advertisement/click",
                     "/api/advertisement/impression"
             	)
             .permitAll()
-            	
+            
+            // -------------------------------------------------    
             .requestMatchers(
             		"/api/advertisement/prices",
             	    "/api/advertisement/*/extension-prices",
