@@ -25,7 +25,7 @@ function AdminHeader() {
   
   
   const handleLogout = () => {
-    console.log('===== 관리자 로그아웃 =====');
+    // console.log('===== 관리자 로그아웃 =====');
     dispatch(logoutRequest({provider: user?.provider || null,}));
   };    
 

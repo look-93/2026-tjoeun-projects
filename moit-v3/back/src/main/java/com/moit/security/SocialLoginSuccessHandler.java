@@ -45,14 +45,7 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler{
         if (user.getAppUserId() == 0L) {
 
             // 소셜 회원정보 세션 저장
-            session.setAttribute("socialUser", user.getUser());
-            
-            System.out.println("===== SOCIAL LOGIN =====");
-            System.out.println("신규 소셜 회원");
-            System.out.println("email : " + user.getEmail());
-            System.out.println("provider : " + user.getProvider());
-            System.out.println("providerId : " + user.getProviderId());
-            System.out.println("socialUser 세션 저장 완료");
+            session.setAttribute("socialUser", user.getUser());          
         	
             response.sendRedirect( frontendUrl + "/user/member/social-info" );
             return;

@@ -53,9 +53,9 @@ function pointHistory() {
   // =========================
   // Redux 상태 확인
   // =========================
-  console.log('===== POINT HISTORY REDUX =====');
-  console.log('point:', point);
-  console.log('pointHistory:', pointHistory);
+  // console.log('===== POINT HISTORY REDUX =====');
+  // console.log('point:', point);
+  // console.log('pointHistory:', pointHistory);
 
   const history = Array.isArray(pointHistory?.data)
     ? pointHistory.data

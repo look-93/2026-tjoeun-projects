@@ -8,11 +8,15 @@ import {
     TeamOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/router";
+import { useSelector } from "react-redux";
 
 const { Text } = Typography;
 
 function MeetupAuthor({ meetup, meetupId }) {
     const router = useRouter();
+
+    const { user } = useSelector((state) => state.user);
+    const isOwner = Number(user?.memberId) === Number(meetup?.memberId);
 
     const handleQnaClick = () => {
         router.push(`/user/qna/questionWrite?type=MEETUP&meetupId=${meetupId}`);
@@ -86,14 +90,16 @@ function MeetupAuthor({ meetup, meetupId }) {
             </Button> */}
 
             {/* 문의하기 */}
-            <Button
-                block
-                icon={<MessageOutlined />}
-                style={{ marginTop: 8 }}
-                onClick={handleQnaClick}
-            >
-                개설자에게 문의하기
-            </Button>
+            {!isOwner && (
+                <Button
+                    block
+                    icon={<MessageOutlined />}
+                    style={{ marginTop: 8 }}
+                    onClick={handleQnaClick}
+                >
+                    개설자에게 문의하기
+                </Button>
+            )}
         </Card>
     );
 }

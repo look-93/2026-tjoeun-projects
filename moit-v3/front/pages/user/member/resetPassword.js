@@ -142,7 +142,7 @@ function ResetPassword() {
         // 입력이 멈춘 후 700ms 뒤 검사
         const timer = setTimeout(() => {
 
-            console.log("===== 비밀번호 유출검사 요청 =====");
+            // console.log("===== 비밀번호 유출검사 요청 =====");
 
             dispatch(checkPasswordLeakRequest(password));
 
@@ -207,11 +207,11 @@ function ResetPassword() {
 
         const resetData = {email: email, password: password};
 
-        console.log("===== 비밀번호 변경 요청 =====");
+        // console.log("===== 비밀번호 변경 요청 =====");
 
-        console.log("email:",email );
+        // console.log("email:",email );
 
-        console.log("resetData:",resetData);
+        // console.log("resetData:",resetData);
 
         dispatch(findPasswordRequest(resetData));
     };
