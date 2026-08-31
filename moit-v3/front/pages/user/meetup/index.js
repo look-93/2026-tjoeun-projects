@@ -137,6 +137,11 @@ function MeetupListPage() {
 
     // 모임등록
     const handleCreateMeetup = () => {
+        if (!user) {
+            message.warning("로그인이 필요한 서비스입니다.");
+            router.push("/user/member/login");
+            return;
+        }
         router.push("/user/meetup/write");
     };
 
