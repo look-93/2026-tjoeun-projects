@@ -43,6 +43,8 @@ function pointHistory() {
   // 포인트 내역 조회
   // =========================
   useEffect(() => {
+      dispatch(getPointHistoryRequest());
+
       return () => {
           dispatch(resetPointHistory());
       };
@@ -51,9 +53,9 @@ function pointHistory() {
   // =========================
   // Redux 상태 확인
   // =========================
-  console.log('===== POINT HISTORY REDUX =====');
-  console.log('point:', point);
-  console.log('pointHistory:', pointHistory);
+  // console.log('===== POINT HISTORY REDUX =====');
+  // console.log('point:', point);
+  // console.log('pointHistory:', pointHistory);
 
   const history = Array.isArray(pointHistory?.data)
     ? pointHistory.data
@@ -222,6 +224,15 @@ function pointHistory() {
   }, [history]);
 
   // =========================
+  // 에러
+  // =========================
+  useEffect(() => {
+      if (pointHistory?.error) {
+          message.error(pointHistory.error);
+      }
+  }, [pointHistory?.error]);
+
+  // =========================
   // 로딩
   // =========================
   if (pointHistory?.loading) {
@@ -239,14 +250,7 @@ function pointHistory() {
     );
   }
 
-  // =========================
-  // 에러
-  // =========================
-  useEffect(() => {
-      if (pointHistory?.error) {
-          message.error(pointHistory.error);
-      }
-  }, [pointHistory?.error]);
+  
 
   // =========================
   // 테이블 컬럼

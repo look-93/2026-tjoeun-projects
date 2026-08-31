@@ -12,6 +12,10 @@ const initialState = {
     popularMeetups: [], //인기모임
     recommendedMeetups: [], // 추천모임
 
+    // 내 신청 목록 페이징
+    myApplicationTotalCount: 0,
+    myApplicationTotalPage: 0,
+
     // 마이페이지 통계
     myMeetupCount: {
         myMeetupCount: 0,
@@ -259,8 +263,8 @@ const meetupReducer = createSlice({
                 (meetup) => meetup.id === meetupId,
             );
 
-            console.log("Reducer meetupId:", meetupId);
-            console.log("Reducer meetup:", meetup);
+            // console.log("Reducer meetupId:", meetupId);
+            // console.log("Reducer meetup:", meetup);
 
             if (meetup) {
                 meetup.hidden = !meetup.hidden;
@@ -282,6 +286,10 @@ const meetupReducer = createSlice({
         fetchMyApplicationsSuccess: (state, action) => {
             state.loading = false;
             state.myApplications = action.payload.applications;
+
+            // 페이징 정보
+            state.myApplicationTotalCount = action.payload.totalCount;
+            state.myApplicationTotalPage = action.payload.totalPage;
         },
 
         fetchMyApplicationsFailure: (state, action) => {

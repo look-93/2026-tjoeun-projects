@@ -313,4 +313,64 @@ public interface AdvertisementRepository
 	        Long adId,
 	        Long memberId
 	);
+	
+	
+	// 전체 노출수
+	@Query("""
+	    select coalesce(sum(a.impressions), 0)
+	    from Advertisement a
+	    where a.deleteYn = 'N'
+	""")
+	Long sumTotalImpressions();
+
+
+	// 전체 클릭수
+	@Query("""
+	    select coalesce(sum(a.clicks), 0)
+	    from Advertisement a
+	    where a.deleteYn = 'N'
+	""")
+	Long sumTotalClicks();
+
+
+	// CTR TOP 5
+	@Query("""
+	    select a.title,
+	           case
+	               when a.impressions > 0
+	               then (a.clicks * 100.0 / a.impressions)
+	               else 0
+	           end
+	    from Advertisement a
+	    where a.deleteYn = 'N'
+	    order by
+	        case
+	            when a.impressions > 0
+	            then (a.clicks * 100.0 / a.impressions)
+	            else 0
+	        end desc
+	""")
+	List<Object[]> findTopCtrAdvertisements(
+	        org.springframework.data.domain.Pageable pageable
+	);
+
+
+	// 광고 등급별 개수
+	@Query("""
+	    select a.adGrade, count(a)
+	    from Advertisement a
+	    where a.deleteYn = 'N'
+	    group by a.adGrade
+	    order by count(a) desc
+	""")
+	List<Object[]> countByAdGrade();
+
+
+	// 전체 광고 수
+	@Query("""
+	    select count(a)
+	    from Advertisement a
+	    where a.deleteYn = 'N'
+	""")
+	long countTotalAdvertisements();
 }

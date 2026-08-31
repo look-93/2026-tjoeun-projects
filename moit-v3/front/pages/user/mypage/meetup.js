@@ -38,6 +38,9 @@ function UserMyMeetupPage() {
     const router = useRouter();
     const dispatch = useDispatch();
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
+
     // 신청자관리모달
     const [applicantModalOpen, setApplicantModalOpen] = useState(false);
     const [selectedMeetupId, setSelectedMeetupId] = useState(null);
@@ -50,6 +53,7 @@ function UserMyMeetupPage() {
         deleteSuccess,
         boostSuccess,
         error,
+        totalCount,
     } = useSelector((state) => state.meetup);
 
     // 승인 처리
@@ -134,6 +138,7 @@ function UserMyMeetupPage() {
             },
         });
     };
+
     // 통계
     const stats = [
         {
@@ -165,11 +170,13 @@ function UserMyMeetupPage() {
     useEffect(() => {
         dispatch(
             fetchMyMeetupsRequest({
-                page: 0,
-                size: 10,
+                page: currentPage - 1,
+                size: pageSize,
             }),
         );
+    }, [dispatch, currentPage]);
 
+    useEffect(() => {
         dispatch(fetchMyMeetupCountRequest());
     }, [dispatch]);
 
@@ -180,15 +187,15 @@ function UserMyMeetupPage() {
 
         dispatch(
             fetchMyMeetupsRequest({
-                page: 0,
-                size: 10,
+                page: currentPage - 1,
+                size: pageSize,
             }),
         );
 
         dispatch(fetchMyMeetupCountRequest());
 
         dispatch(resetDeleteSuccess());
-    }, [deleteSuccess, dispatch]);
+    }, [deleteSuccess, dispatch, currentPage]);
 
     useEffect(() => {
         if (!boostSuccess) return;
@@ -197,8 +204,8 @@ function UserMyMeetupPage() {
 
         dispatch(
             fetchMyMeetupsRequest({
-                page: 0,
-                size: 10,
+                page: currentPage - 1,
+                size: pageSize,
             }),
         );
         dispatch(resetBoostSuccess());
@@ -210,13 +217,16 @@ function UserMyMeetupPage() {
         message.error(error);
     }, [error]);
 
+    //console.log(myMeetups);
+
     // 테이블
     const columns = [
         {
             title: "번호",
             key: "number",
             align: "center",
-            render: (_, record, index) => myMeetups.length - index,
+            render: (_, record, index) =>
+                totalCount - ((currentPage - 1) * pageSize + index),
         },
         {
             title: "모임명",
@@ -235,19 +245,20 @@ function UserMyMeetupPage() {
             ),
         },
         {
-            title: "모임일",
-            dataIndex: "meetupAt",
-            key: "meetupAt",
-            render: (meetupAt) =>
-                meetupAt ? meetupAt.replace("T", " ").slice(0, 16) : "-",
-        },
-        {
             title: "신청 인원",
             dataIndex: "totalParticipants",
             key: "totalParticipants",
             align: "center",
             render: (totalParticipants) => `${totalParticipants ?? 0}명`,
         },
+        {
+            title: "모임일",
+            dataIndex: "meetupAt",
+            key: "meetupAt",
+            render: (meetupAt) =>
+                meetupAt ? meetupAt.replace("T", " ").slice(0, 16) : "-",
+        },
+
         {
             title: "작성일",
             dataIndex: "createdAt",
@@ -331,7 +342,7 @@ function UserMyMeetupPage() {
             {/* 통계 */}
             <MyPageStatCard stats={stats} />
 
-            {/* 신청한 모임 */}
+            {/* 개설한 모임 */}
             <Card className="mypage-meetup-section" style={{ marginTop: 20 }}>
                 <Title level={3}>개설한 모임</Title>
 
@@ -340,8 +351,13 @@ function UserMyMeetupPage() {
                     columns={columns}
                     dataSource={myMeetups}
                     pagination={{
-                        pageSize: 10,
+                        current: currentPage,
+                        pageSize: pageSize,
+                        total: totalCount,
                         showSizeChanger: false,
+                        onChange: (page) => {
+                            setCurrentPage(page);
+                        },
                     }}
                     scroll={{ x: 600 }}
                 />

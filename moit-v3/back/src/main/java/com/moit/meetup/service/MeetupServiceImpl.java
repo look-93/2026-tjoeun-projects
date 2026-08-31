@@ -20,9 +20,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moit.common.dto.SigunguDto;
@@ -75,6 +77,7 @@ import com.moit.meetup.repository.MeetupSigunguRepository;
 import com.moit.member.entity.Member;
 import com.moit.member.entity.MemberInfo;
 import com.moit.member.entity.PointHistory;
+import com.moit.member.enums.MemberTypeEnum;
 import com.moit.member.repository.MemberRepository;
 import com.moit.member.repository.PointHistoryRepository;
 import com.moit.util.UtilUpload;
@@ -88,6 +91,7 @@ public class MeetupServiceImpl implements MeetupService{
 
     private final ThymeleafConfig thymeleafConfig;
 	
+    private static final String TRUST_SCORE_KEY_PREFIX = "trust:meetup-completed:";
 	private static final String BOOST_KEY_PREFIX = "meetup:boost:";
 	private static final int BOOST_POINT = 200; // 끌어올리기 비용
 	
@@ -195,15 +199,51 @@ public class MeetupServiceImpl implements MeetupService{
 
 	}
 	
-	//상세조회
+	// 상세조회
 	@Override
-	public MeetupResponseDto detail(Long meetupId, Long memberId) {		
-		Meetup meetup = meetupRepository.findById(meetupId)
-										.orElseThrow(()->new ResourceNotFoundException("존재하지 않는 게시글입니다. ID: "+ meetupId));
-		
-		if(meetup.getDeleteYn() == 'Y') {
-			throw new IllegalArgumentException("삭제된 게시글 입니다.");
-		}		
+	public MeetupResponseDto detail(Long meetupId, Long memberId) {
+
+	    Meetup meetup = meetupRepository.findById(meetupId)
+	            .orElseThrow(() ->
+	                    new ResourceNotFoundException(
+	                            "존재하지 않는 게시글입니다. MEETUPID: " + meetupId
+	                    ));
+
+	    if (meetup.getDeleteYn() == 'Y') {
+	        throw new IllegalArgumentException("삭제된 게시글 입니다.");
+	    }
+
+	    // 비공개 모집글 접근 권한 확인
+	    if (Boolean.TRUE.equals(meetup.getHidden())) {
+
+	        // 작성자 여부
+	        boolean isOwner = memberId != null
+	                && meetup.getMember().getId().equals(memberId);
+
+	        // 관리자 여부
+	        boolean isAdmin = false;
+
+	        if (memberId != null) {
+
+	            Member member = memberRepository.findById(memberId)
+	                    .orElseThrow(() ->
+	                            new ResourceNotFoundException("존재하지 않는 회원입니다."));
+
+	            Long memberTypeId = member.getMemberType().getMemberTypeId();
+
+	            isAdmin =
+	                    MemberTypeEnum.ROLE_ADMIN.getId().equals(memberTypeId)
+	                    || MemberTypeEnum.ROLE_SUPERADMIN.getId().equals(memberTypeId);
+	        }
+
+	        // 작성자도 아니고 관리자도 아니면 403
+	        if (!isOwner && !isAdmin) {
+	            throw new ResponseStatusException(
+	                    HttpStatus.FORBIDDEN,
+	                    "비공개 처리된 모집글입니다."
+	            );
+	        }
+	    }
 		
 	    // 모임 개설자 ID
 	    Long hostId = meetup.getMember().getId();
@@ -371,7 +411,8 @@ public class MeetupServiceImpl implements MeetupService{
 	    meetup.setNy(meetupRequestDto.getNy());
 	    
 	    // =========================
-	    // 모임 완료 시 신청승인 상태의 참여자에게만 신뢰도 +10
+	    // 모임 완료 시 신청승인 상태의 참여자에게만 신뢰도 +10 
+	    // 신뢰도 점수는 7일에 한번만 증가
 	    // =========================
 	    if (previousStatus != MeetupStatus.COMPLETED
 	            && meetupRequestDto.getMeetupStatus() == MeetupStatus.COMPLETED) {
@@ -379,8 +420,26 @@ public class MeetupServiceImpl implements MeetupService{
 	        meetup.getMeetupApplications().stream()
 	                .filter(meetupApplications ->
 	                meetupApplications.getApplyStatus() == ApplyStatus.APPROVED)
-	                .forEach(meetupApplications ->
-	                        changeTrustScore(meetupApplications.getMember(), 10));
+	                .forEach(meetupApplications -> {
+	                	
+	                	Member member = meetupApplications.getMember();
+	                	String key = TRUST_SCORE_KEY_PREFIX + member.getId();
+	                    // 최근 7일 이내 모임 완료 보상 여부 확인
+	                    if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+	                        return;
+	                    }
+
+	                    // 신뢰도 +10
+	                    changeTrustScore(member, 10);
+
+	                    // Redis 7일 저장
+	                    redisTemplate.opsForValue().set(
+	                            key,
+	                            "1",
+	                            7,
+	                            TimeUnit.DAYS
+	                    );	                	
+	                });
 	    }
 	    
 		 // =========================
@@ -470,6 +529,11 @@ public class MeetupServiceImpl implements MeetupService{
 			
 		Optional<MeetupApplication> apply = meetupApplicationRepository.findByMeetup_IdAndMember_Id(meetupId, memberId);
 		
+	    // 오늘 날짜 (한국 시간)
+	    ZoneId zoneId = ZoneId.of("Asia/Seoul");
+	    LocalDate today = LocalDate.now(zoneId);
+	    LocalDateTime now = LocalDateTime.now(zoneId);
+		
 	    // 이미 신청했으면 → 신청 취소
 	    if (apply.isPresent()) {	    	
 	    	MeetupApplication meetupApplication = apply.get();
@@ -477,19 +541,23 @@ public class MeetupServiceImpl implements MeetupService{
 	        // 신청 중이면 → 취소
 	        if (meetupApplication.getApplyStatus() == ApplyStatus.PENDING) {
 	        	
-	            // 모임 날짜
-	        	LocalDateTime meetupDate = meetup.getMeetupAt();          
-
-	            /* 당일취소 1시간 경과 취소하면 -5점 */
+	        	/* 오늘 신청한 모임을 1시간 초과 후 취소하면 -5점 */
 	            
-	        	// 오늘 진행되는 모임인지 확인
-	        	boolean isTodayMeetup = meetupDate.isEqual(LocalDateTime.now());
+	        	// 신청한 날짜가 오늘인지 확인
+	            boolean isTodayApplication =
+	                    meetupApplication.getCreatedAt()
+	                            .toLocalDate()
+	                            .isEqual(today);
 	        	
-	        	//신청 후 경과 시간
-	        	long elapsedMinutes  = ChronoUnit.MINUTES.between(meetupApplication.getCreatedAt(), LocalDateTime.now());
+	            // 신청 후 경과 시간
+	            long elapsedMinutes =
+	                    ChronoUnit.MINUTES.between(
+	                            meetupApplication.getCreatedAt(),
+	                            now
+	                    );
 	            
-	        	// 오늘 모임 + 신청 후 1시간 초과
-	            if (isTodayMeetup && elapsedMinutes > 1) {
+	            // 오늘 신청 + 신청 후 1시간 초과 → 신뢰도 -5점
+	            if (isTodayApplication && elapsedMinutes > 60) {
 	                changeTrustScore(member, -5);
 	            }
 
@@ -498,22 +566,32 @@ public class MeetupServiceImpl implements MeetupService{
 	        }
 
 	        // 취소된 상태면 → 다시 신청
-	        if (meetupApplication.getApplyStatus() == ApplyStatus.CANCELED) {	 
-	            
-	        	// ⭐ 다시 신청할 때 정원 
-	            long applicantCount = meetupApplicationRepository.countByMeetupIdAndApplyStatus(meetupId, ApplyStatus.PENDING);
+	        if (meetupApplication.getApplyStatus() == ApplyStatus.CANCELED) {
+
+	            long applicantCount =
+	                    meetupApplicationRepository
+	                            .countByMeetupIdAndApplyStatus(
+	                                    meetupId,
+	                                    ApplyStatus.PENDING
+	                            );
 
 	            if (applicantCount >= meetup.getMaxParticipants()) {
-	                throw new IllegalStateException( "모임 정원이 가득 찼습니다.");
+	                throw new IllegalStateException(
+	                        "모임 정원이 가득 찼습니다."
+	                );
 	            }
-	        	
+
 	            meetupApplication.setApplyStatus(ApplyStatus.PENDING);
 	            return;
 	        }
 	    }
 	    
 	    // 신규 신청 → 정원 확인
-	    long applicantCount = meetupApplicationRepository.countByMeetupIdAndApplyStatus( meetupId, ApplyStatus.PENDING);
+	    long applicantCount =
+	            meetupApplicationRepository.countByMeetupIdAndApplyStatus(
+	                    meetupId,
+	                    ApplyStatus.PENDING
+	            );
 	    
 	    if (applicantCount >= meetup.getMaxParticipants()) {
 	        throw new IllegalStateException("모임 정원이 가득 찼습니다.");
@@ -577,7 +655,7 @@ public class MeetupServiceImpl implements MeetupService{
 	@Override
 	public MyApplicationListResponseDto getMyApplications(Long memberId, Pageable pageable) {
 		
-	    Page<MeetupApplication> page = meetupApplicationRepository.findByMember_Id(memberId, pageable);
+	    Page<MeetupApplication> page = meetupApplicationRepository.findByMember_IdOrderByUpdatedAtDesc(memberId, pageable);
 
 	    MyApplicationListResponseDto response =
 	            new MyApplicationListResponseDto();
@@ -628,16 +706,38 @@ public class MeetupServiceImpl implements MeetupService{
 	@Override
 	public MeetupListResponseDto getMyMeetups(Long memberId, Pageable pageable) {
 		Page<Meetup> page = meetupRepository.findByMember_IdAndDeleteYnOrderByCreatedAtDesc(memberId, 'N', pageable);
-		MeetupListResponseDto response = new MeetupListResponseDto();
-		
-		response.setTotalCount(page.getTotalElements());
-		response.setTotalPage((long) page.getTotalPages());
 		
 		List<MeetupResponseDto> meetups = page.getContent()
 											.stream()
 											.map(MeetupResponseDto::listFrom)
 											.toList();
-		response.setMeetups(meetups);
+		//현재 페이지에서 조회된 모임 id
+		List<Long> ids = meetups.stream()
+				.map(MeetupResponseDto::getId)
+				.toList();
+		
+		//모임별 승인된 신청자 수 조회
+		
+		if(!ids.isEmpty()) {
+			List<MeetupParticipantCountDto> result = 
+					meetupApplicationRepository.countByMeetup_IdInAndApplyStatusAndDeleteYn(ids, ApplyStatus.APPROVED, 'N');
+			
+			meetups.forEach(item->{
+				result.stream()
+					.filter(cnt-> item.getId().equals(cnt.getMeetupId()))
+					.findFirst()
+					.ifPresent(cnt ->
+						item.setTotalParticipants(cnt.getTotalParticipants())
+					);
+			});			
+		}
+		
+		MeetupListResponseDto response = new MeetupListResponseDto();
+
+	    response.setTotalCount(page.getTotalElements());
+	    response.setTotalPage((long) page.getTotalPages());
+	    response.setMeetups(meetups);
+	    
 		return response;
 	}	
 	

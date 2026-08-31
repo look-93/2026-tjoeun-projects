@@ -74,8 +74,19 @@ toss:
 solapi:
   api-key: ${SOLAPI_API_KEY}
   api-secret: ${SOLAPI_API_SECRET}
-  sender: ${SOLAPI_SENDER}		 
-
+  sender: ${SOLAPI_SENDER}
+admin:
+  info:
+    id: ${ADMIN_ID}
+    password: ${ADMIN_PASSWORD}
+    nickname: ${ADMIN_NICKNAME}
+    email: ${ADMIN_EMAIL}
+    mobile: ${ADMIN_MOBILE}
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
 #server:
 #  port: 8484
 

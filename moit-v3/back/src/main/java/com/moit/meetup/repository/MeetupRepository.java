@@ -59,7 +59,8 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 													      AND mb2.startDate <= CURRENT_DATE
 													      AND mb2.endDate >= CURRENT_DATE
 													  )	
-														    
+			LEFT JOIN MeetupLike ml ON ml.meetup = m
+			        													    
 		    WHERE m.deleteYn = :deleteYn
 
 		      AND m.meetupStatus IN (
@@ -110,13 +111,22 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 			    END ASC,
 			
 			    mb.createdAt DESC,
-			    m.createdAt DESC,
+
 				  
 				CASE
 				    WHEN :orderType = 'createAt'
 				    THEN m.createdAt
 				END DESC,
 				
+			    CASE
+			        WHEN :orderType = 'like'
+			        THEN (
+			            SELECT COUNT(ml)
+			            FROM MeetupLike ml
+			            WHERE ml.meetup = m
+			        )
+			    END DESC,
+        
 				CASE
 				    WHEN :orderType = 'meetupAt'
 				    THEN m.meetupAt
@@ -137,15 +147,24 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long>{
 	
 	//관리자 통계
 	@Query("""
-			SELECT new com.moit.meetup.dto.MeetupCountResponseDto(
-			    COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.RECRUITING THEN 1 END),
-			    COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.COMPLETED THEN 1 END),
-			    COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.CANCELED THEN 1 END),
-			    COUNT(CASE WHEN m.meetupStatus  = com.moit.meetup.enums.MeetupStatus.WEATHER_CANCELED THEN 1 END)
-			)
-			FROM Meetup m
-			WHERE m.deleteYn = 'N'
-			""")
+		    SELECT new com.moit.meetup.dto.MeetupCountResponseDto(
+		        COUNT(m),
+		        COUNT(CASE 
+		            WHEN m.meetupStatus = com.moit.meetup.enums.MeetupStatus.RECRUITING 
+		            THEN 1 
+		        END),
+		        COUNT(CASE 
+		            WHEN m.meetupStatus = com.moit.meetup.enums.MeetupStatus.COMPLETED 
+		            THEN 1 
+		        END),
+		        COUNT(CASE 
+		            WHEN m.meetupStatus = com.moit.meetup.enums.MeetupStatus.WEATHER_CANCELED 
+		            THEN 1 
+		        END)
+		    )
+		    FROM Meetup m
+		    WHERE m.deleteYn = 'N'
+		""")
 	MeetupCountResponseDto getMeetupCount();
 	
 	//마이페이지 통계

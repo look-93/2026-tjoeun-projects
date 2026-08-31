@@ -29,6 +29,85 @@ const initialState = {
     },
 
     // =========================
+    // 회원가입 행동 AI 분석
+    // =========================
+    signupBehaviorAnalysis: {
+
+            loginId: {
+            failCount: 0,
+            requested: false,
+            loading: false,
+            result: null,
+            error: null,
+        },
+
+        password: {
+            failCount: 0,
+            requested: false,
+            loading: false,
+            result: null,
+            error: null,
+        },
+
+        email: {
+            failCount: 0,
+            requested: false,
+            loading: false,
+            result: null,
+            error: null,
+        },
+
+        emailVerification: {
+            failCount: 0,
+            requested: false,
+            loading: false,
+            result: null,
+            error: null,
+        },
+
+        nickname: {
+            failCount: 0,
+            requested: false,
+            loading: false,
+            result: null,
+            error: null,
+        },
+
+        mobile: {
+            failCount: 0,
+            requested: false,
+            loading: false,
+            result: null,
+            error: null,
+        },
+
+        mobileVerification: {
+            failCount: 0,
+            requested: false,
+            loading: false,
+            result: null,
+            error: null,
+        },
+
+        birth: {
+            failCount: 0,
+            requested: false,
+            loading: false,
+            result: null,
+            error: null,
+        },
+
+        interestIds: {
+            failCount: 0,
+            requested: false,
+            loading: false,
+            result: null,
+            error: null,
+        },
+
+    },
+
+    // =========================
     // 공통 사용자 조회 상태
     // =========================
     loading: false,
@@ -185,12 +264,18 @@ const initialState = {
     // 출석체크
     // =========================
     attendance: {
+        // 출석체크
         loading: false,
         success: false,
         attendedToday: false,
         point: 0,
         currentPoint: 0,
         error: null,
+
+        // 출석 기록 조회
+        historyLoading: false,
+        history: [],
+        historyError: null,
     },
 
 };
@@ -243,6 +328,8 @@ const userReducer = createSlice({
             state.loading = false;
             state.error = null;
             state.user = action.payload;
+
+            state.point = Number(action.payload.point) || 0;
         },
         getMyInfoFailure: (state,action)=>{
             state.loading = false;
@@ -293,6 +380,155 @@ const userReducer = createSlice({
                 loading: false,
                 success: false,
                 error: null,
+            };
+        },
+
+        // =========================
+        // 회원가입 행동 AI 분석
+        // =========================
+
+        // 실패 횟수 증가
+        recordSignupBehaviorFailure: (state, action) => {
+
+            const { field } = action.payload;
+
+            if (!state.signupBehaviorAnalysis[field]) {
+                return;
+            }
+            console.log(
+                "===== recordSignupBehaviorFailure 호출 =====",
+                field,
+                "현재:",
+                state.signupBehaviorAnalysis[field].failCount
+            );
+
+            state.signupBehaviorAnalysis[field].failCount += 1;
+
+            console.log(
+                "증가 후:",
+                state.signupBehaviorAnalysis[field].failCount
+            );
+        },
+
+        // AI 분석 요청
+        analyzeSignupBehaviorRequest: (state, action) => {
+
+            const { field } = action.payload;
+
+            if (!state.signupBehaviorAnalysis[field]) {
+                return;
+            }
+
+            state.signupBehaviorAnalysis[field].loading = true;
+            state.signupBehaviorAnalysis[field].error = null;
+            state.signupBehaviorAnalysis[field].requested = true;
+        },
+
+        // AI 분석 성공
+        analyzeSignupBehaviorSuccess: (state, action) => {
+
+            const { field, result } = action.payload;
+
+            if (!state.signupBehaviorAnalysis[field]) {
+                return;
+            }
+
+            state.signupBehaviorAnalysis[field].loading = false;
+            state.signupBehaviorAnalysis[field].result = result;
+            state.signupBehaviorAnalysis[field].error = null;
+        },
+
+        // AI 분석 실패
+        analyzeSignupBehaviorFailure: (state, action) => {
+
+            const { field, error } = action.payload;
+
+            if (!state.signupBehaviorAnalysis[field]) {
+                return;
+            }
+
+            state.signupBehaviorAnalysis[field].loading = false;
+            state.signupBehaviorAnalysis[field].error =
+                error || "AI 분석에 실패했습니다.";
+        },
+
+        // AI 분석 상태 전체 초기화
+        resetSignupBehaviorAnalysis: (state) => {
+
+            state.signupBehaviorAnalysis = {
+
+                loginId: {
+                    failCount: 0,
+                    requested: false,
+                    loading: false,
+                    result: null,
+                    error: null,
+                },
+
+                password: {
+                    failCount: 0,
+                    requested: false,
+                    loading: false,
+                    result: null,
+                    error: null,
+                },
+
+                email: {
+                    failCount: 0,
+                    requested: false,
+                    loading: false,
+                    result: null,
+                    error: null,
+                },
+
+                emailVerification: {
+                    failCount: 0,
+                    requested: false,
+                    loading: false,
+                    result: null,
+                    error: null,
+                },
+
+                nickname: {
+                    failCount: 0,
+                    requested: false,
+                    loading: false,
+                    result: null,
+                    error: null,
+                },
+
+                mobile: {
+                    failCount: 0,
+                    requested: false,
+                    loading: false,
+                    result: null,
+                    error: null,
+                },
+
+                mobileVerification: {
+                    failCount: 0,
+                    requested: false,
+                    loading: false,
+                    result: null,
+                    error: null,
+                },
+
+                birth: {
+                    failCount: 0,
+                    requested: false,
+                    loading: false,
+                    result: null,
+                    error: null,
+                },
+
+                interestIds: {
+                    failCount: 0,
+                    requested: false,
+                    loading: false,
+                    result: null,
+                    error: null,
+                },
+
             };
         },
 
@@ -803,13 +1039,6 @@ const userReducer = createSlice({
             state.pointHistory.data = action.payload;
             state.pointHistory.error = null;
 
-            // 포인트 내역을 기준으로 현재 포인트 계산
-            state.point = action.payload.reduce(
-                (total, item) => {
-                    return total + (Number(item.pointPm) || 0);
-                },
-                0
-            );
         },
         getPointHistoryFailure: (state, action) => {
             state.pointHistory.loading = false;
@@ -861,6 +1090,39 @@ const userReducer = createSlice({
             state.attendance.loading = false;
             state.attendance.success = false;
             state.attendance.error = null;
+        },
+
+        // =========================
+        // 월별 출석 기록 조회
+        // =========================
+        getAttendanceHistoryRequest: (state) => {
+            state.attendance.historyLoading = true;
+            state.attendance.historyError = null;
+        },
+
+        getAttendanceHistorySuccess: (state, action) => {
+            state.attendance.historyLoading = false;
+            state.attendance.historyError = null;
+
+            // 월별 출석 기록
+            state.attendance.history = action.payload;
+
+            // 오늘 날짜
+            const today = new Date();
+
+            const todayKey =
+                `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+            // 오늘 출석 여부
+            state.attendance.attendedToday = action.payload.some(
+                (item) =>
+                    item.createdAt?.slice(0, 10) === todayKey
+            );
+        },
+
+        getAttendanceHistoryFailure: (state, action) => {
+            state.attendance.historyLoading = false;
+            state.attendance.historyError = action.payload;
         },
 
 
@@ -994,6 +1256,9 @@ export const {
     mobileVerifySuccess,mobileVerifyFailure,resetMobileVerification,
     getPointHistoryRequest,getPointHistorySuccess,getPointHistoryFailure,resetPointHistory,
     checkAttendanceRequest,checkAttendanceSuccess,checkAttendanceFailure,resetAttendance,
+    analyzeSignupBehaviorRequest,analyzeSignupBehaviorSuccess,analyzeSignupBehaviorFailure,
+    resetSignupBehaviorAnalysis,recordSignupBehaviorFailure,
+    getAttendanceHistoryRequest,getAttendanceHistorySuccess,getAttendanceHistoryFailure,
 } = userReducer.actions;
 
 //4. export

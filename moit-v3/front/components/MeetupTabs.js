@@ -6,7 +6,7 @@ import QnaSection from "./QnaSection";
 
 const { Title, Text, Paragraph } = Typography;
 
-function MeetupTabs({ activeTab, setActiveTab, meetup, reviews, qnaLists, meetupId,onWriteReview,onLikeReview,onSortChange,onSearch,isHost, }) {
+function MeetupTabs({ activeTab, setActiveTab, meetup, reviews, qnaLists, meetupId,onWriteReview,onLikeReview,onSortChange,onSearch,isHost, onReport }) {
     const items = [
         {
             key: "detail",
@@ -54,6 +54,7 @@ function MeetupTabs({ activeTab, setActiveTab, meetup, reviews, qnaLists, meetup
           onSortChange={onSortChange}   
           onSearch={onSearch}
           isHost={isHost}
+          onReport={onReport}
         />
       ),
     },

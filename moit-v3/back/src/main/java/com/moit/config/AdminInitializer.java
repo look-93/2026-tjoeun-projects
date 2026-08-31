@@ -1,5 +1,6 @@
 package com.moit.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,7 +35,22 @@ public class AdminInitializer implements CommandLineRunner {
     private final MemberStatusRepository memberStatusRepository;
     private final MemberReportStatusRepository memberReportStatusRepository;
     private final PasswordEncoder passwordEncoder;
-
+    
+    @Value("${admin.info.id}")
+    private String adminId;
+    
+    @Value("${admin.info.password}")
+    private String adminPassword;
+    
+    @Value("${admin.info.nickname}")
+    private String adminNickname;
+    
+    @Value("${admin.info.email}")
+    private String adminEmail;
+    
+    @Value("${admin.info.mobile}")
+    private String adminMobile;
+    
     @Override
     @Transactional // ✅ 이 파일 전체가 하나의 트랜잭션으로 묶여서 안전합니다.
     public void run(String... args) throws Exception {
@@ -43,7 +59,7 @@ public class AdminInitializer implements CommandLineRunner {
             return; // 이미 있으면 패스
         }
 
-        log.info("🔥 [AdminInit] 최고관리자 계정(admin) 초기 데이터를 생성합니다.");
+        //log.info("🔥 [AdminInit] 최고관리자 계정(admin) 초기 데이터를 생성합니다.");
 
         MemberType superAdminType = memberTypeRepository
         	    .findByTypeName("ROLE_SUPERADMIN")
@@ -58,11 +74,11 @@ public class AdminInitializer implements CommandLineRunner {
 
         // Member 세팅
         Member admin = new Member();
-        admin.setLoginId("admin");
-        admin.setPassword(passwordEncoder.encode("admin123"));
-        admin.setNickname("최고관리자");
-        admin.setEmail("admin@moit.com");
-        admin.setMobile("010-0000-0000");
+        admin.setLoginId(adminId);
+        admin.setPassword(passwordEncoder.encode(adminPassword));
+        admin.setNickname(adminNickname);
+        admin.setEmail(adminEmail);
+        admin.setMobile(adminMobile);
         // 삭제 여부 타입이 Character인 것으로 보여 'N'으로 수정했습니다. 
         // admin.setDeleteYn('N'); 
         
@@ -86,6 +102,6 @@ public class AdminInitializer implements CommandLineRunner {
         
         memberInfoRepository.save(adminInfo);
 
-        log.info("🔥 [AdminInit] 최고관리자 계정 생성 완료 (ID: admin / PW: admin123)");
+        //log.info("🔥 [AdminInit] 최고관리자 계정 생성 완료 (ID: admin / PW: admin123)");
     }
 }

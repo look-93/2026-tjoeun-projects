@@ -37,6 +37,8 @@ public class UserDto {
 	
 	private List<Integer> interestIds;
 	
+	private Integer point;
+	
 	// 회원가입 행동 데이터
 	private SignupBehaviorDto signupBehavior;
 		

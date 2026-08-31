@@ -9,11 +9,11 @@ import {
     meetupLikeRequest,
 } from "../../../reducers/meetupReducer";
 
-import MeetupListAd from "../../../components/MeetupListAd";
 import MeetupSearchFilter from "../../../components/MeetupSearchFilter";
 import MeetupCategory from "../../../components/MeetupCategory";
 import MeetupList from "../../../components/MeetupList";
 import CommonPagination from "../../../components/CommonPagination";
+import AdBanner from "../../../components/AdBanner";
 
 function MeetupListPage() {
     const router = useRouter();
@@ -89,11 +89,6 @@ function MeetupListPage() {
         ).values(),
     ];
 
-    const ad = {
-        title: "Moit 특별 이벤트",
-        image: "/images/ad-banner.png",
-    };
-
     // 검색
     const handleSearch = () => {
         console.log({
@@ -142,6 +137,11 @@ function MeetupListPage() {
 
     // 모임등록
     const handleCreateMeetup = () => {
+        if (!user) {
+            message.warning("로그인이 필요한 서비스입니다.");
+            router.push("/user/member/login");
+            return;
+        }
         router.push("/user/meetup/write");
     };
 
@@ -158,7 +158,7 @@ function MeetupListPage() {
         ====================== */}
                 <Col xs={24} lg={18}>
                     {/* 광고 */}
-                    <MeetupListAd ad={ad} />
+                    <AdBanner position="MEETUP_LIST_BANNER" />
 
                     {/* 검색 */}
                     <MeetupSearchFilter
@@ -193,13 +193,17 @@ function MeetupListPage() {
             사이드바
         ====================== */}
                 <Col xs={24} lg={6}>
-                    <MeetupCategory
-                        categories={categories.filter(
-                            (cate) => cate.parentId === null,
-                        )}
-                        selectedCategoryId={categoryId}
-                        onChange={handleCategoryChange}
-                    />
+                    <div className="meetup-category-sticky">
+                        <MeetupCategory
+                            categories={categories.filter(
+                                (cate) => cate.parentId === null,
+                            )}
+                            selectedCategoryId={categoryId}
+                            onChange={handleCategoryChange}
+                        />
+
+                        <AdBanner position="MEETUP_LIST_SIDEBAR" />
+                    </div>
                 </Col>
             </Row>
         </div>

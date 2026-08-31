@@ -7,7 +7,7 @@ import MeetupRecruitInfo from "../../../components/MeetupRecruitInfo";
 import MeetupAuthor from "../../../components/MeetupAuthor";
 import RecommendedMeetups from "../../../components/RecommendedMeetups";
 import MeetupMap from "../../../components/MeetupMap";
-import MeetupAd from "../../../components/MeetupAd";
+import AdBanner from "../../../components/AdBanner";
 import { useRouter } from "next/router";
 import {
     getReviewListRequest,
@@ -23,11 +23,12 @@ import {
 } from "../../../reducers/meetupReducer";
 import { fetchWeatherRequest } from "../../../reducers/commonReducer";
 
-import { Row, Col, Card, Button, Typography, Tag, Spin } from "antd";
+import { Row, Col, Card, Button, Typography, Tag, Spin, message } from "antd";
 import {
     ArrowLeftOutlined,
     ExclamationCircleOutlined,
 } from "@ant-design/icons";
+import api from "../../../api/axios";
 
 const { Title } = Typography;
 
@@ -40,43 +41,41 @@ function MeetupDetailPage() {
   const [currentSort, setCurrentSort] = useState('id,desc');
   const [currentKeyword, setCurrentKeyword] = useState('');
 
-  //리뷰 추가
-  useEffect(() => {
-    if (router.isReady && router.query.tab) {
-      setActiveTab(router.query.tab);
-    }
-  }, [router.isReady, router.query.tab]);
+    useEffect(() => {
+        if (!router.isReady) return;
 
-  useEffect(() => {
-    if (!router.isReady) return;
-
-    if (router.query.tab) {
-      setActiveTab(router.query.tab);
-    }
-
-    if (router.asPath.includes('tab=review')) {
-      const timer = setTimeout(() => {
-        const reviewElement = document.getElementById('review-section');
-        if (reviewElement) {
-          reviewElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (router.query.tab) {
+            setActiveTab(router.query.tab);
         }
-      }, 300); 
-      return () => clearTimeout(timer);
-    }
-  }, [router.isReady, router.asPath, router.query.tab]);
+
+        if (router.asPath.includes("tab=review")) {
+            const timer = setTimeout(() => {
+                const reviewElement = document.getElementById("review-section");
+                if (reviewElement) {
+                    reviewElement.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                    });
+                }
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [router.isReady, router.asPath, router.query.tab]);
 
     // meetup
-    const { meetup, recommendedMeetups } = useSelector((state) => state.meetup);
+    const { meetup, recommendedMeetups, error } = useSelector(
+        (state) => state.meetup,
+    );
     const { weather } = useSelector((state) => state.common);
     const { user } = useSelector((state) => state.user);
     const { meetupId } = router.query;
     const isOwner = user?.memberId === meetup?.memberId; //user?.id === meetup?.memberId;
-    
+
     // 1. 현재 모임 ID 추출
     const currentMeetupId = router.query.meetupId
         ? Number(router.query.meetupId)
-        : 1;    
-    
+        : 1;
+
     // qna
     const { meetupQnaList, loading: qnaLoading } = useSelector(
         (state) => state.qna,
@@ -162,6 +161,46 @@ function MeetupDetailPage() {
         );
     };
 
+    // 신고 핸들러
+    const handleReport = async (targetType, targetId, targetMemberId) => {
+        try {
+            // 본인이 만든 모임
+            if (user?.memberId === targetMemberId) {
+                alert(
+                    targetType === "MEETUP"
+                        ? "본인이 만든 모임은 신고할 수 없습니다."
+                        : "본인이 작성한 후기는 신고할 수 없습니다.",
+                );
+                return;
+            }
+
+            const response = await api.get("/api/reports/checkDoubleReport", {
+                params: {
+                    targetType: targetType,
+                    targetId: targetId,
+                },
+            });
+
+            if (response.data === true) {
+                alert("이미 신고한 글입니다.");
+                return;
+            }
+
+            router.push(
+                `/user/meetup/report/write?targetType=${targetType}&targetId=${targetId}`,
+            );
+        } catch (error) {
+            console.error("중복 신고 확인 실패:", error);
+            console.error("에러 이름:", error?.name);
+            console.error("에러 메시지:", error?.message);
+            console.error("응답 상태:", error?.response?.status);
+            console.error("응답 데이터:", error?.response?.data);
+            console.error("요청 주소:", error?.config?.url);
+
+            alert("신고 여부 확인 중 오류가 발생했습니다.");
+        }
+    };
+
     // 모임 데이터
     useEffect(() => {
         if (!router.isReady || !meetupId) {
@@ -187,6 +226,14 @@ function MeetupDetailPage() {
         }
     }, [meetup, meetupId, router]);
 
+    // 상세조회 에러 처리
+    useEffect(() => {
+        if (!error) return;
+
+        alert(error);
+        router.back();
+    }, [error, router]);
+
     // 이미지
     const images =
         meetup?.imagePaths?.length > 0
@@ -200,6 +247,7 @@ function MeetupDetailPage() {
         reduxReviews?.map((review) => ({
             ...review, // 👈 기존 서버 데이터(id, memberId, memberNickname, liked, isLiked 등)를 전부 유지!
             id: review.id,
+            memberId: review.memberId, // 신고 추가 ...
             nickname: review.memberNickname || review.nickname || "익명",
             date: review.createdAt
                 ? String(review.createdAt).substring(0, 10)
@@ -262,7 +310,7 @@ function MeetupDetailPage() {
             </div>
         );
     }
-    
+
     // 광고
     const ad = {
         title: "Moit 특별 이벤트",
@@ -316,10 +364,10 @@ function MeetupDetailPage() {
                                 <Button
                                     danger
                                     onClick={() =>
-                                        router.push(
-                                            `/user/meetup/report/write?targetType=MEETUP&targetId=${meetup.id}`,
-                                            // `/user/meetup/report/write?targetType=MEETUP&targetId=${meetup.meetupId}`,
-                                            // `/user/meetup/report/write?targetType=MEETUP&targetId=2`,
+                                        handleReport(
+                                            "MEETUP",
+                                            meetup.id,
+                                            meetup.memberId,
                                         )
                                     }
                                 >
@@ -345,6 +393,7 @@ function MeetupDetailPage() {
                         onLikeReview={handleLikeReview}
                         onSortChange={handleSortChange}
                         onSearch={handleSearch}
+                        onReport={handleReport}
                     />
                 </Col>
 
@@ -371,7 +420,7 @@ function MeetupDetailPage() {
                         address={meetup.address}
                     />
                     {/* 광고 */}
-                    <MeetupAd ad={ad} />
+                    <AdBanner position="MEETUP_DETAIL_SIDEBAR" />
                 </Col>
             </Row>
         </div>

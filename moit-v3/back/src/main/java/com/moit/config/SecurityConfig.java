@@ -71,7 +71,8 @@ public class SecurityConfig {
                 "/api/reviews/**",
                 "/api/admin/**",
                 "/api/payment/**",
-                "/user/advertisement/aiAdvertise"
+                "/user/advertisement/aiAdvertise",
+                "/api/common/**"              
 
             )
         );
@@ -112,7 +113,8 @@ public class SecurityConfig {
                 "/api/members/check-password",
                 "/api/members/social-info",
                 "/api/members/find-id",
-                "/api/members/reset-password"
+                "/api/members/reset-password",
+                "/api/members/signup/behavior/analyze"
             ).permitAll()
 
             // -------------------------------------------------
@@ -128,14 +130,40 @@ public class SecurityConfig {
                 "/meetup/list",
                 "/user/advertisement/click",
                 "/user/member/kakaologout",
-                "/api/meetups/**"
+                "/upload/**",
+                
+                //운영환경에서는 yml로 제어 
+                "/swagger-ui/**",
+                "/swagger-ui.html",
+                "/v3/api-docs/**"
 
             ).permitAll()
-
+            
+			// -------------------------------------------------
+			// 모집글 공개/비공개 변경 → 관리자만 20260830 bora추가
+			// -------------------------------------------------
+			.requestMatchers(
+			    HttpMethod.PATCH,
+			    "/api/meetups/*/visibility"
+			)
+			.hasAnyRole("ADMIN", "SUPERADMIN")
+			
+			// -------------------------------------------------
+			// 모집글 조회 → 공개 20260830 bora추가
+			// -------------------------------------------------
+			.requestMatchers(
+			    HttpMethod.GET,
+			    "/api/meetups/**"
+			)
+			.permitAll()
+			
             // -------------------------------------------------
             // 회원 API
             // -------------------------------------------------
-            .requestMatchers("/api/members/**")
+            .requestMatchers(
+            		"/api/members/**",
+            		"/api/common/**"
+            )
             .authenticated()
 
             // -------------------------------------------------
@@ -154,13 +182,24 @@ public class SecurityConfig {
 
             // -------------------------------------------------
             // 제휴업체 광고
+
             // -------------------------------------------------
+            // 20260830 bora추가
+            .requestMatchers(
+                    "/api/advertisement/top",
+                    "/api/advertisement/click",
+                    "/api/advertisement/impression"
+            	)
+            .permitAll()
+            
+            // -------------------------------------------------    
             .requestMatchers(
             		"/api/advertisement/prices",
             	    "/api/advertisement/*/extension-prices",
             	    "/api/advertisement/**" 
             )
             .hasRole("PARTNER")
+
 
             // -------------------------------------------------
             // 관리자
@@ -173,7 +212,7 @@ public class SecurityConfig {
             // 나머지
             // -------------------------------------------------
             .anyRequest()
-            .permitAll()
+            .authenticated() // 20260830 bora수정
         );
 
         // =====================================================

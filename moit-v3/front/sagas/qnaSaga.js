@@ -17,6 +17,8 @@ import {
     qnaAnswerDeleteRequest, qnaAnswerDeleteSuccess, qnaAnswerDeleteFailure,
 
     qnaSatisfactionRequest, qnaSatisfactionSuccess, qnaSatisfactionFailure,
+    qnaSatisfactionDeleteRequest, qnaSatisfactionDeleteSuccess, qnaSatisfactionDeleteFailure,
+
     qnaAdminDeleteSelectedRequest, qnaAdminDeleteSelectedSuccess, qnaAdminDeleteSelectedFailure,
     qnaAiNormalRequest, qnaAiNormalSuccess, qnaAiNormalFailure,
 } from '../reducers/qnaReducer';
@@ -166,6 +168,18 @@ export function* qnaSatisfaction(action){
     }
 }
 
+// --- 답변 만족도 평가 삭제 DELETE ---
+export const qnaSatisfactionDeleteAPI = (answerId) => api.delete(`${QNA_API_BASE}/answer/${answerId}/satisfaction`);
+export function* qnaSatisfactionDelete(action) {
+    try {
+        yield call(qnaSatisfactionDeleteAPI, action.payload);
+        yield put(qnaSatisfactionDeleteSuccess());
+    } catch (err) {
+        yield put(
+            qnaSatisfactionDeleteFailure(err.response?.data?.message || err.message));
+    }
+}
+
 // --- 관리자 선택 삭제 DELETE : /api/questions/deleteSelected ---
 export const qnaAdminDeleteSelectedAPI = (ids) => api.delete(`${QNA_API_BASE}/deleteSelected`, {
         data: ids,});
@@ -201,6 +215,7 @@ function* watchQnaAnswerCreate() {    yield takeLatest( qnaAnswerCreateRequest.t
 function* watchQnaAnswerUpdate() {    yield takeLatest( qnaAnswerUpdateRequest.type,    qnaAnswerUpdate ); }
 function* watchQnaAnswerDelete() {    yield takeLatest( qnaAnswerDeleteRequest.type,    qnaAnswerDelete ); }
 function* watchQnaSatisfaction() {    yield takeLatest( qnaSatisfactionRequest.type,    qnaSatisfaction ); }
+function* watchQnaSatisfactionDelete() {  yield takeLatest( qnaSatisfactionDeleteRequest.type, qnaSatisfactionDelete );}
 function* watchQnaAdminDeleteSelected() { yield takeLatest( qnaAdminDeleteSelectedRequest.type, qnaAdminDeleteSelected ); }
 function* watchQnaAiNormal() {        yield takeLatest( qnaAiNormalRequest.type,        qnaAiNormal ); }
 
@@ -217,6 +232,7 @@ export default function* qnaSaga() {
         call(watchQnaAnswerUpdate),
         call(watchQnaAnswerDelete),
         call(watchQnaSatisfaction),
+        call(watchQnaSatisfactionDelete),
         call(watchQnaAdminDeleteSelected),
         call(watchQnaAiNormal),
     ]);

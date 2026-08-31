@@ -31,7 +31,8 @@ function ReviewSection({
   onWriteReview, 
   onLikeReview,
   onSortChange,
-  onSearch 
+  onSearch,
+  onReport  // 신고 추가 ...
 }) {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -230,6 +231,7 @@ function ReviewSection({
           marginTop: 20,
         }}
       >
+
         {publicReviews.map((review) => (
           <ReviewItem
             key={review.id}
