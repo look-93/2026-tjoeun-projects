@@ -3,11 +3,11 @@ import { Avatar, Tag } from "antd";
 
 function MypageHeader({ user, point = 0 }) {
 
-    console.log("===== MYPAGE HEADER USER =====");
-    console.log(user);
+    // console.log("===== MYPAGE HEADER USER =====");
+    // console.log(user);
 
-    console.log("===== MYPAGE HEADER POINT =====");
-    console.log(point);
+    // console.log("===== MYPAGE HEADER POINT =====");
+    // console.log(point);
 
     const getMemberType = (memberTypeId) => {
         switch (Number(memberTypeId)) {

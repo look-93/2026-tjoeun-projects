@@ -46,15 +46,9 @@ public class SolapiSmsService {
             // SMS 발송
             messageService.send(message, null);
 
-            System.out.println( "===== SOLAPI SMS 발송 성공 =====" );
-
-            System.out.println( "수신번호: " + mobile );
 
         } catch (Exception e) {
 
-            System.err.println( "===== SOLAPI SMS 발송 실패 =====" );
-
-            System.err.println( "수신번호: " + mobile );
 
             e.printStackTrace();
 

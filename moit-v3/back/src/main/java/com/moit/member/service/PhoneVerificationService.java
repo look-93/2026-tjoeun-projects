@@ -56,10 +56,6 @@ public class PhoneVerificationService {
 
         redisTemplate.delete(verifiedKey);
 
-        System.out.println("===== 휴대폰 인증번호 Redis 저장 성공 =====");
-        System.out.println("mobile: " + mobile);
-        System.out.println("key: " + key);
-        System.out.println("expire: " + EXPIRE_MINUTES + "분");
     }
 
 
@@ -76,20 +72,14 @@ public class PhoneVerificationService {
         // Redis에서 인증번호 조회
         String savedCode = redisTemplate.opsForValue().get(key);
 
-        System.out.println("===== 휴대폰 인증번호 확인 =====");
-        System.out.println("mobile: " + mobile);
-        System.out.println("입력 코드: " + code);
-        System.out.println("Redis 코드: " + savedCode);
 
         // 인증번호가 없거나 만료됨
         if (savedCode == null) {
-            System.out.println("인증번호 없음 또는 만료");
             return false;
         }
 
         // 인증번호 불일치
         if (!savedCode.equals(code)) {
-            System.out.println("인증번호 불일치");
             return false;
         }
 
@@ -110,10 +100,6 @@ public class PhoneVerificationService {
                 TimeUnit.MINUTES
         );
 
-        System.out.println("===== 휴대폰 인증 성공 =====");
-        System.out.println("verifiedKey: " + verifiedKey);
-        System.out.println("인증 완료 상태: true");
-
         return true;
     }
 
@@ -129,12 +115,6 @@ public class PhoneVerificationService {
 
         boolean verified = "true".equals(value);
 
-        System.out.println("===== 휴대폰 인증 상태 확인 =====");
-        System.out.println("mobile: " + mobile);
-        System.out.println("verifiedKey: " + verifiedKey);
-        System.out.println("Redis value: " + value);
-        System.out.println("verified: " + verified);
-
         return verified;
     }
 
@@ -148,8 +128,6 @@ public class PhoneVerificationService {
 
         redisTemplate.delete(verifiedKey);
 
-        System.out.println("===== 휴대폰 인증 완료 상태 삭제 =====");
-        System.out.println("mobile: " + mobile);
     }
 
 

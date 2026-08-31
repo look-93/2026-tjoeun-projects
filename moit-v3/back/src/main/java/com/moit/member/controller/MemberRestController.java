@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +18,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 
 import com.moit.member.dao.LoginNotificationMapper;
 import com.moit.member.dto.DeleteAccountRequestDto;
@@ -76,6 +80,9 @@ public class MemberRestController {
 	private final NotificationService notificationService;
 	private final LoginNotificationMapper loginNotificationMapper;
 	
+	@Value("${resource.path}")
+    private String resourcePath;
+	
 	//회원가입
 	@Operation( summary = "회원가입", description = "새로운 회원을 등록합니다." )
     @PostMapping("/signup")
@@ -84,48 +91,48 @@ public class MemberRestController {
 
 		UserDto dto = request.toUserDto();
 		
-		System.out.println("===== 회원가입 행동 데이터 =====");
-
-	    if (dto.getSignupBehavior() != null) {
-
-	        System.out.println(
-	            "전체 오류 횟수: "
-	            + dto.getSignupBehavior().getErrorCount()
-	        );
-
-	        System.out.println(
-	            "필드별 오류 횟수: "
-	            + dto.getSignupBehavior().getFieldErrorCount()
-	        );
-
-	        System.out.println(
-	            "이메일 인증 실패 횟수: "
-	            + dto.getSignupBehavior().getEmailVerificationFailCount()
-	        );
-
-	        System.out.println(
-	            "전화번호 인증 실패 횟수: "
-	            + dto.getSignupBehavior().getMobileVerificationFailCount()
-	        );
-
-	        System.out.println(
-	            "비밀번호 오류 횟수: "
-	            + dto.getSignupBehavior().getPasswordErrorCount()
-	        );
-
-	        System.out.println(
-	            "현재 필드: "
-	            + dto.getSignupBehavior().getCurrentField()
-	        );
-
-	        System.out.println(
-	            "필드 체류시간: "
-	            + dto.getSignupBehavior().getFieldStayTime()
-	        );
-
-	    } else {
-	        System.out.println("signupBehavior = NULL");
-	    }
+//		System.out.println("===== 회원가입 행동 데이터 =====");
+//
+//	    if (dto.getSignupBehavior() != null) {
+//
+//	        System.out.println(
+//	            "전체 오류 횟수: "
+//	            + dto.getSignupBehavior().getErrorCount()
+//	        );
+//
+//	        System.out.println(
+//	            "필드별 오류 횟수: "
+//	            + dto.getSignupBehavior().getFieldErrorCount()
+//	        );
+//
+//	        System.out.println(
+//	            "이메일 인증 실패 횟수: "
+//	            + dto.getSignupBehavior().getEmailVerificationFailCount()
+//	        );
+//
+//	        System.out.println(
+//	            "전화번호 인증 실패 횟수: "
+//	            + dto.getSignupBehavior().getMobileVerificationFailCount()
+//	        );
+//
+//	        System.out.println(
+//	            "비밀번호 오류 횟수: "
+//	            + dto.getSignupBehavior().getPasswordErrorCount()
+//	        );
+//
+//	        System.out.println(
+//	            "현재 필드: "
+//	            + dto.getSignupBehavior().getCurrentField()
+//	        );
+//
+//	        System.out.println(
+//	            "필드 체류시간: "
+//	            + dto.getSignupBehavior().getFieldStayTime()
+//	        );
+//
+//	    } else {
+//	        System.out.println("signupBehavior = NULL");
+//	    }
 
 	    UserDto result = service.signup(dto);
 
@@ -138,12 +145,9 @@ public class MemberRestController {
 	@GetMapping("/social-info")
 	public ResponseEntity<?> getSocialInfo(HttpSession session) {
 		
-		System.out.println("===== SOCIAL INFO API =====");
-		
 	    UserDto socialUser = (UserDto) session.getAttribute("socialUser");
 
 	    if (socialUser == null) {
-	    	System.out.println("socialUser 없음");
 	    	
 	        return ResponseEntity
 	                .status(HttpStatus.UNAUTHORIZED)
@@ -153,9 +157,6 @@ public class MemberRestController {
 	                ));
 	    }
 	    
-	    System.out.println("socialUser 있음");
-	    System.out.println("email : " + socialUser.getEmail());
-	    System.out.println("provider : " + socialUser.getProvider());
 
 	    return ResponseEntity.ok(
 	            Map.of(
@@ -400,13 +401,6 @@ public class MemberRestController {
 		                 user.getMemberId(),
 		                 deviceId
 		         );
-		 
-		 System.out.println("=================================");
-		 System.out.println("새로운 기기 로그인 확인");
-		 System.out.println("memberId = " + user.getMemberId());
-		 System.out.println("deviceId = " + deviceId);
-		 System.out.println("isNewDevice = " + isNewDevice);
-		 System.out.println("=================================");
 	
 		 // =========================================================
 		 // 로그인 기록 저장
@@ -425,8 +419,6 @@ public class MemberRestController {
 	
 		 if (isNewDevice) {
 			 
-			 System.out.println("===== 새로운 기기 → 알림 INSERT 시작 =====");
-			 
 		     NewDeviceNotificationDto notification =
 		             new NewDeviceNotificationDto();
 	
@@ -440,9 +432,7 @@ public class MemberRestController {
 		     try {
 	
 		         loginNotificationMapper
-		                 .insertNewDeviceNotification(notification);
-		         
-		         System.out.println("===== 알림 INSERT 성공 =====");
+		                 .insertNewDeviceNotification(notification);		      
 		         
 		     } catch (Exception e) {
 	
@@ -488,121 +478,267 @@ public class MemberRestController {
                 jwtTokenProvider.getRefreshTokenExpiration()
         );
 
-        // 10. 로그인 응답
+        // 10. Refresh Token HttpOnly Cookie 생성
+        ResponseCookie refreshTokenCookie =
+                ResponseCookie.from("refreshToken", refreshToken)
+                        .httpOnly(true)
+                        .secure(false)       // 로컬 개발환경: HTTP
+                        .path("/")
+                        .maxAge(jwtTokenProvider.getRefreshTokenExpiration() / 1000)
+                        .sameSite("Lax")
+                        .build();
+
+        // 11. 로그인 응답
         LoginResponseDto response =
                 new LoginResponseDto(
                         accessToken,
-                        refreshToken,
+                        null, // Refresh Token은 Cookie로 이동
                         user.getMemberId(),
                         user.getLoginId(),
                         user.getMemberTypeId(),
                         deviceId
                 );
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok()
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        refreshTokenCookie.toString()
+                )
+                .body(response);
     }
     
- // Access Token 재발급
+    // Access Token 재발급
     @Operation(
             summary = "Access Token 재발급",
             description = "Refresh Token을 검증하여 새로운 Access Token과 Refresh Token을 발급합니다."
     )
     @PostMapping("/refresh")
     public ResponseEntity<RefreshResponseDto> refresh(
+    		@CookieValue(value = "refreshToken", required = false)
+            String refreshToken,
             @RequestBody RefreshRequestDto request) {
 
-        String refreshToken = request.getRefreshToken();
-        String deviceId = request.getDeviceId();
+    	String deviceId =
+                request.getDeviceId();
 
-        // 1. Refresh Token / Device ID 확인
-        if (refreshToken == null || refreshToken.isBlank()
-                || deviceId == null || deviceId.isBlank()) {
 
-            return ResponseEntity .status(HttpStatus.UNAUTHORIZED) .build();
+        // =====================================================
+        // Refresh Token 존재 여부 확인
+        // =====================================================
+        if (
+            refreshToken == null ||
+            refreshToken.isBlank()
+        ) {
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build();
         }
 
-        // 2. Refresh Token 자체 검증
-        if (!jwtTokenProvider.validateToken(refreshToken)) {
 
-            return ResponseEntity .status(HttpStatus.UNAUTHORIZED) .build();
+        // =====================================================
+        // Device ID 확인
+        // =====================================================
+        if (
+            deviceId == null ||
+            deviceId.isBlank()
+        ) {
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build();
         }
 
-        // 3. Refresh Token 타입 확인
-        if (!"REFRESH".equals(jwtTokenProvider.getTokenType(refreshToken))) {
 
-            return ResponseEntity .status(HttpStatus.UNAUTHORIZED) .build();
+        // =====================================================
+        // Refresh Token JWT 검증
+        // =====================================================
+        if (
+            !jwtTokenProvider
+                .validateToken(refreshToken)
+        ) {
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build();
         }
 
-        // 4. Refresh Token에서 회원 ID 추출
-        Long memberId = jwtTokenProvider.getMemberId(refreshToken);
 
-        // 5. Redis에 저장된 Refresh Token과 비교
-        if (!refreshTokenService.validateRefreshToken( memberId, deviceId, refreshToken)) {
+        // =====================================================
+        // Refresh Token 타입 확인
+        // =====================================================
+        if (
+            !"REFRESH".equals(
+                jwtTokenProvider
+                    .getTokenType(refreshToken)
+            )
+        ) {
 
-            return ResponseEntity .status(HttpStatus.UNAUTHORIZED) .build();
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build();
         }
 
-        // 6. 회원 조회
-        UserDto user = service.findByMemberId(memberId);
+
+        // =====================================================
+        // 회원 ID
+        // =====================================================
+        Long memberId =
+                jwtTokenProvider
+                        .getMemberId(refreshToken);
+
+
+        // =====================================================
+        // Redis Refresh Token 검증
+        // =====================================================
+        boolean valid =
+                refreshTokenService
+                        .validateRefreshToken(
+                                memberId,
+                                deviceId,
+                                refreshToken
+                        );
+
+
+        if (!valid) {
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
+
+        // =====================================================
+        // 회원 조회
+        // =====================================================
+        UserDto user =
+                service.findByMemberId(memberId);
+
 
         if (user == null) {
 
-            return ResponseEntity .status(HttpStatus.UNAUTHORIZED) .build();
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build();
         }
 
-        // 7. 새로운 Access Token 발급
-        String accessToken = jwtTokenProvider.createAccessToken( user.getMemberId(), user.getLoginId(), deviceId );
 
-        // 8. 새로운 Refresh Token 발급
-        String newRefreshToken = jwtTokenProvider.createRefreshToken( user.getMemberId() );
+        // =====================================================
+        // 새로운 Access Token 발급
+        // =====================================================
+        String accessToken =
+                jwtTokenProvider.createAccessToken(
+                        user.getMemberId(),
+                        user.getLoginId(),
+                        deviceId
+                );
 
-        // 9. Redis Refresh Token 교체
+
+        // =====================================================
+        // 새로운 Refresh Token 발급
+        // =====================================================
+        String newRefreshToken =
+                jwtTokenProvider.createRefreshToken(
+                        user.getMemberId()
+                );
+
+
+        // =====================================================
+        // Redis Refresh Token 교체
+        // =====================================================
         refreshTokenService.saveRefreshToken(
                 user.getMemberId(),
                 deviceId,
                 newRefreshToken,
-                jwtTokenProvider.getRefreshTokenExpiration()
+                jwtTokenProvider
+                        .getRefreshTokenExpiration()
         );
 
-        // 10. 응답
-        return ResponseEntity.ok( new RefreshResponseDto( accessToken, newRefreshToken ) );
+
+        // =====================================================
+        // 새로운 Refresh Token Cookie
+        // =====================================================
+        ResponseCookie refreshTokenCookie =
+                ResponseCookie.from(
+                        "refreshToken",
+                        newRefreshToken
+                )
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(
+                        jwtTokenProvider
+                                .getRefreshTokenExpiration()
+                                / 1000
+                )
+                .sameSite("Lax")
+                .build();
+
+
+        // =====================================================
+        // Access Token만 JSON 응답
+        // =====================================================
+        RefreshResponseDto response =
+                new RefreshResponseDto(
+                        accessToken
+                );
+
+
+        return ResponseEntity
+                .ok()
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        refreshTokenCookie.toString()
+                )
+                .body(response);
     }
     
     // 로그아웃
     @Operation( summary = "로그아웃", description = "Redis에 저장된 Token 삭제" )
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(
-    		@RequestBody Map<String, String> request,
-    		Authentication authentication
-    		) {
-    	
-    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-    	
-    	Long memberId = userDetails.getAppUserId();
-    	String deviceId = request.get("deviceId");
-    	
-    	if (deviceId == null || deviceId.isBlank()) {
-            return ResponseEntity.badRequest().build();
-        }
-    	
-    	refreshTokenService.deleteRefreshToken(memberId, deviceId);
-    	
-    	// 로그인 provider 확인
-        String provider = userDetails.getProvider();
-    	
-     // 카카오 로그인인 경우
-        if ("kakao".equals(provider)) {
+    public ResponseEntity<Void> logout(
+            Authentication authentication
+    ) {
 
-            String logoutUrl =
-                    "https://kauth.kakao.com/oauth/logout"
-                    + "?client_id=d1065db6fa6b99aa2d26a3d28c80143a"
-                    + "&logout_redirect_uri=http://localhost:8080/user/member/kakaologout";
+        CustomUserDetails userDetails =
+                (CustomUserDetails)
+                        authentication.getPrincipal();
 
-            return ResponseEntity.ok( Map.of( "kakaoLogout", true, "logoutUrl", logoutUrl ) );
-        }
+        Long memberId =
+                userDetails.getAppUserId();
 
-        // 일반 / 네이버 / 구글
-        return ResponseEntity.ok( Map.of( "kakaoLogout", false ) );
+
+        // =====================================================
+        // Redis Refresh Token 삭제
+        // =====================================================
+        refreshTokenService.deleteAllRefreshTokens(
+                memberId
+        );
+
+
+        // =====================================================
+        // Refresh Token Cookie 삭제
+        // =====================================================
+        ResponseCookie deleteCookie =
+                ResponseCookie.from(
+                        "refreshToken",
+                        ""
+                )
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Lax")
+                .build();
+
+
+        return ResponseEntity
+                .ok()
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        deleteCookie.toString()
+                )
+                .build();
     }
     
     // 회원정보 수정
@@ -616,17 +752,7 @@ public class MemberRestController {
     		@RequestParam(value = "interestIds", required = false) List<Integer> interestIds,
     		@RequestParam(value = "profileImage", required = false) MultipartFile profileImage,
             Authentication authentication
-    ) {
-    	
-    	System.out.println("=================================");
-        System.out.println("===== PUT /api/members/me 진입 =====");
-        System.out.println("nickname = " + nickname);
-        System.out.println("mobile = " + mobile);
-        System.out.println("gender = " + gender);
-        System.out.println("birth = " + birth);
-        System.out.println("interestIds = " + interestIds);
-        System.out.println("profileImage = " + profileImage);
-        System.out.println("=================================");
+    ) {   	
 
         try {
 
@@ -672,7 +798,7 @@ public class MemberRestController {
                 String savedFilename = UUID.randomUUID() + extension;
 
                 // 업로드 폴더
-                Path uploadPath = Paths.get("uploads/profile");
+                Path uploadPath = Paths.get(resourcePath, "profile");
 
                 Files.createDirectories(uploadPath);
 
@@ -752,8 +878,26 @@ public class MemberRestController {
             // 6. 모든 기기의 Refresh Token 삭제
             refreshTokenService.deleteAllRefreshTokens(memberId);
 
-            // 7. 성공
-            return ResponseEntity.ok( Map.of( "message", "회원탈퇴가 완료되었습니다." ) );
+            ResponseCookie deleteCookie =
+                    ResponseCookie.from(
+                            "refreshToken",
+                            ""
+                    )
+                    .httpOnly(true)
+                    .secure(false)
+                    .path("/")
+                    .maxAge(0)
+                    .sameSite("Lax")
+                    .build();
+
+
+            return ResponseEntity
+                    .ok()
+                    .header(
+                            HttpHeaders.SET_COOKIE,
+                            deleteCookie.toString()
+                    )
+                    .build();
 
         } catch (IllegalArgumentException e) {
 
@@ -948,11 +1092,7 @@ public class MemberRestController {
     @DeleteMapping("/login-devices/{deviceId}")
 	public ResponseEntity<Void> deleteLoginDevice(
 			@PathVariable("deviceId") String deviceId,
-	        Authentication authentication) {
-    	
-    	System.out.println("===== 특정 기기 로그아웃 CONTROLLER =====");
-        System.out.println("deviceId = " + deviceId);
-        System.out.println("authentication = " + authentication);
+	        Authentication authentication) {   	
     	
     	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
     	
