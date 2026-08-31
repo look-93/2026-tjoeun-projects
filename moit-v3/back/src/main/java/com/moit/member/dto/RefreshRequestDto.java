@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RefreshRequestDto {
 	
-	private String refreshToken;
+	//private String refreshToken;
 	private String deviceId;
 }

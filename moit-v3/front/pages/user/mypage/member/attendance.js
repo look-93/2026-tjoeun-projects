@@ -127,8 +127,8 @@ function Attendance() {
       return;
     }
 
-    console.log('===== 오늘 출석 완료 =====');
-    console.log('todayKey:', todayKey);
+    // console.log('===== 오늘 출석 완료 =====');
+    // console.log('todayKey:', todayKey);
 
     // 오늘 출석 완료
     setAttended(true);
@@ -159,8 +159,8 @@ function Attendance() {
         return;
     }
 
-    console.log('===== 출석체크 실패 =====');
-    console.log('attendanceError:', attendanceError);
+    // console.log('===== 출석체크 실패 =====');
+    // console.log('attendanceError:', attendanceError);
 
     // 이미 오늘 출석한 경우
     if (attendanceError === '오늘은 이미 출석체크를 완료했습니다.') {
