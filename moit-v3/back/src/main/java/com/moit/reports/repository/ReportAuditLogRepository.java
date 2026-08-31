@@ -15,8 +15,9 @@ public interface ReportAuditLogRepository extends JpaRepository<ReportAuditLog, 
 	
 	// 관리자 처리 기간 조회 (3일 전)
 	List<ReportAuditLog> findByProcessedAtBetweenAndThreeDayEmailSentYn(
-	        LocalDateTime start,
-	        LocalDateTime end,
-	        Character threeDayEmailSentYn
-	);
+			LocalDateTime start, LocalDateTime end,
+			Character threeDayEmailSentYn);
+	
+	// 관리자 처리 로그 자동 삭제 (3년 전)
+	long deleteByProcessedAtBefore(LocalDateTime cutoff);
 }
