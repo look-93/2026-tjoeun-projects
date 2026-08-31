@@ -45,8 +45,9 @@ function ReviewWritePage() {
   const queryReviewId = router.isReady ? router.query.reviewId : null;
   const queryMeetupId = router.isReady ? (router.query.meetupId || router.query.id || router.query.meetup_id) : null;
   
-  // 마이페이지에서 왔는지 여부 파악
+  // 마이페이지에서 왔는지 여부 파악 (알림 ID도 함께 파라미터로 넘어왔을 수 있음)
   const fromMypage = router.isReady ? router.query.from === 'mypage' : false;
+  const queryNotificationId = router.isReady ? router.query.notificationId : null;
 
   // 수정 모드 여부 판단
   const isEditMode = Boolean(queryReviewId);
@@ -89,20 +90,33 @@ function ReviewWritePage() {
 
   // 3. 성공/실패 처리
   useEffect(() => {
-    if (success) {
-      alert(isEditMode ? '리뷰가 성공적으로 수정되었습니다.' : '리뷰가 성공적으로 등록되었습니다.');
-      dispatch(resetReviewState());
+    const handleSuccessActions = async () => {
+      if (success) {
+        alert(isEditMode ? '리뷰가 성공적으로 수정되었습니다.' : '리뷰가 성공적으로 등록되었습니다.');
 
-      // 💡 마이페이지에서 진입한 경우 원하시는 단독 후기 페이지 경로로 이동
-      if (fromMypage) {
-        router.push('/user/mypage/review'); 
-      } else {
-        const targetMeetupId = queryMeetupId || (reviewDetail && reviewDetail.meetupId) || 6;
-        router.push(`/user/meetup/detail?meetupId=${targetMeetupId}&tab=review#review-section`);
+        // 🌟 [추가 로직] 마이페이지 알림을 통해 진입해 리뷰를 등록한 경우, 서버에 읽음 처리 요청
+        if (queryNotificationId) {
+          try {
+            await axios.patch(`http://localhost:8080/api/notifications/reviews/${queryNotificationId}/read`);
+          } catch (err) {
+            console.error('리뷰 등록 후 알림 읽음 처리 실패:', err);
+          }
+        }
+
+        dispatch(resetReviewState());
+
+        // 💡 마이페이지에서 진입한 경우 마이페이지로 이동
+        if (fromMypage) {
+          router.push('/user/mypage/review'); 
+        } else {
+          const targetMeetupId = queryMeetupId || (reviewDetail && reviewDetail.meetupId) || 6;
+          router.push(`/user/meetup/detail?meetupId=${targetMeetupId}&tab=review#review-section`);
+        }
       }
-    }
+    };
 
-    
+    handleSuccessActions();
+
     if (error) {
       console.log('🚨 최종 수신된 에러 값:', error);
 
@@ -123,7 +137,7 @@ function ReviewWritePage() {
       alert(errorMsg);
       dispatch(resetReviewState());
     }
-  }, [success, error, dispatch, router, queryMeetupId, isEditMode, fromMypage, reviewDetail]);
+  }, [success, error, dispatch, router, queryMeetupId, isEditMode, fromMypage, reviewDetail, queryNotificationId]);
 
   const handleImageChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);
@@ -283,7 +297,7 @@ function ReviewWritePage() {
         {/* 사진 첨부 */}
         <div className="review-write-field" style={{ marginTop: 24 }}>
           <Title level={5}>
-            사진 첨부 <Text type="secondary" style={{ fontSize: 13, fontWeight: 'normal' }}>(선택, 최대 5장)</Text>
+            사진 첨부 <Text type="secondary" style={{ fontSize: 13, fontWeight: 'normal' }}>(선택)</Text>
           </Title>
 
           <Upload

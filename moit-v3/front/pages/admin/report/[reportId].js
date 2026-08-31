@@ -73,13 +73,14 @@ function ReportDetailPage() {
             // ServiceImpl updateAdminReport
             // 반환형 return responseDto (ReportResponseDto)
             // 승인 처리 / 신뢰도 변경 포함
-
             // 관리자 처리 감사 로그 재조회
             dispatch(
                 fetchAdminReportAuditLogsRequest({
                     reportId: Number(reportId),
                 })
             );
+
+            dispatch(resetReportState());
         }
     }, [adminUpdate.success, dispatch, reportId]);
     
@@ -87,6 +88,9 @@ function ReportDetailPage() {
     useEffect(() => {
         if (adminDelete.success) {
             message.success('신고 내역이 삭제되었습니다.');
+
+            dispatch(resetReportState());
+
             router.push('/admin/report');
         }
     }, [adminDelete.success, router]);
@@ -246,24 +250,18 @@ function ReportDetailPage() {
 
                 <Descriptions bordered column={1}>
                     {/* 신고 번호 */}
-                    <Descriptions.Item label="신고번호 (reportId)">
+                    <Descriptions.Item label="신고번호">
                         {currentReport?.reportId}번 신고글
                     </Descriptions.Item>
 
-                    <Descriptions.Item label="신고자 (memberId)">
-                        {currentReport.memberNickname ?? '-'}
-                        {' '}
-                        ({currentReport.memberId ?? '-'}번)
-                        {' => '}
+                    <Descriptions.Item label="신고 대상 / 매너 점수">
+                        {currentReport.memberNickname ?? '-'}{' / '}
                         {currentReport?.trustScore}점{' '}
                         <ReportStatusCodeTag statusCode={currentReport.statusCode} />
                     </Descriptions.Item>
 
-                    <Descriptions.Item label="신고 대상 회원 (targetMemberId)">
-                        {currentReport.targetMemberNickname ?? '-'}
-                        {' '}
-                        ({currentReport.targetMemberId ?? '-'}번)
-                        {' => '}
+                    <Descriptions.Item label="신고 대상 회원 / 매너 점수">
+                        {currentReport.targetMemberNickname ?? '-'}{' / '}
                         {currentReport?.targetTrustScore}점{' '}
                         <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
                     </Descriptions.Item>
@@ -339,8 +337,14 @@ function ReportDetailPage() {
                             onClick={handleAiAnalysis}
                             loading={aiAnalysisLoading}
                             disabled={!reportId}
-                        >
-                            AI 판단 보조 요청
+                        >   
+                            {aiAnalysisLoading ? (
+                                <>
+                                    분석 중... ⏳
+                                </>
+                            ) : (
+                                "AI 판단 보조 요청"
+                            )}
                         </Button>
 
                         {/* AI가 분석해서 보내준 최종 결과 Error */}
@@ -403,9 +407,29 @@ function ReportDetailPage() {
                     {
                         currentReport.status === 'PENDING' && (
                             <Space>
-                                <Button type="primary" onClick={handleApproved}>승인</Button>
-                                <Button danger onClick={handleRejected}>반려</Button>
-                                <Button type="danger" onClick={handleDelete}>삭제</Button>
+                                <Button
+                                    type="primary"
+                                    onClick={handleApproved}
+                                    loading={adminUpdate.loading}
+                                >
+                                    승인
+                                </Button>
+
+                                <Button
+                                    danger
+                                    onClick={handleRejected}
+                                    loading={adminUpdate.loading}
+                                >
+                                    반려
+                                </Button>
+
+                                <Button
+                                    type="danger"
+                                    onClick={handleDelete}
+                                    loading={adminDelete.loading}
+                                >
+                                    삭제
+                                </Button>
                             </Space>
                         )
                     }
@@ -453,20 +477,23 @@ function ReportDetailPage() {
                             {log.processReason || '-'}
                         </Descriptions.Item>
 
-                        <Descriptions.Item label="신뢰도 점수 변동">
+                        <Descriptions.Item label="매너 점수 변동">
                             {log.trustScoreChange != null
                                 ? `${log.trustScoreChange > 0 ? '+' : ''}${log.trustScoreChange}점`
                                 : '-'}
                         </Descriptions.Item>
                     </Descriptions>
                 ))
-
+            ) : currentReport?.status === 'APPROVED' || currentReport.status === 'REJECTED' ? (
+                <div>
+                    처리 이력이 삭제되었습니다. (유효기간 3년 만료)
+                </div>
             ) : (
                 <div>
                     처리 이력이 없습니다.
                 </div>
             )}
-        </Card>
+            </Card>
         </div>
     );
 }

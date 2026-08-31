@@ -22,22 +22,23 @@ public interface AdvertisementRepository
         extends JpaRepository<Advertisement, Long> {
 	
 	@Query("""
-	    select distinct a
+	    select a
 	    from Advertisement a
-	    join AdvertisementImage ai
-	        on ai.advertisement = a
 	    where a.deleteYn = 'N'
 	      and a.approvalStatus = com.moit.advertisement.enums.ApprovalStatus.APPROVED
 	      and a.paymentStatus = com.moit.advertisement.enums.PaymentStatus.PAID
 	      and a.status = com.moit.advertisement.enums.AdStatus.OPEN
 	      and a.startDatetime <= CURRENT_TIMESTAMP
 	      and a.endDatetime >= CURRENT_TIMESTAMP
-	      and ai.imageType = :position
-	    order by a.priorityScore desc, a.adId desc
+	      and exists (
+	          select 1
+	          from AdvertisementImage ai
+	          where ai.advertisement = a
+	            and ai.imageType = :position
+	      )
 	""")
 	List<Advertisement> findAvailableAdvertisements(
-	        @Param("position") AdPosition position,
-	        Pageable pageable
+	        @Param("position") AdPosition position
 	);
 	
     
@@ -116,6 +117,26 @@ public interface AdvertisementRepository
 	        Long advertiserId, 
 	        ApprovalStatus approvalStatus, 
 	        Character deleteYn
+	);
+	
+	// 최근 피로도 조회
+	@Query(value = """
+	    SELECT COUNT(*)
+	    FROM advertisement_impression_log
+	    WHERE ad_id = :adId
+	      AND viewed_at >= SYSTIMESTAMP - INTERVAL '1' DAY
+	      AND (
+	          member_id = :memberId
+	          OR (
+	              :memberId IS NULL
+	              AND session_id = :sessionId
+	          )
+	      )
+	    """, nativeQuery = true)
+	int countRecentImpressions(
+	        @Param("adId") Long adId,
+	        @Param("memberId") Long memberId,
+	        @Param("sessionId") String sessionId
 	);
 	
 	long countByApprovalStatus(ApprovalStatus status);
@@ -219,10 +240,18 @@ public interface AdvertisementRepository
     );
     
     // 스케줄러용: 특정 상태이면서 시작시간이 특정 시간(현재) 이전인 광고 조회
-    List<Advertisement> findByStatusAndStartDatetimeLessThanEqual(AdStatus status, LocalDateTime now);
+    List<Advertisement> findByStatusAndPaymentStatusAndStartDatetimeLessThanEqual(
+            AdStatus status,
+            PaymentStatus paymentStatus,
+            LocalDateTime now
+    );
 
     // 스케줄러용: 특정 상태이면서 종료시간이 특정 시간(현재) 이전인 광고 조회
-    List<Advertisement> findByStatusAndEndDatetimeLessThanEqual(AdStatus status, LocalDateTime now);
+    List<Advertisement> findByStatusAndPaymentStatusAndEndDatetimeLessThanEqual(
+            AdStatus status,
+            PaymentStatus paymentStatus,
+            LocalDateTime now
+    );
     
     // 스케줄러용: 종료시간이 30일, 14일 남은 광고 조회
     List<Advertisement> findByDeleteYnAndPaymentStatusAndStatusAndEndDatetimeBetween(
@@ -278,4 +307,70 @@ public interface AdvertisementRepository
 	          com.moit.advertisement.enums.AdStatus.OPEN
 	""")
 	List<Advertisement> findPriorityUpdateTargets();
+
+
+	Optional<Advertisement> findByAdIdAndAdvertiser_Id(
+	        Long adId,
+	        Long memberId
+	);
+	
+	
+	// 전체 노출수
+	@Query("""
+	    select coalesce(sum(a.impressions), 0)
+	    from Advertisement a
+	    where a.deleteYn = 'N'
+	""")
+	Long sumTotalImpressions();
+
+
+	// 전체 클릭수
+	@Query("""
+	    select coalesce(sum(a.clicks), 0)
+	    from Advertisement a
+	    where a.deleteYn = 'N'
+	""")
+	Long sumTotalClicks();
+
+
+	// CTR TOP 5
+	@Query("""
+	    select a.title,
+	           case
+	               when a.impressions > 0
+	               then (a.clicks * 100.0 / a.impressions)
+	               else 0
+	           end
+	    from Advertisement a
+	    where a.deleteYn = 'N'
+	    order by
+	        case
+	            when a.impressions > 0
+	            then (a.clicks * 100.0 / a.impressions)
+	            else 0
+	        end desc
+	""")
+	List<Object[]> findTopCtrAdvertisements(
+	        org.springframework.data.domain.Pageable pageable
+	);
+
+
+	// 광고 등급별 개수
+	@Query("""
+	    select a.adGrade, count(a)
+	    from Advertisement a
+	    where a.deleteYn = 'N'
+	    group by a.adGrade
+	    order by count(a) desc
+	""")
+	List<Object[]> countByAdGrade();
+
+
+	// 전체 광고 수
+	@Query("""
+	    select count(a)
+	    from Advertisement a
+	    where a.deleteYn = 'N'
+	""")
+	long countTotalAdvertisements();
 }

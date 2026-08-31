@@ -26,6 +26,9 @@ const initialState = {
     deleteSuccess: false,        // 삭제성공여부
     answerDeleteSuccess: false,  // 답변 삭제 성공
 
+    satisfactionSuccess: false,         // 만족도 등록 성공
+    satisfactionDeleteSuccess: false,   // 만족도 삭제 성공
+
     adminDeleteSuccess: false,   // 관리자 선택 삭제 성공
     aiNormalSuccess: false,      // AI 정상 처리 성공
 };
@@ -213,15 +216,38 @@ const qnaReducer = createSlice({
             state.loading = true;
             state.error = null;
             state.success = false;
+            state.satisfactionSuccess = false;
+            state.satisfactionDeleteSuccess = false;
         },
         qnaSatisfactionSuccess: (state) => {
             state.loading = false;
             state.success = true;
+            state.satisfactionSuccess = true;
         },
         qnaSatisfactionFailure: (state, action) => {
             state.loading = false;
             state.error = action.payload;
             state.success = false;
+            state.satisfactionSuccess = false;
+        },
+
+        // --- 답변 만족도 평가 삭제 ---
+        qnaSatisfactionDeleteRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+            state.success = false;
+            state.satisfactionDeleteSuccess = false;
+        },
+        qnaSatisfactionDeleteSuccess: (state) => {
+            state.loading = false;
+            state.success = true;
+            state.satisfactionDeleteSuccess = true;
+        },
+        qnaSatisfactionDeleteFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            state.success = false;
+            state.satisfactionDeleteSuccess = false;
         },
 
         // --- 관리자 선택 삭제 ---
@@ -272,6 +298,16 @@ const qnaReducer = createSlice({
             state.aiNormalSuccess = false;
         },
 
+        // --- 만족도 등록 성공 상태 초기화 ---
+        qnaSatisfactionReset: (state) => {
+            state.satisfactionSuccess = false;
+        },
+
+        // --- 만족도 삭제 성공 상태 초기화 ---
+        qnaSatisfactionDeleteReset: (state) => {
+            state.satisfactionDeleteSuccess = false;
+        },
+
         // --- 상태 초기화 ---
         qnaReset: (state) => {
             state.qna = null;
@@ -283,6 +319,8 @@ const qnaReducer = createSlice({
             state.answerDeleteSuccess = false;
             state.adminDeleteSuccess = false;
             state.aiNormalSuccess = false;
+            state.satisfactionSuccess = false;
+            state.satisfactionDeleteSuccess = false;
         },
     },
 });
@@ -304,11 +342,14 @@ export const {
     qnaAnswerDeleteRequest, qnaAnswerDeleteSuccess, qnaAnswerDeleteFailure,
 
     qnaSatisfactionRequest, qnaSatisfactionSuccess, qnaSatisfactionFailure,
+    qnaSatisfactionDeleteRequest, qnaSatisfactionDeleteSuccess, qnaSatisfactionDeleteFailure,
+
     qnaAdminDeleteSelectedRequest, qnaAdminDeleteSelectedSuccess, qnaAdminDeleteSelectedFailure,
     qnaAiNormalRequest, qnaAiNormalSuccess, qnaAiNormalFailure,
 
     qnaAdminDeleteSelectedReset,
     qnaAiNormalReset,
+    qnaSatisfactionReset, qnaSatisfactionDeleteReset,
 
     qnaReset,
 } = qnaReducer.actions;

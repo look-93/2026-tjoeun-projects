@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import com.moit.qna.entity.QnaStatus;
+import com.moit.qna.enums.QnaStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,6 +28,9 @@ public class QuestionDto {
         
         // 문의 이미지
         private List<MultipartFile> images;
+        
+        // 문의 수정시 삭제할 이미지 ID
+        private List<Long> deleteImageIds;
     }
 
     // 질문 조회 응답 DTO
@@ -59,21 +62,6 @@ public class QuestionDto {
         private String analysisStatus;
         private int aggressionScore;
         private String aiCategory;
-    }
-    
-    // 문의 이미지 응답 DTO
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-    public static class QuestionImageDto {
-        private Long imageId;
-        private Long questionId;
-        private String originalName;
-        private String storedName;
-        private String imagePath;
-        private Long imageSize;
-        private String contentType;
-        private String deleteYn;
-        private Timestamp createdAt;
-        private Timestamp updatedAt;
     }
     
     // 관리자 문의 목록 응답 DTO

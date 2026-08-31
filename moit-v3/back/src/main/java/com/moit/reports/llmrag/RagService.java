@@ -5,6 +5,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.moit.reports.dto.AiReportAnalysisDto;
+import com.moit.reports.enums.ReasonCode;
+
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
@@ -105,20 +108,33 @@ public class RagService {	// 실제 RAG 작업
 	
 	
 	
-	// 현재 신고 내용과 가장 비슷한 PDF 문서 조각들을 찾아주는 코드
-	public List<RagChunk> searchSimilarChunks(String query, int topK) {
-		// 문장을 숫자로 바꾸기
+	
+	// 운영 정책 검색
+	private List<RagChunk> getPolicyChunksByReasonCode(ReasonCode reasonCode) {
+		
+		String keyword = switch (reasonCode) {
+			case ABUSE -> "ABUSE";
+			case SPAM, AD -> "SPAM / AD";
+			case FAKE_INFO -> "FAKE_INFO";
+			case NOSHOW -> "NOSHOW";
+			case ETC -> "ETC";
+		};
+		
+		return chunks.stream().filter(
+				chunk -> "report-policy.pdf".equals(chunk.getDocumentName()) && chunk.getTitle().contains(keyword))
+				.toList();
+	}
+	// 유사 사례 검색
+	public List<RagChunk> searchSimilarChunksByDocument(String query, String documentName, int topK) {
 		List<Double> queryEmbedding = aiService.createEmbedding(query);
+		return chunks.stream().filter(chunk -> documentName.equals(chunk.getDocumentName())).sorted((a, b) -> {
 
-		//		List<RagChunk>	높은 점수 순서대로 정렬
-		return chunks.stream().sorted((a, b) -> {
-			// 						현재 신고와 a, b문서 조각이 얼마나 비슷한지 계산
 			double similarityA = cosineSimilarity(queryEmbedding, a.getEmbedding());
 			double similarityB = cosineSimilarity(queryEmbedding, b.getEmbedding());
-			//				큰 점수가 앞으로 오게 내림차순 정렬
 			return Double.compare(similarityB, similarityA);
 		}).limit(topK).toList();
 	}
+	
 	
 	// 얼마나 비슷한지 유사도 계산
 	private double cosineSimilarity(List<Double> a, List<Double> b) {
@@ -143,24 +159,53 @@ public class RagService {	// 실제 RAG 작업
 	
 	
 	public String analyzeReport(Long reportId) {
-
-		// reportContext -	DB에서 조회한 현재 신고 데이터 + 신고 대상 원문 가져오기
+		// reportContext -	DB에서 조회한 현재 신고 데이터 + 신고 대상 원문 조회
 		ReportAiContext reportContext = reportAiContextService.getReportContext(reportId);
-
+		
+		System.out.println("전체 RAG chunks 수 = " + chunks.size());
+		for (RagChunk chunk : chunks) {
+			System.out.println(chunk.getDocumentName() + " / " + chunk.getTitle());
+		}
+		
+		String reasonKeyword = switch (reportContext.getReasonCode()) {
+		    case ABUSE -> "욕설 비방 모욕";
+		    case SPAM -> "도배 스팸 반복 게시";
+		    case FAKE_INFO -> "허위 정보 사실 불일치";
+		    case AD -> "광고 홍보 상업성 구매 유도 외부 링크";
+		    case NOSHOW -> "노쇼 불참 주최자 불참";
+		    case ETC -> "기타 신고";
+		};
+		
 		// query -	유사 문서 Embedding 검색용 문자열 생성
-		String query = """
-				신고 유형: %s
-				신고 내용: %s
+		String searchQuery = """
+		        신고 사유: %s
+		        관련 키워드: %s
+		        신고 내용: %s
+		        신고 대상 유형: %s
+		        신고 대상 제목: %s
+		        신고 대상 원문: %s
+		        """.formatted(
+		            reportContext.getReasonCode(),
+		            reasonKeyword,
+		            reportContext.getReasonDetail(),
+		            reportContext.getTargetType(),
+		            reportContext.getTargetTitle(),
+		            reportContext.getTargetContent()
+		        );
+		
+		
+		
+		// 운영 정책 검색
+		List<RagChunk> policyChunks = getPolicyChunksByReasonCode(reportContext.getReasonCode());
+		// 유사 사례 검색
+		List<RagChunk> caseChunks = searchSimilarChunksByDocument(searchQuery, "report-cases.pdf", 2);
 
-				신고 대상 원문:
-				%s
-				""".formatted(reportContext.getReasonCode(), reportContext.getReasonDetail(),
-				reportContext.getTargetContent());
+		// 정책 + 사례 합치기
+		List<RagChunk> similarChunks = new ArrayList<>();
+		similarChunks.addAll(policyChunks);
+		similarChunks.addAll(caseChunks);
 
-		// similarChunks -	현재 사건과 비슷한 운영 기준 / 사례 Top 3 검색
-		List<RagChunk> similarChunks = searchSimilarChunks(query, 3);
-
-		// contextBuilder -	검색된 참고자료를 하나의 문자열로 합치기
+		// contextBuilder - 검색된 참고자료를 하나의 문자열로 합치기
 		StringBuilder contextBuilder = new StringBuilder();
 
 		for (RagChunk chunk : similarChunks) {
@@ -176,24 +221,16 @@ public class RagService {	// 실제 RAG 작업
 		String ragContext = contextBuilder.toString();
 
 		// currentReport -	GPT에게 알려줄 현재 신고 정보
-		String currentReport = """
-				[현재 신고]
+		AiReportAnalysisDto aiReportContext = new AiReportAnalysisDto();
 
-				신고 유형:
-				%s
-
-				신고 내용:
-				%s
-
-				신고 대상:
-				%s
-
-				신고 대상 원문:
-				%s
-				""".formatted(reportContext.getReasonCode(), reportContext.getReasonDetail(),
-				reportContext.getTargetType(), reportContext.getTargetContent());
+		aiReportContext.setReasonCode(reportContext.getReasonCode());
+		aiReportContext.setReasonDetail(reportContext.getReasonDetail());
+		aiReportContext.setTargetType(reportContext.getTargetType());
+		aiReportContext.setTargetId(reportContext.getTargetId());
+		aiReportContext.setTargetTitle(reportContext.getTargetTitle());
+		aiReportContext.setTargetContent(reportContext.getTargetContent());
 
 		// 현재 신고 + 검색 근거를 GPT에게 전달
-		return aiService.askToGptWithContext(ragContext, currentReport);
+		return aiService.askToGptWithContext(ragContext, aiReportContext);
 	}
 }

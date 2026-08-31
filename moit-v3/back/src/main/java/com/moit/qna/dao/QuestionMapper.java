@@ -10,9 +10,9 @@ import com.moit.qna.dto.AnswerDto.AnswerRequestDto;
 import com.moit.qna.dto.AnswerDto.AnswerResponseDto;
 import com.moit.qna.dto.NotificationDto;
 import com.moit.qna.dto.QuestionAiAnalysisDto;
-import com.moit.qna.dto.QuestionDto.QuestionImageDto;
 import com.moit.qna.dto.QuestionDto.QuestionRequestDto;
 import com.moit.qna.dto.QuestionDto.QuestionResponseDto;
+import com.moit.qna.dto.QuestionImageDto;
 import com.moit.qna.dto.QuestionSearchDto;
 
 @Mapper
@@ -42,8 +42,14 @@ public interface QuestionMapper {
     // 문의 수정
     void updateQuestion(QuestionRequestDto dto);
 
+    // 문의 수정시 기존 이미지 선택 삭제
+    void deleteQuestionImagesByIds(List<Long> imageIds);
+    
     // 문의 삭제
     void deleteQuestion(Long questionId);
+    
+    // 이미지도 같이 삭제
+    void deleteQuestionImages(Long questionId);
 
     // 검색
     List<QuestionResponseDto> findBySearch(QuestionSearchDto dto);

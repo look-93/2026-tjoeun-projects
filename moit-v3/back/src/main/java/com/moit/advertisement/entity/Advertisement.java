@@ -394,4 +394,20 @@ public class Advertisement extends BaseEntity{
     public void updatePriorityScore(Integer priorityScore) {
         this.priorityScore = priorityScore;
     }
+    
+    public void increaseClicks() {
+        if (this.clicks == null) {
+            this.clicks = 0L;
+        }
+
+        this.clicks++;
+    }
+    
+    public void increaseImpressions() {
+        if (this.impressions == null) {
+            this.impressions = 0L;
+        }
+
+        this.impressions++;
+    }
 }

@@ -346,7 +346,7 @@ function UserHeader() {
                       className="moit-header-link"
                       style={{ textDecoration: 'none' }}
                     >
-                      모집찾기
+                      모임찾기
                     </a>
                   </Link>
                 </Col>

@@ -60,7 +60,7 @@ export default function Home() {
             />
 
             {/* 광고 */}
-            <AdBanner />
+            <AdBanner position="MAIN" />
 
             {/* 인기 모임 */}
             <PopularMeetupList

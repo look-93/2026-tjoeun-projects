@@ -26,7 +26,7 @@ public interface ReviewService {
     // 특정 모임의 리뷰 목록 조회 (페이징)
     public ReviewListResponseDto getReviewsByMeetup(Long meetupId, Pageable pageable);
     
-    // ★ [추가] 특정 모임의 리뷰 목록 조회 (검색어 + 페이징) - 모임 상세페이지용
+    // 특정 모임의 리뷰 목록 조회 (검색어 + 페이징) - 모임 상세페이지용
     public ReviewListResponseDto getReviewsByMeetup(Long meetupId, String keyword, Pageable pageable);
 
     // 특정 회원이 작성한 리뷰 목록 조회 (마이페이지용 페이징 + 검색)
@@ -38,14 +38,14 @@ public interface ReviewService {
     // AI 리뷰 요약/분석
     public String reviewAnalysis(Long meetupId);
     
-    //리뷰 이미지
+    // 리뷰 이미지
     public List<Long> uploadImages(List<MultipartFile> images, Long memberId);
 
     // -------------------------------------------------------------------
     // 관리자단
 
-    // 관리자 - 전체 리뷰 목록 조회 및 검색
-    public ReviewListResponseDto getAdminReviewList(String keyword, Pageable pageable);
+    // 관리자 - 전체 리뷰 목록 조회 및 검색 (status 파라미터 포함된 버전으로 단일화)
+    public ReviewListResponseDto getAdminReviewList(String keyword, String status, Pageable pageable);
 
     // 관리자 - 리뷰 숨김/공개 상태 변경 (isPublic 변경)
     public void changeReviewVisibility(Long reviewId);

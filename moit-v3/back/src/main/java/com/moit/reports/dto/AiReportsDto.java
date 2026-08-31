@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class AiReportsDto {
+public class AiReportsDto {	// 사용자 신고 작성 AI
 	
 	private String keywords;		// 키워드
 	private ReasonCode reasonCode;	// 사유

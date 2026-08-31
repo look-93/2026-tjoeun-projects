@@ -19,6 +19,8 @@ import {
 } from '../../../api/advertiseApi';
 
 import AdvertisePayment from '../../../components/AdvertisePayment';
+import AdvertiseExtensionModal from '../../../components/AdvertiseExtensionModal';
+import AdvertiseExtensionPayment from '../../../components/AdvertiseExtensionPayment';
 import { Modal } from 'antd';
 
 function AdvertiseListPage() {
@@ -44,10 +46,23 @@ function AdvertiseListPage() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentTarget, setPaymentTarget] = useState(null); // 결제할 광고 정보
 
+  // 연장 결제 모달 상태 추가
+  const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false);
+  const [extensionTarget, setExtensionTarget] = useState(null);
+
+  // 연장 결제
+  const [isExtensionPaymentOpen, setIsExtensionPaymentOpen] = useState(false);
+  const [extensionPaymentTarget, setExtensionPaymentTarget] = useState(null);
+
   // 결제 버튼 클릭 시 모달 열기
   const handlePayment = (record) => {
     setPaymentTarget(record);
     setIsPaymentModalOpen(true);
+  };
+  // 연장 버튼 클릭 시 모달 열기
+  const handleExtension = (record) => {
+    setExtensionTarget(record);
+    setIsExtensionModalOpen(true);
   };
 
   // 광고 목록 조회
@@ -324,6 +339,24 @@ function AdvertiseListPage() {
             </Button>
           )}
 
+          {record.approvalStatus === 'APPROVED' &&
+           record.paymentStatus === 'PAID' &&
+           record.status === 'OPEN' &&
+           (
+              record.reminder30dSent === 'Y' ||
+              record.reminder14dSent === 'Y'
+            ) && 
+            !(record.paymentType === 'EXTENSION' &&
+              record.paymentStatus === 'PAID') && (
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => handleExtension(record)}
+            >
+              연장하기
+            </Button>
+          )}
+
           <Button
             size="small"
             danger
@@ -470,6 +503,51 @@ function AdvertiseListPage() {
             adId={paymentTarget.adId} 
             amount={paymentTarget.totalBudget} 
             adTitle={paymentTarget.title} 
+          />
+        )}
+      </Modal>
+
+      <AdvertiseExtensionModal
+        open={isExtensionModalOpen}
+        onCancel={() => {
+          setIsExtensionModalOpen(false);
+          setExtensionTarget(null);
+        }}
+        advertisement={extensionTarget}
+        onPayment={(extensionData) => {
+
+          console.log(
+            '연장 결제:',
+            extensionData
+          );
+
+          setIsExtensionModalOpen(false);
+
+          setExtensionPaymentTarget({
+            ...extensionData,
+            title: extensionTarget?.title,
+          });
+
+          setIsExtensionPaymentOpen(true);
+
+        }}
+      />
+
+      <Modal
+        open={isExtensionPaymentOpen}
+        onCancel={() => {
+          setIsExtensionPaymentOpen(false);
+          setExtensionPaymentTarget(null);
+        }}
+        footer={null}
+        destroyOnClose
+        width={650}
+      >
+        {extensionPaymentTarget && (
+          <AdvertiseExtensionPayment
+            adId={extensionPaymentTarget.adId}
+            days={extensionPaymentTarget.days}
+            adTitle={extensionPaymentTarget.title}
           />
         )}
       </Modal>

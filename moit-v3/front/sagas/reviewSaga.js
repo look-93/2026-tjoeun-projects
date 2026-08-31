@@ -1,4 +1,4 @@
-import { all, call, fork, put, takeLatest } from 'redux-saga/effects';
+import { all, call, fork, put, takeLatest, takeEvery } from 'redux-saga/effects';
 
 import api from '../api/axios';
 
@@ -7,14 +7,14 @@ import {
     getReviewDetailRequest, getReviewDetailSuccess, getReviewDetailFailure,
     updateReviewRequest, updateReviewSuccess, updateReviewFailure,
     deleteReviewRequest, deleteReviewSuccess, deleteReviewFailure,
-    getReviewListRequest, getReviewListSuccess, getReviewListFailure,
+    getReviewListRequest, getAdminReviewListRequest, getReviewListSuccess, getReviewListFailure, // 🌟 [추가] getAdminReviewListRequest 임포트
     toggleReviewLikeRequest, toggleReviewLikeSuccess, toggleReviewLikeFailure,
     analyzeReviewsRequest, analyzeReviewsSuccess, analyzeReviewsFailure,
     changeVisibilitySuccess,
-    // ★ [추가] 댓글 관련 액션 임포트
+    // 댓글 관련 액션 임포트
     getCommentsRequest, getCommentsSuccess, getCommentsFailure,
     createCommentRequest, createCommentSuccess, createCommentFailure,
-    // updateCommentRequest, updateCommentSuccess, updateCommentFailure,
+    updateCommentRequest, updateCommentSuccess, updateCommentFailure,
     deleteCommentRequest, deleteCommentSuccess, deleteCommentFailure
 } from '../reducers/reviewReducer';
 
@@ -34,7 +34,6 @@ export const updateReviewApi = ({ reviewId, requestDto, ...rest }) => {
 
 export const deleteReviewApi = (reviewId) => api.delete(`${REVIEW_API_BASE}/${reviewId}`);
 
-// 모임별 리뷰 API에 keyword 파라미터 추가
 export const fetchReviewsByMeetupApi = ({ meetupId, keyword = '', page = 0, size = 10, sort = 'id,desc' }) =>
     api.get(`${REVIEW_API_BASE}/meetup/${meetupId}`, { params: { keyword, page, size, sort } });
 
@@ -50,12 +49,12 @@ export const fetchAdminReviewListApi = (params = { keyword: '', page: 0, size: 1
 export const changeReviewVisibilityApi = (reviewId) => api.patch(`${ADMIN_REVIEW_API_BASE}/${reviewId}/visibility`);
 export const adminDeleteReviewApi = (reviewId) => api.delete(`${ADMIN_REVIEW_API_BASE}/${reviewId}`);
 
-// ★ [추가] 댓글 API 통신 함수
+// 댓글 API 통신 함수
 export const fetchCommentsApi = (reviewId) => api.get(`${REVIEW_API_BASE}/${reviewId}/comments`);
 export const createCommentApi = ({ reviewId, content, parentCommentId }) => 
     api.post(`${REVIEW_API_BASE}/${reviewId}/comments`, { content, parentCommentId });
-// export const updateCommentApi = ({ commentId, content }) => 
-//     api.put(`${REVIEW_API_BASE}/comments/${commentId}`, { content });
+export const updateCommentApi = ({ commentId, content }) => 
+    api.put(`${REVIEW_API_BASE}/comments/${commentId}`, { content });
 export const deleteCommentApi = (commentId) => 
     api.delete(`${REVIEW_API_BASE}/comments/${commentId}`);
 
@@ -231,10 +230,9 @@ export function* changeReviewVisibility(action) {
     }
 }
 
-// ★ [추가] 댓글 Saga 처리 함수들
+// 댓글 Saga 처리 함수들
 export function* fetchComments(action) {
     try {
-        // 💡 [수정] action.payload가 객체({ reviewId: 15 })이든 단일 값(15)이든 모두 안전하게 추출합니다.
         const reviewId = typeof action.payload === 'object' && action.payload !== null
             ? action.payload.reviewId || action.payload.id
             : action.payload;
@@ -246,7 +244,6 @@ export function* fetchComments(action) {
 
         const result = yield call(fetchCommentsApi, reviewId);
         
-        // 백엔드 반환값이 배열일 때와 객체({ content: [...] })일 때 모두 안전하게 지원
         const commentsData = Array.isArray(result.data) 
             ? result.data 
             : (result.data?.content || result.data?.comments || []);
@@ -263,31 +260,15 @@ export function* fetchComments(action) {
     }
 }
 
-// export function* fetchComments(action) {
-//     try {
-//         const reviewId = action.payload;
-//         const result = yield call(fetchCommentsApi, reviewId);
-        
-//         // ★ [수정] reviewId와 댓글 목록을 객체로 묶어서 리듀서로 전달
-//         yield put(getCommentsSuccess({
-//             reviewId: reviewId,
-//             comments: result.data.content || result.data.comments || result.data
-//         }));
-//     } catch (err) {
-//         const errorMsg = typeof err.response?.data === 'string'
-//             ? err.response.data
-//             : err.response?.data?.message || err.message;
-//         yield put(getCommentsFailure(errorMsg));
-//     }
-// }
-
 export function* createComment(action) {
     try {
         const { reviewId, content, parentCommentId } = action.payload;
         yield call(createCommentApi, { reviewId, content, parentCommentId });
         yield put(createCommentSuccess());
-        // 작성 후 댓글 목록 자동 갱신
-        yield put(getCommentsRequest(reviewId));
+        
+        if (reviewId) {
+            yield put(getCommentsRequest({ reviewId }));
+        }
     } catch (err) {
         const errorMsg = typeof err.response?.data === 'string'
             ? err.response.data
@@ -296,21 +277,22 @@ export function* createComment(action) {
     }
 }
 
-// export function* updateComment(action) {
-//     try {
-//         const { commentId, content, reviewId } = action.payload;
-//         yield call(updateCommentApi, { commentId, content });
-//         yield put(updateCommentSuccess());
-//         if (reviewId) {
-//             yield put(getCommentsRequest(reviewId));
-//         }
-//     } catch (err) {
-//         const errorMsg = typeof err.response?.data === 'string'
-//             ? err.response.data
-//             : err.response?.data?.message || err.message;
-//         yield put(updateCommentFailure(errorMsg));
-//     }
-// }
+export function* updateComment(action) {
+    try {
+        const { commentId, content, reviewId } = action.payload;
+        yield call(updateCommentApi, { commentId, content });
+        yield put(updateCommentSuccess());
+        
+        if (reviewId) {
+            yield put(getCommentsRequest({ reviewId }));
+        }
+    } catch (err) {
+        const errorMsg = typeof err.response?.data === 'string'
+            ? err.response.data
+            : err.response?.data?.message || err.message;
+        yield put(updateCommentFailure(errorMsg));
+    }
+}
 
 export function* deleteComment(action) {
     try {
@@ -318,7 +300,7 @@ export function* deleteComment(action) {
         yield call(deleteCommentApi, commentId);
         yield put(deleteCommentSuccess(commentId));
         if (reviewId) {
-            yield put(getCommentsRequest(reviewId));
+            yield put(getCommentsRequest({ reviewId }));
         }
     } catch (err) {
         const errorMsg = typeof err.response?.data === 'string'
@@ -339,18 +321,17 @@ function* watchDeleteReview() { yield takeLatest(deleteReviewRequest, deleteRevi
 function* watchFetchReviewList() { yield takeLatest(getReviewListRequest, fetchReviewList); }
 function* watchAnalyzeReviews() { yield takeLatest(analyzeReviewsRequest, analyzeReviews); }
 function* watchToggleReviewLike() { yield takeLatest(toggleReviewLikeRequest, toggleReviewLike); }
-function* watchFetchAdminReviewList() { yield takeLatest(getReviewListRequest, fetchAdminReviewList); }
+
+// 🌟 [수정] 관리자 목록 조회 액션과 정상 연결
+function* watchFetchAdminReviewList() { yield takeLatest(getAdminReviewListRequest, fetchAdminReviewList); }
 function* watchAdminDeleteReview() { yield takeLatest(deleteReviewRequest, adminDeleteReview); }
 function* watchChangeReviewVisibility() { yield takeLatest('review/changeVisibilityRequest', changeReviewVisibility); }
 
-// ★ [추가] 댓글 Watcher 함수들
-function* watchFetchComments() { yield takeLatest(getCommentsRequest, fetchComments); }
+// 댓글 Watcher 함수들
+function* watchFetchComments() { yield takeEvery(getCommentsRequest, fetchComments); }
 function* watchCreateComment() { yield takeLatest(createCommentRequest, createComment); }
+function* watchUpdateComment() { yield takeLatest(updateCommentRequest, updateComment); }
 function* watchDeleteComment() { yield takeLatest(deleteCommentRequest, deleteComment); }
-// function* watchFetchComments() { yield takeLatest(getCommentsRequest, fetchComments); }
-// function* watchCreateComment() { yield takeLatest(createCommentRequest, createComment); }
-// // function* watchUpdateComment() { yield takeLatest(updateCommentRequest, updateComment); }
-// function* watchDeleteComment() { yield takeLatest(deleteCommentRequest, deleteComment); }
 
 export default function* reviewSaga() {
     yield all([
@@ -361,13 +342,12 @@ export default function* reviewSaga() {
         fork(watchFetchReviewList),
         fork(watchAnalyzeReviews),
         fork(watchToggleReviewLike),
-        fork(watchFetchAdminReviewList),
+        fork(watchFetchAdminReviewList), // 🌟 [수정] 주석 해제 및 활성화 완료!
         fork(watchAdminDeleteReview),
         fork(watchChangeReviewVisibility),
-        // ★ [추가] 댓글 포크 등록
         fork(watchFetchComments),
         fork(watchCreateComment),
-        // fork(watchUpdateComment),
+        fork(watchUpdateComment),
         fork(watchDeleteComment),
     ]);
 }

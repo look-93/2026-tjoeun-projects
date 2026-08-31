@@ -7,6 +7,8 @@ import {
   qnaAnswerDeleteRequest,
   qnaSatisfactionRequest,
   qnaSatisfactionDeleteRequest,
+  qnaSatisfactionReset,
+  qnaSatisfactionDeleteReset,
 } from '../../../reducers/qnaReducer';
 
 import {
@@ -22,6 +24,7 @@ import {
   Tag,
   Typography,
   Input,
+  Rate,
 } from 'antd';
 
 const { Title, Text, Paragraph } = Typography;
@@ -31,13 +34,15 @@ function questionDetail() {
   const dispatch = useDispatch();
 
   const { questionId } = router.query;
-  const { qna, deleteSuccess, answerDeleteSuccess, error } = useSelector((state) => state.qna);
+  const { qna, deleteSuccess, answerDeleteSuccess, satisfactionSuccess, satisfactionDeleteSuccess, error } = useSelector((state) => state.qna);
 
   const { user } = useSelector((state) => state.user);
   const { meetup } = useSelector((state) => state.meetup);
 
   const [selectedRating, setSelectedRating] = useState(null);
   const [satisfactionComment, setSatisfactionComment] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isAnswerDeleting, setIsAnswerDeleting] = useState(false);
 
   // 상세 조회
   useEffect(() => {
@@ -57,25 +62,47 @@ function questionDetail() {
   
   // 삭제 성공 시 알림 후 목록 이동
   useEffect(() => {
-    if (!deleteSuccess) return;
+    if (!isDeleting || !deleteSuccess) return;
 
     alert('문의가 삭제되었습니다.');
+    setIsDeleting(false);
     router.push('/user/mypage/question');
-  }, [deleteSuccess, router]);
+  }, [isDeleting, deleteSuccess, router]);
 
   // 답변 삭제 성공
   useEffect(() => {
-    if (!answerDeleteSuccess) return;
+    if (!isAnswerDeleting || !answerDeleteSuccess) return;
 
     alert('답변이 삭제되었습니다.');
+    setIsAnswerDeleting(false);
     dispatch(qnaDetailRequest(Number(questionId)));
-  }, [answerDeleteSuccess, questionId, dispatch]);
+  }, [isAnswerDeleting, answerDeleteSuccess, questionId, dispatch]);
 
   useEffect(() => {
     if (error) { 
       alert(error); 
     }
   }, [error]);
+
+  // 만족도 등록/수정 성공
+  useEffect(() => {
+    if (!satisfactionSuccess) return;
+
+    alert('만족도 평가가 완료되었습니다. 감사합니다.');
+
+    dispatch(qnaDetailRequest(Number(questionId)));
+    dispatch(qnaSatisfactionReset());
+  }, [satisfactionSuccess, questionId, dispatch]);
+
+  // 만족도 삭제 성공
+  useEffect(() => {
+    if (!satisfactionDeleteSuccess) return;
+
+    alert('만족도 평가가 삭제되었습니다.');
+
+    dispatch(qnaDetailRequest(Number(questionId)));
+    dispatch(qnaSatisfactionDeleteReset());
+  }, [satisfactionDeleteSuccess, questionId, dispatch]);
 
   const isMeetup = qna?.category === 'MEETUP';
 
@@ -150,7 +177,7 @@ function questionDetail() {
       setSatisfactionComment('');
     }
   }, [answer.rating, answer.feedback]);
-
+  
   const createdAt = qna?.createdAt
   ? new Date(qna.createdAt).toLocaleString('ko-KR', {
       year: 'numeric',
@@ -178,7 +205,7 @@ function questionDetail() {
   const handleDelete = () => {
     if (!questionId) return;
     if (!window.confirm('문의를 삭제하시겠습니까?')) return;
-
+    setIsDeleting(true);
     dispatch(
       qnaDeleteRequest(Number(questionId))
     );
@@ -187,7 +214,7 @@ function questionDetail() {
   const handleAnswerDelete = () => {
     if (!qna?.questionId || !answer.answerId) return;
     if (!window.confirm('답변을 삭제하시겠습니까?')) return;
-
+    setIsAnswerDeleting(true);
     dispatch(
       qnaAnswerDeleteRequest({
         questionId: Number(qna.questionId),
@@ -198,14 +225,10 @@ function questionDetail() {
 
   const handleSatisfaction = () => {
     if (!answer.answerId) return;
-    if (!selectedRating) {
-      alert('만족도를 선택해주세요.'); return;
-    }
+    if (!selectedRating) {alert('만족도를 선택해주세요.'); return;}
 
-    if (answer.rating) {
-      if (!window.confirm('이미 만족도 평가를 하셨습니다. 수정하시겠습니까?')) {return;}
-    }
-
+    if (answer.rating) {if (!window.confirm('이미 만족도 평가를 하셨습니다. 수정하시겠습니까?')) {return;}}
+      else {if (!window.confirm('만족도를 평가하시겠습니까?')) return; }
     dispatch(
       qnaSatisfactionRequest({
         answerId: Number(answer.answerId),
@@ -216,34 +239,18 @@ function questionDetail() {
       })
     );
 
-    alert(
-      answer.rating
-        ? '만족도 평가가 수정되었습니다.'
-        : `${selectedRating}점으로 평가되었습니다.`
-    );
   };
 
-  // =========================================================
-  // 만족도 삭제
-  // =========================================================
   const handleSatisfactionDelete = () => {
     if (!answer.answerId) return;
-
-    if (
-      !window.confirm(
-        '등록된 만족도 평가를 삭제하시겠습니까?'
-      )
-    ) {
-      return;
-    }
+    if (!window.confirm('정말 만족도 평가를 삭제하시겠습니까?')) {return;}
 
     dispatch(
       qnaSatisfactionDeleteRequest(
         Number(answer.answerId)
       )
     );
-
-    alert('만족도 평가가 삭제되었습니다.');
+    
   };
 
   return (
@@ -500,7 +507,10 @@ function questionDetail() {
                   >
 
                     <Descriptions.Item label="만족도">
-                      {answer.rating}점 / 5점
+                      <Rate disabled value={answer.rating} />
+                      <Text style={{ marginLeft: 8 }}>
+                        {answer.rating}점 / 5점
+                      </Text>
                     </Descriptions.Item>
 
                     <Descriptions.Item label="의견">
@@ -529,40 +539,16 @@ function questionDetail() {
                     </Text>
 
                     <div style={{ marginTop: 12 }}>
-                      <Space>
+                      <Rate
+                        value={selectedRating}
+                        onChange={setSelectedRating}
+                      />
 
-                        <Button
-                          type={selectedRating === 1 ? 'primary' : 'default'}
-                          onClick={() => setSelectedRating(1)}
-                        >
-                          1점
-                        </Button>
-                        <Button
-                          type={selectedRating === 2 ? 'primary' : 'default'}
-                          onClick={() => setSelectedRating(2)}
-                        >
-                          2점
-                        </Button>
-                        <Button
-                          type={selectedRating === 3 ? 'primary' : 'default'}
-                          onClick={() => setSelectedRating(3)}
-                        >
-                          3점
-                        </Button>
-                        <Button
-                          type={selectedRating === 4 ? 'primary' : 'default'}
-                          onClick={() => setSelectedRating(4)}
-                        >
-                          4점
-                        </Button>
-                        <Button
-                          type={selectedRating === 5 ? 'primary' : 'default'}
-                          onClick={() => setSelectedRating(5)}
-                        >
-                          5점
-                        </Button>
-
-                      </Space>
+                      {selectedRating && (
+                        <Text style={{ marginLeft: 8 }}>
+                          {selectedRating}점 / 5점
+                        </Text>
+                      )}
                     </div>
 
                     <div style={{ marginTop: 20 }}>

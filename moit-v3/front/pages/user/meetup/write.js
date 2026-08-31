@@ -229,15 +229,26 @@ function write() {
             return next;
         });
     };
-
+    
     useEffect(() => {
+        if (!router.isReady) return;
+
         dispatch(fetchCategoriesRequest());
         dispatch(fetchSigungusRequest());
 
-        if (router.isReady && meetupId) {
+        if (meetupId) {
+            // 수정
             dispatch(fetchMeetupDetailRequest(meetupId));
+        } else {
+            // 새 글 작성
+            dispatch(resetMeetupState());
+            form.resetFields();
+            setFileList([]);
+            setPreviewImages([]);
+            setCurrentImage(0);
+            setSelectedAddress(null);
         }
-    }, [router.isReady, meetupId, dispatch]);
+    }, [router.isReady, meetupId, dispatch, form]);
 
     useEffect(() => {
         return () => {

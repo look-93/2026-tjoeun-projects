@@ -7,7 +7,7 @@ function AdminReportSearchBox({ onSearch }) {
     targetType: 'all',
     status: 'all',
     reasonCode: 'all',
-    deleteYn: 'all',
+    deleteYn: 'N',
     memberNickname: '',
   });
 
@@ -93,7 +93,7 @@ function AdminReportSearchBox({ onSearch }) {
               });
             }}
             options={[
-              { value: 'all', label: '삭제 상태' },
+              // { value: 'all', label: '삭제 상태' },
               { value: 'N', label: '정상' },
               { value: 'Y', label: '삭제' },
             ]}
@@ -103,7 +103,7 @@ function AdminReportSearchBox({ onSearch }) {
         {/* 작성자 */}
         <Col flex="auto">
           <Input
-            placeholder="작성자 닉네임"
+            placeholder="신고자 닉네임"
             value={values.memberNickname}
             onChange={(e) => {
               setValues({

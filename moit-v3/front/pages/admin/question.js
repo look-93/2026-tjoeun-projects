@@ -255,7 +255,7 @@ function AdminQuestionPage() {
           style={{ cursor: 'pointer' }}
           onClick={() =>
             router.push(
-              `/admin/questionDetail?questionId=${record.questionId}`
+              `/user/qna/questionDetail?questionId=${record.questionId}`
             )
           }
         >

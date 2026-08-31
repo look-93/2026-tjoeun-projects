@@ -10,10 +10,10 @@ import com.moit.advertisement.dto.AdvertisementChartDto;
 import com.moit.advertisement.dto.AdvertisementDto;
 import com.moit.advertisement.dto.AdvertisementImageDto;
 import com.moit.advertisement.dto.AdvertisementPaymentDto;
+import com.moit.advertisement.dto.AdvertisementPositionPriceDto;
+import com.moit.advertisement.dto.AdvertisementPriceDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
-import com.moit.advertisement.dto.AdvertisementStatisticsDto;
 import com.moit.advertisement.dto.DashboardAiDto;
-import com.moit.advertisement.entity.AdvertisementPayment;
 
 
 public interface AdvertisementService {
@@ -72,7 +72,7 @@ public interface AdvertisementService {
     );
 
     // 광고 삭제
-    int deleteAdvertisement(Long adId);
+    int deleteAdvertisement(Long adId, Long memberId);
 
     // 승인
     int updateApprovalStatus(AdvertisementDto.AdvertisementAdminUpdateDto dto);
@@ -87,6 +87,9 @@ public interface AdvertisementService {
 	// 광고 우선도 갱신
 	int updatePriorityScore();
 	
+	// 연장 가격 조회
+	List<AdvertisementPriceDto> getExtensionPrices(Long adId, Long memberId);
+	
 	// 기간 변경
     void updatePeriod(Long adId, LocalDateTime start, LocalDateTime end);
     
@@ -100,10 +103,7 @@ public interface AdvertisementService {
     int deleteAdvertisementImage(Long adId);
 
     // 노출 수 증가
-    int updateImpressions(Long adId);
-
-    // 클릭 수 증가
-    int updateAdvertisementClick(Long adId);
+//    void updateImpressions(Long adId);
 
     // 광고 조회
     AdvertisementDto selectTopAdvertisement(String position);
@@ -116,25 +116,43 @@ public interface AdvertisementService {
     int selectPendingAdvertisementCnt();
 
     int selectClosedAdvertisementCnt();
+    
+    AdvertisementDto selectAdvertisement(
+            String position,
+            Long memberId,
+            String sessionId
+    );
 
     // 클릭 로그
     boolean insertClickLog(
             Long adId,
             String position,
             Long memberId,
+            String sessionId,
             String ip,
-            String userAgent);
+            String userAgent,
+            String referrer);
 	
 	// 노출 로그
     boolean insertImpressionLog(
             Long adId,
             String position,
             Long memberId,
+            String sessionId,
             String ip,
             String userAgent);
+    
+    // 포인트 적립
+//    boolean processAdvertisementClick(
+//            Long adId,
+//            String position,
+//            Long memberId,
+//            String ip,
+//            String userAgent
+//    );
 
 	// 일일통계
-//	void insertDailyStatistics();
+	void insertDailyStatistics();
 	
 	// 통계 차트
 	// 총 통계
@@ -151,10 +169,11 @@ public interface AdvertisementService {
 	double selectExtensionRate();	
 	// 위치별 ctr 차트
 	List<AdvertisementChartDto> selectPositionCtrChart();
+	
 	// AI 통계 요약
-//	DashboardAiDto getDashboardAiData();
-//	DashboardAiDto getLatestAiSummary(); 
-//    void saveAiSummary(String summary); 
+	DashboardAiDto getDashboardAiData();
+	DashboardAiDto getLatestAiSummary(); 
+    void saveAiSummary(String summary); 
 	
 	
 	// 피로도
@@ -165,5 +184,12 @@ public interface AdvertisementService {
 
 	AdvertisementPaymentDto createInitialPayment(Long adId, Long memberId);
 
-	// 스케쥴러 돌리는건 일단 주석처리함
+	List<AdvertisementPriceDto> getInitialPrices();
+	List<AdvertisementPositionPriceDto> getPositionPrices();
+	
+	AdvertisementPaymentDto createExtensionPayment(
+	        Long adId,
+	        Long memberId,
+	        int days
+	);
 }

@@ -28,6 +28,20 @@ function MypageHeader({ user, point = 0 }) {
         }
     };
 
+    const getTrustBadge = (trustScore) => {
+        const score = Number(trustScore);
+
+        if (score >= 80) {
+            return <Tag color="green">정상</Tag>;
+        }
+
+        if (score >= 40) {
+            return <Tag color="orange">주의</Tag>;
+        }
+
+        return <Tag color="red">위험</Tag>;
+    };
+
     const getProfileImageUrl = (profileUrl) => {
 
         if (!profileUrl) {
@@ -77,12 +91,24 @@ function MypageHeader({ user, point = 0 }) {
                     {user?.email || "-"}
                 </p>
 
+                {/* 신뢰도 점수 */}
+                <div className="mypage-trust-score">
+                    <span>매너점수: </span>
+                    <strong>{user?.trustScore}점</strong>
+
+                    <span style={{ marginLeft: "8px" }}>
+                        {getTrustBadge(user?.trustScore)}
+                    </span>
+                </div>
+
                 {/* 회원 유형 */}
                 <Tag>
                     {getMemberType(user?.memberTypeId)}
                 </Tag>
 
+
             </div>
+            
 
 
             {/* =========================

@@ -1,6 +1,9 @@
 package com.moit.qna.entity;
 
 import com.moit.member.entity.Member;
+import com.moit.qna.enums.Category;
+import com.moit.qna.enums.IsPublic;
+import com.moit.qna.enums.QnaStatus;
 import com.moit.util.BaseEntity;
 
 import jakarta.persistence.Column;

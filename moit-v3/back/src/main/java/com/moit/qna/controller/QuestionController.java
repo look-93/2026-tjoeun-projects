@@ -82,6 +82,18 @@ public class QuestionController {
         return ResponseEntity.noContent().build();
     }
     
+    // 답변 만족도 평가 삭제
+    @Operation(summary = "답변 만족도 평가 삭제", description = "답변에 등록된 만족도 점수와 의견을 삭제합니다.")
+    @DeleteMapping("/answer/{answerId}/satisfaction")
+    public ResponseEntity<Void> deleteSatisfaction(
+            @PathVariable("answerId") Long answerId,
+            Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long memberId = userDetails.getUser().getMemberId();
+        answerService.deleteSatisfaction(answerId, memberId);
+        return ResponseEntity.noContent().build();
+    }
+    
     // 관리자용 선택 삭제
     @Operation(summary = "관리자용 선택 삭제", description = "관리자가 글을 삭제합니다.")
     @DeleteMapping("/deleteSelected")
@@ -220,8 +232,8 @@ public class QuestionController {
 
     // 문의 수정 화면 이동
     @Operation(summary = "문의 수정", description = "문의를 수정합니다.")
-    @PutMapping("/{questionId}")
-    public ResponseEntity<Void> edit(@PathVariable("questionId") Long questionId, @RequestBody QuestionRequestDto dto, Authentication authentication) {
+    @PutMapping(value = "/{questionId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> edit(@PathVariable("questionId") Long questionId, @ModelAttribute QuestionRequestDto dto, Authentication authentication) {
         QuestionResponseDto question = questionService.getDetail(questionId);
         // 작성자 또는 관리자 권한 확인
         if (!canEdit(question, authentication)) {

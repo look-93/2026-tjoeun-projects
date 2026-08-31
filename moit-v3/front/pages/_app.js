@@ -8,9 +8,11 @@ import AdminLayout from "../components/layout/AdminLayout";
 
 import "antd/dist/antd.css";
 import "../styles/global.css";
+import "../styles/AdBanner.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 import { useDispatch } from "react-redux";
+
 
 function MyApp({ Component, pageProps, router }) {
     const dispatch = useDispatch();

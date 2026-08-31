@@ -23,5 +23,9 @@ public class WebConfig implements WebMvcConfigurer{
 	    // 문의 이미지
 	    registry.addResourceHandler("/images/qna/**")
 	            .addResourceLocations("file:uploads/qna/");
+	    
+	    // 광고 이미지
+	    registry.addResourceHandler("/upload/ad/**")
+        		.addResourceLocations("file:///C:/upload/ad/");
 	}
 }

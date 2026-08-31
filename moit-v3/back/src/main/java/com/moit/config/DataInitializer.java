@@ -21,10 +21,12 @@ import com.moit.common.repository.SidoRepository;
 import com.moit.common.repository.SigunguRepository;
 import com.moit.meetup.entity.MeetupCategory;
 import com.moit.meetup.repository.MeetupCategoryRepository;
+import com.moit.member.entity.Interest;
 import com.moit.member.entity.MemberStatus;
 import com.moit.member.entity.MemberType;
 import com.moit.member.enums.MemberStatusEnum;
 import com.moit.member.enums.MemberTypeEnum;
+import com.moit.member.repository.InterestRepository;
 import com.moit.member.repository.MemberStatusRepository;
 import com.moit.member.repository.MemberTypeRepository;
 import com.moit.reports.entity.MemberReportStatus;
@@ -49,6 +51,8 @@ public class DataInitializer {
     private final SigunguRepository  sigunguRepository;
     
     private final MemberReportStatusRepository memberReportStatusRepository;
+    
+    private final InterestRepository interestRepository;
     
 	@Bean
 	@Order(1)
@@ -83,7 +87,7 @@ public class DataInitializer {
 			// 기간별 광고 가격 세팅
 			// ==========================================
             if (priceRepository.count() == 0) {
-                log.info("🔥 [DataInit] 기간별 광고 가격 데이터가 없어 기본값을 생성합니다.");
+                //log.info("🔥 [DataInit] 기간별 광고 가격 데이터가 없어 기본값을 생성합니다.");
 
                 // 순서 주의: AdGrade, periodDays, PaymentType, basePrice
                 priceRepository.saveAll(Arrays.asList(
@@ -123,7 +127,7 @@ public class DataInitializer {
 			// 위치별 추가금 세팅 (MAIN 제거)
 			// ==========================================
             if (positionPriceRepository.count() == 0) {
-                log.info("🔥 [DataInit] 위치별 추가금 데이터가 없어 기본값을 생성합니다.");
+                //log.info("🔥 [DataInit] 위치별 추가금 데이터가 없어 기본값을 생성합니다.");
 
                 positionPriceRepository.saveAll(Arrays.asList(
                     createPositionPrice(AdPosition.MEETUP_LIST_BANNER, new BigDecimal("30000")),
@@ -151,6 +155,11 @@ public class DataInitializer {
 	         // 회원 신고 상태 초기 데이터
 	         // ==========================================
 	         initMemberReportStatuses();
+	         
+	         // ==========================================
+	         // 관심사 초기 데이터
+	         // ==========================================
+	         initMemberInterest();     
 		};
 	}
 
@@ -163,15 +172,44 @@ public class DataInitializer {
         return positionPrice;
     }
     
+    //관심사
+    private void initMemberInterest() {
+    	
+    	if(interestRepository.count() > 0) {
+    		log.info("🔥 [DataInit] 관심사 데이터가 이미 존재합니다.");
+    		return;
+    	}
+    	
+        interestRepository.saveAll(Arrays.asList(
+                createInterest(1L, "운동"),
+                createInterest(2L, "여행"),
+                createInterest(3L, "게임"),
+                createInterest(4L, "독서"),
+                createInterest(5L, "맛집"),
+                createInterest(6L, "영화"),
+                createInterest(7L, "음악"),
+                createInterest(8L, "요리")
+            ));
+    }
+    
+    private Interest createInterest(Long interestId, String interestName) {
+
+        Interest interest = new Interest();
+        interest.setInterestId(interestId);
+        interest.setInterestName(interestName);
+
+        return interest;
+    }
+    
     //카테고리
     private void initCategories() {
 
         if (categoryRepository.count() > 0) {
-            log.info("🔥 [DataInit] 카테고리 데이터가 이미 존재합니다.");
+            //log.info("🔥 [DataInit] 카테고리 데이터가 이미 존재합니다.");
             return;
         }
 
-        log.info("🔥 [DataInit] 카테고리 초기 데이터를 생성합니다.");
+        //log.info("🔥 [DataInit] 카테고리 초기 데이터를 생성합니다.");
 
         // 대분류
         MeetupCategory exercise = createCategory("운동");
@@ -250,7 +288,7 @@ public class DataInitializer {
             createCategory("홈카페", cooking)
         ));
 
-        log.info("🔥 [DataInit] 카테고리 초기 데이터 생성 완료");
+        //log.info("🔥 [DataInit] 카테고리 초기 데이터 생성 완료");
     }
     
     private MeetupCategory createCategory(String categoryName) {
@@ -281,7 +319,7 @@ public class DataInitializer {
             return;
         }
 
-        log.info("🔥 [DataInit] 시도 초기 데이터를 생성합니다.");
+        //log.info("🔥 [DataInit] 시도 초기 데이터를 생성합니다.");
 
         sidoRepository.saveAll(Arrays.asList(
             createSido("서울특별시"),
@@ -291,7 +329,7 @@ public class DataInitializer {
             createSido("대전광역시")
         ));
 
-        log.info("🔥 [DataInit] 시도 초기 데이터 생성 완료");
+        //log.info("🔥 [DataInit] 시도 초기 데이터 생성 완료");
     }
     
     // 시군구
@@ -301,7 +339,7 @@ public class DataInitializer {
             return;
         }
 
-        log.info("🔥 [DataInit] 시군구 초기 데이터를 생성합니다.");
+        //log.info("🔥 [DataInit] 시군구 초기 데이터를 생성합니다.");
 
         Sido seoul = sidoRepository.findByName("서울특별시")
                 .orElseThrow();
@@ -343,7 +381,7 @@ public class DataInitializer {
             createSigungu("서구", daejeon)
         ));
 
-        log.info("🔥 [DataInit] 시군구 초기 데이터 생성 완료");
+        //log.info("🔥 [DataInit] 시군구 초기 데이터 생성 완료");
     }   
     
     
@@ -367,11 +405,11 @@ public class DataInitializer {
     private void initMemberReportStatuses() {
 
         if (memberReportStatusRepository.count() > 0) {
-            log.info("🔥 [DataInit] 회원 신고 상태 데이터가 이미 존재합니다.");
+            //log.info("🔥 [DataInit] 회원 신고 상태 데이터가 이미 존재합니다.");
             return;
         }
 
-        log.info("🔥 [DataInit] 회원 신고 상태 초기 데이터를 생성합니다.");
+        //log.info("🔥 [DataInit] 회원 신고 상태 초기 데이터를 생성합니다.");
 
         memberReportStatusRepository.saveAll(Arrays.asList(
             new MemberReportStatus("ACTIVE", "정상"),
@@ -379,7 +417,7 @@ public class DataInitializer {
             new MemberReportStatus("DANGER", "위험")
         ));
 
-        log.info("🔥 [DataInit] 회원 신고 상태 초기 데이터 생성 완료");
+        //log.info("🔥 [DataInit] 회원 신고 상태 초기 데이터 생성 완료");
     }
     
 }
