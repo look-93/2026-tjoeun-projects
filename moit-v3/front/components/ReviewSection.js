@@ -10,64 +10,19 @@ import {
   Rate,
   Progress,
   Space,
-  Avatar,
-  Image,
   Modal,
   Spin,
 } from 'antd';
 import { 
-  SearchOutlined, 
-  LikeOutlined, 
-  LikeFilled, 
-  UserOutlined, 
   RobotOutlined,
   LoadingOutlined 
 } from '@ant-design/icons';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
-import { analyzeReviewsRequest,resetReviewState } from '../reducers/reviewReducer'; 
-import ReviewComments from './ReviewComment'; 
+import { analyzeReviewsRequest, resetReviewState } from '../reducers/reviewReducer'; 
+import ReviewItem from './ReviewItem'; // ★ 독립 컴포넌트로 분리된 ReviewItem 임포트
 
 const { Title, Text, Paragraph } = Typography;
-
-const BACKEND_URL = 'http://localhost:8080'; // 본인 백엔드 주소
-
-const getImageUrl = (imgItem) => {
-  if (imgItem === null || imgItem === undefined) return null;
-
-  // 1. 만약 백엔드 엔티티 구조상 imgItem 안에 image 객체가 포함되어 있다면 추출
-  const target = imgItem.image || imgItem;
-
-  if (typeof target === 'number') {
-    return `${BACKEND_URL}/api/images/${target}`;
-  }
-
-  if (typeof target === 'string') {
-    if (target.startsWith('http')) return target;
-    if (!isNaN(target)) return `${BACKEND_URL}/api/images/${target}`;
-    return `${BACKEND_URL}${target.startsWith('/') ? '' : '/'}${target}`;
-  }
-
-  // 2. 객체 안에서 파일 경로를 나타내는 다양한 필드명 체크 (filePath 추가!)
-  const url = target.filePath || target.imageUrl || target.url || target.path || target.imagePath;
-  if (url) {
-    if (url.startsWith('http')) return url;
-    const cleanPath = url.startsWith('/') ? url : `/${url}`;
-    // upload 경로가 이미 포함되어 있는지 확인
-    if (cleanPath.startsWith('/upload')) {
-      return `${BACKEND_URL}${cleanPath}`;
-    }
-    return `${BACKEND_URL}/upload/review${cleanPath}`;
-  }
-
-  // 3. 경로가 없고 아이디만 있는 경우
-  const id = target.imageId || target.id || target.reviewImageId;
-  if (id) {
-    return `${BACKEND_URL}/api/images/${id}`;
-  }
-
-  return null;
-};
 
 function ReviewSection({ 
   reviews = [], 
@@ -141,43 +96,22 @@ function ReviewSection({
     }
 
     setIsModalOpen(true);
-    // Redux 사가 액션 디스패치
     dispatch(analyzeReviewsRequest(targetMeetupId));
   };
 
   // 후기 작성 이동
   const handleWriteClick = () => {
-  dispatch(resetReviewState()); // ★ 작성 페이지로 넘어가기 전 Redux 상태(success 등)를 깨끗하게 리셋!
+    dispatch(resetReviewState()); 
 
-  if (onWriteReview) {
-    onWriteReview();
-    return;
-  }
-
-  if (targetMeetupId) {
-    router.push(`/user/meetup/review/write?meetupId=${targetMeetupId}`);
-  } else {
-    alert('모임 정보(meetupId)를 찾을 수 없습니다.');
-  }
-};
-
-  // 후기 상세보기 이동
-  const handleDetailClick = (reviewId) => {
-    if (!reviewId) return;
+    if (onWriteReview) {
+      onWriteReview();
+      return;
+    }
 
     if (targetMeetupId) {
-      router.push(`/user/meetup/review/detailreview?reviewId=${reviewId}&meetupId=${targetMeetupId}`);
+      router.push(`/user/meetup/review/write?meetupId=${targetMeetupId}`);
     } else {
-      router.push(`/user/meetup/review/detailreview?reviewId=${reviewId}`);
-    }
-  };
-
-  // 좋아요 클릭 핸들러
-  const handleLikeClick = (reviewId) => {
-    if (onLikeReview) {
-      onLikeReview(reviewId);
-    } else {
-      console.warn("onLikeReview 함수가 부모 컴포넌트로부터 전달되지 않았습니다.");
+      alert('모임 정보(meetupId)를 찾을 수 없습니다.');
     }
   };
 
@@ -207,7 +141,6 @@ function ReviewSection({
           <Space size={12} align="center">
             <Title level={4} style={{ margin: 0 }}>모임 후기</Title>
             
-            {/* ★ [추가] 개설자(isHost)일 때만 보이는 AI 인사이트 버튼 */}
             {isHost && (
               <Button
                 type="dashed"
@@ -289,7 +222,7 @@ function ReviewSection({
         </Row>
       </Card>
 
-      {/* 후기 목록 */}
+      {/* 후기 목록 (ReviewItem 컴포넌트를 사용하도록 수정 완료) */}
       <Space
         direction="vertical"
         size={16}
@@ -298,109 +231,18 @@ function ReviewSection({
           marginTop: 20,
         }}
       >
-        {publicReviews.map((review) => {
-          const imageList = 
-            review.images || 
-            review.reviewImages || 
-            review.imageUrls || 
-            review.reviewImageList || 
-            [];
-          
-          const isLiked = Boolean(review.isLiked || review.liked);
 
-          return (
-            <Card key={review.id} className="review-card">
-              <Row justify="space-between" align="middle">
-                <Col>
-                  <Space>
-                    <Avatar icon={<UserOutlined />} />
-
-                    <div>
-                      <Text strong>{review.memberNickname || review.nickname || '작성자'}</Text>
-
-                      <div>
-                        <Text type="secondary">
-                          {review.createdAt ? String(review.createdAt).substring(0, 10) : ''}
-                        </Text>
-                      </div>
-                    </div>
-                  </Space>
-                </Col>
-
-                <Col>
-                  <Space>
-                    <Button
-                      type="default"
-                      size="small"
-                      onClick={() => handleDetailClick(review.id)}
-                    >
-                      상세보기
-                    </Button>
-
-                    <Button
-                      type="text"
-                      danger
-                      onClick={() =>
-                        onReport(
-                          "REVIEW",
-                          review.id,
-                          review.memberId
-                        )
-                      }
-                    >
-                      신고
-                    </Button>
-                  </Space>
-                </Col>
-              </Row>
-
-              <Rate disabled value={review.rating} style={{ marginTop: 12 }} />
-
-              <Paragraph style={{ marginTop: 12 }}>{review.content}</Paragraph>
-
-              {Array.isArray(imageList) && imageList.length > 0 && (
-                <div style={{ marginTop: 12, marginBottom: 12 }}>
-                  <Image.PreviewGroup>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      {imageList.map((imgItem, idx) => {
-                        const imgSrc = getImageUrl(imgItem);
-                        if (!imgSrc) return null;
-
-                        return (
-                          <Image
-                            key={imgItem?.reviewImageId || imgItem?.imageId || imgItem?.id || idx}
-                            src={imgSrc}
-                            alt={`review-attached-${idx}`}
-                            style={{
-                              width: '90px',
-                              height: '90px',
-                              objectFit: 'cover',
-                              borderRadius: '8px',
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
-                  </Image.PreviewGroup>
-                </div>
-              )}
-
-              <Button
-                type="text"
-                icon={isLiked ? <LikeFilled style={{ color: '#1890ff' }} /> : <LikeOutlined />}
-                style={{ color: isLiked ? '#1890ff' : 'inherit' }}
-                onClick={() => handleLikeClick(review.id)}
-              >
-                {review.likesCount ?? review.likes ?? 0}
-              </Button>
-
-              <ReviewComments reviewId={review.id} />
-            </Card>
-          );
-        })}
+        {publicReviews.map((review) => (
+          <ReviewItem
+            key={review.id}
+            review={review}
+            targetMeetupId={targetMeetupId}
+            onLikeReview={onLikeReview}
+          />
+        ))}
       </Space>
 
-      {/* ★ [추가] AI 후기 분석 결과 모달 */}
+      {/* AI 후기 분석 결과 모달 */}
       <Modal
         title={
           <Space>

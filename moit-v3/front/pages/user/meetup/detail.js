@@ -241,24 +241,22 @@ function MeetupDetailPage() {
               )
             : ["http://localhost:8080/upload/no-image.png"];
 
-    // ★ 후기 데이터 변환 (isPublic 및 isLiked 포함)
     const rawReviews =
         reduxReviews?.map((review) => ({
+            ...review, // 👈 기존 서버 데이터(id, memberId, memberNickname, liked, isLiked 등)를 전부 유지!
             id: review.id,
             memberId: review.memberId, // 신고 추가 ...
             nickname: review.memberNickname || review.nickname || "익명",
-            rating: review.rating,
-            content: review.content,
             date: review.createdAt
                 ? String(review.createdAt).substring(0, 10)
                 : "",
-            likesCount: review.likesCount ?? 0,
-            isLiked: Boolean(review.isLiked || review.liked),
-            images: review.images || [],
-            isPublic: review.isPublic ?? "Y", // 👈 핵심: isPublic 필드 매핑 추가!
+            likesCount: review.likesCount ?? review.likes ?? 0,
+            liked: Boolean(review.liked || review.isLiked),   // 
+            isLiked: Boolean(review.liked || review.isLiked), // 
+            isPublic: review.isPublic ?? "Y",
         })) || [];
 
-    // ★ 핵심 안전 장치: 모임 상세 페이지에서는 오직 공개된('Y') 후기만 보여줍니다!
+    // 비공개 후기 필터링
     const reviews = rawReviews.filter((review) => review.isPublic === "Y");
 
     // Q&A
