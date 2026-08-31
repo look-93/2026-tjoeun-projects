@@ -68,7 +68,8 @@ public class ReviewDto {
 			private Integer rating;
 			private Integer likesCount;
 			private Integer viewsCount;
-			private String isPublic; // 
+			private String isPublic; 
+			private String meetupTitle; //모임제목 가져오기
 			private List<ReviewImageResponseDto> images = new ArrayList<>();
 			private String createdAt;
 			private String updatedAt;
@@ -86,6 +87,7 @@ public class ReviewDto {
 				// 👇 [추가] 목록 조회할 때도 meetupId가 응답에 포함되도록 매핑!
 			    if (review.getMeetup() != null) {
 			        response.setMeetupId(review.getMeetup().getId());
+			        response.setMeetupTitle(review.getMeetup().getTitle());
 			    }
 
 				if (review.getMember() != null) {
@@ -117,10 +119,11 @@ public class ReviewDto {
 				response.setRating(review.getRating());
 				response.setLikesCount(review.getLikesCount());
 				response.setViewsCount(review.getViewsCount());
-				response.setIsPublic(review.getIsPublic()); // 👈 [추가] 공개 여부 매핑!
+				response.setIsPublic(review.getIsPublic()); 
 
 				if (review.getMeetup() != null) {
 					response.setMeetupId(review.getMeetup().getId());
+					response.setMeetupTitle(review.getMeetup().getTitle());
 				}
 
 				if (review.getMember() != null) {
