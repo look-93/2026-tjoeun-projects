@@ -132,33 +132,39 @@ const reviewReducer = createSlice({
             state.error = action.payload;
         },
 
-        // --리뷰 좋아요 토글--
-        toggleReviewLikeRequest: (state) => {
+       // --리뷰 좋아요 토글--
+      toggleReviewLikeRequest: (state) => {
             state.error = null;
         },
         toggleReviewLikeSuccess: (state, action) => {
-            const targetId = action.payload; // reviewId
+            // 서버에서 보낸 최신 ReviewResponseDto 데이터
+            const updatedReview = action.payload || {}; 
+            const targetId = updatedReview.id || updatedReview.reviewId;
+
+            if (!targetId) return;
+
+            // 서버에서 넘어온 liked 또는 isLiked 값을 정확하게 판별 (undefined 방어)
+            const newLikedState = 
+                updatedReview.liked !== undefined ? updatedReview.liked : 
+                (updatedReview.isLiked !== undefined ? updatedReview.isLiked : false);
+
+            const newLikesCount = 
+                updatedReview.likesCount !== undefined ? updatedReview.likesCount : 
+                (updatedReview.likes !== undefined ? updatedReview.likes : 0);
 
             // 1) 목록(reviews) 데이터 업데이트
             const review = state.reviews.find(r => r.id === targetId || r.reviewId === targetId);
-
             if (review) {
-                if (review.isLiked === undefined) review.isLiked = false;
-                
-                review.likesCount = review.isLiked 
-                    ? Math.max(0, review.likesCount - 1) 
-                    : review.likesCount + 1;
-                review.isLiked = !review.isLiked;
+                review.likesCount = newLikesCount;
+                review.liked = newLikedState;
+                review.isLiked = newLikedState;
             }
 
             // 2) 상세화면(reviewDetail) 데이터 업데이트
             if (state.reviewDetail && (state.reviewDetail.id === targetId || state.reviewDetail.reviewId === targetId)) {
-                if (state.reviewDetail.isLiked === undefined) state.reviewDetail.isLiked = false;
-                
-                state.reviewDetail.likesCount = state.reviewDetail.isLiked 
-                    ? Math.max(0, state.reviewDetail.likesCount - 1) 
-                    : state.reviewDetail.likesCount + 1;
-                state.reviewDetail.isLiked = !state.reviewDetail.isLiked;
+                state.reviewDetail.likesCount = newLikesCount;
+                state.reviewDetail.liked = newLikedState;
+                state.reviewDetail.isLiked = newLikedState;
             }
         },
         toggleReviewLikeFailure: (state, action) => {
