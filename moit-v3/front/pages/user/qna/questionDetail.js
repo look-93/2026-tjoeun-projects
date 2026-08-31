@@ -629,7 +629,7 @@ function questionDetail() {
 
       {isMeetup && (
         <div style={{ textAlign: 'center', marginTop: 24, marginBottom: 30 }}>
-          <Button onClick={() => router.push(`/user/meetup/detail?meetupId=${qna?.parentId}`)}
+          <Button onClick={() => router.push(`/user/mypage/question`)}
           >
             목록으로
           </Button>
