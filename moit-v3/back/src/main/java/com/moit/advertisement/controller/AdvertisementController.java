@@ -33,10 +33,9 @@ import com.moit.advertisement.dto.AdvertisementPositionPriceDto;
 import com.moit.advertisement.dto.AdvertisementPriceDto;
 import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.PaymentConfirmRequestDto;
-//import com.moit.advertisement.enums.AdGrade;
 import com.moit.advertisement.enums.AdPosition;
+import com.moit.advertisement.enums.PaymentStatus;
 import com.moit.advertisement.enums.PaymentType;
-//import com.moit.advertisement.repository.AdvertisementPaymentRepository;
 import com.moit.advertisement.service.AdvertisementCalculationService;
 import com.moit.advertisement.service.AdvertisementService;
 import com.moit.advertisement.service.TossPaymentService;
@@ -134,29 +133,12 @@ public class AdvertisementController {
         try {
         	Long memberId = getLoginMemberId(authentication);
 
-            // 광고 등록
-        	List<AdPosition> positions = new ArrayList<>();
-            if (imageTypes != null && !imageTypes.isEmpty()) {
-                positions = imageTypes.stream()
-                        .map(String::toUpperCase)
-                        .map(AdPosition::valueOf)
-                        .collect(Collectors.toList());
-            }
-
-            // 백엔드 로직으로 총 예산(Total Budget) 계산
-            BigDecimal calculatedBudget = calculationService.calculateTotalAmount(
-                    dto.getStartDatetime(),
-                    dto.getEndDatetime(),
-                    dto.getAdGrade(),
-                    PaymentType.INITIAL, // 최초 등록
-                    positions
-            );
-
-            // DTO에 계산된 예산 꽂아넣기
-            dto.setTotalBudget(calculatedBudget);
-
             // 광고 DB 등록
-            Long adId = advertisementService.insertAdvertisement(dto, memberId);
+            Long adId = advertisementService.insertAdvertisement(
+                    dto,
+                    memberId,
+                    imageTypes
+            );
 
             // 이미지 등록
             if (imageFiles != null && imageTypes != null) {
@@ -228,7 +210,7 @@ public class AdvertisementController {
 	    return ResponseEntity.ok(dto);
 	}
 
-    // 수정
+    // 광고 수정
     @Operation(
 	    summary = "광고 수정",
 	    description = "광고 정보를 수정하고 필요한 경우 광고 이미지를 변경합니다."
@@ -250,10 +232,15 @@ public class AdvertisementController {
             @RequestParam(value = "imageTypes", required = false)
             List<String> imageTypes,
             
+            @RequestParam( value = "deletedImageTypes", required = false )
+            List<String> deletedImageTypes,
+            
             Authentication authentication
         ) {
 
     	Long memberId = getLoginMemberId(authentication);
+    	
+    	// 기존 광고 조회
         AdvertisementDto origin = advertisementService.selectAdvertisementOne(adId);
 
 		if (origin == null) {
@@ -270,36 +257,106 @@ public class AdvertisementController {
 		            "본인의 광고만 수정할 수 있습니다."
 		    );
 		}
+		
+		// 결제 완료 광고 수정 차단
+	    if (origin.getPaymentStatus() == PaymentStatus.PAID) {
 
-		// 수정 시에도 금액이 변동될 수 있으므로 다시 계산
-        List<AdPosition> positions = new ArrayList<>();
-        if (imageTypes != null && !imageTypes.isEmpty()) {
-            positions = imageTypes.stream()
-                    .map(String::toUpperCase)
-                    .map(AdPosition::valueOf)
-                    .collect(Collectors.toList());
-        }
+	        throw new ResponseStatusException(
+	                HttpStatus.BAD_REQUEST,
+	                "결제가 완료된 광고는 수정할 수 없습니다."
+	        );
+	    }
+	    
+	    // 필수값 검증
+	    if (dto.getStartDatetime() == null
+	            || dto.getEndDatetime() == null) {
 
-        BigDecimal calculatedBudget = calculationService.calculateTotalAmount(
-                dto.getStartDatetime(),
-                dto.getEndDatetime(),
-                dto.getAdGrade(),
-                PaymentType.INITIAL, // 결제 전 수정이므로 여전히 INITIAL 성격
-                positions
-        );
+	        throw new ResponseStatusException(
+	                HttpStatus.BAD_REQUEST,
+	                "광고 기간을 입력해주세요."
+	        );
+	    }
 
-        dto.setTotalBudget(calculatedBudget); // 수정된 금액 세팅
+	    if (dto.getEndDatetime()
+	            .isBefore(dto.getStartDatetime())) {
 
-        // DB 업데이트 처리
-		advertisementService.updateAdvertisement(
+	        throw new ResponseStatusException(
+	                HttpStatus.BAD_REQUEST,
+	                "광고 종료일은 시작일보다 빠를 수 없습니다."
+	        );
+	    }
+
+	    if (dto.getAdGrade() == null) {
+
+	        throw new ResponseStatusException(
+	                HttpStatus.BAD_REQUEST,
+	                "광고 등급을 선택해주세요."
+	        );
+	    }
+	    
+	    // 광고 위치 추출
+	    List<AdPosition> positions = dto.getPositions();
+	    
+		 // 수정 요청에서 위치가 넘어오지 않은 경우
+		 // 기존 광고의 위치를 유지
+	    if (positions == null || positions.isEmpty()) {
+
+	        positions = new ArrayList<>();
+
+	        if (origin.getImageList() != null) {
+
+	            for (AdvertisementImageDto image
+	                    : origin.getImageList()) {
+
+	                String imageType = image.getImageType();
+
+	                if (imageType == null
+	                        || imageType.isBlank()) {
+	                    continue;
+	                }
+
+	                try {
+
+	                    AdPosition position =
+	                            AdPosition.valueOf(
+	                                    imageType.trim().toUpperCase()
+	                            );
+
+	                    if (!positions.contains(position)) {
+	                        positions.add(position);
+	                    }
+
+	                } catch (IllegalArgumentException e) {
+
+	                    System.out.println(
+	                            "⚠️ 잘못된 광고 위치: "
+	                            + imageType
+	                    );
+	                }
+	            }
+	        }
+	    }
+
+	    if (positions.isEmpty()) {
+	        throw new ResponseStatusException(
+	                HttpStatus.BAD_REQUEST,
+	                "광고 위치 정보가 없습니다."
+	        );
+	    }
+
+	    dto.setPositions(positions);
+
+	    // 광고 수정
+	    advertisementService.updateAdvertisement(
 	            adId,
 	            memberId,
 	            dto,
 	            imageFiles,
-	            imageTypes
+	            imageTypes,
+	            deletedImageTypes
 	    );
 
-
+	    // 수정된 광고 다시 조회
 		return ResponseEntity.ok(
 	            advertisementService.selectAdvertisementOne(adId)
 	    );
@@ -421,12 +478,16 @@ public class AdvertisementController {
     // =========================================================
     @Operation(summary = "결제 승인 (Confirm)", description = "프론트엔드 결제 성공 후 토스 서버에 최종 승인을 d요청합니다.")
     @PostMapping("/payment/confirm")
-    public ResponseEntity<?> confirmPayment(@RequestBody PaymentConfirmRequestDto requestDto) {
+    public ResponseEntity<?> confirmPayment(@RequestBody PaymentConfirmRequestDto requestDto,
+            Authentication authentication) {
+    	
+    	Long memberId = getLoginMemberId(authentication);
+    	
         try {
             // 결제 승인 서비스 호출
-            tossPaymentService.confirmPayment(requestDto);
-            return ResponseEntity.ok().body("결제가 성공적으로 완료되었습니다.");
+            tossPaymentService.confirmPayment(requestDto, memberId);
             
+            return ResponseEntity.ok().body("결제가 성공적으로 완료되었습니다.");    
         } catch (IllegalArgumentException e) {
             // 금액 불일치 등 클라이언트 측 예외
             return ResponseEntity.badRequest().body(e.getMessage());

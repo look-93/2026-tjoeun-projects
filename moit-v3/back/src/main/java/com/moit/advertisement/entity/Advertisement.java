@@ -302,6 +302,9 @@ public class Advertisement extends BaseEntity{
         this.rejectReason = null;
     }
     
+	 // =========================================================
+	 // 광고 수정
+	 // =========================================================
     public void updateAdvertisement(
             String title,
             String content,
@@ -309,6 +312,7 @@ public class Advertisement extends BaseEntity{
             Integer targetAgeMin,
             Integer targetAgeMax,
             TargetGender targetGender,
+            AdGrade adGrade,
             LocalDateTime startDatetime,
             LocalDateTime endDatetime,
             BigDecimal totalBudget) {
@@ -321,9 +325,20 @@ public class Advertisement extends BaseEntity{
         this.targetAgeMax = targetAgeMax;
         this.targetGender = targetGender;
 
+        this.adGrade = adGrade;
         this.startDatetime = startDatetime;
         this.endDatetime = endDatetime;
 
+        this.totalBudget = totalBudget;
+    }
+    
+    public void updatePrice(
+            BigDecimal basePrice,
+            BigDecimal positionPrice,
+            BigDecimal totalBudget) {
+
+        this.basePrice = basePrice;
+        this.positionPrice = positionPrice;
         this.totalBudget = totalBudget;
     }
 
