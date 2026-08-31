@@ -27,6 +27,16 @@ public interface QuestionAnswerRepository extends JpaRepository<QuestionAnswer, 
             @Param("feedback") String feedback
     );
     
+    // 답변 만족도 삭제 후 재작성가능하게
+    @Modifying
+    @Query("""
+        UPDATE QuestionAnswer a
+           SET a.rating = NULL,
+               a.feedback = NULL
+         WHERE a.answerId = :answerId
+    """)
+    int deleteSatisfaction(@Param("answerId") Long answerId);
+    
     // 답변 ID로 질문 작성자 ID 조회
     @Query("""
         SELECT a.question.member.id

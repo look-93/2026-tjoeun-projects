@@ -21,6 +21,9 @@ import {
     mobileSendRequest,
     mobileVerifyRequest,
     resetMobileVerification,
+    analyzeSignupBehaviorRequest,
+    resetSignupBehaviorAnalysis,
+    recordSignupBehaviorFailure
 } from "../../../reducers/userReducer";
 
 const {Title,Text} = Typography;      
@@ -117,7 +120,8 @@ const {
     emailVerification,
     mobileVerification,
     duplicateCheck,
-    passwordLeak
+    passwordLeak,
+    signupBehaviorAnalysis
 } = useSelector((state) => state.user);
 
 const {
@@ -178,6 +182,12 @@ const [signupBehavior, setSignupBehavior] = useState({
         birth: 0,
         interestIds: 0,
     },
+
+    // ★ 마지막으로 AI 분석을 요청한 오류 횟수
+    lastAiAnalysisErrorCount: 0,
+
+    // ★ AI 도움말을 표시할 필드
+    aiHelpField: null,
 });
 
 // =========================
@@ -185,7 +195,6 @@ const [signupBehavior, setSignupBehavior] = useState({
 // =========================
 useEffect(() => {
 
-    // 이메일 인증 에러가 없으면 실행하지 않음
     if (!emailVerification.error) {
         return;
     }
@@ -205,6 +214,63 @@ useEffect(() => {
     });
 
 }, [emailVerification.error]);
+
+useEffect(() => {
+
+    const analysis =
+        signupBehaviorAnalysis?.emailVerification;
+
+    if (!analysis) {
+        return;
+    }
+
+    const failCount =
+        signupBehavior.emailVerificationFailCount;
+
+    console.log("===== 이메일 인증 실패 횟수 확인 =====");
+    console.log("failCount:", failCount);
+
+    if (failCount < 3) {
+        return;
+    }
+
+    if (analysis.result) {
+        return;
+    }
+
+    if (analysis.loading) {
+        return;
+    }
+
+    console.log("===== 이메일 인증 3회 이상 실패 =====");
+    console.log("===== AI 회원가입 도움말 요청 =====");
+
+    setSignupBehavior((prev) => ({
+        ...prev,
+        aiHelpField: "emailVerification",
+    }));
+
+    dispatch(
+        analyzeSignupBehaviorRequest({
+            field: "emailVerification",
+            data: {
+                ...signupBehavior,
+                field: "emailVerification",
+                failCount: failCount,
+                emailVerificationFailCount: failCount,
+                email: email,
+            },
+        })
+    );
+
+}, [
+    signupBehavior.emailVerificationFailCount,
+    signupBehaviorAnalysis?.emailVerification?.result,
+    signupBehaviorAnalysis?.emailVerification?.loading,
+    //email,
+    dispatch,
+]);
+
 
 // =========================
 // 전화번호 인증 실패 횟수 기록
@@ -231,6 +297,62 @@ useEffect(() => {
     });
 
 }, [mobileVerification.error]);
+
+useEffect(() => {
+
+    const analysis =
+        signupBehaviorAnalysis?.mobileVerification;
+
+    if (!analysis) {
+        return;
+    }
+
+    const failCount =
+        signupBehavior.mobileVerificationFailCount;
+
+    console.log("===== 전화번호 인증 실패 횟수 확인 =====");
+    console.log("failCount:", failCount);
+
+    if (failCount < 3) {
+        return;
+    }
+
+    if (analysis.result) {
+        return;
+    }
+
+    if (analysis.loading) {
+        return;
+    }
+
+    console.log("===== 전화번호 인증 3회 이상 실패 =====");
+    console.log("===== AI 회원가입 도움말 요청 =====");
+
+    setSignupBehavior((prev) => ({
+        ...prev,
+        aiHelpField: "mobileVerification",
+    }));
+
+    dispatch(
+        analyzeSignupBehaviorRequest({
+            field: "mobileVerification",
+            data: {
+                ...signupBehavior,
+                field: "mobileVerification",
+                failCount: failCount,
+                mobileVerificationFailCount: failCount,
+                mobile: mobile,
+            },
+        })
+    );
+
+}, [
+    signupBehavior.mobileVerificationFailCount,
+    signupBehaviorAnalysis?.mobileVerification?.result,
+    signupBehaviorAnalysis?.mobileVerification?.loading,
+    //mobile,
+    dispatch,
+]);
 
 // 회원가입 성공처리
 useEffect(()=>{
@@ -293,34 +415,47 @@ const formatTimer = (seconds) => {
 const moveToField = (fieldName) => {
 
     setSignupBehavior((prev) => {
+
         const now = Date.now();
 
-        // 이전 필드가 있다면 체류시간 계산
-        if (prev.currentField && prev.fieldStartTime) {
+        // 같은 필드에 계속 있는 경우
+        // 체류시간을 다시 계산하지 않음
+        if (prev.currentField === fieldName) {
+            return prev;
+        }
 
-            const stayTime = now - prev.fieldStartTime;
-
-            console.log("현재 필드:", fieldName,"체류시간:",stayTime);
-
+        // 처음 필드에 진입
+        if (!prev.currentField || !prev.fieldStartTime) {
             return {
                 ...prev,
                 currentField: fieldName,
                 fieldStartTime: now,
-                fieldStayTime: {
-                    ...prev.fieldStayTime,
-                    [prev.currentField]:
-                        prev.fieldStayTime[prev.currentField] + stayTime,
-                },
             };
         }
-        // 처음 필드에 진입한 경우
+
+        // 다른 필드로 이동
+        const stayTime = now - prev.fieldStartTime;
+
+        console.log(
+            "이전 필드:",
+            prev.currentField,
+            "체류시간:",
+            stayTime,
+            "ms"
+        );
+
         return {
             ...prev,
             currentField: fieldName,
             fieldStartTime: now,
+
+            fieldStayTime: {
+                ...prev.fieldStayTime,
+                [prev.currentField]:
+                    prev.fieldStayTime[prev.currentField] + stayTime,
+            },
         };
     });
- 
 };
 
 
@@ -517,40 +652,67 @@ const handleVerifyMobile = () => {
 };
 
 // 회원가입
-const handleSignup = (values)=>{
-    
+const handleSignup = (values) => {
+
+    // =========================
+    // 현재 필드 체류시간 마감
+    // =========================
+    const now = Date.now();
+
+    let finalSignupBehavior = signupBehavior;
+
+    if (
+        signupBehavior.currentField &&
+        signupBehavior.fieldStartTime
+    ) {
+        const stayTime = now - signupBehavior.fieldStartTime;
+
+        finalSignupBehavior = {
+            ...signupBehavior,
+            fieldStayTime: {
+                ...signupBehavior.fieldStayTime,
+                [signupBehavior.currentField]:
+                    signupBehavior.fieldStayTime[signupBehavior.currentField] + stayTime,
+            },
+        };
+    }
+
+    console.log("===== 최종 회원가입 행동 데이터 =====");
+    console.log(finalSignupBehavior);
+
     // 중복확인 여부
-    if(!duplicateCheck.loginId){
+    if (!duplicateCheck.loginId) {
         message.error("아이디 중복확인을 완료해주세요.");
         return;
     }
-    if(!duplicateCheck.email){
+
+    if (!duplicateCheck.email) {
         message.error("이메일 중복확인을 완료해주세요.");
         return;
     }
 
-    // 이메일 인증여부
-    if(!emailVerification.verified){
+    // 이메일 인증 여부
+    if (!emailVerification.verified) {
         message.error("이메일 인증을 완료해주세요.");
         return;
     }
 
-    // 중복확인 여부
-    if(!duplicateCheck.nickname){
+    // 닉네임 중복확인
+    if (!duplicateCheck.nickname) {
         message.error("닉네임 중복확인을 완료해주세요.");
         return;
     }
 
-    // 모바일 인증여부
+    // 전화번호 인증
     if (!mobileVerification.verified) {
-    message.error("전화번호 인증을 완료해주세요.");
-    return;
-}
+        message.error("전화번호 인증을 완료해주세요.");
+        return;
+    }
 
     // 비밀번호 유출 여부
     if (!passwordLeak.checked) {
-    message.error("비밀번호 보안 검증을 완료해주세요.");
-    return;
+        message.error("비밀번호 보안 검증을 완료해주세요.");
+        return;
     }
 
     if (passwordLeak.leaked) {
@@ -561,10 +723,9 @@ const handleSignup = (values)=>{
     // 생년월일
     let birth = null;
 
-    if(values.birth){
+    if (values.birth) {
         birth = values.birth.format("YYYY-MM-DD");
     }
-
 
     // 회원가입 데이터
     const signupData = {
@@ -578,40 +739,45 @@ const handleSignup = (values)=>{
         birth: birth,
         profileUrl: "",
         interestIds: values.interestIds || [],
-        
-        // 회원가입 행동 데이터
-        signupBehavior: signupBehavior,
+
+        // 최종 행동 데이터
+        signupBehavior: finalSignupBehavior,
     };
 
-    console.log("회원가입 요청 데이터:", signupData);
-    
+    console.log("===== 회원가입 최종 요청 데이터 =====");
+    console.log(signupData);
+
     dispatch(signupRequest(signupData));
 };
 
+
+// =========================
 // 회원가입 입력 오류 발생
+// =========================
 const handleFinishFailed = (errorInfo) => {
 
     setSignupBehavior((prev) => {
 
-        // 기존 필드별 오류 횟수 복사
         const newFieldErrorCount = {
             ...prev.fieldErrorCount,
         };
 
-        // 비밀번호 오류 발생 여부
         let passwordError = false;
+        let errorField = null;
 
-        // 오류가 발생한 필드들
         errorInfo.errorFields.forEach((field) => {
 
             const fieldName = field.name[0];
 
-            // 우리가 수집할 필드인 경우만 증가
+            if (!errorField) {
+                errorField = fieldName;
+            }
+
+            // 필드별 오류 횟수 증가
             if (newFieldErrorCount[fieldName] !== undefined) {
                 newFieldErrorCount[fieldName]++;
             }
 
-            // 비밀번호 오류 확인
             if (
                 fieldName === "password" ||
                 fieldName === "passwordConfirm"
@@ -620,33 +786,377 @@ const handleFinishFailed = (errorInfo) => {
             }
         });
 
+        const newErrorCount = prev.errorCount + 1;
+
+        const newPasswordErrorCount =
+            passwordError
+                ? prev.passwordErrorCount + 1
+                : prev.passwordErrorCount;
+
         const newBehavior = {
             ...prev,
 
-            // 전체 오류 횟수
-            errorCount: prev.errorCount + 1,
+            errorCount: newErrorCount,
 
-            // 필드별 오류 횟수
             fieldErrorCount: newFieldErrorCount,
 
-            // 비밀번호 오류 횟수
-            passwordErrorCount: passwordError
-                ? prev.passwordErrorCount + 1
-                : prev.passwordErrorCount,
+            passwordErrorCount: newPasswordErrorCount,
+
+            aiHelpField: errorField,
         };
 
         console.log("===== 회원가입 오류 발생 =====");
-        console.log("오류 필드:", errorInfo.errorFields);
-        console.log("전체 오류 횟수:", newBehavior.errorCount);
-        console.log("필드별 오류 횟수:", newBehavior.fieldErrorCount);
-        console.log("비밀번호 오류 횟수:",newBehavior.passwordErrorCount );
+        console.log("오류 필드:", errorField);
+        console.log("전체 오류 횟수:", newErrorCount);
+        console.log("필드별 오류 횟수:", newFieldErrorCount);
+        console.log("비밀번호 오류 횟수:", newPasswordErrorCount);
 
         return newBehavior;
     });
+
 };
+
+useEffect(() => {
+
+    const passwordAnalysis =
+        signupBehaviorAnalysis?.password;
+
+    if (!passwordAnalysis) {
+        return;
+    }
+
+    const failCount =
+        signupBehavior.passwordErrorCount;
+
+    console.log("===== 비밀번호 실패 횟수 확인 =====");
+    console.log("failCount:", failCount);
+
+    if (failCount < 3) {
+        return;
+    }
+
+    if (passwordAnalysis.result) {
+        return;
+    }
+
+    if (passwordAnalysis.loading) {
+        return;
+    }
+
+    console.log("===== 비밀번호 3회 이상 실패 =====");
+    console.log("===== AI 회원가입 도움말 요청 =====");
+
+    setSignupBehavior((prev) => ({
+        ...prev,
+        aiHelpField: "password",
+    }));
+
+    dispatch(
+        analyzeSignupBehaviorRequest({
+            field: "password",
+            data: {
+                ...signupBehavior,
+                passwordErrorCount: failCount,
+                field: "password",
+                failCount: failCount,
+            },
+        })
+    );
+
+}, [
+    signupBehavior.passwordErrorCount,
+    signupBehaviorAnalysis?.password?.result,
+    signupBehaviorAnalysis?.password?.loading,
+    dispatch,
+]);
 
 // 비밀번호 강도
 const passwordStrength = getPasswordStrength(password);
+
+// =========================
+// AI 회원가입 도움말 표시
+// =========================
+const renderAiHelp = (fieldName) => {
+
+    // 필드별 AI 분석 결과
+    const fieldAnalysis =
+        signupBehaviorAnalysis?.[fieldName];
+
+    // AI 결과가 없으면 표시하지 않음
+    if (!fieldAnalysis?.result) {
+        return null;
+    }
+
+    // 현재 AI 도움말 대상 필드가 아니면 표시하지 않음
+    if (signupBehavior.aiHelpField !== fieldName) {
+        return null;
+    }
+
+    return (
+        <div
+            style={{
+                marginTop: "10px",
+                marginBottom: "10px",
+                padding: "12px 16px",
+                background: "#f0f7ff",
+                border: "1px solid #91caff",
+                borderRadius: "8px",
+            }}
+        >
+            <Text strong>
+                🤖 회원가입 도우미
+            </Text>
+
+            <div style={{ marginTop: "6px" }}>
+                <Text>
+                    {fieldAnalysis.result}
+                </Text>
+            </div>
+        </div>
+    );
+};
+
+// =========================
+// 아이디 중복검사 실패 3회 이상
+// AI 도움말 요청
+// =========================
+useEffect(() => {
+
+    const loginIdAnalysis =
+        signupBehaviorAnalysis?.loginId;
+
+    if (!loginIdAnalysis) {
+        return;
+    }
+
+    const failCount = loginIdAnalysis.failCount;
+
+    console.log(
+        "===== 아이디 중복검사 실패 횟수 확인 ====="
+    );
+    console.log("failCount:", failCount);
+
+    console.log(
+        "===== 아이디 실패 카운트 =====",
+        "failCount:",
+        failCount,
+        "Redux:",
+        signupBehaviorAnalysis?.loginId?.failCount,
+        "requested:",
+        loginIdAnalysis.requested,
+        "loading:",
+        loginIdAnalysis.loading,
+        "result:",
+        loginIdAnalysis.result
+    );
+
+    // 3회 미만이면 아무것도 하지 않음
+    if (failCount < 3) {
+        return;
+    }
+
+    // 이미 AI 결과가 있으면 다시 요청하지 않음
+    if (loginIdAnalysis.result) {
+        return;
+    }
+
+    // AI 요청 중이면 다시 요청하지 않음
+    if (loginIdAnalysis.loading) {
+        return;
+    }
+
+    // 이미 같은 실패 횟수로 AI 분석을 요청했다면 다시 요청하지 않음
+    if (
+        signupBehavior.lastAiAnalysisErrorCount >= failCount
+    ) {
+        return;
+    }
+
+    console.log(
+        "===== 아이디 중복검사 3회 이상 ====="
+    );
+    console.log(
+        "===== AI 회원가입 도움말 요청 ====="
+    );
+
+    // 현재 도움말 필드
+    setSignupBehavior((prev) => ({
+        ...prev,
+        aiHelpField: "loginId",
+        lastAiAnalysisErrorCount: failCount,
+    }));
+
+    // AI 분석 요청
+    dispatch(
+        analyzeSignupBehaviorRequest({
+            field: "loginId",
+            data: {
+                field: "loginId",
+                failCount: failCount,
+                loginId: loginId,
+            },
+        })
+    );
+
+}, [
+    signupBehaviorAnalysis?.loginId?.failCount,
+    signupBehaviorAnalysis?.loginId?.result,
+    signupBehaviorAnalysis?.loginId?.loading,
+    signupBehavior.lastAiAnalysisErrorCount,
+    //loginId,
+    dispatch,
+]);
+
+// =========================
+// 닉네임 중복검사 AI 분석
+// 중복검사 실패 3회 이상 시 요청
+// =========================
+useEffect(() => {
+    const failCount = signupBehaviorAnalysis?.nickname?.failCount || 0;
+    const analysis = signupBehaviorAnalysis?.nickname;
+
+    console.log("===== 닉네임 AI 분석 확인 =====");
+    console.log("닉네임 중복검사 실패 횟수:", failCount);
+    console.log("닉네임 AI 분석 상태:", analysis);
+
+    // 3회 미만이면 실행하지 않음
+    if (failCount < 3) { return; }
+
+    // 이미 AI 결과가 있으면 다시 요청하지 않음
+    if (analysis?.result) { return; }
+
+    // AI 분석 중이면 다시 요청하지 않음
+    if (analysis?.loading) { return; }
+
+    console.log("===== 닉네임 중복검사 3회 이상 ====="); 
+    console.log("===== AI 회원가입 도움말 요청 =====");
+
+    // 현재 AI 도움말 필드
+    setSignupBehavior((prev) => ({ ...prev, aiHelpField: "nickname", }));
+
+    // AI 분석 요청
+    dispatch( analyzeSignupBehaviorRequest({ 
+        field: "nickname", 
+        data: { ...signupBehavior, field: "nickname", 
+        failCount: failCount, nickname: nickname, }, 
+    }) );
+}, [ 
+    signupBehaviorAnalysis?.nickname?.failCount, 
+    signupBehaviorAnalysis?.nickname?.result, 
+    signupBehaviorAnalysis?.nickname?.loading, 
+    dispatch, 
+]);    
+
+// =========================
+// 일반 입력 필드 AI 분석
+// 3회 이상 오류 발생 시 요청
+// =========================
+useEffect(() => {
+
+    const targetFields = [
+        "password",
+        "birth",
+        "interestIds",
+    ];
+
+    targetFields.forEach((fieldName) => {
+
+        const failCount =
+            signupBehavior.fieldErrorCount[fieldName];
+
+        const analysis =
+            signupBehaviorAnalysis?.[fieldName];
+
+        console.log(
+            `===== ${fieldName} AI 분석 확인 =====`
+        );
+        console.log("failCount:", failCount);
+        console.log("analysis:", analysis);
+
+        // 3회 미만
+        if (failCount < 3) {
+            return;
+        }
+
+        // 이미 결과가 있으면 다시 요청하지 않음
+        if (analysis?.result) {
+            return;
+        }
+
+        // AI 분석 중이면 다시 요청하지 않음
+        if (analysis?.loading) {
+            return;
+        }
+
+        console.log(
+            `===== ${fieldName} 3회 이상 오류 =====`
+        );
+        console.log(
+            "===== AI 회원가입 도움말 요청 ====="
+        );
+
+        // 현재 AI 도움말 필드
+        setSignupBehavior((prev) => ({
+            ...prev,
+            aiHelpField: fieldName,
+        }));
+
+        // AI 분석 요청
+        dispatch(
+            analyzeSignupBehaviorRequest({
+                field: fieldName,
+
+                data: {
+                    ...signupBehavior,
+
+                    field: fieldName,
+
+                    failCount: failCount,
+
+                    fieldErrorCount: {
+                        ...signupBehavior.fieldErrorCount,
+                        [fieldName]: failCount,
+                    },
+
+                    loginId: loginId,
+                    password: password,
+                    nickname: nickname,
+                    email: email,
+                    mobile: mobile,
+                },
+            })
+        );
+
+    });
+
+}, [
+    signupBehavior.fieldErrorCount.password,
+    signupBehavior.fieldErrorCount.nickname,
+    signupBehavior.fieldErrorCount.email,
+    signupBehavior.fieldErrorCount.mobile,
+    signupBehavior.fieldErrorCount.birth,
+    signupBehavior.fieldErrorCount.interestIds,
+
+    signupBehaviorAnalysis?.password?.result,
+    signupBehaviorAnalysis?.password?.loading,
+
+    signupBehaviorAnalysis?.nickname?.result,
+    signupBehaviorAnalysis?.nickname?.loading,
+
+    signupBehaviorAnalysis?.email?.result,
+    signupBehaviorAnalysis?.email?.loading,
+
+    signupBehaviorAnalysis?.mobile?.result,
+    signupBehaviorAnalysis?.mobile?.loading,
+
+    signupBehaviorAnalysis?.birth?.result,
+    signupBehaviorAnalysis?.birth?.loading,
+
+    signupBehaviorAnalysis?.interestIds?.result,
+    signupBehaviorAnalysis?.interestIds?.loading,
+
+    dispatch,
+]);
 
 ///////////////////////////////
 return (
@@ -736,6 +1246,8 @@ return (
                     </Text>
                 )}
 
+                {renderAiHelp("loginId")}
+
                 {/* 비밀번호 */}
                 <Form.Item label="비밀번호"
                            name="password"
@@ -782,6 +1294,7 @@ return (
                         />
                     </div>
                 )}
+                {renderAiHelp("password")}
 
                 {/* 비밀번호 유출 검사 */}
                 {passwordLeak.checking && (
@@ -888,6 +1401,7 @@ return (
                         이미 사용 중인 닉네임입니다.
                     </Text>
                 )}
+                {renderAiHelp("nickname")}
 
                 {/* 이메일 */}
                 <Divider orientation="left">
@@ -932,6 +1446,7 @@ return (
                         이미 사용 중인 이메일입니다.
                     </Text>
                 )}
+                {renderAiHelp("email")}
 
                 <Form.Item label="이메일 인증번호" name="verificationCode">
                     <Space.Compact style={{ width: "100%" }}>
@@ -975,6 +1490,7 @@ return (
                         {emailVerification.error}
                     </div>
                 )} 
+                {renderAiHelp("emailVerification")}
 
                 {/* 전화번호 */}  
                 <Divider orientation="left">
@@ -1087,6 +1603,8 @@ return (
                         {mobileVerification.error}
                     </div>
                 )}
+                {renderAiHelp("mobile")}
+                {renderAiHelp("mobileVerification")}
 
                 {/* 성별 */}
                 <Form.Item label="성별"
@@ -1131,6 +1649,7 @@ return (
                         disabledDate={(current)=> current && current > dayjs().endOf("day")}
                     />
                 </Form.Item>
+                {renderAiHelp("birth")}
 
                 {/* 관심사 */}
                 <Form.Item label="관심사"
@@ -1142,7 +1661,7 @@ return (
                             }
                            ]}
                 >
-                    <Checkbox.Group style={{width:"100%"}}>
+                    <Checkbox.Group style={{width:"100%"}} onFocus={() => moveToField("interestIds")}>
                         <Row gutter={[16,16]}>
                            {interests.map((interest)=>(
                             <Col xs={12} sm={8} md={6} key={interest.id}>
@@ -1154,6 +1673,24 @@ return (
                         </Row>
                     </Checkbox.Group>
                 </Form.Item>
+                {renderAiHelp("interestIds")}
+
+                {/* AI 회원가입 도움말 */}
+                {signupBehaviorAnalysis.loading && (
+                    <div
+                        style={{
+                            marginBottom: "20px",
+                            padding: "15px 20px",
+                            background: "#f5f5f5",
+                            borderRadius: "10px",
+                            textAlign: "center",
+                        }}
+                    >
+                        <Text type="secondary">
+                            회원가입을 도와드리기 위해 확인하고 있습니다...
+                        </Text>
+                    </div>
+                )}           
 
                 {/* 회원가입 버튼 */}
                 <Form.Item style={{marginTop:"40px"}}>

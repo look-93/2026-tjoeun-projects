@@ -58,8 +58,8 @@ function UserHeader() {
 
     const accessToken = localStorage.getItem('accessToken');
 
-    console.log('===== HEADER USER CHECK =====');
-    console.log('accessToken 존재:', !!accessToken);
+    // console.log('===== HEADER USER CHECK =====');
+    // console.log('accessToken 존재:', !!accessToken);
 
     // 토큰이 없으면 조회하지 않음
     if (!accessToken) {
@@ -148,9 +148,18 @@ function UserHeader() {
   // =========================================================
   // 최초 실행 + 페이지 이동할 때마다 알림 조회
   // =========================================================
+  // useEffect(() => {
+  //   loadNotifications();
+  // }, [router.asPath]);
   useEffect(() => {
+    if (!user) {
+      setNotificationCount(0);
+      setNotifications([]);
+      return;
+    }
+
     loadNotifications();
-  }, [router.asPath]);
+  }, [user]);
 
   // =========================================================
   // 회원 유형
@@ -183,8 +192,8 @@ function UserHeader() {
           return;
       }
 
-      console.log('===== LOGOUT PROVIDER =====');
-      console.log('현재 로그인 provider:', user?.provider);
+      // console.log('===== LOGOUT PROVIDER =====');
+      // console.log('현재 로그인 provider:', user?.provider);
 
       // 모바일 Drawer 닫기
       setDrawerOpen(false);
@@ -218,10 +227,10 @@ function UserHeader() {
     const imageUrl =
       `${process.env.NEXT_PUBLIC_API_BASE_URL}${profileUrl}`;
 
-    console.log("===== HEADER PROFILE IMAGE =====");
-    console.log("profileUrl:", profileUrl);
-    console.log("API BASE URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
-    console.log("최종 이미지 URL:", imageUrl);
+    // console.log("===== HEADER PROFILE IMAGE =====");
+    // console.log("profileUrl:", profileUrl);
+    // console.log("API BASE URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
+    // console.log("최종 이미지 URL:", imageUrl);
 
     return imageUrl;
   };
@@ -337,7 +346,7 @@ function UserHeader() {
                       className="moit-header-link"
                       style={{ textDecoration: 'none' }}
                     >
-                      모집찾기
+                      모임찾기
                     </a>
                   </Link>
                 </Col>

@@ -41,11 +41,7 @@ public class Oauth2UserService extends DefaultOAuth2UserService {
     	}
 
         // 1. OAuth2 사용자 정보 조회
-        OAuth2User oAuth2User = super.loadUser(userRequest);
-        
-        System.out.println("===== NAVER RAW ATTRIBUTES =====");
-        System.out.println(oAuth2User.getAttributes());
-        System.out.println("================================");
+        OAuth2User oAuth2User = super.loadUser(userRequest);        
 
         // 2. provider 확인
         String provider = userRequest .getClientRegistration() .getRegistrationId();

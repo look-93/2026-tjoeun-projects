@@ -457,6 +457,7 @@ public class AdvertisementController {
             memberId = user.getUser().getMemberId();
         }
 
+        String sessionId = request.getSession().getId();
         String ip = request.getRemoteAddr();
         String userAgent = request.getHeader("User-Agent");
         String referrer = request.getHeader("Referer");
@@ -465,6 +466,7 @@ public class AdvertisementController {
                 adId,
                 position,
                 memberId,
+                sessionId,
                 ip,
                 userAgent,
                 referrer
@@ -492,6 +494,7 @@ public class AdvertisementController {
             memberId = user.getUser().getMemberId();
         }
 
+        String sessionId = request.getSession().getId();
         String ip = request.getRemoteAddr();
         String userAgent = request.getHeader("User-Agent");
 
@@ -499,6 +502,7 @@ public class AdvertisementController {
                 adId,
                 position,
                 memberId,
+                sessionId,
                 ip,
                 userAgent
         );

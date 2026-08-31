@@ -110,21 +110,25 @@ function AdvertiseApprovalTable({
             상세
           </Button>
 
-          <Button
-            size="small"
-            type="primary"
-            onClick={() => onApprove(record.adId)}
-          >
-            승인
-          </Button>
+          {record.approvalStatus === 'WAITING' && (
+            <>
+              <Button
+                size="small"
+                type="primary"
+                onClick={() => onApprove(record.adId)}
+              >
+                승인
+              </Button>
 
-          <Button
-            size="small"
-            danger
-            onClick={() => onReject(record.adId)}
-          >
-            반려
-          </Button>
+              <Button
+                size="small"
+                danger
+                onClick={() => onReject(record.adId)}
+              >
+                반려
+              </Button>
+            </>
+          )}
         </div>
       ),
     },

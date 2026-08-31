@@ -7,6 +7,12 @@ import lombok.Data;
 @Data
 public class SignupBehaviorDto {
 	
+	// 현재 AI 분석 대상 필드
+    private String field;
+
+    // 현재 필드의 실패 횟수
+    private int failCount;
+	
 	// 전체 오류 횟수
     private int errorCount;
 

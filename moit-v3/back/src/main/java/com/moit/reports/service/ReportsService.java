@@ -1,6 +1,7 @@
 package com.moit.reports.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Pageable;
 
@@ -10,6 +11,7 @@ import com.moit.reports.dto.ReportsDto.ReportListResponseDto;
 import com.moit.reports.dto.ReportsDto.ReportProcessDto;
 import com.moit.reports.dto.ReportsDto.ReportRequestDto;
 import com.moit.reports.dto.ReportsDto.ReportResponseDto;
+import com.moit.reports.entity.ReportAuditLog;
 import com.moit.reports.enums.TargetType;
 
 public interface ReportsService {
@@ -56,6 +58,9 @@ public interface ReportsService {
 	// 관리자 신고 상세 조회
 	ReportResponseDto getAdminReportDetail(Long reportId);
 	
+	// 관리자 통계
+    Map<String, Long> getAdminReportStats();
+	
 	
 	// =====================
 	// =   adminAuditLog   =
@@ -63,6 +68,8 @@ public interface ReportsService {
 	// 신고별 관리자 처리 이력 로그 조회
 	List<ReportAuditLogDto> getReportAuditLogs(Long reportId);
 
+	// 관리자 처리 로그 자동 삭제 (3년 전)
+	long deleteAuditLogs();
 	
 	// ================
 	// =   apiEmail   =

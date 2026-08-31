@@ -2,10 +2,12 @@ import React from "react";
 import { Row, Col, Button, Typography } from "antd";
 import { RightOutlined } from "@ant-design/icons";
 import MeetupCard from "./MeetupCard";
+import { useRouter } from "next/router";
 
 const { Title, Text } = Typography;
 
 function PopularMeetupList({ popularMeetups, onMeetupClick, onToggleLike }) {
+    const router = useRouter();
     return (
         <Row gutter={[20, 20]}>
             {/* 제목 */}
@@ -20,7 +22,10 @@ function PopularMeetupList({ popularMeetups, onMeetupClick, onToggleLike }) {
                     </Col>
 
                     <Col>
-                        <Button type="link">
+                        <Button
+                            type="link"
+                            onClick={() => router.push("/user/meetup")}
+                        >
                             전체보기
                             <RightOutlined />
                         </Button>

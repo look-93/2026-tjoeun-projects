@@ -21,11 +21,6 @@ public class EmailVerificationService {
 		
 		//1. 인증번호 생성 + redis에 저장
 		String code = verificationService.createEmailCode(email);
-		
-		System.out.println("===== EMAIL TEST =====");
-	    System.out.println("받는 사람 : " + email);
-	    System.out.println("인증번호 : " + code);
-	    System.out.println("======================");
 	    		
 		//2. 이메일 작성
 		SimpleMailMessage message = new SimpleMailMessage();

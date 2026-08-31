@@ -56,17 +56,17 @@ public class QuestionController {
     @GetMapping("/meetup/{meetupId}")
     public ResponseEntity<List<QuestionResponseDto>> meetupQuestions(
             @PathVariable("meetupId") Long meetupId,
-	        Authentication authentication) {
-	    CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-	    Long memberId = userDetails.getUser().getMemberId();
-	    Long memberTypeId = userDetails.getUser().getMemberTypeId();
-	    List<QuestionResponseDto> list =
-	            questionService.selectByMeetupQuestions(
-	                    meetupId,
-	                    memberId,
-	                    memberTypeId);
-	    return ResponseEntity.ok(list);
-	}
+            Authentication authentication) {
+        Long memberId = null;
+        Long memberTypeId = null;
+        if(authentication != null){
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            memberId = userDetails.getUser().getMemberId();
+            memberTypeId = userDetails.getUser().getMemberTypeId();
+        }
+        List<QuestionResponseDto> list = questionService.selectByMeetupQuestions(meetupId, memberId, memberTypeId);
+        return ResponseEntity.ok(list);
+    }
     
     // 답변 만족도 평가
     @Operation(summary = "답변 만족도 평가", description = "답변에 대한 만족도 점수와 의견을 등록합니다.")
@@ -82,10 +82,27 @@ public class QuestionController {
         return ResponseEntity.noContent().build();
     }
     
+    // 답변 만족도 평가 삭제
+    @Operation(summary = "답변 만족도 평가 삭제", description = "답변에 등록된 만족도 점수와 의견을 삭제합니다.")
+    @DeleteMapping("/answer/{answerId}/satisfaction")
+    public ResponseEntity<Void> deleteSatisfaction(
+            @PathVariable("answerId") Long answerId,
+            Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long memberId = userDetails.getUser().getMemberId();
+        answerService.deleteSatisfaction(answerId, memberId);
+        return ResponseEntity.noContent().build();
+    }
+    
     // 관리자용 선택 삭제
     @Operation(summary = "관리자용 선택 삭제", description = "관리자가 글을 삭제합니다.")
     @DeleteMapping("/deleteSelected")
-    public ResponseEntity<Void> deleteSelected(@RequestBody List<Long> ids){
+    public ResponseEntity<Void> deleteSelected(@RequestBody List<Long> ids, Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long memberTypeId = userDetails.getUser().getMemberTypeId();
+        if(memberTypeId != 3 && memberTypeId != 4){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         questionService.deleteSelected(ids);
         return ResponseEntity.noContent().build();
     }
@@ -93,7 +110,12 @@ public class QuestionController {
     // AI 필터 정상 처리
     @Operation(summary = "AI 필터 정상 처리", description = "AI 필터 검토 -> 정상 처리")
     @PatchMapping("/ai/normal")
-    public ResponseEntity<Void> changeToNormal(@RequestBody List<Long> ids){
+    public ResponseEntity<Void> changeToNormal(@RequestBody List<Long> ids, Authentication authentication){
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long memberTypeId = userDetails.getUser().getMemberTypeId();
+        if(memberTypeId != 3 && memberTypeId != 4){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         questionAiAnalysisService.changeToNormal(ids);
         return ResponseEntity.noContent().build();
     }
@@ -153,7 +175,14 @@ public class QuestionController {
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "aiCategory", required = false) String aiCategory,
             @RequestParam(value = "startDate", required = false) String startDate,
-            @RequestParam(value = "endDate", required = false) String endDate) {
+            @RequestParam(value = "endDate", required = false) String endDate,
+            Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long memberTypeId = userDetails.getUser().getMemberTypeId();
+        if(memberTypeId != 3 && memberTypeId != 4){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        
         int pageSize = 10;
         int start = (page - 1) * pageSize;
 
@@ -213,9 +242,36 @@ public class QuestionController {
     // 문의 상세 화면 + 답변 조회 + 버튼 권한
     @Operation(summary = "문의 상세 조회", description = "문의 상세 정보를 조회합니다.")
     @GetMapping("/{questionId}")
-    public ResponseEntity<QuestionResponseDto> detail(@PathVariable("questionId") Long questionId) {
-    	QuestionResponseDto data = questionService.getDetail(questionId);
-        return ResponseEntity.ok(data); // 성공 응답 200
+    public ResponseEntity<QuestionResponseDto> detail(@PathVariable("questionId") Long questionId, Authentication authentication) {
+        QuestionResponseDto question = questionService.getDetail(questionId);
+        if(question.getParentId().equals(0L)){
+            if(authentication == null){
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            UserDto user = userDetails.getUser();
+            if(user.getMemberTypeId() != 3 && user.getMemberTypeId() != 4 && !question.getMemberId().equals(user.getMemberId())){
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            return ResponseEntity.ok(question);
+        }
+        if("Y".equals(question.getIsPublic())){
+            return ResponseEntity.ok(question);
+        }
+        if(authentication == null){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        UserDto user = userDetails.getUser();
+        Long memberId = user.getMemberId();
+        if(user.getMemberTypeId() == 3 || user.getMemberTypeId() == 4 || question.getMemberId().equals(memberId)){
+            return ResponseEntity.ok(question);
+        }
+        MeetupResponseDto meetup = meetupService.detail(question.getParentId(), memberId);
+        if(meetup != null && meetup.getMemberId() != null && meetup.getMemberId().equals(memberId)){
+            return ResponseEntity.ok(question);
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     // 문의 수정 화면 이동
@@ -320,6 +376,10 @@ public class QuestionController {
 	    if(user.getMemberTypeId() == 3 ||
 	       user.getMemberTypeId() == 4){
 	        return true;
+	    }
+	    // 관리자 문의는 관리자만 답변 가능
+	    if(question.getParentId().equals(0L)){
+	        return false;
 	    }
 		// 일반 회원인 경우 해당 모임의 모임장인지 확인
 	    if(user.getMemberTypeId() == 1){

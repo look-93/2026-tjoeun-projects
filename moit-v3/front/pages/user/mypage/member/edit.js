@@ -75,9 +75,9 @@ function UserMyMemberEditPage() {
   useEffect(() => {
     if (!user) return;
 
-    console.log("===== EDIT USER =====");
-    console.log("user:", user);
-    console.log("interestIds:", user.interestIds);
+    // console.log("===== EDIT USER =====");
+    // console.log("user:", user);
+    // console.log("interestIds:", user.interestIds);
 
     const interestIds = (user.interestIds || []).map(Number);
 
@@ -95,8 +95,8 @@ function UserMyMemberEditPage() {
       interests: interestIds,
     });
 
-    console.log("===== FORM 관심사 세팅 =====");
-    console.log("interestIds:", interestIds);
+    // console.log("===== FORM 관심사 세팅 =====");
+    // console.log("interestIds:", interestIds);
 
     const profileUrl = user.profileUrl;
 
@@ -121,7 +121,7 @@ function UserMyMemberEditPage() {
 
     dispatch(resetUpdateMyInfo());
 
-    router.push('/user/member/mypage');
+    router.push('/user/mypage/member/mypage');
   }, [updateSuccess, dispatch, router]);
 
   // 수정 실패
@@ -210,10 +210,10 @@ function UserMyMemberEditPage() {
     // =========================
     // 확인
     // =========================
-    console.log("===== 회원정보 수정 =====");
+    // console.log("===== 회원정보 수정 =====");
 
     for (const [key, value] of formData.entries()) {
-      console.log(key, value);
+      // console.log(key, value);
     }
 
     // =========================

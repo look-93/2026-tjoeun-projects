@@ -145,7 +145,7 @@ function UserMyReportPage() {
         },
 
         {
-            title: '신뢰도 점수',
+            title: '매너 점수',
             dataIndex: 'targetTrustScore',
             key: 'targetTrustScore',
             align: 'center'

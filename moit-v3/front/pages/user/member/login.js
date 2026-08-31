@@ -104,12 +104,12 @@ function Login(){
     // =========================
     const handleLogin = (values) => {
 
-        console.log("========== LOGIN BUTTON CLICK ==========");
-        console.log("현재 Redux login 상태:", {
-            loading,
-            success,
-            error,
-        });
+        // console.log("========== LOGIN BUTTON CLICK ==========");
+        // console.log("현재 Redux login 상태:", {
+        //     loading,
+        //     success,
+        //     error,
+        // });
 
         const loginId = values.loginId.trim();
         const password = values.password;
@@ -148,7 +148,7 @@ function Login(){
             memberTypeId: memberTypeId,
         };
 
-        console.log( "로그인 요청 데이터:",loginData);
+        // console.log( "로그인 요청 데이터:",loginData);
 
         // =========================
         // Redux Saga 로그인 요청

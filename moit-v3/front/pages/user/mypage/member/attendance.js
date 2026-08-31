@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   checkAttendanceRequest,
   resetAttendance,
+  getAttendanceHistoryRequest,
 } from '../../../../reducers/userReducer';
 
 const { Title, Text } = Typography;
@@ -45,23 +46,63 @@ function Attendance() {
         loading: attendanceLoading,
         success: attendanceSuccess,
         attendedToday,
+
+        history: attendanceHistory,
+        historyLoading: attendanceHistoryLoading,
+        historyError: attendanceHistoryError,
+
         error: attendanceError,
     },
   } = useSelector((state) => state.user);
 
+  // =========================
+  // Redux 출석 상태 반영
+  // =========================
   useEffect(() => {
-    if (attendedToday) {
-        setAttended(true);
 
-        setAttendanceDates((prev) => {
-        if (prev.includes(todayKey)) {
-            return prev;
+    setAttended(attendedToday);
+
+  }, [attendedToday]);
+
+  // =========================
+  // 출석 기록 조회
+  // =========================
+  useEffect(() => {
+
+    const today = moment();
+
+    dispatch(
+      getAttendanceHistoryRequest({
+        year: today.year(),
+        month: today.month() + 1,
+      })
+    );
+
+  }, [dispatch]);
+
+
+  // =========================
+  // 서버에서 받은 출석 기록 → 달력 반영
+  // =========================
+  useEffect(() => {
+
+    if (!attendanceHistory || !Array.isArray(attendanceHistory)) {
+      return;
+    }
+
+    const dates = attendanceHistory
+      .map((item) => {
+        if (!item.createdAt) {
+          return null;
         }
 
-        return [...prev, todayKey];
-        });
-    }
-    }, [attendedToday, todayKey]);
+        return moment(item.createdAt).format('YYYY-MM-DD');
+      })
+      .filter(Boolean);
+
+    setAttendanceDates(dates);
+
+  }, [attendanceHistory]);
 
   // =========================
   // 출석체크
@@ -86,8 +127,8 @@ function Attendance() {
       return;
     }
 
-    console.log('===== 오늘 출석 완료 =====');
-    console.log('todayKey:', todayKey);
+    // console.log('===== 오늘 출석 완료 =====');
+    // console.log('todayKey:', todayKey);
 
     // 오늘 출석 완료
     setAttended(true);
@@ -118,8 +159,8 @@ function Attendance() {
         return;
     }
 
-    console.log('===== 출석체크 실패 =====');
-    console.log('attendanceError:', attendanceError);
+    // console.log('===== 출석체크 실패 =====');
+    // console.log('attendanceError:', attendanceError);
 
     // 이미 오늘 출석한 경우
     if (attendanceError === '오늘은 이미 출석체크를 완료했습니다.') {

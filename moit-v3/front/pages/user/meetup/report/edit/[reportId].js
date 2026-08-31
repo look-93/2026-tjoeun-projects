@@ -103,10 +103,11 @@ function ReportEditPage() {
     { value: 'SPAM', label: '도배/스팸' },
     { value: 'FAKE_INFO', label: '허위 정보' },
     { value: 'AD', label: '광고성 게시물' },
+    { value: 'NOSHOW', label: '노쇼' },
 
-    ...(isMeetup
-      ? [{ value: 'NOSHOW', label: '노쇼' }]
-      : []),
+    // ...(isMeetup
+    //   ? [{ value: 'NOSHOW', label: '노쇼' }]
+    //   : []),
 
     { value: 'ETC', label: '기타' },
   ];
