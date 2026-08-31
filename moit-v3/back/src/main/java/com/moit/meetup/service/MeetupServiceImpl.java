@@ -91,6 +91,7 @@ public class MeetupServiceImpl implements MeetupService{
 
     private final ThymeleafConfig thymeleafConfig;
 	
+    private static final String TRUST_SCORE_KEY_PREFIX = "trust:meetup-completed:";
 	private static final String BOOST_KEY_PREFIX = "meetup:boost:";
 	private static final int BOOST_POINT = 200; // 끌어올리기 비용
 	
@@ -410,7 +411,8 @@ public class MeetupServiceImpl implements MeetupService{
 	    meetup.setNy(meetupRequestDto.getNy());
 	    
 	    // =========================
-	    // 모임 완료 시 신청승인 상태의 참여자에게만 신뢰도 +10
+	    // 모임 완료 시 신청승인 상태의 참여자에게만 신뢰도 +10 
+	    // 신뢰도 점수는 7일에 한번만 증가
 	    // =========================
 	    if (previousStatus != MeetupStatus.COMPLETED
 	            && meetupRequestDto.getMeetupStatus() == MeetupStatus.COMPLETED) {
@@ -418,8 +420,26 @@ public class MeetupServiceImpl implements MeetupService{
 	        meetup.getMeetupApplications().stream()
 	                .filter(meetupApplications ->
 	                meetupApplications.getApplyStatus() == ApplyStatus.APPROVED)
-	                .forEach(meetupApplications ->
-	                        changeTrustScore(meetupApplications.getMember(), 10));
+	                .forEach(meetupApplications -> {
+	                	
+	                	Member member = meetupApplications.getMember();
+	                	String key = TRUST_SCORE_KEY_PREFIX + member.getId();
+	                    // 최근 7일 이내 모임 완료 보상 여부 확인
+	                    if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+	                        return;
+	                    }
+
+	                    // 신뢰도 +10
+	                    changeTrustScore(member, 10);
+
+	                    // Redis 7일 저장
+	                    redisTemplate.opsForValue().set(
+	                            key,
+	                            "1",
+	                            7,
+	                            TimeUnit.DAYS
+	                    );	                	
+	                });
 	    }
 	    
 		 // =========================
