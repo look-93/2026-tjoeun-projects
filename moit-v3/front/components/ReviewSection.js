@@ -76,7 +76,8 @@ function ReviewSection({
   onWriteReview, 
   onLikeReview,
   onSortChange,
-  onSearch 
+  onSearch,
+  onReport  // 신고 추가 ...
 }) {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -340,8 +341,10 @@ function ReviewSection({
                       type="text"
                       danger
                       onClick={() =>
-                        router.push(
-                          `/user/meetup/report/write?targetType=REVIEW&targetId=${review.id}`,
+                        onReport(
+                          "REVIEW",
+                          review.id,
+                          review.memberId
                         )
                       }
                     >

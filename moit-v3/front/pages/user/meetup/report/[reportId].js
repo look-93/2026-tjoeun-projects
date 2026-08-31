@@ -106,7 +106,6 @@ function ReportDetailPage() {
         // 모임 신고
         if (currentReport.targetType === 'MEETUP') {
             router.push(
-                // http://localhost:3000/user/meetup/detail?meetupId=3
                 `/user/meetup/detail?meetupId=${currentReport.targetId}`
             );
             return;
@@ -116,7 +115,6 @@ function ReportDetailPage() {
         if (currentReport.targetType === 'REVIEW') {
 
             router.push(
-                // http://localhost:3000/user/meetup/review/detailreview?reviewId=10&meetupId=3
                 `/user/meetup/review/detailreview?reviewId=${currentReport.targetId}&meetupId=${currentReport.meetupId}`
             );
         }
@@ -169,24 +167,18 @@ function ReportDetailPage() {
                     column={1}
                 >
                     {/* 신고 번호 */}
-                    <Descriptions.Item label="신고번호 (reportId)">
+                    <Descriptions.Item label="신고번호">
                         {currentReport.reportId}번 신고글
                     </Descriptions.Item>
 
-                    <Descriptions.Item label="신고자 (memberId) (test 나중에 빼야함!!!!!!!!!!!!!!!!!!!!!!!!!~~~~~~~~)">
-                        {currentReport.memberNickname ?? '-'}
-                        {' '}
-                        ({currentReport.memberId ?? '-'}번)
-                        {' => '}
+                    {/* <Descriptions.Item label="신고자 / 매너 점수">
+                        {currentReport.memberNickname ?? '-'}{' / '}
                         {currentReport.trustScore}점{' '}
                         <ReportStatusCodeTag statusCode={currentReport.statusCode} />
-                    </Descriptions.Item>
+                    </Descriptions.Item> */}
 
-                    <Descriptions.Item label="신고 대상 회원 (targetMemberId)">
-                        {currentReport.targetMemberNickname ?? '-'}
-                        {' '}
-                        ({currentReport.targetMemberId ?? '-'}번)
-                        {' => '}
+                    <Descriptions.Item label="신고 대상 / 매너 점수">
+                        {currentReport.targetMemberNickname ?? '-'}{' / '}
                         {currentReport.targetTrustScore}점{' '}
                         <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
                     </Descriptions.Item>

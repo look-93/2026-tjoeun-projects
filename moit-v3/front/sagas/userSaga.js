@@ -28,6 +28,9 @@ import {
     mobileVerifySuccess,mobileVerifyFailure,resetMobileVerification,
     getPointHistoryRequest,getPointHistorySuccess,getPointHistoryFailure,resetPointHistory,
     checkAttendanceRequest,checkAttendanceSuccess,checkAttendanceFailure,resetAttendance,
+    analyzeSignupBehaviorRequest,analyzeSignupBehaviorSuccess,analyzeSignupBehaviorFailure,
+    resetSignupBehaviorAnalysis,recordSignupBehaviorFailure,
+    getAttendanceHistoryRequest,getAttendanceHistorySuccess,getAttendanceHistoryFailure,
 } from '../reducers/userReducer';
 
 
@@ -261,6 +264,25 @@ function getPointHistoryApi() {
 // =========================
 function checkAttendanceApi() {
     return api.post("/api/members/me/point/attendance");
+}
+
+// =========================
+// 월별 출석 기록 조회 API
+// =========================
+function getAttendanceHistoryApi(year, month) {
+    return api.get("/api/members/me/point/attendance", {
+        params: {
+            year,
+            month,
+        },
+    });
+}
+
+// =========================
+// 회원가입 행동 AI 분석 API
+// =========================
+function analyzeSignupBehaviorApi(data) {
+    return api.post("/api/members/signup/behavior/analyze", data);
 }
 
 
@@ -528,6 +550,54 @@ function* signup(action){
 }
 
 // =========================
+// 회원가입 행동 AI 분석
+// =========================
+function* analyzeSignupBehaviorSaga(action) {
+
+    const { field, data } = action.payload;
+
+    try {
+
+        console.log("===== 회원가입 행동 AI 분석 START =====");
+        console.log("field:", field);
+        console.log("행동 데이터:", data);
+
+        const response = yield call(
+            analyzeSignupBehaviorApi,
+            data
+        );
+
+        console.log("===== 회원가입 행동 AI 분석 SUCCESS =====");
+        console.log("status:", response.status);
+        console.log("AI 가이드:", response.data);
+
+        yield put(
+            analyzeSignupBehaviorSuccess({
+                field,
+                result: response.data,
+            })
+        );
+
+    } catch (error) {
+
+        console.error(
+            "===== 회원가입 행동 AI 분석 ERROR ====="
+        );
+        console.error(error);
+
+        yield put(
+            analyzeSignupBehaviorFailure({
+                field,
+                error:
+                    error.response?.data?.message ||
+                    "AI 분석에 실패했습니다.",
+            })
+        );
+    }
+}
+
+
+// =========================
 // 이메일 인증번호 발송
 // =========================
 function* emailSend(action){
@@ -570,27 +640,56 @@ function* emailVerify(action){
 // =========================
 // 아이디 중복검사
 // =========================
-function* checkLoginId(action){ 
-    try{ 
-        const response = yield call(checkLoginIdApi, action.payload); 
+function* checkLoginId(action) { 
+
+    try { 
+
+        const response = yield call(
+            checkLoginIdApi,
+            action.payload
+        ); 
 
         console.log("아이디 존재 여부:", response.data);
 
-        // 백엔드:
+        // 백엔드
         // true  = 이미 존재
         // false = 존재하지 않음
         //
-        // 프론트:
-        // true = 사용 가능
+        // 프론트
+        // true  = 사용 가능
         // false = 사용 불가
+
         const available = !response.data;
 
         console.log("아이디 사용 가능 여부:", available);
 
-        yield put(checkLoginIdSuccess(available));
+        // =========================
+        // 아이디 사용 가능
+        // =========================
+        if (available) {
+            yield put(checkLoginIdSuccess(true));
+            return;
+        }
 
-    }catch(err){ 
-        console.error("아이디 중복검사 실패:",err); 
+        // =========================
+        // 아이디 중복 = 중복검사 실패
+        // =========================
+        console.log("===== 아이디 중복검사 실패 =====");
+        console.log("중복검사 실패 횟수 +1");
+
+        console.log(
+            "===== checkLoginId → recordSignupBehaviorFailure 호출 ====="
+        );
+
+        // Redux의 loginId.failCount 증가
+        yield put(recordSignupBehaviorFailure({field: "loginId"}));
+
+        // 기존 중복검사 결과도 false로 저장
+        yield put( checkLoginIdSuccess(false));
+
+    } catch (err) { 
+
+        console.error("아이디 중복검사 실패:", err); 
  
         yield put(
             checkLoginIdFailure(
@@ -649,25 +748,61 @@ function* checkEmail(action) {
 // =========================
 // 닉네임 중복검사 
 // =========================
-function* checkNickname(action){ 
-    try{ 
-        const response = yield call(checkNicknameApi, action.payload); 
+function* checkNickname(action) {
+
+    try {
+
+        const response = yield call(
+            checkNicknameApi,
+            action.payload
+        );
+
+        console.log("닉네임 존재 여부:", response.data);
+
+        // 백엔드
+        // true  = 이미 존재
+        // false = 존재하지 않음
+        //
+        // 프론트
+        // true  = 사용 가능
+        // false = 사용 불가
 
         const available = !response.data;
 
-        console.log("닉네임 사용 가능 여부:", available); 
- 
-        yield put(checkNicknameSuccess(available));
+        console.log("닉네임 사용 가능 여부:", available);
 
-    }catch(err){ 
-        console.error("닉네임 중복검사 실패:",err); 
- 
+        // 사용 가능
+        if (available) {
+
+            yield put(checkNicknameSuccess(true));
+
+            return;
+        }
+
+        // =========================
+        // 닉네임 중복검사 실패
+        // =========================
+
+        console.log("===== 닉네임 중복검사 실패 =====");
+        console.log("중복검사 실패 횟수 +1");
+
+        yield put(
+            recordSignupBehaviorFailure({
+                field: "nickname"
+            })
+        );
+
+        yield put(checkNicknameSuccess(false));
+
+    } catch (err) {
+
         yield put(
             checkNicknameFailure(
-                err.response?.data?.message || err.message
+                err.response?.data?.message ||
+                err.message
             )
-        ); 
-    } 
+        );
+    }
 }
 
 // =========================
@@ -1120,6 +1255,8 @@ function* checkAttendanceSaga() {
 
         yield put(checkAttendanceSuccess(response.data));
 
+        yield put(getMyInfoRequest());
+
     } catch (error) {
 
         console.error("===== 출석체크 FAILURE =====");
@@ -1129,6 +1266,49 @@ function* checkAttendanceSaga() {
         console.error("message:", error.response?.data?.message);
 
         yield put(checkAttendanceFailure(error.response?.data?.message || "출석체크에 실패했습니다.") );
+    }
+}
+
+// =========================
+// 월별 출석 기록 조회
+// =========================
+function* getAttendanceHistorySaga(action) {
+    try {
+
+        const { year, month } = action.payload;
+
+        console.log('===== 출석 기록 조회 START =====');
+        console.log('year:', year);
+        console.log('month:', month);
+
+        const response = yield call(
+            getAttendanceHistoryApi,
+            year,
+            month
+        );
+
+        console.log('===== 출석 기록 조회 SUCCESS =====');
+        console.log('status:', response.status);
+        console.log('data:', response.data);
+
+        yield put(
+            getAttendanceHistorySuccess(response.data)
+        );
+
+    } catch (error) {
+
+        console.error('===== 출석 기록 조회 FAILURE =====');
+        console.error(error);
+        console.error('status:', error.response?.status);
+        console.error('data:', error.response?.data);
+        console.error('message:', error.response?.data?.message);
+
+        yield put(
+            getAttendanceHistoryFailure(
+                error.response?.data?.message ||
+                '출석 기록을 불러오지 못했습니다.'
+            )
+        );
     }
 }
 
@@ -1166,5 +1346,7 @@ export default function* userSaga(){
         takeLatest(mobileVerifyRequest.type, mobileVerify),
         takeLatest(getPointHistoryRequest.type,getPointHistorySaga),
         takeLatest(checkAttendanceRequest.type, checkAttendanceSaga),
+        takeLatest(analyzeSignupBehaviorRequest.type,analyzeSignupBehaviorSaga),
+        takeLatest(getAttendanceHistoryRequest.type,getAttendanceHistorySaga),
     ]);
 }

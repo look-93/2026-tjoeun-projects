@@ -163,7 +163,7 @@ function UserMyMemberPasswordChangePage() {
       dispatch(resetChangePassword());
       dispatch(resetPasswordLeak());
 
-      router.push('/user/member/mypage');
+      router.push('/user/mypage/member/mypage');
     }
   }, [success, dispatch, router]);
 

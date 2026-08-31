@@ -13,6 +13,7 @@ public class AdvertisementChartDto {
 	private Double impChange;
 	private Double clickChange;
 	private Double ctrChange;
+	private Double totalAdChange;
 	 // 일별 차트
 	private String statDate;
 	private int impressions;

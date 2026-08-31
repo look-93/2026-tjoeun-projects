@@ -76,13 +76,19 @@ function UserMyReviewPage() {
     }
   };
 
- 
-  // 알림 클릭 시: 읽음 처리 API를 부르지 않고, 곧바로 리뷰 작성 페이지로 이동
-  const handleNotificationClick = (notificationId, meetupId) => {
-    if (isMounted) {
-      router.push(`/user/meetup/review/write?meetupId=${meetupId}`);
+  
+  // 🌟 [수정된 알림 클릭 핸들러] 클릭 시 백엔드 읽음 처리 API 호출 후 알림 ID와 함께 리뷰 작성 페이지로 이동
+  const handleNotificationClick = async (notificationId, meetupId) => {
+    try {
+      await axios.patch(`http://localhost:8080/api/notifications/reviews/${notificationId}/read`);
+    } catch (error) {
+      console.error('알림 읽음 처리 실패:', error);
+    } finally {
+      if (isMounted) {
+        router.push(`/user/meetup/review/write?meetupId=${meetupId}&from=mypage&notificationId=${notificationId}`);
+      }
     }
-  };                                                                                                                                                         
+  };
 
   useEffect(() => {
     dispatch(
@@ -95,12 +101,23 @@ function UserMyReviewPage() {
     );
   }, [dispatch, searchKeyword, sort]);
 
-  // memberId가 로드된 이후에만 알림 목록 가져오기
+  // 🌟 [수정된 useEffect] memberId가 로드된 이후 알림 목록 가져오기 + 마이페이지 재진입 시점 관리
   useEffect(() => {
     if (memberId) {
       fetchNotifications();
     }
-  }, [memberId]);
+
+    const handleRouteChange = () => {
+      if (memberId) {
+        fetchNotifications();
+      }
+    };
+
+    router.events?.on('routeChangeComplete', handleRouteChange);
+    return () => {
+      router.events?.off('routeChangeComplete', handleRouteChange);
+    };
+  }, [memberId, router]);
 
   const handleSearch = () => {
     setSearchKeyword(keyword);
@@ -148,7 +165,8 @@ function UserMyReviewPage() {
       width: '20%',
       render: (meetupId, record) => (
         <div>
-          <Text strong>모임 #{meetupId}</Text>
+          {/* 🌟 record.meetupTitle(모임 이름)을 먼저 보여주고, 없을 때만 기존처럼 모임 번호를 보여줍니다 */}
+          <Text strong>{record.meetupTitle || `모임 #${meetupId}`}</Text>
           <br />
           <Text type="secondary" style={{ fontSize: 12 }}>
             {record.createdAt ? record.createdAt.substring(0, 10) : ''}
@@ -339,7 +357,7 @@ function UserMyReviewPage() {
         <Table
           columns={columns}
           dataSource={reviews}
-          key={(record) => record.reviewId || record.id}
+          rowKey={(record) => record.reviewId || record.id}
           loading={loading}
           pagination={{
             pageSize: 10,

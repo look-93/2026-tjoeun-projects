@@ -16,7 +16,7 @@ import {
 function AdminMeetupPage() {
     const dispatch = useDispatch();
 
-    const { meetups, meetupCount, loading } = useSelector(
+    const { meetups, meetupCount, loading, totalCount } = useSelector(
         (state) => state.meetup,
     );
 
@@ -30,8 +30,6 @@ function AdminMeetupPage() {
     const [status, setStatus] = useState("all");
     const [searchText, setSearchText] = useState("");
 
-    const serverData = { allcnt: 1200, running: 1000, close: 1200 };
-
     const stats = [
         {
             title: "전체 모임",
@@ -39,7 +37,7 @@ function AdminMeetupPage() {
             suffix: "개",
         },
         { title: "모집 중", value: meetupCount.recruitingCount, suffix: "개" },
-        { title: "모집 마감", value: meetupCount.closedCount, suffix: "개" },
+        { title: "모집 마감", value: meetupCount.completedCount, suffix: "개" },
         {
             title: "날씨로 인한 취소",
             value: meetupCount.weatherCanceledCount,
@@ -47,6 +45,7 @@ function AdminMeetupPage() {
         },
     ];
 
+    //console.log(meetupCount);
     const adminColumns = [
         {
             title: "번호",
@@ -54,7 +53,8 @@ function AdminMeetupPage() {
             key: "id",
             width: 80,
             align: "center",
-            render: (_, record, index) => meetups.length - index,
+            render: (_, record, index) =>
+                totalCount - ((currentPage - 1) * pageSize + index),
         },
         {
             title: "모집자",
@@ -244,8 +244,13 @@ function AdminMeetupPage() {
                     columns={adminColumns}
                     dataSource={meetups}
                     pagination={{
-                        pageSize: 10,
+                        current: currentPage,
+                        pageSize: pageSize,
+                        total: totalCount,
                         showSizeChanger: false,
+                        onChange: (page) => {
+                            setCurrentPage(page);
+                        },
                     }}
                     // loading={{
                     //     spinning: loading,

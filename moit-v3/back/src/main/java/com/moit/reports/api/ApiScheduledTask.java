@@ -30,10 +30,26 @@ public class ApiScheduledTask {
 		} catch (Exception e) { e.printStackTrace(); }
 		System.out.println("...신고처리 3일 후 sendEmail 스케줄러 종료");
 	}
+	
+	// 관리자 신고 이력 3년 지나면 자동 delete
+//	test
+//	@Scheduled(cron = "0 */1 * * * *")
+	@Scheduled(cron = "0 0 3 * * *")
+	public void threeYearsAgoDeleteAuditLogs() { 
+		System.out.println("...3년 전 관리자 처리 이력 삭제 스케줄러 실행");
+		try {
+			long deletedCount = service.deleteAuditLogs();
+			System.out.println("...삭제된 관리자 처리 이력: " + deletedCount + "건");
+			
+		} catch (Exception e) { e.printStackTrace(); }
+		System.out.println("...3년 전 관리자 처리 이력 삭제 스케줄러 종료");
+	}
 
 	
 	
 	// 실패 이메일 재전송
+//	test
+//	@Scheduled(fixedDelay = 10000)
 	@Scheduled(fixedDelay = 60000)
 	public void retrySendEmail() { 
 		System.out.println("...실패 이메일 재전송 retrySendEmail 스케줄러 실행");

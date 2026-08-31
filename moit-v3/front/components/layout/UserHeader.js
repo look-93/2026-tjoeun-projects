@@ -148,9 +148,18 @@ function UserHeader() {
   // =========================================================
   // 최초 실행 + 페이지 이동할 때마다 알림 조회
   // =========================================================
+  // useEffect(() => {
+  //   loadNotifications();
+  // }, [router.asPath]);
   useEffect(() => {
+    if (!user) {
+      setNotificationCount(0);
+      setNotifications([]);
+      return;
+    }
+
     loadNotifications();
-  }, [router.asPath]);
+  }, [user]);
 
   // =========================================================
   // 회원 유형
@@ -337,7 +346,7 @@ function UserHeader() {
                       className="moit-header-link"
                       style={{ textDecoration: 'none' }}
                     >
-                      모집찾기
+                      모임찾기
                     </a>
                   </Link>
                 </Col>
