@@ -96,7 +96,7 @@ public class QuestionService {
         questionMapper.insertQuestion(dto);
         // 문의 이미지 저장
         if (dto.getImages() != null && !dto.getImages().isEmpty()) {
-            Path uploadPath = Paths.get("uploads/qna").toAbsolutePath();
+            Path uploadPath = Paths.get("C:/upload/qna");
             try {
             	Files.createDirectories(uploadPath);
                 for (MultipartFile file : dto.getImages()) {
@@ -148,12 +148,19 @@ public class QuestionService {
         // 문의 내용 수정
         questionMapper.updateQuestion(dto);
         // 기존 이미지 삭제
-        if (dto.getDeleteImageIds() != null && !dto.getDeleteImageIds().isEmpty()) {
+        if(dto.getDeleteImageIds()!=null&&!dto.getDeleteImageIds().isEmpty()){
+            List<QuestionImageDto> deleteImages=questionMapper.findQuestionImagesByIds(dto.getDeleteImageIds());
+            Path uploadPath=Paths.get("C:/upload/qna");
+            for(QuestionImageDto image:deleteImages){
+                if(image.getStoredName()==null)continue;
+                try{Files.deleteIfExists(uploadPath.resolve(image.getStoredName()));}
+                catch(IOException e){throw new IllegalStateException("문의 첨부파일 삭제에 실패했습니다.",e);}
+            }
             questionMapper.deleteQuestionImagesByIds(dto.getDeleteImageIds());
         }
         // 새 이미지 저장
         if (dto.getImages() != null && !dto.getImages().isEmpty()) {
-            Path uploadPath = Paths.get("uploads/qna").toAbsolutePath();
+            Path uploadPath = Paths.get("C:/upload/qna");
             try {
                 Files.createDirectories(uploadPath);
                 for (MultipartFile file : dto.getImages()) {
@@ -194,7 +201,7 @@ public class QuestionService {
         List<QuestionImageDto> images = questionMapper.findQuestionImages(questionId);
         // 2. 실제 파일 삭제
         if (images != null) {
-            Path uploadPath = Paths.get("uploads/qna").toAbsolutePath();
+            Path uploadPath = Paths.get("C:/upload/qna");
             for (QuestionImageDto image : images) {
                 if (image.getStoredName() == null) {continue;}
                 Path filePath = uploadPath.resolve(image.getStoredName());

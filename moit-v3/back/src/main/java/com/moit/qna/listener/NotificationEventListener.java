@@ -1,8 +1,9 @@
 package com.moit.qna.listener;
 
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.moit.qna.dao.QuestionMapper;
 import com.moit.qna.dto.NotificationDto;
@@ -18,7 +19,7 @@ public class NotificationEventListener {
     private final QuestionMapper questionMapper;
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(AnswerCreatedEvent event) {
     	QuestionResponseDto question = questionMapper.findById(event.getQuestionId());
         NotificationDto dto = new NotificationDto();
