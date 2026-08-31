@@ -347,7 +347,7 @@ const userReducer = createSlice({
         getMyPageSuccess: (state, action) => {
             state.loading = false;
             state.error = null;
-            state.user = { ...state.user, ...action.payload };
+            state.user = action.payload;
         },
 
         getMyPageFailure: (state, action) => {
