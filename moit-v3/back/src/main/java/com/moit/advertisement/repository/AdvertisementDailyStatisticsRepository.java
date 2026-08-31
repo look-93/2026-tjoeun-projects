@@ -56,4 +56,22 @@ public interface AdvertisementDailyStatisticsRepository
 	        @Param("startDate") LocalDate startDate,
 	        @Param("endDate") LocalDate endDate
 	);
+	
+	@Query("""
+	    select coalesce(sum(s.impressions), 0)
+	    from AdvertisementDailyStatistics s
+	    where s.statDate = :statDate
+	""")
+	Long sumImpressionsByDate(
+	        @Param("statDate") LocalDate statDate
+	);
+
+	@Query("""
+	    select coalesce(sum(s.clicks), 0)
+	    from AdvertisementDailyStatistics s
+	    where s.statDate = :statDate
+	""")
+	Long sumClicksByDate(
+	        @Param("statDate") LocalDate statDate
+	);
 }

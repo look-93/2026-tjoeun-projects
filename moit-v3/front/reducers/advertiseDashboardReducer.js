@@ -3,15 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
 
     summary: {},
-
-    // 광고 운영 현황
-    statistics: {
-        totalAdCnt: 0,
-        openCnt: 0,
-        pendingCnt: 0,
-        closedCnt: 0,
-    },
-
+    
     dailyData: [],
 
     ctrData: [],
@@ -55,15 +47,6 @@ const advertiseDashboardSlice = createSlice({
 
             state.summary =
                 action.payload.summary ?? {};
-
-            // 광고 운영 현황
-            state.statistics =
-                action.payload.statistics ?? {
-                    totalAdCnt: 0,
-                    openCnt: 0,
-                    pendingCnt: 0,
-                    closedCnt: 0,
-                };
 
             state.dailyData =
                 action.payload.dailyData ?? [];
