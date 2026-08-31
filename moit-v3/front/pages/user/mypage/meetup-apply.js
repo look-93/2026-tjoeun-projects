@@ -23,23 +23,30 @@ function UserMyMeetupApplyPage() {
     const router = useRouter();
     const dispatch = useDispatch();
 
-    const { myApplications, loading, myMeetupCount } = useSelector(
-        (state) => state.meetup,
-    );
+    const { myApplications, loading, myMeetupCount, myApplicationTotalCount } =
+        useSelector((state) => state.meetup);
+
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const pageSize = 10;
 
     useEffect(() => {
         //console.log("🔥 내 신청 목록 조회 dispatch");
         dispatch(
             fetchMyApplicationsRequest({
-                page: 0,
+                page: currentPage - 1,
                 size: 10,
             }),
         );
-        //통계
+    }, [dispatch, currentPage]);
+
+    //console.log(myMeetupCount);
+
+    //통계
+    useEffect(() => {
         dispatch(fetchMyMeetupCountRequest());
     }, [dispatch]);
-    console.log(myMeetupCount);
-    // 통계
+
     const stats = [
         {
             title: "내 모집글",
@@ -73,7 +80,9 @@ function UserMyMeetupApplyPage() {
             title: "번호",
             key: "number",
             align: "center",
-            render: (_, record, index) => myApplications.length - index,
+            render: (_, record, index) =>
+                myApplicationTotalCount -
+                ((currentPage - 1) * pageSize + index),
         },
         {
             title: "모임명",
@@ -199,8 +208,13 @@ function UserMyMeetupApplyPage() {
                     columns={columns}
                     dataSource={myApplications}
                     pagination={{
-                        pageSize: 10,
+                        current: currentPage,
+                        pageSize: pageSize,
+                        total: myApplicationTotalCount,
                         showSizeChanger: false,
+                        onChange: (page) => {
+                            setCurrentPage(page);
+                        },
                     }}
                     scroll={{ x: 600 }}
                 />
