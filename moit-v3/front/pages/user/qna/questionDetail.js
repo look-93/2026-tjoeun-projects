@@ -626,6 +626,16 @@ function questionDetail() {
           </>
         )}
       </Card>
+
+      {isMeetup && (
+        <div style={{ textAlign: 'center', marginTop: 24, marginBottom: 30 }}>
+          <Button onClick={() => router.push(`/user/meetup/detail?meetupId=${qna?.parentId}`)}
+          >
+            목록으로
+          </Button>
+        </div>
+      )}
+
     </div>
   );
 }
