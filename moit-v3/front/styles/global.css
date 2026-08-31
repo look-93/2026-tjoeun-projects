@@ -1210,27 +1210,40 @@ a {
 ========================= */
 
 .meetup-card-footer {
-    min-height: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 8px;
+}
 
+.meetup-card-dates {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    flex: 1;
+}
+
+.meetup-date {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-
-    margin-top: 16px;
-    padding-top: 12px;
-
-    border-top: 1px solid #f0f0f0;
-
-    color: #888;
+    gap: 6px;
     font-size: 13px;
+    white-space: nowrap;
+}
+
+.meetup-date-label {
+    font-weight: 600;
+    flex-shrink: 0;
 }
 
 /* 날짜 */
 
-.meetup-card-footer > span {
+.meetup-date span:last-child {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
 }
 
 /* =========================
@@ -1247,6 +1260,9 @@ a {
     font-size: 13px;
 
     border-radius: 6px;
+
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .meetup-like-button:hover {
