@@ -13,6 +13,6 @@ public class MeetupCountResponseDto {
 	// 통계데이터
     private Long totalMeetupCount;	// 전체모집글
     private Long recruitingCount;	// 모집중
-    private Long closedCount;		// 모집마감
+    private Long completedCount;		// 모집마감
     private Long weatherCanceledCount;	// 날씨로 인한 취소
 }

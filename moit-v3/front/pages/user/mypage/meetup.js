@@ -335,7 +335,7 @@ function UserMyMeetupPage() {
             {/* 통계 */}
             <MyPageStatCard stats={stats} />
 
-            {/* 신청한 모임 */}
+            {/* 개설한 모임 */}
             <Card className="mypage-meetup-section" style={{ marginTop: 20 }}>
                 <Title level={3}>개설한 모임</Title>
 

@@ -2,6 +2,10 @@ package com.moit.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class UtilUpload {
 	@Value("${resource.path}") private String resourcePath;// C:/upload -> application.properties
 
+	private static final Set<String> ALLOWED_EXTENSIONS =
+	        Set.of("jpg", "jpeg", "png", "webp");
 	
 	// 방식 A: 경로를 지정 안 하면 기본 경로(defaultPath) 사용
     public String fileUpload(MultipartFile file) throws IOException {	
@@ -23,18 +29,26 @@ public class UtilUpload {
     public String fileUpload(MultipartFile file, String subPath) throws IOException {
 
         // C:/upload
-        File directory = new File(resourcePath);
+        Path basePath = Paths.get(resourcePath)
+                .toAbsolutePath()
+                .normalize();
 
         // C:/upload/meetup
+        Path uploadPath = basePath;
+
         if (subPath != null && !subPath.isBlank()) {
-            directory = new File(directory, subPath);
+            uploadPath = basePath
+                    .resolve(subPath)
+                    .normalize();
         }
 
-        if (!directory.exists() && !directory.mkdirs()) {
-            throw new IOException(
-                "업로드 폴더 생성 실패: " + directory.getAbsolutePath()
-            );
+        // 업로드 경로가 기본 업로드 폴더 밖으로 나가는지 확인
+        if (!uploadPath.startsWith(basePath)) {
+            throw new IOException("잘못된 업로드 경로입니다.");
         }
+
+        // 폴더 생성
+        Files.createDirectories(uploadPath);
 
         String originalFilename = file.getOriginalFilename();
 
@@ -42,39 +56,89 @@ public class UtilUpload {
             throw new IOException("파일명이 없습니다.");
         }
 
+        // 확장자 추출
+        int lastDot = originalFilename.lastIndexOf(".");
+
+        if (lastDot <= 0 || lastDot == originalFilename.length() - 1) {
+            throw new IOException("파일 확장자가 없습니다.");
+        }
+
+        String extension = originalFilename
+                .substring(lastDot + 1)
+                .toLowerCase();
+
+        // 확장자 검사
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new IOException("허용되지 않는 파일 형식입니다.");
+        }
+
+        // 원본 파일명은 사용하지 않고 서버에서 안전한 파일명 생성
         String saveFilename =
-                UUID.randomUUID() + "_" + originalFilename;
+                UUID.randomUUID() + "." + extension;
 
-        File target = new File(directory, saveFilename);
+        Path targetPath = uploadPath
+                .resolve(saveFilename)
+                .normalize();
 
-        FileCopyUtils.copy(file.getBytes(), target);
+        // 최종 경로 검증
+        if (!targetPath.startsWith(uploadPath)) {
+            throw new IOException("잘못된 파일 경로입니다.");
+        }
+
+        FileCopyUtils.copy(
+                file.getBytes(),
+                targetPath.toFile()
+        );
 
         return saveFilename;
     }
     
     public void fileDelete(String fileName, String subPath) {
 
-        File file = new File(
-            resourcePath,
-            subPath + File.separator + fileName
-        );
+        Path basePath = Paths.get(resourcePath)
+                .toAbsolutePath()
+                .normalize();
 
-        System.out.println("🔥 삭제 대상 파일 = " + file.getAbsolutePath());
+        Path deletePath = basePath;
 
-        if (file.exists()) {
+        if (subPath != null && !subPath.isBlank()) {
+            deletePath = basePath
+                    .resolve(subPath)
+                    .normalize();
+        }
 
-            boolean deleted = file.delete();
+        // subPath가 업로드 기본 경로 밖으로 나가는지 확인
+        if (!deletePath.startsWith(basePath)) {
+            throw new IllegalArgumentException(
+                    "잘못된 파일 경로입니다."
+            );
+        }
 
-            System.out.println("🔥 파일 삭제 결과 = " + deleted);
+        Path targetPath = deletePath
+                .resolve(fileName)
+                .normalize();
 
-            if (!deleted) {
-                throw new RuntimeException(
-                    "파일 삭제에 실패했습니다: " + file.getAbsolutePath()
-                );
+        // 최종 파일 경로가 업로드 폴더 밖으로 나가는지 확인
+        if (!targetPath.startsWith(deletePath)) {
+            throw new IllegalArgumentException(
+                    "잘못된 파일 경로입니다."
+            );
+        }
+
+        try {
+            if (Files.exists(targetPath)) {
+
+                Files.delete(targetPath);
+
+            } else {
+                System.out.println("삭제할 파일이 존재하지 않습니다.");
             }
 
-        } else {
-            System.out.println("⚠️ 삭제할 파일이 존재하지 않습니다.");
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "파일 삭제에 실패했습니다: " + targetPath,
+                    e
+            );
         }
     }
 //	public String fileUpload(MultipartFile file) throws IOException {	

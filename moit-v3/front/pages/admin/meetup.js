@@ -30,8 +30,6 @@ function AdminMeetupPage() {
     const [status, setStatus] = useState("all");
     const [searchText, setSearchText] = useState("");
 
-    const serverData = { allcnt: 1200, running: 1000, close: 1200 };
-
     const stats = [
         {
             title: "전체 모임",
@@ -39,7 +37,7 @@ function AdminMeetupPage() {
             suffix: "개",
         },
         { title: "모집 중", value: meetupCount.recruitingCount, suffix: "개" },
-        { title: "모집 마감", value: meetupCount.closedCount, suffix: "개" },
+        { title: "모집 마감", value: meetupCount.completedCount, suffix: "개" },
         {
             title: "날씨로 인한 취소",
             value: meetupCount.weatherCanceledCount,
@@ -47,6 +45,7 @@ function AdminMeetupPage() {
         },
     ];
 
+    //console.log(meetupCount);
     const adminColumns = [
         {
             title: "번호",
