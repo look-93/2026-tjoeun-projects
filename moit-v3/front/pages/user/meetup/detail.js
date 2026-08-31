@@ -33,15 +33,13 @@ import api from "../../../api/axios";
 const { Title } = Typography;
 
 function MeetupDetailPage() {
-    const router = useRouter();
-    const dispatch = useDispatch();
-    const [activeTab, setActiveTab] = useState("detail");
-    //리뷰 추가
-    useEffect(() => {
-        if (router.isReady && router.query.tab) {
-            setActiveTab(router.query.tab);
-        }
-    }, [router.isReady, router.query.tab]);
+
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const [activeTab, setActiveTab] = useState('detail');
+
+  const [currentSort, setCurrentSort] = useState('id,desc');
+  const [currentKeyword, setCurrentKeyword] = useState('');
 
     useEffect(() => {
         if (!router.isReady) return;
@@ -134,17 +132,20 @@ function MeetupDetailPage() {
 
     // 정렬 핸들러 추가
     const handleSortChange = (sortParam) => {
+        setCurrentSort(sortParam);
         console.log("정렬 요청 실행:", sortParam);
         dispatch(
             getReviewListRequest({
                 meetupId: currentMeetupId,
-                sort: sortParam, // 예: 'likesCount,desc' 또는 'id,desc'
+                sort: sortParam, 
+                keyword: currentKeyword,
             }),
         );
     };
 
     // 리뷰 검색 핸들러 추가
     const handleSearch = (keyword) => {
+        setCurrentKeyword(keyword);
         console.log(
             "2. MeetupDetailPage에서 handleSearch 실행됨! 검색어:",
             keyword,
@@ -155,6 +156,7 @@ function MeetupDetailPage() {
             getReviewListRequest({
                 meetupId: currentMeetupId,
                 keyword: keyword,
+                sort: currentSort,
             }),
         );
     };
