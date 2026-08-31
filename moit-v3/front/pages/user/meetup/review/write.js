@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Radio, Input, Button, Typography, Divider, Space, Upload, Modal } from 'antd';
 import { StarFilled, PlusOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
@@ -41,6 +41,9 @@ function ReviewWritePage() {
   const [previewImage, setPreviewImage] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
 
+  // 💡 다중 선택 시 alert 창이 여러 번 뜨는 것을 방지하기 위한 ref 플래그
+  const alertShownRef = useRef(false);
+
   // URL 파라미터에서 reviewId 및 meetupId 추출 (안전장치 추가)
   const queryReviewId = router.isReady ? router.query.reviewId : null;
   const queryMeetupId = router.isReady ? (router.query.meetupId || router.query.id || router.query.meetup_id) : null;
@@ -78,7 +81,7 @@ function ReviewWritePage() {
             uid: `-${idx}`,
             name: rawUrl.substring(rawUrl.lastIndexOf('_') + 1) || `image-${idx}.png`,
             status: 'done',
-            id: img.reviewImageId || img.imageId || img.id,
+            id: img.imageId || img.reviewImageId || img.id,
             url: fullImageUrl,
             thumbUrl: fullImageUrl,
           };
@@ -140,6 +143,19 @@ function ReviewWritePage() {
   }, [success, error, dispatch, router, queryMeetupId, isEditMode, fromMypage, reviewDetail, queryNotificationId]);
 
   const handleImageChange = ({ fileList: newFileList }) => {
+    // 💡 이미지가 5개를 넘어가면 5개까지만 유지하고 alert은 딱 1번만 띄우기
+    if (newFileList.length > 5) {
+      if (!alertShownRef.current) {
+        alert('이미지는 최대 5개까지만 업로드할 수 있습니다.');
+        alertShownRef.current = true;
+        // 다음 이벤트 루프에서 플래그 초기화
+        setTimeout(() => {
+          alertShownRef.current = false;
+        }, 500);
+      }
+      setFileList(newFileList.slice(0, 5));
+      return;
+    }
     setFileList(newFileList);
   };
 
@@ -305,9 +321,17 @@ function ReviewWritePage() {
             fileList={fileList}
             onPreview={handlePreview}
             onChange={handleImageChange}
-            beforeUpload={() => false}
+            beforeUpload={(file) => {
+              // 💡 허용된 파일 형식 검사만 담당 (개수 초과는 onChange에서 제어)
+              const isImage = file.type.startsWith('image/');
+              if (!isImage) {
+                alert('이미지 파일만 업로드할 수 있습니다.');
+                return Upload.LIST_IGNORE;
+              }
+              return false; // 자동 업로드 방지
+            }}
             multiple
-            accept="image/*"
+            accept="image/png, image/jpeg, image/jpg, image/webp"
           >
             {fileList.length >= 5 ? null : uploadButton}
           </Upload>
