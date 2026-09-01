@@ -56,12 +56,10 @@ export default function ReviewItem({ review, targetMeetupId, onLikeReview }) {
   };
 
   const handleToggleLike = () => {
-    // 1. 누르는 즉시 UI를 먼저 반대로 뒤집어줍니다 (빠른 반응성)
     const nextLiked = !isLiked;
     setIsLiked(nextLiked);
     setLikesCount((prev) => (nextLiked ? prev + 1 : Math.max(0, prev - 1)));
 
-    // 2. 부모의 좋아요 API 호출
     if (onLikeReview) {
       onLikeReview(review.id);
     }
