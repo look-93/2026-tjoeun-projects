@@ -49,6 +49,18 @@ function MeetupRecruitInfo({ meetup, isOwner }) {
         <Card title="모집 정보" className="meetup-side-card">
             <Space direction="vertical" size={16} style={{ width: "100%" }}>
                 <Row justify="space-between">
+                     
+                    <Text type="secondary">모임일시</Text>
+
+                    <Text strong>
+                        {meetup.meetupAt
+                               .replace("T", " ")
+                               .slice(0, 16)}
+                    </Text>
+                </Row>   
+                
+                <Row justify="space-between">
+                     
                     <Text type="secondary">인원(최소/최대)</Text>
 
                     <Text strong>
