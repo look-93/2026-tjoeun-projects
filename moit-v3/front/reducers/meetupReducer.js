@@ -41,6 +41,8 @@ const initialState = {
     totalPage: 0,
 
     todayMeetupCount: 0, // 하루 등록한 모임 수
+    meetupDetailError: null, // 상세 조회 에러
+    applyError: null, // 모임 신청 에러
 
     createSuccess: false,
     updateSuccess: false,
@@ -78,7 +80,7 @@ const meetupReducer = createSlice({
         // --- 단건 모임 상세 조회 ---
         fetchMeetupDetailRequest: (state) => {
             state.loading = true;
-            state.error = null;
+            state.meetupDetailError = null;
         },
 
         fetchMeetupDetailSuccess: (state, action) => {
@@ -88,7 +90,7 @@ const meetupReducer = createSlice({
 
         fetchMeetupDetailFailure: (state, action) => {
             state.loading = false;
-            state.error = action.payload;
+            state.meetupDetailError = action.payload;
         },
 
         // --- 모임 등록 ---
@@ -155,7 +157,7 @@ const meetupReducer = createSlice({
         // --- 모임신청 ---
         applyMeetupRequest: (state) => {
             state.loading = true;
-            state.error = null;
+            state.applyError = null;
             state.applySuccess = false;
         },
 
@@ -194,7 +196,7 @@ const meetupReducer = createSlice({
 
         applyMeetupFailure: (state, action) => {
             state.loading = false;
-            state.error = action.payload;
+            state.applyError = action.payload;
             state.applySuccess = false;
         },
 
@@ -503,6 +505,7 @@ const meetupReducer = createSlice({
             state.error = null;
 
             state.meetup = null; // 이전 상세 모임 데이터 초기화
+            state.meetupDetailError = null;
 
             state.createSuccess = null;
             state.updateSuccess = null;
@@ -519,6 +522,11 @@ const meetupReducer = createSlice({
 
         resetBoostSuccess: (state) => {
             state.boostSuccess = false;
+        },
+
+        resetApplyState: (state) => {
+            state.applySuccess = false;
+            state.applyError = null;
         },
     },
 });
@@ -633,6 +641,7 @@ export const {
     resetMeetupState,
     resetDeleteSuccess,
     resetBoostSuccess,
+    resetApplyState,
 } = meetupReducer.actions;
 
 export default meetupReducer.reducer;
