@@ -327,6 +327,18 @@ public class MeetupController {
         return ResponseEntity.ok().build();
     }
     
+	// 하루 모임 수 조회
+	@GetMapping("/todayMeetupCount")
+	public ResponseEntity<Long> todayMeetupCount(Authentication authentication){
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        Long memberId = userDetails.getAppUserId();
+        
+        Long todayCount = meetupService.todayMeetupCount(memberId);
+        
+        return ResponseEntity.ok(todayCount);        
+	}
+	
 	// ################### open api ###################
 
 	@Operation(summary = "AI 모임 제목/카테고리/내용 추천", description = "사용자가 입력한 키워드를 기반으로 AI가 모임 제목, 카테고리, 내용을 추천합니다.")
@@ -344,6 +356,7 @@ public class MeetupController {
 //
 //	    return ResponseEntity.ok(response);
 //	}
+
 }
 
 //성공 응답

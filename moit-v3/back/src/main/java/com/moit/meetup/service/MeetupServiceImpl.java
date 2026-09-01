@@ -272,15 +272,9 @@ public class MeetupServiceImpl implements MeetupService{
 		return response;
 	}
 	
-	//모임등록
-	@Transactional
+	// 하루 등록한 모임 수 조회
 	@Override
-	public void create(MeetupRequestDto meetupRequestDto, Long memberId, List<MultipartFile> files){
-		Member member = memberRepository.findById(memberId)
-										.orElseThrow(()-> new ResourceNotFoundException("존재하지 않는 회원입니다. MEMBERID" + memberId));
-		
-		Sigungu sigungu = meetupSigunguRepository.findById(meetupRequestDto.getSigunguId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 지역입니다. SigunguId" + meetupRequestDto.getSigunguId()));
-		MeetupCategory meetupCategory = meetupCategoryRepository.findById(meetupRequestDto.getCategoryId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 카테고리입니다. meetupCategory" + meetupRequestDto.getCategoryId()));
+	public Long todayMeetupCount(Long memberId) {
 		
 		//하루모임 3개제한
 		ZoneId zoneId = ZoneId.of("Asia/Seoul");
@@ -293,21 +287,33 @@ public class MeetupServiceImpl implements MeetupService{
                 today.atStartOfDay();
         //다음날 00시
         LocalDateTime startOfNextDay =
-                today.plusDays(1).atStartOfDay();
+                today.plusDays(1).atStartOfDay();   
+        
+        return meetupRepository.countTodayCreatedMeetups(
+                memberId,
+                startOfDay,
+                startOfNextDay
+        );
+	}
+	
+	//모임등록
+	@Transactional
+	@Override
+	public void create(MeetupRequestDto meetupRequestDto, Long memberId, List<MultipartFile> files){
+		Member member = memberRepository.findById(memberId)
+										.orElseThrow(()-> new ResourceNotFoundException("존재하지 않는 회원입니다. MEMBERID" + memberId));
+		
+		Sigungu sigungu = meetupSigunguRepository.findById(meetupRequestDto.getSigunguId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 지역입니다. SigunguId" + meetupRequestDto.getSigunguId()));
+		MeetupCategory meetupCategory = meetupCategoryRepository.findById(meetupRequestDto.getCategoryId()).orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 카테고리입니다. meetupCategory" + meetupRequestDto.getCategoryId()));
 
-        long todayCount =
-                meetupRepository.countTodayCreatedMeetups(
-                        memberId,
-                        startOfDay,
-                        startOfNextDay
-                );
-
+        long todayCount = todayMeetupCount(memberId);
+		
         if (todayCount >= 3) {
             throw new IllegalArgumentException(
                     "하루 최대 3개의 모임만 등록할 수 있습니다."
             );
-        }		
-		
+        }
+        
 	    Meetup meetup = Meetup.builder()
 							  .title(meetupRequestDto.getTitle())
 							  .content(meetupRequestDto.getContent())
