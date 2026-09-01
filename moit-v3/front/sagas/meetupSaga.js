@@ -102,6 +102,11 @@ import {
     boostMeetupSuccess,
     boostMeetupFailure,
     resetBoostSuccess,
+
+    // 오늘 등록한 모임 수
+    fetchTodayMeetupCountRequest,
+    fetchTodayMeetupCountSuccess,
+    fetchTodayMeetupCountFailure,
 } from "../reducers/meetupReducer";
 
 const MEETUP_API_BASE = "/api/meetups";
@@ -667,6 +672,26 @@ export function* boostMeetup(action) {
 }
 
 // ==================================================
+// 오늘 등록한 모임 수
+// GET /api/meetups/todayMeetupCount
+// ==================================================
+const fetchTodayMeetupCountAPI = () => {
+    return api.get(`${MEETUP_API_BASE}/todayMeetupCount`);
+};
+
+export function* fetchTodayMeetupCount(action) {
+    try {
+        const retult = yield call(fetchTodayMeetupCountAPI);
+        yield put(fetchTodayMeetupCountSuccess(retult.data));
+    } catch (err) {
+        fetchTodayMeetupCountFailure(
+            err.response?.data?.error ||
+                "하루 최대 3개의 모임만 등록할 수 있습니다.",
+        );
+    }
+}
+
+// ==================================================
 // Watcher
 // ==================================================
 
@@ -719,6 +744,8 @@ export function* watchMeetupSaga() {
     );
 
     yield takeLatest(boostMeetupRequest.type, boostMeetup);
+
+    yield takeLatest(fetchTodayMeetupCountRequest.type, fetchTodayMeetupCount);
 }
 
 // ==================================================

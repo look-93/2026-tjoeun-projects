@@ -40,6 +40,8 @@ const initialState = {
     totalCount: 0,
     totalPage: 0,
 
+    todayMeetupCount: 0, // 하루 등록한 모임 수
+
     createSuccess: false,
     updateSuccess: false,
     deleteSuccess: false,
@@ -480,6 +482,21 @@ const meetupReducer = createSlice({
             state.boostSuccess = false;
         },
 
+        fetchTodayMeetupCountRequest: (state) => {
+            state.loading = true;
+            state.error = null;
+        },
+
+        fetchTodayMeetupCountSuccess: (state, action) => {
+            state.loading = false;
+            state.todayMeetupCount = action.payload;
+        },
+
+        fetchTodayMeetupCountFailure: (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        },
+
         // --- 상태조기화 ---
         resetMeetupState: (state) => {
             state.loading = false;
@@ -606,6 +623,11 @@ export const {
     boostMeetupRequest,
     boostMeetupSuccess,
     boostMeetupFailure,
+
+    // 오늘 등록한 모임 수
+    fetchTodayMeetupCountRequest,
+    fetchTodayMeetupCountSuccess,
+    fetchTodayMeetupCountFailure,
 
     // 상태 초기화
     resetMeetupState,

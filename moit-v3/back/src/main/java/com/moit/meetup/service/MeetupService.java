@@ -96,4 +96,7 @@ public interface MeetupService {
 	
 	// 날씨 알림 sms
 	public void sendTomorrowWeatherNotification();
+	
+	// 하루 등록한 모임 수 조회
+	public Long todayMeetupCount(Long memberId);
 }
