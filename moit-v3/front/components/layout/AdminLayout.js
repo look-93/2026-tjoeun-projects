@@ -14,7 +14,7 @@ function AdminLayout({ children }) {
   const { user, isInitialized}  = useSelector((state) => state.user);
   const [checked, setChecked] = useState(false);
 
-  //console.log(user)
+
 
   //관리자만 관리자페이지 접근 가능하도록 수정
   useEffect(() => {
