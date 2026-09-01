@@ -66,7 +66,7 @@ public class AdvertisementScheduler {
     
     // 3시간마다 통계 ai 요약 저장
 //    @Scheduled(cron = "0 0 */3 * * *")
-    @Scheduled(cron = "0 */1 * * * *")
+    //@Scheduled(cron = "0 */1 * * * *")
     public void generateAiSummary() {
     	System.out.println("ai 요약 시작");
     	try {
