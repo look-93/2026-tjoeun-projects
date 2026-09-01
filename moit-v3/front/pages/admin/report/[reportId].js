@@ -217,6 +217,12 @@ function ReportDetailPage() {
     
     // 신고 삭제 요청
     const handleDelete = () => {
+        // 삭제 사유 공백 막기
+        if (!processReason.trim()) {
+            message.warning('삭제 사유를 입력해주세요.');
+            return;
+        }
+
         Modal.confirm({
             title: '신고 내역을 삭제하시겠습니까?',
             content: '삭제 후에는 신고 내역을 확인할 수 없습니다.',
@@ -227,7 +233,10 @@ function ReportDetailPage() {
                 danger: true
             },
             onOk: ()=> {
-                dispatch( deleteAdminReportRequest({reportId: Number(reportId)}) );
+                dispatch( deleteAdminReportRequest({
+                    reportId: Number(reportId),
+                    processReason: processReason.trim()
+                }));
             }
         });
     };
@@ -250,24 +259,18 @@ function ReportDetailPage() {
 
                 <Descriptions bordered column={1}>
                     {/* 신고 번호 */}
-                    <Descriptions.Item label="신고번호 (reportId)">
+                    <Descriptions.Item label="신고번호">
                         {currentReport?.reportId}번 신고글
                     </Descriptions.Item>
 
-                    <Descriptions.Item label="신고자 (memberId) & 매너 점수">
-                        {currentReport.memberNickname ?? '-'}
-                        {' '}
-                        ({currentReport.memberId ?? '-'}번)
-                        {' => '}
+                    <Descriptions.Item label="신고 대상 / 매너 점수">
+                        {currentReport.memberNickname ?? '-'}{' / '}
                         {currentReport?.trustScore}점{' '}
                         <ReportStatusCodeTag statusCode={currentReport.statusCode} />
                     </Descriptions.Item>
 
-                    <Descriptions.Item label="신고 대상 회원 (targetMemberId) & 매너 점수">
-                        {currentReport.targetMemberNickname ?? '-'}
-                        {' '}
-                        ({currentReport.targetMemberId ?? '-'}번)
-                        {' => '}
+                    <Descriptions.Item label="신고 대상 회원 / 매너 점수">
+                        {currentReport.targetMemberNickname ?? '-'}{' / '}
                         {currentReport?.targetTrustScore}점{' '}
                         <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
                     </Descriptions.Item>
@@ -388,7 +391,7 @@ function ReportDetailPage() {
 
                         <Input.TextArea
                             rows={4}
-                            placeholder="승인 또는 반려 사유를 입력하세요."
+                            placeholder="승인, 반려 또는 삭제 사유를 입력하세요."
                             value={processReason}
                             onChange={(e) => {
                                 setProcessReason(e.target.value);
@@ -490,13 +493,16 @@ function ReportDetailPage() {
                         </Descriptions.Item>
                     </Descriptions>
                 ))
-
+            ) : currentReport?.status === 'APPROVED' || currentReport.status === 'REJECTED' ? (
+                <div>
+                    처리 이력이 삭제되었습니다. (유효기간 3년 만료)
+                </div>
             ) : (
                 <div>
                     처리 이력이 없습니다.
                 </div>
             )}
-        </Card>
+            </Card>
         </div>
     );
 }

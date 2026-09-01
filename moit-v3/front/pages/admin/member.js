@@ -96,14 +96,14 @@ function AdminMemberPage() {
         // -----------------------------------------------------
         const accessToken =localStorage.getItem('accessToken');
 
-        console.log('===== ADMIN AUTH CHECK =====');
-        console.log('accessToken 존재:',!!accessToken);
+        // console.log('===== ADMIN AUTH CHECK =====');
+        // console.log('accessToken 존재:',!!accessToken);
 
         // -----------------------------------------------------
         // 로그인하지 않은 경우
         // -----------------------------------------------------
         if (!accessToken) {
-          console.log('관리자 페이지 접근 실패 - 로그인 필요');
+          // console.log('관리자 페이지 접근 실패 - 로그인 필요');
           router.replace('/user/member/login');
 
           return;
@@ -116,9 +116,9 @@ function AdminMemberPage() {
         const response = await api.get('/api/members/me' );
         const currentUser = response.data;
 
-        console.log('===== ADMIN USER =====');
-        console.log(currentUser);
-        console.log('memberTypeId:',currentUser.memberTypeId);
+        // console.log('===== ADMIN USER =====');
+        // console.log(currentUser);
+        // console.log('memberTypeId:',currentUser.memberTypeId);
 
         // -----------------------------------------------------
         // 사용자 정보 저장
@@ -129,7 +129,7 @@ function AdminMemberPage() {
         // 관리자 / 최고관리자
         // -----------------------------------------------------
         if (currentUser.memberTypeId === 3 ||currentUser.memberTypeId === 4) {
-          console.log('관리자 접근 허용');
+          // console.log('관리자 접근 허용');
           setCheckingAuth(false);
 
           return;
@@ -138,7 +138,7 @@ function AdminMemberPage() {
         // -----------------------------------------------------
         // 일반회원 / 제휴업체
         // -----------------------------------------------------
-        console.log('관리자 접근 차단');
+        // console.log('관리자 접근 차단');
 
         router.replace('/');
       } catch (error) {
@@ -172,10 +172,10 @@ function AdminMemberPage() {
     try {
       setLoading(true);
 
-      console.log('===== ADMIN MEMBER LIST =====');
-      console.log('memberTypeId:',memberTypeId);
-      console.log('keyword:',keyword);
-      console.log('page:',page);
+      // console.log('===== ADMIN MEMBER LIST =====');
+      // console.log('memberTypeId:',memberTypeId);
+      // console.log('keyword:',keyword);
+      // console.log('page:',page);
 
       // -----------------------------------------------------
       // API 호출
@@ -194,8 +194,8 @@ function AdminMemberPage() {
           }
         );
 
-      console.log('===== ADMIN MEMBERS RESPONSE =====');
-      console.log(response.data);
+      // console.log('===== ADMIN MEMBERS RESPONSE =====');
+      // console.log(response.data);
 
       // -----------------------------------------------------
       // 회원 목록
@@ -231,11 +231,11 @@ function AdminMemberPage() {
   // =========================================================
   const loadStats = async () => {
     try {
-      console.log('===== ADMIN MEMBER STATS =====');
+      // console.log('===== ADMIN MEMBER STATS =====');
       const response = await api.get('/api/admin/members/stats');
 
-      console.log('===== ADMIN MEMBER STATS RESPONSE =====');
-      console.log(response.data);
+      // console.log('===== ADMIN MEMBER STATS RESPONSE =====');
+      // console.log(response.data);
 
       const data = response.data;
       setStats([
@@ -614,8 +614,8 @@ function AdminMemberPage() {
   const rowSelection = {
     checkStrictly,
     onChange: (selectedRowKeys,selectedRows) => {
-      console.log('선택된 ID:',selectedRowKeys);
-      console.log('선택된 데이터:',selectedRows);
+      // console.log('선택된 ID:',selectedRowKeys);
+      // console.log('선택된 데이터:',selectedRows);
     },
   };
 

@@ -38,6 +38,9 @@ function UserMyMeetupPage() {
     const router = useRouter();
     const dispatch = useDispatch();
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
+
     // 신청자관리모달
     const [applicantModalOpen, setApplicantModalOpen] = useState(false);
     const [selectedMeetupId, setSelectedMeetupId] = useState(null);
@@ -50,6 +53,7 @@ function UserMyMeetupPage() {
         deleteSuccess,
         boostSuccess,
         error,
+        totalCount,
     } = useSelector((state) => state.meetup);
 
     // 승인 처리
@@ -166,11 +170,13 @@ function UserMyMeetupPage() {
     useEffect(() => {
         dispatch(
             fetchMyMeetupsRequest({
-                page: 0,
-                size: 10,
+                page: currentPage - 1,
+                size: pageSize,
             }),
         );
+    }, [dispatch, currentPage]);
 
+    useEffect(() => {
         dispatch(fetchMyMeetupCountRequest());
     }, [dispatch]);
 
@@ -181,15 +187,15 @@ function UserMyMeetupPage() {
 
         dispatch(
             fetchMyMeetupsRequest({
-                page: 0,
-                size: 10,
+                page: currentPage - 1,
+                size: pageSize,
             }),
         );
 
         dispatch(fetchMyMeetupCountRequest());
 
         dispatch(resetDeleteSuccess());
-    }, [deleteSuccess, dispatch]);
+    }, [deleteSuccess, dispatch, currentPage]);
 
     useEffect(() => {
         if (!boostSuccess) return;
@@ -198,8 +204,8 @@ function UserMyMeetupPage() {
 
         dispatch(
             fetchMyMeetupsRequest({
-                page: 0,
-                size: 10,
+                page: currentPage - 1,
+                size: pageSize,
             }),
         );
         dispatch(resetBoostSuccess());
@@ -211,7 +217,7 @@ function UserMyMeetupPage() {
         message.error(error);
     }, [error]);
 
-    console.log(myMeetups);
+    //console.log(myMeetups);
 
     // 테이블
     const columns = [
@@ -219,7 +225,8 @@ function UserMyMeetupPage() {
             title: "번호",
             key: "number",
             align: "center",
-            render: (_, record, index) => myMeetups.length - index,
+            render: (_, record, index) =>
+                totalCount - ((currentPage - 1) * pageSize + index),
         },
         {
             title: "모임명",
@@ -344,8 +351,13 @@ function UserMyMeetupPage() {
                     columns={columns}
                     dataSource={myMeetups}
                     pagination={{
-                        pageSize: 10,
+                        current: currentPage,
+                        pageSize: pageSize,
+                        total: totalCount,
                         showSizeChanger: false,
+                        onChange: (page) => {
+                            setCurrentPage(page);
+                        },
                     }}
                     scroll={{ x: 600 }}
                 />

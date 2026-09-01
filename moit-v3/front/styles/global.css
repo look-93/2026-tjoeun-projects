@@ -961,6 +961,9 @@ a {
     display: flex;
     flex-direction: column;
     gap: 25px;
+    
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
 }
 
 /* =========================

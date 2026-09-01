@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -21,10 +22,9 @@ import com.moit.advertisement.entity.Advertisement;
 import com.moit.advertisement.entity.AdvertisementPayment;
 import com.moit.advertisement.enums.AdStatus;
 import com.moit.advertisement.enums.PaymentType;
-// import com.moit.advertisement.enums.PaymentHistoryStatus; // 본인 패키지에 맞게 주석 해제
-// import com.moit.advertisement.enums.PaymentStatus; // 본인 패키지에 맞게 주석 해제
+// import com.moit.advertisement.enums.PaymentHistoryStatus; 
+// import com.moit.advertisement.enums.PaymentStatus; 
 import com.moit.advertisement.repository.AdvertisementPaymentRepository;
-import com.moit.advertisement.repository.AdvertisementRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,17 +33,14 @@ import lombok.RequiredArgsConstructor;
 public class TossPaymentServiceImpl implements TossPaymentService {
 
     private final AdvertisementPaymentRepository paymentRepository;
-    private final AdvertisementRepository advertisementRepository;
 
     @Value("${toss.secret-key}")
     private String tossSecretKey;
 
     @Override
     @Transactional
-    public void confirmPayment(PaymentConfirmRequestDto requestDto) {
-    	System.out.println("🔥 프론트에서 넘어온 orderId: [" + requestDto.getOrderId() + "]");
-        System.out.println("🔥 프론트에서 넘어온 amount: [" + requestDto.getAmount() + "]");
-    	System.out.println("🔥 주입된 토스 시크릿키: [" + tossSecretKey + "]");
+    public void confirmPayment(PaymentConfirmRequestDto requestDto,
+            	Long memberId) {
         
         // 1. 주문번호로 결제 내역 조회
         AdvertisementPayment payment = paymentRepository.findByOrderId(requestDto.getOrderId())
@@ -51,7 +48,16 @@ public class TossPaymentServiceImpl implements TossPaymentService {
                     System.out.println("❌ DB에 이 orderId가 없음!!");
                     return new IllegalArgumentException("존재하지 않는 주문번호입니다.");
                 });
+        
+        Advertisement advertisement = payment.getAdvertisement();
 
+        if (!Objects.equals(
+                advertisement.getAdvertiser().getId(),
+                memberId
+        )) {
+            throw new IllegalStateException( "본인의 결제만 승인할 수 있습니다." );
+        }
+        
         // 2. 금액 검증 (위변조 방지)
         if (payment.getAmount().compareTo(requestDto.getAmount()) != 0) {
             throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
@@ -89,8 +95,6 @@ public class TossPaymentServiceImpl implements TossPaymentService {
 
         	    String tossMethod = rootNode.path("method").asText();
 
-        	    System.out.println("🔥 Toss 결제수단: [" + tossMethod + "]");
-
         	    String paymentMethod;
 
         	    switch (tossMethod) {
@@ -119,14 +123,12 @@ public class TossPaymentServiceImpl implements TossPaymentService {
         	            paymentMethod = "OTHER";
         	            break;
         	    }
-
-        	    System.out.println("🔥 DB 저장용 결제수단: [" + paymentMethod + "]");
         	    
             	// 1. 결제 이력(History) 성공 처리
                 payment.updatePaymentSuccess(requestDto.getPaymentKey(), paymentMethod); 
                 
                 // 2. 광고 본체 가져오기
-                Advertisement advertisement = payment.getAdvertisement();
+//                Advertisement advertisement = payment.getAdvertisement();
                 
              // 결제 유형에 따른 광고 상태 처리
                 if (payment.getPaymentType() == PaymentType.INITIAL) {

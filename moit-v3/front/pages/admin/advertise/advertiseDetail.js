@@ -241,7 +241,7 @@ function AdvertiseDetailPage() {
           </Descriptions.Item>
 
           <Descriptions.Item label="결제 금액">
-            {formatPrice(advertise.paymentAmount ?? '-')}
+            {formatPrice(advertise.paymentAmount)}
           </Descriptions.Item>
 
           <Descriptions.Item label="결제일">
@@ -337,8 +337,17 @@ function formatDateTime(value) {
 }
 
 function formatPrice(value) {
-  if (value == null) return '-';
-  return `${Number(value).toLocaleString()}원`;
+  if (value == null || value === '') {
+    return '-';
+  }
+
+  const number = Number(value);
+
+  if (Number.isNaN(number)) {
+    return '-';
+  }
+
+  return `${number.toLocaleString()}원`;
 }
 
 function formatPaymentMethod(value) {

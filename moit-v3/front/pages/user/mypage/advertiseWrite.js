@@ -129,7 +129,15 @@ function AdvertiseWritePage() {
 
           // 기존 이미지 미리보기 세팅
           if (data.imageList && data.imageList.length > 0) {
-            const newImages = { MAIN: [], MEETUP_LIST_BANNER: [], MEETUP_LIST_SIDEBAR: [], MEETUP_DETAIL_SIDEBAR: [] };
+            const newImages = {
+              MAIN: [],
+              MEETUP_LIST_BANNER: [],
+              MEETUP_LIST_SIDEBAR: [],
+              MEETUP_DETAIL_SIDEBAR: []
+            };
+
+            const existingTypes = [];
+
             data.imageList.forEach((img) => {
               if (newImages[img.imageType]) {
                 newImages[img.imageType] = [{
@@ -138,9 +146,11 @@ function AdvertiseWritePage() {
                   status: 'done',
                   url: `${process.env.NEXT_PUBLIC_API_BASE_URL}${img.imageUrl}`,
                 }];
+                existingTypes.push(img.imageType);
               }
             });
             setImageFiles(newImages);
+            setExistingImageTypes(existingTypes);
           }
         }
 
@@ -162,6 +172,9 @@ function AdvertiseWritePage() {
     MEETUP_LIST_SIDEBAR: [],
     MEETUP_DETAIL_SIDEBAR: [],
   });
+
+  const [existingImageTypes, setExistingImageTypes] = useState([]);
+  const [deletedImageTypes, setDeletedImageTypes] = useState([]);
 
   // ==========================================
   // 🤖 AI 작성 버튼 클릭 이벤트 핸들러
@@ -205,45 +218,85 @@ function AdvertiseWritePage() {
     }
   };
 
-  //////// 기간 계산
+  // ==========================================
+  // 광고 기간 계산
+  // 백엔드 AdvertisementCalculationServiceImpl과 동일
+  // 시작일 / 종료일 모두 포함
+  // ==========================================
   const calculateDays = (period) => {
+
     if (!period || period.length !== 2) {
-        return 0;
+      return 0;
     }
 
     const start = period[0];
     const end = period[1];
 
-    const diff = end.diff(start, 'day', true);
+    if (!start || !end) {
+      return 0;
+    }
 
-    return Math.ceil(diff);
+    const startDate = start.startOf('day');
+    const endDate = end.startOf('day');
+
+    if (endDate.isBefore(startDate)) {
+      return 0;
+    }
+
+    return endDate.diff(startDate, 'day') + 1;
   };
 
-  /////// 가격 계산
+  // ==========================================
+  // 광고 기본 가격 계산
+  // 백엔드 AdvertisementCalculationServiceImpl과 동일
+  // ==========================================
   const calculateAdPrice = (days, grade) => {
+
     if (!days || days <= 0) {
-        return {
+      return {
         total: 0,
         details: [],
-        };
+      };
     }
 
     let remainingDays = days;
     let total = 0;
     const details = [];
 
-    // DB에서 가져온 가격을 날짜(days) 내림차순으로 정렬
-    const prices = [...adPrices].sort((a, b) => b.days - a.days);
+    // 기간이 큰 순서
+    const prices = [...adPrices]
+      .sort((a, b) => b.days - a.days);
 
-        for (const price of prices) {
-      const count = Math.floor(remainingDays / price.days);
-      if (count === 0) continue;
+    // ==========================================
+    // 기간이 큰 상품부터 적용
+    // ==========================================
+    for (const price of prices) {
 
-      const unitPrice = grade === 'PREMIUM' ? price.premiumPrice : price.generalPrice;
-      const amount = unitPrice * count;
+      if (!price.days || price.days <= 0) {
+        continue;
+      }
+
+      const count =
+        Math.floor(
+          remainingDays / price.days
+        );
+
+      if (count <= 0) {
+        continue;
+      }
+
+      const unitPrice =
+        grade === 'PREMIUM'
+          ? Number(price.premiumPrice || 0)
+          : Number(price.generalPrice || 0);
+
+      const amount =
+        unitPrice * count;
 
       total += amount;
-      remainingDays -= price.days * count;
+
+      remainingDays -=
+        price.days * count;
 
       details.push({
         days: price.days,
@@ -253,7 +306,52 @@ function AdvertiseWritePage() {
       });
     }
 
-    return { total, details };
+    // ==========================================
+    // 남은 기간이 있으면
+    // 가장 작은 기간 상품으로 올림 처리
+    // 백엔드와 동일
+    // ==========================================
+    if (
+      remainingDays > 0
+      && prices.length > 0
+    ) {
+
+      const smallestPrice =
+        prices[prices.length - 1];
+
+      const smallestPeriod =
+        smallestPrice.days;
+
+      if (smallestPeriod > 0) {
+
+        const count =
+          Math.ceil(
+            remainingDays / smallestPeriod
+          );
+
+        const unitPrice =
+          grade === 'PREMIUM'
+            ? Number(smallestPrice.premiumPrice || 0)
+            : Number(smallestPrice.generalPrice || 0);
+
+        const amount =
+          unitPrice * count;
+
+        total += amount;
+
+        details.push({
+          days: smallestPeriod,
+          count,
+          unitPrice,
+          amount,
+          remainingDays,
+        });
+      }
+    }
+
+    return {
+      total, details,
+    };
   };
 
   const isEdit = !!adId;
@@ -266,7 +364,32 @@ function AdvertiseWritePage() {
   ];
 
   const handleImageChange = (type, { fileList }) => {
-    setImageFiles((prev) => ({ ...prev, [type]: fileList.slice(-1) }));
+    const newFileList = fileList.slice(-1);
+
+    setImageFiles((prev) => ({
+      ...prev,
+      [type]: newFileList,
+    }));
+
+    // 기존 이미지가 있었는데 사용자가 삭제한 경우
+    if (
+      existingImageTypes.includes(type)
+      && newFileList.length === 0
+    ) {
+      setDeletedImageTypes((prev) => {
+        if (prev.includes(type)) {
+          return prev;
+        }
+        return [...prev, type];
+      });
+      return
+    }  
+    // 새 이미지를 선택했다면 삭제 대상에서 제거
+    if (newFileList.length > 0) {
+      setDeletedImageTypes((prev) =>
+        prev.filter((item) => item !== type)
+      );
+    }
   };
 
   // 등록 / 수정 서브밋
@@ -306,6 +429,14 @@ function AdvertiseWritePage() {
           formData.append('imageTypes', imageType);
         }
         // originFileObj가 없고 url만 -> 기존에 있던 이미지이므로 새로 폼데이터에 추가하지 않고 유지
+      });
+
+      // 삭제할 기존 이미지 위치 전달
+      deletedImageTypes.forEach((type) => {
+        formData.append(
+          'deletedImageTypes',
+          type
+        );
       });
 
       if (isEdit) {

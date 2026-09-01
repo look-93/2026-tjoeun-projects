@@ -59,16 +59,18 @@ public interface AdvertisementService {
     // 광고 등록
     Long insertAdvertisement(
 	    AdvertisementDto.AdvertisementRequestDto dto,
-	    Long advertiserId
+	    Long advertiserId,
+        List<String> imageTypes
 	);
 
     // 광고 수정
-    int updateAdvertisement(
+    void updateAdvertisement(
             Long adId,
             Long memberId,
             AdvertisementDto.AdvertisementUpdateRequestDto dto,
             List<MultipartFile> imageFiles,
-            List<String> imageTypes
+            List<String> imageTypes,
+            List<String> deletedImageTypes
     );
 
     // 광고 삭제

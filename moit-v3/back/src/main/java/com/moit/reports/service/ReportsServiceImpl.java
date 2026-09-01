@@ -169,7 +169,11 @@ public class ReportsServiceImpl implements ReportsService {
 	@Transactional
 	@Override
 	public ReportResponseDto updateAdminReport(Long reportId, Long memberId, ReportProcessDto processDto) {
-
+		// 처리 사유 공백 막기
+		if (processDto.getProcessReason() == null || processDto.getProcessReason().isBlank()) {
+			throw new IllegalArgumentException("처리 사유를 입력해주세요.");
+		}
+		
 		// 신고 처리 가능? tryLock
 		boolean acquired = reportLockService.tryLock(reportId);
 
@@ -375,6 +379,17 @@ public class ReportsServiceImpl implements ReportsService {
 		}
 
 	}
+	
+	// 관리자 처리 로그 자동 삭제 (3년 전)
+	@Override
+	@Transactional
+	public long deleteAuditLogs() {
+		LocalDateTime cutoff = LocalDateTime.now().minusYears(3);
+		return reportAuditLogRepository.deleteByProcessedAtBefore(cutoff);
+	}
+	
+	
+	
 
 	//////////////////////////////////////////////////////////////////////////////
 	// 신고 대상 회원 정보 찾기...
@@ -497,6 +512,8 @@ public class ReportsServiceImpl implements ReportsService {
 		return memberRepository.findById(memberId)
 				.orElseThrow(() -> new IllegalArgumentException("관리자 조회 오류! MemberId: " + memberId));
 	}
+
+	
 
 	// 관리자처리이력 - 관리자 처리 감사 로그 (상태) 저장
 	// entity.ReportAuditLog 사용

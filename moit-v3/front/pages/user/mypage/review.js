@@ -165,7 +165,8 @@ function UserMyReviewPage() {
       width: '20%',
       render: (meetupId, record) => (
         <div>
-          <Text strong>모임 #{meetupId}</Text>
+          {/* 🌟 record.meetupTitle(모임 이름)을 먼저 보여주고, 없을 때만 기존처럼 모임 번호를 보여줍니다 */}
+          <Text strong>{record.meetupTitle || `모임 #${meetupId}`}</Text>
           <br />
           <Text type="secondary" style={{ fontSize: 12 }}>
             {record.createdAt ? record.createdAt.substring(0, 10) : ''}

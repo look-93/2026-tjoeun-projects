@@ -3,6 +3,7 @@ package com.moit.qna.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.moit.qna.dao.QuestionMapper;
 import com.moit.qna.dto.NotificationDto;
@@ -45,6 +46,13 @@ public class NotificationService {
             notificationId,
             memberId
         );
+    }
+    
+    @Transactional
+    public void delete(Long answerId, Long questionId) {
+        questionMapper.deleteAnswer(answerId);
+        questionMapper.updateStatusPending(questionId);
+        questionMapper.deleteAnswerNotification(questionId);
     }
     
 }

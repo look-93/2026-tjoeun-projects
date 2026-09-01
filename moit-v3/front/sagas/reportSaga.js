@@ -159,10 +159,7 @@ export const updateAdminReportAPI = (payload)=> {
     console.log('관리자 처리 processDto:', processDto);
 
     console.log('관리자 처리 reportId:', reportId);
-    console.log(
-        '관리자 처리 processDto:',
-        JSON.stringify(processDto)
-    );
+    console.log('관리자 처리 processDto:', JSON.stringify(processDto));
 
     // @PathVariable("reportId") Long reportId
     // @RequestBody ReportProcessDto processDto

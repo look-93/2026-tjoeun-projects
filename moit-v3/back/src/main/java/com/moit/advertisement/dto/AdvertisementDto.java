@@ -120,7 +120,13 @@ public class AdvertisementDto {
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime endDatetime;
 
-        private BigDecimal totalBudget;        
+        // ==========================================
+        // 가격 정보
+        // ==========================================
+        private BigDecimal basePrice;
+        private BigDecimal positionPrice;
+        private BigDecimal totalBudget;
+
         
         private List<AdPosition> positions;
     }
@@ -146,10 +152,17 @@ public class AdvertisementDto {
 
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime startDatetime;
+        
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime endDatetime;
 
+        // 서버에서 현재 가격표 기준으로 다시 계산
+        private BigDecimal basePrice;
+        private BigDecimal positionPrice;
         private BigDecimal totalBudget;
+
+        // 광고가 실제 사용하는 전체 위치
+        private List<AdPosition> positions;
     }
 
 
@@ -214,6 +227,14 @@ public class AdvertisementDto {
         private Integer priorityScore;
 
         private BigDecimal totalBudget;
+        
+        // ==========================================
+        // 가격 계산 정보
+        // ==========================================
+        private Integer totalDays;
+        private BigDecimal basePrice;
+        private BigDecimal positionPrice;
+        private BigDecimal calculatedAmount;
 
         private BigDecimal fatigueScore;
 

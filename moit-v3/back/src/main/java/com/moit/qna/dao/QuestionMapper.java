@@ -42,8 +42,11 @@ public interface QuestionMapper {
     // 문의 수정
     void updateQuestion(QuestionRequestDto dto);
 
-    // 문의 수정시 기존 이미지 선택 삭제
+    // 문의 수정시 기존 이미지 선택 삭제(논리)
     void deleteQuestionImagesByIds(List<Long> imageIds);
+
+    // 문의 수정시 기존 이미지 조회 (실제 파일 삭제용)
+	List<QuestionImageDto> findQuestionImagesByIds(List<Long> deleteImageIds);
     
     // 문의 삭제
     void deleteQuestion(Long questionId);
@@ -139,6 +142,8 @@ public interface QuestionMapper {
     	    @Param("memberId") Long memberId
     	);
     void deleteOldestNotification(Long memberId);
+    void deleteAnswerNotification(Long questionId);
+    void deleteNotificationsByQuestionId(Long questionId);
     int countNotifications(Long memberId);
     List<NotificationDto> selectUnread(Long memberId);
     List<NotificationDto> selectAll(Long memberId);

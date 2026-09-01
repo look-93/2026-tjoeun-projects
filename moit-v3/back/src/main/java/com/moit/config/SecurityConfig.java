@@ -71,7 +71,8 @@ public class SecurityConfig {
                 "/api/reviews/**",
                 "/api/admin/**",
                 "/api/payment/**",
-                "/user/advertisement/aiAdvertise"
+                "/user/advertisement/aiAdvertise",
+                "/api/common/**"              
 
             )
         );
@@ -159,7 +160,10 @@ public class SecurityConfig {
             // -------------------------------------------------
             // 회원 API
             // -------------------------------------------------
-            .requestMatchers("/api/members/**")
+            .requestMatchers(
+            		"/api/members/**",
+            		"/api/common/**"
+            )
             .authenticated()
 
             // -------------------------------------------------
@@ -178,13 +182,17 @@ public class SecurityConfig {
 
             // -------------------------------------------------
             // 제휴업체 광고
+
             // -------------------------------------------------
             // 20260830 bora추가
             .requestMatchers(
-            	    "/api/advertisement/top"
+                    "/api/advertisement/top",
+                    "/api/advertisement/click",
+                    "/api/advertisement/impression"
             	)
             .permitAll()
-            	
+            
+            // -------------------------------------------------    
             .requestMatchers(
             		"/api/advertisement/prices",
             	    "/api/advertisement/*/extension-prices",

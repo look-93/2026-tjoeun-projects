@@ -62,9 +62,9 @@ public class SendEmailService {		// 이메일 발송 service
 		
 		try {
 			apiEmail.sendMail(
-					emailDto.getEmail(),
 					emailDto.getSubject(),
-					emailDto.getContent()
+					emailDto.getContent(),
+					emailDto.getEmail()
 			);
 			
 		} catch (Exception e) {

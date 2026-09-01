@@ -16,7 +16,7 @@ import {
 function AdminMeetupPage() {
     const dispatch = useDispatch();
 
-    const { meetups, meetupCount, loading } = useSelector(
+    const { meetups, meetupCount, loading, totalCount } = useSelector(
         (state) => state.meetup,
     );
 
@@ -53,7 +53,8 @@ function AdminMeetupPage() {
             key: "id",
             width: 80,
             align: "center",
-            render: (_, record, index) => meetups.length - index,
+            render: (_, record, index) =>
+                totalCount - ((currentPage - 1) * pageSize + index),
         },
         {
             title: "모집자",
@@ -243,8 +244,13 @@ function AdminMeetupPage() {
                     columns={adminColumns}
                     dataSource={meetups}
                     pagination={{
-                        pageSize: 10,
+                        current: currentPage,
+                        pageSize: pageSize,
+                        total: totalCount,
                         showSizeChanger: false,
+                        onChange: (page) => {
+                            setCurrentPage(page);
+                        },
                     }}
                     // loading={{
                     //     spinning: loading,
