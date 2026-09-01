@@ -394,6 +394,7 @@ function MeetupDetailPage() {
                         onSortChange={handleSortChange}
                         onSearch={handleSearch}
                         onReport={handleReport}
+                        meetupStatus={meetup?.meetupStatus} //추가
                     />
                 </Col>
 

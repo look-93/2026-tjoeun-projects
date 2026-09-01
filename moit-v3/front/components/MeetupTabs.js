@@ -55,6 +55,7 @@ function MeetupTabs({ activeTab, setActiveTab, meetup, reviews, qnaLists, meetup
           onSearch={onSearch}
           isHost={isHost}
           onReport={onReport}
+          meetupStatus={meetup?.meetupStatus}//추가
         />
       ),
     },
