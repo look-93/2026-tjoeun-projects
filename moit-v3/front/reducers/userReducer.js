@@ -2,7 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 
 //1. 초기화 상태(공용)
 const initialState = {
-    user: null,
+    user: null,    
+    isInitialized: false,
     point: 0,
     members: [],
 
@@ -303,7 +304,7 @@ const userReducer = createSlice({
             state.accessToken = action.payload.accessToken;
             state.refreshToken = action.payload.refreshToken;
             state.deviceId = action.payload.deviceId || null;
-
+            
             state.user = {
                 memberId: action.payload.memberId,
                 loginId: action.payload.loginId,
@@ -315,6 +316,7 @@ const userReducer = createSlice({
             state.login.loading = false;
             state.login.success = false;
             state.login.error = action.payload;
+           
         },
 
         // =========================
@@ -328,6 +330,8 @@ const userReducer = createSlice({
             state.loading = false;
             state.error = null;
             state.user = action.payload;
+            
+            state.isInitialized = true;
 
             state.point = Number(action.payload.point) || 0;
         },
