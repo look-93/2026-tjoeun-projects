@@ -139,19 +139,27 @@ public class MeetupController {
 	public ResponseEntity<Void> update(@ModelAttribute MeetupRequestDto meetupRequestDto,
 								       @RequestParam(value = "files", required = false) List<MultipartFile> files,
 							           @RequestParam(value = "existingImagePaths", required = false) List<String> existingImagePaths,
-							           @PathVariable("meetupId") Long meetupId){
+							           @PathVariable("meetupId") Long meetupId,
+							           Authentication authentication
+							           ){
+    	CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
+    	Long memberId = userDetails.getAppUserId(); 
+    	
 		// null 방지
 	    List<String> safeExistingPaths = (existingImagePaths != null) ? existingImagePaths : Collections.emptyList();
 	    List<MultipartFile> safeFiles = (files != null) ? files : Collections.emptyList();
 		
-		meetupService.update(meetupRequestDto, meetupId, safeFiles, safeExistingPaths);
+		meetupService.update(meetupRequestDto, meetupId, safeFiles, safeExistingPaths, memberId);
 		return ResponseEntity.noContent().build(); // 성공 응답 204
 	}
 	
 	@Operation(summary = "관리자/개설자 모임삭제", description = "모임을 삭제합니다.")
 	@DeleteMapping("/{meetupId}")
-	public ResponseEntity<Void> delete(@PathVariable("meetupId") Long meetupId){
-		meetupService.delete(meetupId);
+	public ResponseEntity<Void> delete(@PathVariable("meetupId") Long meetupId, Authentication authentication){
+		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();    	
+    	Long memberId = userDetails.getAppUserId();
+    	
+		meetupService.delete(meetupId, memberId);
 		return ResponseEntity.noContent().build(); // 성공 응답 204
 	}
 	

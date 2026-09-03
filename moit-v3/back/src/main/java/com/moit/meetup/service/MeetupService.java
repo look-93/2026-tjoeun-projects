@@ -18,8 +18,6 @@ import com.moit.meetup.dto.MyMeetupCountResponseDto;
 import com.moit.meetup.dto.PopularMeetupResponseDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupRequestDto;
 import com.moit.meetup.dto.openapi.RecommendMeetupResponseDto;
-import com.moit.meetup.entity.Meetup;
-import com.moit.meetup.enums.ApplyStatus;
 import com.moit.meetup.enums.MeetupStatus;
 
 public interface MeetupService {
@@ -43,10 +41,10 @@ public interface MeetupService {
 	public void create(MeetupRequestDto meetupRequest, Long memberId, List<MultipartFile> files);
 	
 	//수정
-	public void update(MeetupRequestDto meetupRequest, Long meetupId, List<MultipartFile> files, List<String> existingImagePaths);
+	public void update(MeetupRequestDto meetupRequest, Long meetupId, List<MultipartFile> files, List<String> existingImagePaths, Long memberId);
 	
 	//삭제
-	public void delete(Long meetupId);	
+	public void delete(Long meetupId, Long memberId);	
 	
 	//모임신청
 	public void apply(Long memberId, Long meetupId);
