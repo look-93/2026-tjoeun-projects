@@ -516,11 +516,6 @@ function AdvertiseListPage() {
         advertisement={extensionTarget}
         onPayment={(extensionData) => {
 
-          console.log(
-            '연장 결제:',
-            extensionData
-          );
-
           setIsExtensionModalOpen(false);
 
           setExtensionPaymentTarget({

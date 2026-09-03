@@ -8,7 +8,9 @@ import com.moit.advertisement.service.AdvertisementService;
 import com.moit.advertisement.service.AiSummaryService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AdvertisementScheduler {
@@ -18,15 +20,15 @@ public class AdvertisementScheduler {
 
 
     // 1분마다 광고 상태 체크
-//    @Scheduled(cron = "0 * * * * *")
-    @Scheduled(cron = "0 */5 * * * *")
+    @Scheduled(cron = "0 * * * * *")
+//    @Scheduled(cron = "0 */5 * * * *")
     public void updateAdvertisementStatus() {
 
-        System.out.println("===== 광고 상태 체크 시작 =====");
+    	log.info("광고 상태 체크 스케줄러 시작");
 
         advertisementService.updateAdvertisementStatus();
 
-        System.out.println("===== 광고 상태 체크 종료 =====");
+        log.info("광고 상태 체크 스케줄러 종료");
     }
 
     // 5분마다 광고 우선도 갱신 실행 
@@ -38,29 +40,33 @@ public class AdvertisementScheduler {
         int count =
             advertisementService.updatePriorityScore();
 
-        System.out.println(
-            ">>>>>> 광고 우선도 갱신 : " + count
-       );
-
+        log.info(
+                "광고 우선도 갱신 완료. 변경 건수={}",
+                count
+            );
     }
     
     // 매일 새벽 1시  일일통계 저장
 //    @Scheduled(cron = "0 0 1 * * *")
-//    @Scheduled(cron = "0 */1 * * * *")
-//    public void createDailyStatistics(){
-//    	System.out.println("===== 광고 일일 통계 생성 시작 =====");
-//        advertisementService.insertDailyStatistics();
-//    	System.out.println("===== 광고 일일 통계 생성 완료 =====");
-//    }
+    @Scheduled(cron = "0 */1 * * * *")
+    public void createDailyStatistics(){
+    	log.info("광고 일일 통계 생성 스케줄러 시작");
+
+        advertisementService.insertDailyStatistics();
+
+        log.info("광고 일일 통계 생성 스케줄러 완료");
+    }
     
     
     // 매일 오전 9시 광고기간 만료 30/14일자 발송
 //    @Scheduled(cron = "0 0 9 * * *")
-    @Scheduled(cron = "0 */1 * * * *")
+    @Scheduled(cron = "0 */5 * * * *")
     public void advertisementReminder() {
-    	System.out.println("만료 메일 스케줄러 실행");
+    	log.info("광고 연장 안내 메일 스케줄러 실행");
+
         advertisementService.sendReminderMail();
 
+        log.info("광고 연장 안내 메일 스케줄러 완료");
     }
     
     
@@ -68,7 +74,9 @@ public class AdvertisementScheduler {
     @Scheduled(cron = "0 0 */3 * * *")
 //    @Scheduled(cron = "0 */1 * * * *")
     public void generateAiSummary() {
-    	System.out.println("ai 요약 시작");
+
+        log.info("AI 광고 통계 요약 스케줄러 시작");
+
     	try {
 	    	// 1. 통계 데이터 조회
 	        DashboardAiDto dto = advertisementService.getDashboardAiData();
@@ -79,12 +87,14 @@ public class AdvertisementScheduler {
 	        // 3. DB 저장	
 	        advertisementService.saveAiSummary(summary);
 	        
-	        System.out.println("ai 요약 종료");
-    	} catch (Exception e) {
+	        log.info("AI 광고 통계 요약 저장 완료");
 
-            System.err.println( "===== AI 광고 통계 요약 실패 =====" );
+        } catch (Exception e) {
 
-            e.printStackTrace();
+            log.error(
+                "AI 광고 통계 요약 처리 중 오류가 발생했습니다.",
+                e
+            );
         }
     }
 }

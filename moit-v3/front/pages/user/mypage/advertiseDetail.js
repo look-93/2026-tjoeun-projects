@@ -46,12 +46,10 @@ function AdvertiseDetailPage() {
 
       const response = await getAdvertiseDetail(adId);
 
-      console.log('백엔드 응답 데이터:', response.data);
-
       setAdvertise(response.data);
 
     } catch (error) {
-      console.error('광고 상세 조회 실패', error);
+      console.error('광고 상세 조회 실패');
 
       message.error(
         error.response?.data?.message ||

@@ -4,7 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -14,7 +17,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moit.advertisement.dto.DashboardAiDto;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AiSummaryServiceImpl implements AiSummaryService {
@@ -114,13 +119,12 @@ public class AiSummaryServiceImpl implements AiSummaryService {
                 }
             }
             return "AI 응답이 없습니다.";
-        } catch (Exception e) {
+    	} catch (Exception e) {
 
-            e.printStackTrace();
+    	    log.error("AI 광고 통계 요약 생성 중 오류가 발생했습니다.", e);
 
-    	
-            return "AI 요약 생성 실패";
-    }
+    	    return "AI 요약 생성 실패";
+    	}
   }
 
 }

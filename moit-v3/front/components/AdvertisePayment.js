@@ -13,6 +13,7 @@ export default function AdvertisePayment({ adId, amount, adTitle }) {
   const [isReady, setIsReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [realOrderId, setRealOrderId] = useState('');
+  const [customerInfo, setCustomerInfo] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -34,11 +35,7 @@ export default function AdvertisePayment({ adId, amount, adTitle }) {
         }
 
         const payment = paymentResponse.data;
-
-        console.log(
-          '백엔드에서 생성/조회한 결제 정보:',
-          payment
-        );
+        setCustomerInfo(payment);
 
         /*
          * 2. 백엔드에서 받은 실제 orderId 사용
@@ -62,10 +59,10 @@ export default function AdvertisePayment({ adId, amount, adTitle }) {
         /*
          * 4. Toss 고객 키
          *
-         * 같은 광고의 결제창을 다시 열어도
-         * 고객 식별이 가능하도록 adId 기반으로 생성
+          * 광고주 회원 ID를 기준으로
+          * 동일 고객을 식별
          */
-        const customerKey = `customer_${adId}`;
+        const customerKey = `customer_${payment.advertiserId}`;
 
         // 5. Toss Payment Widget 생성
         const paymentWidget =
@@ -118,15 +115,7 @@ export default function AdvertisePayment({ adId, amount, adTitle }) {
           return;
         }
 
-        console.error(
-          '결제 초기화 실패:',
-          error
-        );
-
-        console.error(
-          '응답:',
-          error.response?.data
-        );
+        console.error('광고 결제 초기화 실패');
 
         message.error(
           error.response?.data?.message ||
@@ -173,14 +162,13 @@ export default function AdvertisePayment({ adId, amount, adTitle }) {
     try {
       await paymentWidget.requestPayment({
         orderId: realOrderId,
-        orderName: adTitle || '광고 결제',
-        customerName: '광고주',
-        customerEmail: 'advertiser@moit.com',
+        orderName: adTitle,
+        customerName: customerInfo?.advertiserNickname,
+        customerEmail: customerInfo?.advertiserEmail,
         successUrl: `${window.location.origin}/user/mypage/advertiseSuccess`,
         failUrl: `${window.location.origin}/user/mypage/advertiseSuccess`,
       });
     } catch (err) {
-      console.error(err);
       if (err.code === "USER_CANCEL") {
         message.warning('결제가 취소되었습니다.');
       } else {
