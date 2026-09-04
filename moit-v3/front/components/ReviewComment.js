@@ -5,7 +5,7 @@ import {
   getCommentsRequest, 
   createCommentRequest, 
   deleteCommentRequest, 
-  updateCommentRequest // 👈 1. 액션 임포트 추가
+  updateCommentRequest 
 } from '../reducers/reviewReducer';
 
 export default function ReviewComments({ reviewId }) {
@@ -16,7 +16,7 @@ export default function ReviewComments({ reviewId }) {
   const [replyText, setReplyText] = useState('');
   const [localLoading, setLocalLoading] = useState(true);
 
-  // 💡 2. 댓글 수정 상태 관리용 state 추가
+  // 댓글 수정 상태 관리용
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editText, setEditText] = useState('');
 
@@ -29,7 +29,7 @@ export default function ReviewComments({ reviewId }) {
     }
   }, [dispatch, reviewId]);
 
-  // 2. Redux에서 해당 리뷰의 댓글만 안전하게 추출
+
   const { comments, commentError } = useSelector((state) => {
     const reviewState = state.review || state.reviewReducer || {};
     const safeId = Number(reviewId);
@@ -40,7 +40,6 @@ export default function ReviewComments({ reviewId }) {
       reviewState.commentsMap?.[safeId] || 
       reviewState.commentsMap?.[strId] || [];
 
-      // 👉 여기에 콘솔 추가!
     console.log("🔍 [댓글 데이터 확인]", {
       전달받은reviewId: reviewId,
       스토어의commentsMap전체: reviewState.commentsMap,
@@ -110,7 +109,7 @@ export default function ReviewComments({ reviewId }) {
     }
   };
 
-  // 💡 3. 댓글 수정 핸들러 추가
+  //댓글 수정 핸들러
   const handleUpdateComment = (commentId) => {
     console.log("수정 버튼 클릭됨!", commentId);
     if (!editText || !editText.trim()) {
@@ -122,7 +121,7 @@ export default function ReviewComments({ reviewId }) {
       updateCommentRequest({
         commentId,
         content: editText.trim(),
-        reviewId, // 사가에서 재조회할 때 사용됨
+        reviewId,
       })
     );
 

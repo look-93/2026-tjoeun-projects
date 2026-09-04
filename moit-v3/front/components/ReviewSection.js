@@ -20,7 +20,7 @@ import {
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
 import { analyzeReviewsRequest, resetReviewState } from '../reducers/reviewReducer'; 
-import ReviewItem from './ReviewItem'; // ★ 독립 컴포넌트로 분리된 ReviewItem 임포트
+import ReviewItem from './ReviewItem'; 
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -87,7 +87,6 @@ function ReviewSection({
     if (totalReviewsCount === 0) return 0;
     return Math.round((ratingCounts[score] / totalReviewsCount) * 100);
   };
-  // ==========================================
 
   // AI 후기 인사이트 버튼 클릭 핸들러
   const handleOpenAiModal = () => {
@@ -105,14 +104,13 @@ function ReviewSection({
   const handleWriteClick = () => {
     console.log("🔍 현재 모임 상태 (meetupStatus):", meetupStatus);
 
-    // 1. meetupStatus 값이 전달되었는데 'COMPLETED'가 아니라면 페이지 이동을 절대 시키지 않고 차단
     if (meetupStatus) {
       const statusStr = String(meetupStatus).toUpperCase();
       const isCompleted = statusStr.includes('COMPLETED') || statusStr.includes('COMPLETE') || statusStr.includes('종료');
 
       if (!isCompleted) {
         alert('종료된 모임에만 후기를 작성할 수 있습니다.');
-        return; // 🛑 여기서 함수를 종료하므로 write 페이지로 절대 넘어가지 않습니다!
+        return; 
       }
     }
 
@@ -239,7 +237,7 @@ function ReviewSection({
         </Row>
       </Card>
 
-      {/* 후기 목록 (ReviewItem 컴포넌트를 사용하도록 수정 완료) */}
+      {/* 후기 목록 */}
       <Space
         direction="vertical"
         size={16}

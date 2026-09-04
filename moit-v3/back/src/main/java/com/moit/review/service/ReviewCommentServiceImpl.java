@@ -45,8 +45,7 @@ public class ReviewCommentServiceImpl implements ReviewCommentService {
             if (parentComment.getParent() != null) {
                 throw new IllegalArgumentException("대댓글에는 다시 대댓글을 달 수 없습니다.");
             }
-        } else {
-            // 💡 [수정] 최상위 댓글인 경우, 삭제되지 않은('N') 활성 댓글이 이미 있는지 체크!
+        } else {            
             boolean alreadyExists = commentRepository.existsByReviewIdAndMemberIdAndParentIsNullAndDeleteYn(reviewId, memberId, 'N');
             if (alreadyExists) {
                 throw new IllegalArgumentException("이미 이 리뷰에 작성한 댓글이 존재합니다.");

@@ -23,13 +23,16 @@ import com.moit.review.dto.ReviewDto.ReviewListResponseDto;
 import com.moit.review.dto.ReviewDto.ReviewRequestDto;
 import com.moit.review.dto.ReviewDto.ReviewResponseDto;
 import com.moit.review.repository.ReviewImageRepository;
+import com.moit.review.service.ReviewNotificationService;
 import com.moit.review.service.ReviewService;
 import com.moit.security.CustomUserDetails;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Tag(name = "Review Api", description = "리뷰 관련 API")
 @RestController
 @RequiredArgsConstructor
@@ -38,24 +41,21 @@ public class ReviewController {
 
     private final ReviewService reviewService;
     private final ReviewImageRepository reviewImageRepository;
+    private final ReviewNotificationService reviewNotificationService; // 🌟 추가됨
 
-    // 인증 객체에서 memberId 추출 공통 메서드 (Fallback 제거 버전)
     private Long extractMemberId(Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
             try {
-                System.out.println("=== 인증된 사용자 Principal 객체 확인 ===");
-                System.out.println("userDetails: " + userDetails);
                 
                 if (userDetails.getUser() != null) {
                     Long memberId = userDetails.getUser().getMemberId();
-                    System.out.println("추출된 memberId: " + memberId);
                     
                     if (memberId != null) {
                         return memberId;
                     }
                 }
             } catch (Exception e) {
-                System.out.println("memberId 추출 중 예외 발생: " + e.getMessage());
+                log.error("memberId 추출 중 예외 발생: {}", e.getMessage(), e);
             }
         }
         
@@ -68,6 +68,12 @@ public class ReviewController {
         try {
             Long memberId = extractMemberId(authentication);
             reviewService.create(requestDto, memberId);
+            
+            
+            if (requestDto.getMeetupId() != null) {
+                reviewNotificationService.completeReviewNotification(memberId, requestDto.getMeetupId());
+            }
+            
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -105,28 +111,28 @@ public class ReviewController {
     }
 
     @Operation(summary = "특정 모임의 리뷰 목록 조회", description = "특정 모임에 작성된 리뷰 목록을 조회합니다. (로그인 시 좋아요 상태 반영)")
-	@GetMapping("/meetup/{meetupId}")
-	public ResponseEntity<ReviewListResponseDto> getReviewsByMeetup(
-			@PathVariable("meetupId") Long meetupId,
-			@RequestParam(value = "keyword", required = false) String keyword,
-			@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
-			Authentication authentication) {
-		
-		Long memberId = null;
-				
-		if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
-			try {
-				if (userDetails.getUser() != null) {
-					memberId = userDetails.getUser().getMemberId();
-				}
-			} catch (Exception e) {
-				memberId = null;
-			}
-		}
+    @GetMapping("/meetup/{meetupId}")
+    public ResponseEntity<ReviewListResponseDto> getReviewsByMeetup(
+            @PathVariable("meetupId") Long meetupId,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
+            Authentication authentication) {
+        
+        Long memberId = null;
+                
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            try {
+                if (userDetails.getUser() != null) {
+                    memberId = userDetails.getUser().getMemberId();
+                }
+            } catch (Exception e) {
+                memberId = null;
+            }
+        }
 
-		ReviewListResponseDto response = reviewService.getReviewsByMeetup(meetupId, keyword, pageable, memberId);
-		return ResponseEntity.ok(response);
-	}
+        ReviewListResponseDto response = reviewService.getReviewsByMeetup(meetupId, keyword, pageable, memberId);
+        return ResponseEntity.ok(response);
+    }
 
     @Operation(summary = "내가 작성한 리뷰 목록 조회", description = "마이페이지에서 내가 작성한 리뷰 목록을 조회합니다.")
     @GetMapping("/my")
@@ -142,20 +148,20 @@ public class ReviewController {
     }
 
     @Operation(summary = "리뷰 좋아요 토글", description = "리뷰 좋아요를 등록하거나 취소합니다.")
-	@PostMapping("/{reviewId}/like")
-	public ResponseEntity<ReviewResponseDto> reviewLike(@PathVariable("reviewId") Long reviewId, Authentication authentication) {
-		Long memberId = extractMemberId(authentication);
+    @PostMapping("/{reviewId}/like")
+    public ResponseEntity<ReviewResponseDto> reviewLike(@PathVariable("reviewId") Long reviewId, Authentication authentication) {
+        Long memberId = extractMemberId(authentication);
 
-		ReviewResponseDto response = reviewService.reviewLike(memberId, reviewId);
-		return ResponseEntity.ok(response); // 👈 최신 데이터가 담긴 DTO를 응답으로 전달!
-	}
+        ReviewResponseDto response = reviewService.reviewLike(memberId, reviewId);
+        return ResponseEntity.ok(response);
+    }
 
     @Operation(summary = "AI 리뷰 분석", description = "모임 리뷰 내용을 바탕으로 AI 분석 결과를 반환합니다.")
     @PostMapping("/meetup/{meetupId}/analysis")
     public ResponseEntity<String> reviewAnalysis(@PathVariable("meetupId") Long meetupId) {
-        System.out.println("===== 🤖 프론트에서 받은 meetupId: " + meetupId + " =====");
+        log.info("===== 🤖 프론트에서 받은 meetupId: {} =====", meetupId);
         String result = reviewService.reviewAnalysis(meetupId);
-        System.out.println("===== 🤖 AI 분석 완료 결과: " + result + " =====");
+        log.info("===== 🤖 AI 분석 완료 결과: {} =====", result);
         return ResponseEntity.ok(result);
     }
     
@@ -166,15 +172,14 @@ public class ReviewController {
             Authentication authentication) {
         try {
             Long memberId = extractMemberId(authentication);
-             //이미지 제한       
+            // 이미지 제한       
             if (images != null && images.size() > 5) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미지는 최대 5개까지만 업로드할 수 있습니다.");
             }
             List<Long> imageIds = reviewService.uploadImages(images, memberId);
             return ResponseEntity.ok(imageIds);
         } catch (Exception e) {
-            e.printStackTrace(); 
-            System.out.println("❌ 이미지 업로드 중 발생한 에러 메시지: " + e.getMessage());
+            log.error("❌ 이미지 업로드 중 발생한 에러 메시지: {}", e.getMessage(), e);
             
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

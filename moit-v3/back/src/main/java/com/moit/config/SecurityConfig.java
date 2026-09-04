@@ -189,6 +189,7 @@ public class SecurityConfig {
                     "/api/advertisement/top",
                     "/api/advertisement/click",
                     "/api/advertisement/impression"
+                    
             	)
             .permitAll()
             

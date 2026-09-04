@@ -2,7 +2,6 @@ import { createSlice } from "@reduxjs/toolkit";
 
 // 초기화 상태
 const initialState = {
-    // 백엔드 응답 데이터
     reviews: [],
     reviewDetail: null,
     totalCount: 0,
@@ -10,7 +9,7 @@ const initialState = {
     analysisResult: "",
     // --댓글 관련 상태--
     commentLoading: false, 
-    comments: [],      // 댓글 목록
+    comments: [],      
     commentsMap:{},
     commentLoadingMap: {},
     commentError: null,
@@ -101,12 +100,12 @@ const reviewReducer = createSlice({
             state.success = false;
         },
 
-        // --리뷰 목록 조회 (방어 코드 강화)--
+        // --리뷰 목록 조회--
         getReviewListRequest: (state) => {
             state.loading = true;
             state.error = null;
         },
-        // 🌟 [추가] 관리자 전용 리뷰 목록 조회 요청 액션
+        //관리자 전용 리뷰 목록 조회 요청
         getAdminReviewListRequest: (state) => {
             state.loading = true;
             state.error = null;
@@ -115,10 +114,8 @@ const reviewReducer = createSlice({
             state.loading = false;
             const payload = action.payload || {};
 
-            // 1) 안전하게 reviews 배열 추출
             const rawReviews = payload.reviews || payload.content || (Array.isArray(payload) ? payload : []);
 
-            // 2) ★ [핵심] 각 리뷰 객체에 isPublic 값이 없거나 누락되었다면 기본값("Y")을 주거나 데이터 유실 방어
             state.reviews = rawReviews.map(review => ({
                 ...review,
                 isPublic: review.isPublic !== undefined && review.isPublic !== null ? review.isPublic : "Y"
@@ -137,13 +134,11 @@ const reviewReducer = createSlice({
             state.error = null;
         },
         toggleReviewLikeSuccess: (state, action) => {
-            // 서버에서 보낸 최신 ReviewResponseDto 데이터
             const updatedReview = action.payload || {}; 
             const targetId = updatedReview.id || updatedReview.reviewId;
 
             if (!targetId) return;
 
-            // 서버에서 넘어온 liked 또는 isLiked 값을 정확하게 판별 (undefined 방어)
             const newLikedState = 
                 updatedReview.liked !== undefined ? updatedReview.liked : 
                 (updatedReview.isLiked !== undefined ? updatedReview.isLiked : false);
@@ -152,7 +147,6 @@ const reviewReducer = createSlice({
                 updatedReview.likesCount !== undefined ? updatedReview.likesCount : 
                 (updatedReview.likes !== undefined ? updatedReview.likes : 0);
 
-            // 1) 목록(reviews) 데이터 업데이트
             const review = state.reviews.find(r => r.id === targetId || r.reviewId === targetId);
             if (review) {
                 review.likesCount = newLikesCount;
@@ -160,7 +154,6 @@ const reviewReducer = createSlice({
                 review.isLiked = newLikedState;
             }
 
-            // 2) 상세화면(reviewDetail) 데이터 업데이트
             if (state.reviewDetail && (state.reviewDetail.id === targetId || state.reviewDetail.reviewId === targetId)) {
                 state.reviewDetail.likesCount = newLikesCount;
                 state.reviewDetail.liked = newLikedState;
@@ -219,7 +212,7 @@ const reviewReducer = createSlice({
             if (!state.commentLoadingMap) state.commentLoadingMap = {};
 
             if (reviewId !== undefined && reviewId !== null) {
-                state.commentLoadingMap[reviewId] = false; // 해당 리뷰 로딩 종료
+                state.commentLoadingMap[reviewId] = false; 
                 state.commentsMap[reviewId] = comments || [];
             }
             state.commentLoading = false;

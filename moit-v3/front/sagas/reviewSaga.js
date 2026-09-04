@@ -7,7 +7,7 @@ import {
     getReviewDetailRequest, getReviewDetailSuccess, getReviewDetailFailure,
     updateReviewRequest, updateReviewSuccess, updateReviewFailure,
     deleteReviewRequest, deleteReviewSuccess, deleteReviewFailure,
-    getReviewListRequest, getAdminReviewListRequest, getReviewListSuccess, getReviewListFailure, // 🌟 [추가] getAdminReviewListRequest 임포트
+    getReviewListRequest, getAdminReviewListRequest, getReviewListSuccess, getReviewListFailure,
     toggleReviewLikeRequest, toggleReviewLikeSuccess, toggleReviewLikeFailure,
     analyzeReviewsRequest, analyzeReviewsSuccess, analyzeReviewsFailure,
     changeVisibilitySuccess,
@@ -321,13 +321,11 @@ function* watchDeleteReview() { yield takeLatest(deleteReviewRequest, deleteRevi
 function* watchFetchReviewList() { yield takeLatest(getReviewListRequest, fetchReviewList); }
 function* watchAnalyzeReviews() { yield takeLatest(analyzeReviewsRequest, analyzeReviews); }
 function* watchToggleReviewLike() { yield takeLatest(toggleReviewLikeRequest, toggleReviewLike); }
-
-// 🌟 [수정] 관리자 목록 조회 액션과 정상 연결
 function* watchFetchAdminReviewList() { yield takeLatest(getAdminReviewListRequest, fetchAdminReviewList); }
 function* watchAdminDeleteReview() { yield takeLatest(deleteReviewRequest, adminDeleteReview); }
 function* watchChangeReviewVisibility() { yield takeLatest('review/changeVisibilityRequest', changeReviewVisibility); }
 
-// 댓글 Watcher 함수들
+// 댓글
 function* watchFetchComments() { yield takeEvery(getCommentsRequest, fetchComments); }
 function* watchCreateComment() { yield takeLatest(createCommentRequest, createComment); }
 function* watchUpdateComment() { yield takeLatest(updateCommentRequest, updateComment); }
@@ -342,7 +340,7 @@ export default function* reviewSaga() {
         fork(watchFetchReviewList),
         fork(watchAnalyzeReviews),
         fork(watchToggleReviewLike),
-        fork(watchFetchAdminReviewList), // 🌟 [수정] 주석 해제 및 활성화 완료!
+        fork(watchFetchAdminReviewList), 
         fork(watchAdminDeleteReview),
         fork(watchChangeReviewVisibility),
         fork(watchFetchComments),

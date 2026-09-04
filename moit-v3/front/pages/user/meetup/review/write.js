@@ -41,24 +41,18 @@ function ReviewWritePage() {
   const [previewImage, setPreviewImage] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
 
-  // 다중 선택 시 alert 창이 여러 번 뜨는 것을 방지하기 위한 ref 플래그
   const alertShownRef = useRef(false);
 
-  // URL 파라미터에서 reviewId 및 meetupId 추출 (안전장치 추가)
   const queryReviewId = router.isReady ? router.query.reviewId : null;
   const queryMeetupId = router.isReady ? (router.query.meetupId || router.query.id || router.query.meetup_id) : null;
   
-  // 마이페이지에서 왔는지 여부 파악 (알림 ID도 함께 파라미터로 넘어왔을 수 있음)
   const fromMypage = router.isReady ? router.query.from === 'mypage' : false;
   const queryNotificationId = router.isReady ? router.query.notificationId : null;
-
-  // 수정 모드 여부 판단
   const isEditMode = Boolean(queryReviewId);
 
-  // 💡 [디버깅 추가] 진입 시 모임 상태를 조회하여 실제 응답 데이터 구조와 상태값 확인
   useEffect(() => {
     if (!router.isReady) return;
-    if (isEditMode) return; // 수정 모드일 때는 모임 상태 체크 건너뜀
+    if (isEditMode) return; 
 
     const targetMeetupId = queryMeetupId;
     if (!targetMeetupId) return;
@@ -73,15 +67,10 @@ function ReviewWritePage() {
           withCredentials: true,
         });
 
-        // 🔍 서버 응답 데이터 구조 확인용 로그
-        console.log("📥 서버에서 받은 모임 응답 전체:", response.data);
-
         const meetupData = response.data.data || response.data;
         const status = meetupData.meetupStatus || meetupData.status;
 
-        console.log("🔍 추출된 최종 모임 상태값 (status):", status);
 
-        // 종료 상태('COMPLETED')가 아닐 경우 경고 후 이전 페이지로 이동
         if (status !== 'COMPLETED') {
           alert('종료된 모임에만 후기를 작성할 수 있습니다.');
           router.back();
@@ -94,21 +83,18 @@ function ReviewWritePage() {
     checkMeetupStatus();
   }, [router.isReady, isEditMode, queryMeetupId, router]);
 
-  // 1. 수정 모드일 때 기존 리뷰 상세 정보 조회
   useEffect(() => {
     if (isEditMode && queryReviewId) {
       dispatch(getReviewDetailRequest(queryReviewId));
     }
   }, [isEditMode, queryReviewId, dispatch]);
 
-  // 2. 조회된 기존 리뷰 데이터 폼에 채워넣기
   useEffect(() => {
     if (isEditMode && reviewDetail) {
       setContent(reviewDetail.content || '');
       setRating(reviewDetail.rating || 3);
       setIsPublic(reviewDetail.isPublic || 'Y');
       
-      // 기존 이미지 매핑 (있는 경우)
       if (reviewDetail.images && Array.isArray(reviewDetail.images)) {
         const initialFiles = reviewDetail.images.map((img, idx) => {
           const rawUrl = img.imageUrl || '';
@@ -130,13 +116,12 @@ function ReviewWritePage() {
     }
   }, [isEditMode, reviewDetail]);
 
-  // 3. 성공/실패 처리
+  //성공/실패 처리
   useEffect(() => {
     const handleSuccessActions = async () => {
       if (success) {
         alert(isEditMode ? '리뷰가 성공적으로 수정되었습니다.' : '리뷰가 성공적으로 등록되었습니다.');
-
-        // 마이페이지 알림을 통해 진입해 리뷰를 등록한 경우, 서버에 읽음 처리 요청
+       
         if (queryNotificationId) {
           try {
             await axios.patch(`http://localhost:8080/api/notifications/reviews/${queryNotificationId}/read`);
@@ -147,7 +132,6 @@ function ReviewWritePage() {
 
         dispatch(resetReviewState());
 
-        // 마이페이지에서 진입한 경우 마이페이지로 이동
         if (fromMypage) {
           router.push('/user/mypage/review'); 
         } else {
@@ -182,7 +166,6 @@ function ReviewWritePage() {
   }, [success, error, dispatch, router, queryMeetupId, isEditMode, fromMypage, reviewDetail, queryNotificationId]);
 
   const handleImageChange = ({ fileList: newFileList }) => {
-    // 이미지가 5개를 넘어가면 5개까지만 유지하고 alert은 딱 1번만 띄우기
     if (newFileList.length > 5) {
       if (!alertShownRef.current) {
         alert('이미지는 최대 5개까지만 업로드할 수 있습니다.');
