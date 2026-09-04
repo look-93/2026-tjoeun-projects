@@ -35,9 +35,6 @@ function LoginHistory() {
     };
   }, [dispatch]);
 
-  // Redux 상태 확인
-  // console.log('===== LOGIN HISTORY REDUX =====');
-  // console.log('loginHistory:', loginHistory);
 
   /*
    * 백엔드 response.data가 배열이므로

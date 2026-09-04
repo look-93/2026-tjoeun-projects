@@ -522,16 +522,6 @@ function AdminSignup() {
         };
 
 
-        // console.log(
-        //     "===== 관리자 회원가입 요청 ====="
-        // );
-
-        // console.log(
-        //     "signupData:",
-        //     signupData
-        // );
-
-
         dispatch(
             signupRequest(signupData)
         );

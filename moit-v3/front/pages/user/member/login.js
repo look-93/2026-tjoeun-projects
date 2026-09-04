@@ -38,7 +38,6 @@ function Login(){
     const { user, isInitialized}  = useSelector((state) => state.user);
 
     useEffect(() => {
-      //console.log(isInitialized)
 
       if(!isInitialized) return;
 
@@ -118,13 +117,6 @@ function Login(){
     // =========================
     const handleLogin = (values) => {
 
-        // console.log("========== LOGIN BUTTON CLICK ==========");
-        // console.log("현재 Redux login 상태:", {
-        //     loading,
-        //     success,
-        //     error,
-        // });
-
         const loginId = values.loginId.trim();
         const password = values.password;
 
@@ -161,8 +153,6 @@ function Login(){
             password: password,
             memberTypeId: memberTypeId,
         };
-
-        // console.log( "로그인 요청 데이터:",loginData);
 
         // =========================
         // Redux Saga 로그인 요청

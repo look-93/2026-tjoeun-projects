@@ -21,7 +21,8 @@ public class AdvertisementScheduler {
 
     // 1분마다 광고 상태 체크
     @Scheduled(cron = "0 * * * * *")
-//    @Scheduled(cron = "0 */5 * * * *")
+    //@Scheduled(cron = "0 */5 * * * *")
+
     public void updateAdvertisementStatus() {
 
     	log.info("광고 상태 체크 스케줄러 시작");
@@ -32,8 +33,8 @@ public class AdvertisementScheduler {
     }
 
     // 5분마다 광고 우선도 갱신 실행 
-//    @Scheduled(cron = "0 */5 * * * *")
-    @Scheduled(cron = "0 */1 * * * *")
+    @Scheduled(cron = "0 */5 * * * *")
+    //@Scheduled(cron = "0 */1 * * * *")
     public void updateAdvertisementPriority() {
 
 
@@ -47,8 +48,8 @@ public class AdvertisementScheduler {
     }
     
     // 매일 새벽 1시  일일통계 저장
-//    @Scheduled(cron = "0 0 1 * * *")
-    @Scheduled(cron = "0 */1 * * * *")
+    @Scheduled(cron = "0 0 1 * * *")
+    //@Scheduled(cron = "0 */1 * * * *")
     public void createDailyStatistics(){
     	log.info("광고 일일 통계 생성 스케줄러 시작");
 
@@ -61,6 +62,7 @@ public class AdvertisementScheduler {
     // 매일 오전 9시 광고기간 만료 30/14일자 발송
 //    @Scheduled(cron = "0 0 9 * * *")
     @Scheduled(cron = "0 */5 * * * *")
+
     public void advertisementReminder() {
     	log.info("광고 연장 안내 메일 스케줄러 실행");
 
@@ -72,7 +74,8 @@ public class AdvertisementScheduler {
     
     // 3시간마다 통계 ai 요약 저장
     @Scheduled(cron = "0 0 */3 * * *")
-//    @Scheduled(cron = "0 */1 * * * *")
+    //@Scheduled(cron = "0 */1 * * * *")
+
     public void generateAiSummary() {
 
         log.info("AI 광고 통계 요약 스케줄러 시작");

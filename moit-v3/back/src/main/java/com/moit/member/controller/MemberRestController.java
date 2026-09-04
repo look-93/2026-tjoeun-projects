@@ -55,6 +55,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -62,7 +63,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
-
+@Slf4j
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
@@ -89,50 +90,7 @@ public class MemberRestController {
     public ResponseEntity<UserResponseDto> signup(
             @RequestBody UserRequestDto  request) {
 
-		UserDto dto = request.toUserDto();
-		
-//		System.out.println("===== 회원가입 행동 데이터 =====");
-//
-//	    if (dto.getSignupBehavior() != null) {
-//
-//	        System.out.println(
-//	            "전체 오류 횟수: "
-//	            + dto.getSignupBehavior().getErrorCount()
-//	        );
-//
-//	        System.out.println(
-//	            "필드별 오류 횟수: "
-//	            + dto.getSignupBehavior().getFieldErrorCount()
-//	        );
-//
-//	        System.out.println(
-//	            "이메일 인증 실패 횟수: "
-//	            + dto.getSignupBehavior().getEmailVerificationFailCount()
-//	        );
-//
-//	        System.out.println(
-//	            "전화번호 인증 실패 횟수: "
-//	            + dto.getSignupBehavior().getMobileVerificationFailCount()
-//	        );
-//
-//	        System.out.println(
-//	            "비밀번호 오류 횟수: "
-//	            + dto.getSignupBehavior().getPasswordErrorCount()
-//	        );
-//
-//	        System.out.println(
-//	            "현재 필드: "
-//	            + dto.getSignupBehavior().getCurrentField()
-//	        );
-//
-//	        System.out.println(
-//	            "필드 체류시간: "
-//	            + dto.getSignupBehavior().getFieldStayTime()
-//	        );
-//
-//	    } else {
-//	        System.out.println("signupBehavior = NULL");
-//	    }
+		UserDto dto = request.toUserDto();		
 
 	    UserDto result = service.signup(dto);
 
@@ -437,10 +395,7 @@ public class MemberRestController {
 		     } catch (Exception e) {
 	
 		         // 알림 저장 실패 때문에 로그인 자체가 실패하지 않도록 처리
-		         System.out.println(
-		                 "새로운 기기 로그인 알림 저장 실패: "
-		                 + e.getMessage()
-		         );
+		    	 log.error("새로운 기기 로그인 알림 저장 실패: {}", e.getMessage(), e);
 		     }
 		 }
 	
@@ -714,7 +669,8 @@ public class MemberRestController {
         refreshTokenService.deleteAllRefreshTokens(
                 memberId
         );
-
+        
+        loginDeviceService.deleteAllLoginDevices(memberId);
 
         // =====================================================
         // Refresh Token Cookie 삭제

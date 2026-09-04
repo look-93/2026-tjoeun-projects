@@ -303,18 +303,10 @@ function* login(action){
         const deviceId = getDeviceId();
         const loginData = {...action.payload,deviceId,};
 
-        // console.log("===== 로그인 요청 =====");
-        // console.log("loginData:", loginData);
-        // console.log("deviceId:", deviceId);
+
 
         const response = yield call(loginApi, loginData);
 
-        // console.log("===== 일반 로그인 응답 =====");
-        // console.log("status:", response.status);
-        // console.log("response.data:", response.data);
-        // console.log("accessToken:", response.data?.accessToken);
-        // console.log("refreshToken:", response.data?.refreshToken);
-        // console.log("deviceId:", response.data?.deviceId);
 
         // Access Token 저장
         if (typeof window !== "undefined") {
@@ -357,9 +349,7 @@ function* getMyInfo() {
 
         const response = yield call(getMyInfoApi);
 
-        // console.log("===== GET MY INFO API RESPONSE =====");
-        // console.log("status:", response.status);
-        // console.log("data:", response.data);
+
 
         yield put(getMyInfoSuccess(response.data));
 
@@ -400,19 +390,10 @@ function* getLoginHistorySaga() {
 
         const response = yield call(getLoginHistoryApi);
 
-        // console.log("===== 로그인 기록 조회 SUCCESS =====");
-        // console.log("status:", response.status);
-        // console.log("response:", response);
-        // console.log("response.data:", response.data);
+
 
         yield put(getLoginHistorySuccess(response.data));
     } catch (error) {
-        // console.error("===== 로그인 기록 조회 FAILURE =====");
-        // console.error("error:", error);
-        // console.error("status:", error.response?.status);
-        // console.error("data:", error.response?.data);
-        // console.error("message:", error.response?.data?.message);
-        // console.error("error message:", error.message);
 
         yield put(getLoginHistoryFailure(error.response?.data?.message || "로그인 기록을 불러오지 못했습니다."));
     }

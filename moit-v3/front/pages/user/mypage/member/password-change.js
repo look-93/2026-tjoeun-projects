@@ -26,8 +26,6 @@ function UserMyMemberPasswordChangePage() {
   // Redux 상태
   const userState = useSelector((state) => state.user);
 
-  // console.log("===== USER REDUX STATE =====");
-  // console.log(userState);
 
   const {
     loading,
@@ -127,11 +125,6 @@ function UserMyMemberPasswordChangePage() {
   // 비밀번호 변경
   // =========================================================
   const handleSubmit = (values) => {
-    // console.log("===== 비밀번호 변경 SUBMIT =====");
-    // console.log("values:", values);
-    // console.log("leaked:", leaked);
-    // console.log("checking:", checking);
-    // console.log("matched:", values.newPassword === values.passwordCheck);
 
     if (values.newPassword !== values.passwordCheck) {
       console.log("새 비밀번호 불일치");
