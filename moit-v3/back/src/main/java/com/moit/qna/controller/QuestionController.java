@@ -322,10 +322,6 @@ public class QuestionController {
 	@Operation(summary = "답변 수정", description = "답변을 수정합니다.")
 	@PutMapping("/answer/{answerId}")
 	public ResponseEntity<Void> answerEdit(@PathVariable("answerId") Long answerId, @RequestBody AnswerRequestDto dto, Authentication authentication) {
-	    System.out.println("🔥 answerId = " + answerId);
-	    System.out.println("🔥 questionId = " + dto.getQuestionId());
-	    System.out.println("🔥 content = " + dto.getContent());
-
 	    if (dto.getQuestionId() == null) {
 	        return ResponseEntity.badRequest().build();
 	    }

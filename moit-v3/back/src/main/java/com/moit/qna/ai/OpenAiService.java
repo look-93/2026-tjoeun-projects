@@ -63,10 +63,6 @@ public class OpenAiService {
                         .path("text")
                         .asText();
 
-            System.out.println("===== GPT 응답 시작 =====");
-            System.out.println(textResult);
-            System.out.println("===== GPT 응답 끝 =====");
-
             textResult = textResult
                     .replace("```json", "")
                     .replace("```", "")
