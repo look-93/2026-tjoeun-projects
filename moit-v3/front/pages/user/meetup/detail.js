@@ -84,9 +84,6 @@ function MeetupDetailPage() {
     useEffect(() => {
         if (!router.isReady || !currentMeetupId) return;
 
-        console.log("===== 모임 Q&A 조회 =====");
-        console.log("currentMeetupId =", currentMeetupId);
-
         dispatch(qnaMeetupListRequest(currentMeetupId));
     }, [router.isReady, currentMeetupId, dispatch]);
     //console.log(isOwner);
