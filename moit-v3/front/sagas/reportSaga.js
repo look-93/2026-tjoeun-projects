@@ -139,12 +139,6 @@ export const updateAdminReportAPI = (payload)=> {
 
     // @PathVariable("reportId") Long reportId
     // @RequestBody ReportProcessDto processDto
-    //
-    // processDto 예:
-    // {
-    //     status: "APPROVED",
-    //     processReason: "신고 내용 확인"
-    // }
     return api.patch(`${POST_API_BASE}/admin/${reportId}`, processDto);
 }
 export function* updateAdminReport(action) {
@@ -195,23 +189,18 @@ export const fetchAdminReportsAPI = (payload)=> {
         size
     };
 
-    // 값이 있을 때만 요청 파라미터에 추가
     if (targetType) {
         params.targetType = targetType;
     }
-
     if (status) {
         params.status = status;
     }
-
     if (reasonCode) {
         params.reasonCode = reasonCode;
     }
-
     if (deleteYn) {
         params.deleteYn = deleteYn;
     }
-    
     if (memberNickname) {
         params.memberNickname = memberNickname;
     }
