@@ -14,17 +14,15 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly=true)
+@Transactional(readOnly = true)
 public class ReviewNotificationServiceImpl implements ReviewNotificationService {
 	
 	private final ReviewNotificationRepository notificationRepository;
 	
 	@Override
 	public List<ReviewNotificationResponseDto> getMyNotifications(Long memberId) {
-		
 		List<ReviewNotification> notifications = notificationRepository.findByMemberIdOrderByCreatedAtDesc(memberId);
 				
-		
 		return notifications.stream()
 				.filter(n -> !"Y".equals(n.getIsRead()))
 				.map(ReviewNotificationResponseDto::from)
@@ -34,7 +32,6 @@ public class ReviewNotificationServiceImpl implements ReviewNotificationService 
 	@Override
 	@Transactional 
 	public void markAsRead(Long notificationId) {
-		// 1. 알림 존재 여부 확인 및 조회
 		ReviewNotification notification = notificationRepository.findById(notificationId)
 				.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 알림입니다. ID: " + notificationId));
 		
@@ -46,12 +43,10 @@ public class ReviewNotificationServiceImpl implements ReviewNotificationService 
 	}
 
 	@Override
+	@Transactional 
 	public void completeReviewNotification(Long memberId, Long meetupId) {
 		notificationRepository.findByMemberIdAndMeetupId(memberId, meetupId).ifPresent(notification -> {
-	        notification.setIsRead("Y"); // 읽음 처리
-	       
-	    });
-		
+			notification.setIsRead("Y");
+		});
 	}
-
 }

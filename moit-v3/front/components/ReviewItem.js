@@ -36,7 +36,7 @@ export default function ReviewItem({ review, targetMeetupId, onLikeReview }) {
   const serverLiked = Boolean(review.liked || review.isLiked);
   const serverLikesCount = review.likesCount ?? review.likes ?? 0;
 
-  // 로컬 UI 상태 (즉각적인 반응을 위해 유지)
+  // 로컬 UI 상태
   const [isLiked, setIsLiked] = useState(serverLiked);
   const [likesCount, setLikesCount] = useState(serverLikesCount);
 

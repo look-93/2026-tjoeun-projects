@@ -12,7 +12,6 @@ import {
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
 
-// 리듀서 파일 위치에 맞춰 경로 확인
 import {
   getReviewDetailRequest,
   deleteReviewRequest,
@@ -20,13 +19,11 @@ import {
 
 const { Text, Paragraph } = Typography;
 
-const BACKEND_URL = 'http://localhost:8080'; // 본인 백엔드 주소
+const BACKEND_URL = 'http://localhost:8080';
 
-// 목록 페이지와 동일하게 업그레이드된 이미지 URL 처리 유틸 함수
 const getImageUrl = (imgItem) => {
   if (imgItem === null || imgItem === undefined) return null;
 
-  // 1. 백엔드 엔티티 구조상 imgItem 안에 image 객체가 포함되어 있다면 추출
   const target = imgItem.image || imgItem;
 
   if (typeof target === 'number') {
@@ -39,7 +36,7 @@ const getImageUrl = (imgItem) => {
     return `${BACKEND_URL}${target.startsWith('/') ? '' : '/'}${target}`;
   }
 
-  // 2. 객체 안에서 파일 경로 필드 체크 (filePath 추가)
+  //객체 안에서 파일 경로 필드 체크
   const url = target.filePath || target.imageUrl || target.url || target.path || target.imagePath;
   if (url) {
     if (url.startsWith('http')) return url;
@@ -50,7 +47,7 @@ const getImageUrl = (imgItem) => {
     return `${BACKEND_URL}/upload/review${cleanPath}`;
   }
 
-  // 3. 경로가 없고 아이디만 있는 경우
+  //경로가 없고 아이디만 있는 경우
   const id = target.imageId || target.id || target.reviewImageId;
   if (id) {
     return `${BACKEND_URL}/api/images/${id}`;
@@ -63,18 +60,17 @@ function DetailReviewPage() {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  // URL Query에서 reviewId와 meetupId 추출
   const { reviewId, meetupId } = router.query;
 
   const { reviewDetail, loading } = useSelector((state) => state.review || {});
 
-  // 1. 리뷰 상세 데이터 요청
+  //리뷰 상세 데이터 요청
   useEffect(() => {
     if (!router.isReady || !reviewId) return;
     dispatch(getReviewDetailRequest(Number(reviewId)));
   }, [dispatch, router.isReady, reviewId]);
 
-  // 2. 리뷰 삭제 핸들러
+  //리뷰 삭제 핸들러
   const handleDelete = () => {
     if (confirm('정말 후기를 삭제하시겠습니까?')) {
       dispatch(deleteReviewRequest(Number(reviewId)));
@@ -88,15 +84,14 @@ function DetailReviewPage() {
     }
   };
 
-  // 백엔드 이미지 배열 처리
+  //백엔드 이미지 배열 처리
   const images = 
     reviewDetail?.images || 
     reviewDetail?.reviewImages || 
     reviewDetail?.imageUrls || 
     reviewDetail?.reviewImageList || 
     [];
-
-  console.log("🔍 현재 백엔드에서 받아온 reviewDetail 전체 데이터:", reviewDetail);
+ 
 
   return (
     <div style={{ padding: '16px', maxWidth: '680px', margin: '0 auto' }}>

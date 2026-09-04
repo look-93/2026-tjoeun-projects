@@ -23,6 +23,7 @@ import com.moit.review.dto.ReviewDto.ReviewListResponseDto;
 import com.moit.review.dto.ReviewDto.ReviewRequestDto;
 import com.moit.review.dto.ReviewDto.ReviewResponseDto;
 import com.moit.review.repository.ReviewImageRepository;
+import com.moit.review.service.ReviewNotificationService;
 import com.moit.review.service.ReviewService;
 import com.moit.security.CustomUserDetails;
 
@@ -40,16 +41,14 @@ public class ReviewController {
 
     private final ReviewService reviewService;
     private final ReviewImageRepository reviewImageRepository;
+    private final ReviewNotificationService reviewNotificationService; // 🌟 추가됨
 
     private Long extractMemberId(Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
             try {
-                log.info("=== 인증된 사용자 Principal 객체 확인 ===");
-                log.info("userDetails: {}", userDetails);
                 
                 if (userDetails.getUser() != null) {
                     Long memberId = userDetails.getUser().getMemberId();
-                    log.info("추출된 memberId: {}", memberId);
                     
                     if (memberId != null) {
                         return memberId;
@@ -69,6 +68,12 @@ public class ReviewController {
         try {
             Long memberId = extractMemberId(authentication);
             reviewService.create(requestDto, memberId);
+            
+            
+            if (requestDto.getMeetupId() != null) {
+                reviewNotificationService.completeReviewNotification(memberId, requestDto.getMeetupId());
+            }
+            
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

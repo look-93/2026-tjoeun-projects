@@ -65,22 +65,40 @@ function UserMyReviewPage() {
   // 알림 목록 상태 선언
   const [notifications, setNotifications] = useState([]);
 
-  // 알림 목록 불러오기 (백엔드 8080 포트 직접 호출하여 404 방지)
+  // 알림 목록 불러오기
   const fetchNotifications = async () => {
     if (!memberId) return;
     try {
-      const response = await axios.get(`http://localhost:8080/api/notifications/reviews?memberId=${memberId}`);
-      setNotifications(response.data);
+      const token = localStorage.getItem('accessToken');
+      const response = await axios.get('http://localhost:8080/api/notifications/reviews', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (isMounted) {
+        setNotifications(response.data);
+      }
     } catch (error) {
       console.error('알림 조회 실패:', error);
     }
   };
 
-  
-  // 🌟 [수정된 알림 클릭 핸들러] 클릭 시 백엔드 읽음 처리 API 호출 후 알림 ID와 함께 리뷰 작성 페이지로 이동
+  // 알림 클릭 시 읽음 처리 API 호출 후 리뷰 작성 페이지로 이동
   const handleNotificationClick = async (notificationId, meetupId) => {
     try {
-      await axios.patch(`http://localhost:8080/api/notifications/reviews/${notificationId}/read`);
+      const token = localStorage.getItem('accessToken'); // JWT 토큰 가져오기
+      
+      await axios.patch(
+        `http://localhost:8080/api/notifications/reviews/${notificationId}/read`,
+        null,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      setNotifications((prev) => prev.filter((item) => item.id !== notificationId));
     } catch (error) {
       console.error('알림 읽음 처리 실패:', error);
     } finally {
@@ -101,7 +119,6 @@ function UserMyReviewPage() {
     );
   }, [dispatch, searchKeyword, sort]);
 
-  // 🌟 [수정된 useEffect] memberId가 로드된 이후 알림 목록 가져오기 + 마이페이지 재진입 시점 관리
   useEffect(() => {
     if (memberId) {
       fetchNotifications();
@@ -165,7 +182,6 @@ function UserMyReviewPage() {
       width: '20%',
       render: (meetupId, record) => (
         <div>
-          {/* 🌟 record.meetupTitle(모임 이름)을 먼저 보여주고, 없을 때만 기존처럼 모임 번호를 보여줍니다 */}
           <Text strong>{record.meetupTitle || `모임 #${meetupId}`}</Text>
           <br />
           <Text type="secondary" style={{ fontSize: 12 }}>
@@ -304,8 +320,14 @@ function UserMyReviewPage() {
                 ]}
               >
                 <List.Item.Meta
-                  title={<Text strong>{item.title || `모임 #${item.meetupId} 참여가 완료되었습니다.`}</Text>}
-                  description={<Text type="secondary">{item.message || '즐거운 모임 되셨나요? 다른 회원님들을 위해 후기를 남겨주세요!'}</Text>}
+                  title={
+                    <Text strong>                    
+                      {item.meetupTitle 
+                        ? `'${item.meetupTitle}' 모임 참여가 완료되었습니다.` 
+                        : `모임 #${item.meetupId} 참여가 완료되었습니다.`}
+                    </Text>
+                  }
+                  description={<Text type="secondary">{item.content || '즐거운 모임 되셨나요? 다른 회원님들을 위해 후기를 남겨주세요!'}</Text>}
                 />
               </List.Item>
             )}
