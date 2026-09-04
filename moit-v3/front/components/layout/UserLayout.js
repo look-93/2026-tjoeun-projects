@@ -22,7 +22,8 @@ function UserLayout({ children }) {
 
   const isMypage = router.pathname.includes('/mypage');
   // 로그인 없이 접근 가능한 경로
-  const publicPaths = ['/', '/user/meetup', '/user/member/login', '/user/member/signup'];
+  const publicPaths = ['/', '/user/meetup', '/user/member/login', '/user/member/signup','/user/member/findId',
+  '/user/member/findPassword','/user/member/resetPassword'];
   const isPublicPage = publicPaths.includes(router.pathname);
 
   //user 정보 없으면 loginPage 이동

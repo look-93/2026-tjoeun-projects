@@ -131,6 +131,7 @@ public class SecurityConfig {
                 "/user/advertisement/click",
                 "/user/member/kakaologout",
                 "/upload/**",
+                "/images/**",
                 
                 //운영환경에서는 yml로 제어 
                 "/swagger-ui/**",
@@ -189,6 +190,7 @@ public class SecurityConfig {
                     "/api/advertisement/top",
                     "/api/advertisement/click",
                     "/api/advertisement/impression"
+                    
             	)
             .permitAll()
             
