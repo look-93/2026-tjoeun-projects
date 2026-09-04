@@ -22,6 +22,7 @@ public class AdvertisementPaymentDto {
     private Long advertiserId;
     
     private String advertiserNickname;
+    private String advertiserEmail;
     private AdGrade adGrade;
 
     private PaymentType paymentType;
@@ -70,6 +71,7 @@ public class AdvertisementPaymentDto {
         if (payment.getAdvertiser() != null) {  
         	dto.setAdvertiserId( payment.getAdvertiser().getId() );  
             dto.setAdvertiserNickname( payment.getAdvertiser().getNickname() );
+            dto.setAdvertiserEmail(payment.getAdvertiser().getEmail());
         }
 
         dto.setPaymentType( payment.getPaymentType() );  

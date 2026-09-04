@@ -2,6 +2,7 @@ package com.moit.meetup.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,7 @@ import com.moit.meetup.enums.MeetupStatus;
 
 @Repository
 public interface MeetupRepository extends JpaRepository<Meetup, Long>{
+	Optional<Meetup> findByIdAndMemberId(Long meetupId, Long memberId);
 	
 	Page<Meetup> findAll(Pageable pageable);
 	

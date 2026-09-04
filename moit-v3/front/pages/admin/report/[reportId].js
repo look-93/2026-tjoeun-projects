@@ -217,6 +217,12 @@ function ReportDetailPage() {
     
     // 신고 삭제 요청
     const handleDelete = () => {
+        // 삭제 사유 공백 막기
+        if (!processReason.trim()) {
+            message.warning('삭제 사유를 입력해주세요.');
+            return;
+        }
+
         Modal.confirm({
             title: '신고 내역을 삭제하시겠습니까?',
             content: '삭제 후에는 신고 내역을 확인할 수 없습니다.',
@@ -227,7 +233,10 @@ function ReportDetailPage() {
                 danger: true
             },
             onOk: ()=> {
-                dispatch( deleteAdminReportRequest({reportId: Number(reportId)}) );
+                dispatch( deleteAdminReportRequest({
+                    reportId: Number(reportId),
+                    processReason: processReason.trim()
+                }));
             }
         });
     };
@@ -382,7 +391,7 @@ function ReportDetailPage() {
 
                         <Input.TextArea
                             rows={4}
-                            placeholder="승인 또는 반려 사유를 입력하세요."
+                            placeholder="승인, 반려 또는 삭제 사유를 입력하세요."
                             value={processReason}
                             onChange={(e) => {
                                 setProcessReason(e.target.value);

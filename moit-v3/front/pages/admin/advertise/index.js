@@ -104,7 +104,7 @@ function AdminAdvertisePage() {
       }
       setTotalCount(response?.data || 0);
     } catch (error) {
-      console.error('광고 개수 조회 실패', error);
+      console.error('광고 개수 조회 실패');
     }
   };
 
@@ -122,7 +122,7 @@ function AdminAdvertisePage() {
         setStatusStatsData(res.data || {});
       }
     } catch (error) {
-      console.error('통계 조회 실패', error);
+      console.error('통계 조회 실패');
     }
   };
 

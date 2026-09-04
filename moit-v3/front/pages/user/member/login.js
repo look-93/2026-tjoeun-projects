@@ -34,6 +34,20 @@ function Login(){
         return deviceId;
     };
 
+    //user 정보 있으면 main page 이동
+    const { user, isInitialized}  = useSelector((state) => state.user);
+
+    useEffect(() => {
+      //console.log(isInitialized)
+
+      if(!isInitialized) return;
+
+      if (user) {
+        router.replace("/");
+        return;
+      }
+
+    }, [user, isInitialized, router]);
 
     // =========================
     // Redux 상태

@@ -182,6 +182,13 @@ public class Advertisement extends BaseEntity{
         this.reminder14dSent = "Y";
     }
 
+    // 기본 광고비
+    @Column(name = "BASE_PRICE", precision = 12, scale = 2)
+    private BigDecimal basePrice;
+
+    // 위치 추가금
+    @Column(name = "POSITION_PRICE", precision = 12, scale = 2)
+    private BigDecimal positionPrice;
 
     // 광고 총 예산
     @Column(name = "TOTAL_BUDGET", precision = 12, scale = 2)
@@ -295,6 +302,9 @@ public class Advertisement extends BaseEntity{
         this.rejectReason = null;
     }
     
+	 // =========================================================
+	 // 광고 수정
+	 // =========================================================
     public void updateAdvertisement(
             String title,
             String content,
@@ -302,6 +312,7 @@ public class Advertisement extends BaseEntity{
             Integer targetAgeMin,
             Integer targetAgeMax,
             TargetGender targetGender,
+            AdGrade adGrade,
             LocalDateTime startDatetime,
             LocalDateTime endDatetime,
             BigDecimal totalBudget) {
@@ -314,9 +325,20 @@ public class Advertisement extends BaseEntity{
         this.targetAgeMax = targetAgeMax;
         this.targetGender = targetGender;
 
+        this.adGrade = adGrade;
         this.startDatetime = startDatetime;
         this.endDatetime = endDatetime;
 
+        this.totalBudget = totalBudget;
+    }
+    
+    public void updatePrice(
+            BigDecimal basePrice,
+            BigDecimal positionPrice,
+            BigDecimal totalBudget) {
+
+        this.basePrice = basePrice;
+        this.positionPrice = positionPrice;
         this.totalBudget = totalBudget;
     }
 

@@ -33,9 +33,13 @@ import lombok.Setter;
 @Table(name = "REPORTS")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Report extends BaseEntity {
+//	@Id
+//	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "reportId_seq")
+//	@SequenceGenerator(name = "reportId_seq", sequenceName = "REPORT_SEQ", allocationSize = 1)
+//	@Column(name = "REPORT_ID")
+//	private Long reportId;
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "reportId_seq")
-	@SequenceGenerator(name = "reportId_seq", sequenceName = "REPORT_SEQ", allocationSize = 1)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "REPORT_ID")
 	private Long reportId;
 	

@@ -44,7 +44,7 @@ function QnaSection({ qnaLists = [], meetupId }) {
                             className="qna-card"
                             onClick={() =>
                                 router.push(
-                                    `/user/qna/questionDetail?questionId=${qna.questionId}`
+                                    `/user/qna/questionDetail?questionId=${qna.questionId}&from=meetup`
                                 )
                             }
                         >
