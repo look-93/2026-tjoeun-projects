@@ -50,12 +50,6 @@ public class UserServiceImpl  implements UserService{
 		map.put("mobile", dto.getMobile());
 		if(dao.findUser(map) != null) { return -3; }
 		
-		// 비밀번호 유출검사(HIBP)  임시 주석처리
-//		int leakCount = passwordLeakService.getLeakCount(dto.getPassword());
-//		
-//		if(leakCount == -1) { System.out.println("HIBP API 호출실패"); }
-//		if(leakCount > 0) { return -2; }
-		
 		// 비밀번호 암호화 
 		dto.setPassword(pwencoder.encode(dto.getPassword()));
 		

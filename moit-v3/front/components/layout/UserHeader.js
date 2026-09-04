@@ -56,10 +56,7 @@ function UserHeader() {
       return;
     }
 
-    const accessToken = localStorage.getItem('accessToken');
-
-    // console.log('===== HEADER USER CHECK =====');
-    // console.log('accessToken 존재:', !!accessToken);
+    const accessToken = localStorage.getItem('accessToken');    
 
     // 토큰이 없으면 조회하지 않음
     if (!accessToken) {
@@ -192,9 +189,6 @@ function UserHeader() {
           return;
       }
 
-      // console.log('===== LOGOUT PROVIDER =====');
-      // console.log('현재 로그인 provider:', user?.provider);
-
       // 모바일 Drawer 닫기
       setDrawerOpen(false);
 
@@ -226,11 +220,6 @@ function UserHeader() {
 
     const imageUrl =
       `${process.env.NEXT_PUBLIC_API_BASE_URL}${profileUrl}`;
-
-    // console.log("===== HEADER PROFILE IMAGE =====");
-    // console.log("profileUrl:", profileUrl);
-    // console.log("API BASE URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
-    // console.log("최종 이미지 URL:", imageUrl);
 
     return imageUrl;
   };

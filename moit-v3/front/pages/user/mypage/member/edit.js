@@ -75,10 +75,6 @@ function UserMyMemberEditPage() {
   useEffect(() => {
     if (!user) return;
 
-    // console.log("===== EDIT USER =====");
-    // console.log("user:", user);
-    // console.log("interestIds:", user.interestIds);
-
     const interestIds = (user.interestIds || []).map(Number);
 
     form.setFieldsValue({
@@ -94,9 +90,6 @@ function UserMyMemberEditPage() {
 
       interests: interestIds,
     });
-
-    // console.log("===== FORM 관심사 세팅 =====");
-    // console.log("interestIds:", interestIds);
 
     const profileUrl = user.profileUrl;
 

@@ -41,7 +41,6 @@ function UserLayout({ children }) {
     const accessToken = localStorage.getItem("accessToken");
 
     if (!accessToken) {
-      //console.log(2)
       router.replace("/user/member/login");
     }
 

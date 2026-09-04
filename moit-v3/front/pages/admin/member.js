@@ -96,9 +96,6 @@ function AdminMemberPage() {
         // -----------------------------------------------------
         const accessToken =localStorage.getItem('accessToken');
 
-        // console.log('===== ADMIN AUTH CHECK =====');
-        // console.log('accessToken 존재:',!!accessToken);
-
         // -----------------------------------------------------
         // 로그인하지 않은 경우
         // -----------------------------------------------------
@@ -114,11 +111,7 @@ function AdminMemberPage() {
         // 현재 로그인 사용자 조회
         // -----------------------------------------------------
         const response = await api.get('/api/members/me' );
-        const currentUser = response.data;
-
-        // console.log('===== ADMIN USER =====');
-        // console.log(currentUser);
-        // console.log('memberTypeId:',currentUser.memberTypeId);
+        const currentUser = response.data;       
 
         // -----------------------------------------------------
         // 사용자 정보 저장
@@ -172,11 +165,6 @@ function AdminMemberPage() {
     try {
       setLoading(true);
 
-      // console.log('===== ADMIN MEMBER LIST =====');
-      // console.log('memberTypeId:',memberTypeId);
-      // console.log('keyword:',keyword);
-      // console.log('page:',page);
-
       // -----------------------------------------------------
       // API 호출
       // -----------------------------------------------------
@@ -193,9 +181,6 @@ function AdminMemberPage() {
             },
           }
         );
-
-      // console.log('===== ADMIN MEMBERS RESPONSE =====');
-      // console.log(response.data);
 
       // -----------------------------------------------------
       // 회원 목록
@@ -231,11 +216,7 @@ function AdminMemberPage() {
   // =========================================================
   const loadStats = async () => {
     try {
-      // console.log('===== ADMIN MEMBER STATS =====');
       const response = await api.get('/api/admin/members/stats');
-
-      // console.log('===== ADMIN MEMBER STATS RESPONSE =====');
-      // console.log(response.data);
 
       const data = response.data;
       setStats([

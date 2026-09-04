@@ -209,10 +209,6 @@ function ResetPassword() {
 
         // console.log("===== 비밀번호 변경 요청 =====");
 
-        // console.log("email:",email );
-
-        // console.log("resetData:",resetData);
-
         dispatch(findPasswordRequest(resetData));
     };
 

@@ -14,16 +14,10 @@ function MyPage() {
     // Redux 회원정보
     const userState = useSelector((state) => state.user);
 
-    // console.log("===== MYPAGE REDUX STATE =====");
-    // console.log(userState);
-
     const user = userState?.user;
     const loading = userState?.loading;
     const error = userState?.error;
 
-    // console.log("user:", user);
-    // console.log("loading:", loading);
-    // console.log("error:", error);
 
     // 마이페이지 진입 시 내 정보 조회
     useEffect(() => {
