@@ -38,14 +38,12 @@ public class ApiEmail {
 		
 		// 3. Session
 		Session session = Session.getInstance( props, new Authenticator() {
-			
 			@Override
 			protected PasswordAuthentication getPasswordAuthentication() {
 				return new PasswordAuthentication(user, password);
 			}
 		});
 		
-		// 4. 메일보내기 (Mime 텍스트 text/plain , html text/html , 이미지 image/png) 멀티미디어메시지
 		// MimeMessage -	실제로 SMTP 서버에 보낼 이메일 메시지 객체
 		MimeMessage message = new MimeMessage(session);
 
@@ -58,8 +56,9 @@ public class ApiEmail {
 			message.setText(content + "\n\n(이 메일은 자동 발송된 안내 메일입니다.)", "UTF-8");
 			
 			Transport.send(message);
-			System.out.println("\n....... sendEmail successfully .......");
 		
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) {
+			throw new RuntimeException("이메일 발송 실패", e);
+		}
 	}
 }

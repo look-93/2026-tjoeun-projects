@@ -8,7 +8,6 @@ import  {
     fetchReportsRequest, fetchReportsSuccess, fetchReportsFailure,
     fetchReportsDetailRequest, fetchReportsDetailSuccess, fetchReportsDetailFailure,
     checkDoubleReportRequest, checkDoubleReportSuccess, checkDoubleReportFailure,
-    resetReportState,
     updateAdminReportRequest, updateAdminReportSuccess, updateAdminReportFailure,
     deleteAdminReportRequest, deleteAdminReportSuccess, deleteAdminReportFailure,
     fetchAdminReportsRequest, fetchAdminReportsSuccess, fetchAdminReportsFailure,
@@ -18,22 +17,18 @@ import  {
 
     createAIReportDetailRequest, createAIReportDetailSuccess, createAIReportDetailFailure,
     aiReportAnalysisRequest, aiReportAnalysisSuccess, aiReportAnalysisFailure,
-    resetAiAnalysisState
 } from '../reducers/reportReducer';
 import api from '../api/axios';
 
 
 
 
-// POST_API_BASE = http://localhost:8080/api/reports
 const POST_API_BASE = '/api/reports';
 
 
 // watchCreateReport          - POST      /api/reports        신고 작성
 export const createReportAPI = (dto)=> {
-
     // @RequestBody ReportRequestDto requestDto     신고 내용을 요청 body에 넣어서 보내기
-    // POST_API_BASE = http://localhost:8080/api/reports
     return api.post(POST_API_BASE, dto);
 }
 export function* createReport(action) {
@@ -42,10 +37,6 @@ export function* createReport(action) {
         yield put(createReportSuccess(result.data));
         
     } catch(err) {
-        console.log("신고 등록 오류 전체:", err);
-        console.log("응답 데이터:", err.response?.data);
-        console.log("응답 상태:", err.response?.status);
-
         yield put(createReportFailure(err.response?.data?.message || err.message));
     }
 }
@@ -56,7 +47,6 @@ export const updateReportAPI = (payload)=> {
 
     // @PathVariable("reportId") Long reportId       URL 경로에 신고 번호 보내기
     // @RequestBody ReportRequestDto requestDto      수정할 신고 내용을 body에 넣어서 보내기
-    // POST_API_BASE = http://localhost:8080/api/reports/1
     return api.patch(`${POST_API_BASE}/${reportId}`, dto);
 }
 export function* updateReport(action) {
@@ -74,7 +64,6 @@ export const deleteReportAPI = (payload)=> {
     const { reportId } = payload;
 
     // @PathVariable("reportId") Long reportId
-    // POST_API_BASE = http://localhost:8080/api/reports/1
     return api.delete(`${POST_API_BASE}/${reportId}`);
 }
 export function* deleteReport(action) {
@@ -89,14 +78,10 @@ export function* deleteReport(action) {
 
 // watchFetchReports          - GET       /api/reports        내 신고 목록 조회 + 페이징
 export const fetchReportsAPI = (payload)=> {
-    const { memberId, page=0, size=10 } = payload;
+    const { page=0, size=10 } = payload;
 
-    // @RequestParam("memberId") Long memberId
     // Pageable pageable
-    // POST_API_BASE = http://localhost:8080/api/reports?memberId=2&page=0&size=10
-    return api.get(
-        `${POST_API_BASE}?memberId=${memberId}&page=${page}&size=${size}`
-    );
+    return api.get(`${POST_API_BASE}?page=${page}&size=${size}`);
 }
 export function* fetchReports(action) {
     try {
@@ -113,7 +98,6 @@ export const fetchReportsDetailAPI = (payload)=> {
     const { reportId } = payload;
 
     // @PathVariable("reportId") Long reportId
-    // POST_API_BASE = http://localhost:8080/api/reports/1
     return api.get(`${POST_API_BASE}/${reportId}`);
 }
 export function* fetchReportsDetail(action) {
@@ -128,15 +112,13 @@ export function* fetchReportsDetail(action) {
 
 // watchCheckDoubleReport     - GET       /api/reports/checkDoubleReport      중복 신고 확인
 export const checkDoubleReportAPI = (payload)=> {
-    const { memberId, targetType, targetId } = payload;
+    const { targetType, targetId } = payload;
 
-    // @RequestParam("memberId") Long memberId
     // @RequestParam("targetType") TargetType targetType
     // @RequestParam("targetId") Long targetId
     // true  = 이미 신고 / false = 신고 가능
-    // POST_API_BASE = http://localhost:8080/api/reports/checkDoubleReport?memberId=2&targetType=MEETUP&targetId=10
     return api.get(
-        `${POST_API_BASE}/checkDoubleReport?memberId=${memberId}&targetType=${targetType}&targetId=${targetId}`
+        `${POST_API_BASE}/checkDoubleReport?targetType=${targetType}&targetId=${targetId}`
     );
 }
 export function* checkDoubleReport(action) {
@@ -155,12 +137,6 @@ export function* checkDoubleReport(action) {
 export const updateAdminReportAPI = (payload)=> {
     const { reportId, processDto } = payload;
 
-    console.log('관리자 처리 reportId:', reportId);
-    console.log('관리자 처리 processDto:', processDto);
-
-    console.log('관리자 처리 reportId:', reportId);
-    console.log('관리자 처리 processDto:', JSON.stringify(processDto));
-
     // @PathVariable("reportId") Long reportId
     // @RequestBody ReportProcessDto processDto
     //
@@ -169,8 +145,6 @@ export const updateAdminReportAPI = (payload)=> {
     //     status: "APPROVED",
     //     processReason: "신고 내용 확인"
     // }
-    //
-    // POST_API_BASE = http://localhost:8080/api/reports/admin/1
     return api.patch(`${POST_API_BASE}/admin/${reportId}`, processDto);
 }
 export function* updateAdminReport(action) {
@@ -189,7 +163,6 @@ export const deleteAdminReportAPI = (payload)=> {
 
     // @PathVariable("reportId") Long reportId
     // @RequestParam("processReason") String processReason
-    // POST_API_BASE = http://localhost:8080/api/reports/admin/1?processReason=관리자삭제사유
     return api.delete(
         `${POST_API_BASE}/admin/${reportId}?processReason=${encodeURIComponent(processReason)}`
     );
@@ -250,14 +223,8 @@ export const fetchAdminReportsAPI = (payload)=> {
     // deleteYn : N / Y
     // memberNickname : 검색어 (닉네임)
     // Pageable pageable
-    //
-    // POST_API_BASE = http://localhost:8080/api/reports/admin/adminReportsList
-    //                 ?filter=ALL&search=MEMBER_NICKNAME&keyword=test&page=0&size=10
     return api.get(
-        `${POST_API_BASE}/admin/adminReportsList`,
-        {
-            params
-        }
+        `${POST_API_BASE}/admin/adminReportsList`, {params}
     );
 }
 export function* fetchAdminReports(action) {
@@ -276,7 +243,6 @@ export const fetchAdminReportsDetailAPI = (payload)=> {
     const { reportId } = payload;
 
     // @PathVariable("reportId") Long reportId
-    // POST_API_BASE = http://localhost:8080/api/reports/admin/1
     return api.get(`${POST_API_BASE}/admin/${reportId}`);
 }
 export function* fetchAdminReportsDetail(action) {
@@ -295,7 +261,6 @@ export const fetchAdminReportAuditLogsAPI = (payload)=> {
     const { reportId } = payload;
 
     // @PathVariable("reportId") Long reportId
-    // POST_API_BASE = http://localhost:8080/api/reports/admin/1/auditLogs
     return api.get(`${POST_API_BASE}/admin/${reportId}/auditLogs`);
 }
 export function* fetchAdminReportAuditLogs(action) {
@@ -361,7 +326,7 @@ function* watchFetchReportsDetail() { yield takeLatest( fetchReportsDetailReques
 function* watchCheckDoubleReport() { yield takeLatest( checkDoubleReportRequest.type, checkDoubleReport ); }
 
 function* watchUpdateAdminReport() { yield takeLatest( updateAdminReportRequest.type, updateAdminReport ); }
-function* watchdDeleteAdminReport() { yield takeLatest( deleteAdminReportRequest.type, deleteAdminReport ); }
+function* watchDeleteAdminReport() { yield takeLatest( deleteAdminReportRequest.type, deleteAdminReport ); }
 function* watchFetchAdminReports() { yield takeLatest( fetchAdminReportsRequest.type, fetchAdminReports ); }
 function* watchFetchAdminReportsDetail() { yield takeLatest( fetchAdminReportsDetailRequest.type, fetchAdminReportsDetail ); }
 
@@ -381,7 +346,7 @@ export default function* reportSaga() {
         call(watchCheckDoubleReport),
 
         call(watchUpdateAdminReport),
-        call(watchdDeleteAdminReport),
+        call(watchDeleteAdminReport),
         call(watchFetchAdminReports),           // --- 관리자 신고 목록 조회 + 검색 + 페이징 ---
         call(watchFetchAdminReportsDetail),     // --- 관리자 신고 상세 조회 ---
         
