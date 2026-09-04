@@ -70,7 +70,9 @@ import com.moit.member.repository.MemberRepository;
 import com.moit.member.repository.PointHistoryRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
@@ -647,8 +649,8 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	         paymentType = PaymentType.INITIAL;
 	     }
 	     
-	     System.out.println("========== 광고 등록 가격 계산 ==========");
-	     System.out.println("positions   = " + dto.getPositions());
+	     log.debug("========== 광고 등록 가격 계산 ==========");
+	     log.debug("positions = {}", dto.getPositions());
 	     
 	     AdvertisementCalculationResultDto calculation =
 	             calculationService.calculate(
@@ -1675,15 +1677,11 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	     // 광고 클릭수 증가
 	     advertisement.increaseClicks();
 	     
-	     System.out.println("===== 광고 클릭 =====");
-	     System.out.println("memberId = " + memberId);
-	     System.out.println("member = " + member);
-	
-	     // 로그인 사용자 포인트 적립
-	     if (member != null) {
-	
-	    	 System.out.println("===== 광고 클릭 포인트 적립 실행 =====");
+	     log.debug("광고 클릭 처리 시작. adId={}", advertisement.getAdId());
 
+	     if (member != null) {
+
+	         log.info("광고 클릭 포인트 적립 실행. adId={}", advertisement.getAdId());
 	    	 
 	         final int POINT = 10;
 	
@@ -1855,7 +1853,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	 @Transactional
 	 public void insertDailyStatistics() {
 	
-	     System.out.println("🔥🔥🔥 INSERT DAILY STATISTICS CALLED 🔥🔥🔥");
+		 log.info("일일 광고 통계 저장 스케줄러 시작");
 	
 	     record StatisticsKey(
 	             Long adId,
@@ -1865,7 +1863,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	     LocalDate statDate = LocalDate.now().minusDays(1);
 //	     LocalDate statDate = LocalDate.now(); // 당일통계 저장
 	
-	     System.out.println("🔥 통계 기준일 = " + statDate);
+	     log.debug("통계 기준일 = {}", statDate);
 	
 	     // =========================================================
 	     // 노출 로그 조회
@@ -1877,18 +1875,16 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	                     statDate.plusDays(1).atStartOfDay()
 	             );
 	
-	     System.out.println(
-	             "🔥 노출 로그 조회 건수 = " + impressionLogs.size()
-	     );
+	     log.debug("노출 로그 조회 건수 = {}", impressionLogs.size());
 	
-	     impressionLogs.forEach(log ->
-	             System.out.println(
-	                     "🔥 노출 로그"
-	                     + " | adId=" + log.getAdvertisement().getAdId()
-	                     + " | position=" + log.getPosition()
-	                     + " | viewedAt=" + log.getViewedAt()
-	             )
-	     );
+	     impressionLogs.forEach(impressionLog ->
+		     log.debug(
+		         "노출 로그 | adId={} | position={} | viewedAt={}",
+		         impressionLog.getAdvertisement().getAdId(),
+		         impressionLog.getPosition(),
+		         impressionLog.getViewedAt()
+		     )
+		 );
 	
 	     // =========================================================
 	     // 노출 Map
@@ -1904,14 +1900,15 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	                             Collectors.counting()
 	                     ));
 	
-	     System.out.println("===== IMPRESSION MAP =====");
-	
+	     log.debug("===== IMPRESSION MAP =====");
+
 	     impressionMap.forEach((key, value) ->
-	             System.out.println(
-	                     "adId=" + key.adId()
-	                     + " | position=" + key.position()
-	                     + " | impressions=" + value
-	             )
+	         log.debug(
+	             "adId={} | position={} | impressions={}",
+	             key.adId(),
+	             key.position(),
+	             value
+	         )
 	     );
 	
 	     // =========================================================
@@ -1924,9 +1921,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	                     statDate.plusDays(1).atStartOfDay()
 	             );
 	
-	     System.out.println(
-	             "🔥 클릭 로그 조회 건수 = " + clickLogs.size()
-	     );
+	     log.debug("클릭 로그 조회 건수 = {}", clickLogs.size());
 	
 	     // =========================================================
 	     // 클릭 Map
@@ -1942,14 +1937,15 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	                             Collectors.counting()
 	                     ));
 	
-	     System.out.println("===== CLICK MAP =====");
-	
+	     log.debug("===== CLICK MAP =====");
+
 	     clickMap.forEach((key, value) ->
-	             System.out.println(
-	                     "adId=" + key.adId()
-	                     + " | position=" + key.position()
-	                     + " | clicks=" + value
-	             )
+	         log.debug(
+	             "adId={} | position={} | clicks={}",
+	             key.adId(),
+	             key.position(),
+	             value
+	         )
 	     );
 	
 	     // =========================================================
@@ -1961,13 +1957,14 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	     keys.addAll(impressionMap.keySet());
 	     keys.addAll(clickMap.keySet());
 	
-	     System.out.println("===== STATISTICS KEYS =====");
-	
+	     log.debug("===== STATISTICS KEYS =====");
+
 	     keys.forEach(key ->
-	             System.out.println(
-	                     "adId=" + key.adId()
-	                     + " | position=" + key.position()
-	             )
+	         log.debug(
+	             "adId={} | position={}",
+	             key.adId(),
+	             key.position()
+	         )
 	     );
 	
 	     // =========================================================
@@ -1979,11 +1976,11 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	         Long adId = key.adId();
 	         AdPosition position = key.position();
 	
-	         System.out.println(
-	                 "===== STATISTICS PROCESS ====="
-	                 + " | adId=" + adId
-	                 + " | position=" + position
-	         );
+	         log.debug(
+	        		    "===== STATISTICS PROCESS ===== | adId={} | position={}",
+	        		    adId,
+	        		    position
+	        		);
 	
 	         // -----------------------------------------------------
 	         // 이미 존재하는 통계인지 확인
@@ -1997,17 +1994,15 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	                                 position
 	                         );
 	
-	         System.out.println(
-	                 "이미 존재 여부 = " + exists
-	         );
+	         log.debug("이미 존재 여부 = {}", exists);
 	
 	         if (exists) {
 	
-	             System.out.println(
-	                     "⏭️ 이미 존재하므로 SKIP"
-	                     + " | adId=" + adId
-	                     + " | position=" + position
-	             );
+	        	 log.debug(
+	    			    "이미 존재하므로 SKIP | adId={} | position={}",
+	    			    adId,
+	    			    position
+	    			);
 	
 	             continue;
 	         }
@@ -2022,10 +2017,10 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	
 	         if (advertisement == null) {
 	
-	             System.out.println(
-	                     "⚠️ 광고 없음 → SKIP"
-	                     + " | adId=" + adId
-	             );
+	        	 log.warn(
+        			    "통계 저장 대상 광고를 찾을 수 없어 SKIP합니다. adId={}",
+        			    adId
+        			);
 	
 	             continue;
 	         }
@@ -2040,13 +2035,13 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	         long clicks =
 	                 clickMap.getOrDefault(key, 0L);
 	
-	         System.out.println(
-	                 "📊 저장 데이터"
-	                 + " | adId=" + adId
-	                 + " | position=" + position
-	                 + " | impressions=" + impressions
-	                 + " | clicks=" + clicks
-	         );
+	         log.debug(
+	        		    "통계 저장 데이터 | adId={} | position={} | impressions={} | clicks={}",
+	        		    adId,
+	        		    position,
+	        		    impressions,
+	        		    clicks
+	        		);
 	
 	         // -----------------------------------------------------
 	         // CTR
@@ -2089,17 +2084,17 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 	
 	         dailyStatisticsRepository.save(statistics);
 	
-	         System.out.println(
-	                 "✅ 일일 통계 저장 완료"
-	                 + " | adId=" + adId
-	                 + " | position=" + position
-	                 + " | impressions=" + impressions
-	                 + " | clicks=" + clicks
-	                 + " | ctr=" + ctr
-	         );
+	         log.info(
+        		    "일일 광고 통계 저장 완료 | adId={} | position={} | impressions={} | clicks={} | ctr={}",
+        		    adId,
+        		    position,
+        		    impressions,
+        		    clicks,
+        		    ctr
+        		);
 	     }
 	
-	     System.out.println("🔥🔥🔥 INSERT DAILY STATISTICS END 🔥🔥🔥");
+	     log.info("일일 광고 통계 저장 스케줄러 종료");
 	 }
 	
     @Override
@@ -2390,14 +2385,15 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         List<AdvertisementDailyStatistics> statistics =
                 dailyStatisticsRepository.findRecentStatistics(startDate);
         
-        System.out.println("===== POSITION STATISTICS =====");
+        log.debug("===== POSITION STATISTICS =====");
 
-        statistics.forEach(s ->
-            System.out.println(
-                "date=" + s.getStatDate()
-                + ", adId=" + s.getAdvertisement().getAdId()
-                + ", position=" + s.getPosition()
-                + ", impressions=" + s.getImpressions()
+        statistics.forEach(stat ->
+            log.debug(
+                "date={} | adId={} | position={} | impressions={}",
+                stat.getStatDate(),
+                stat.getAdvertisement().getAdId(),
+                stat.getPosition(),
+                stat.getImpressions()
             )
         );
 
@@ -2812,12 +2808,11 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         for (Advertisement ad : readyAds) {
             ad.changeStatus(AdStatus.OPEN);
             
-            System.out.println(
-                    "[광고 OPEN] 광고 ID="
-                    + ad.getAdId()
-                    + ", 결제상태="
-                    + ad.getPaymentStatus()
-            );
+            log.info(
+            	    "광고 상태 OPEN 변경 | adId={} | paymentStatus={}",
+            	    ad.getAdId(),
+            	    ad.getPaymentStatus()
+            	);
         }
 
         // 2. 진행중(OPEN)인 광고 중, 종료 시간이 지난 것을 CLOSED(마감)로 변경
@@ -2831,10 +2826,10 @@ public class AdvertisementServiceImpl implements AdvertisementService {
         for (Advertisement ad : expiredAds) {
             ad.changeStatus(AdStatus.CLOSED);
             
-            System.out.println(
-                    "[광고 CLOSED] 광고 ID="
-                    + ad.getAdId()
-            );
+            log.info(
+            	    "광고 상태 CLOSED 변경 | adId={}",
+            	    ad.getAdId()
+            	);
         }
         
         // flush를 통해 DB에 즉시 반영 (선택사항이나 스케줄러 작업 시 권장)
@@ -3011,23 +3006,22 @@ public class AdvertisementServiceImpl implements AdvertisementService {
                         day30End
                 );
 
-        System.out.println("======================================");
-        System.out.println("[연장메일 스케줄러 실행]");
-        System.out.println("현재시간 : " + now);
-        System.out.println("D-30 시작 : " + day30Start);
-        System.out.println("D-30 종료 : " + day30End);
-        System.out.println("D-30 대상 광고 수 : " + ads30.size());
-        System.out.println("======================================");
+        log.info(
+        	    "광고 연장 메일 스케줄러 실행 | now={} | D-30 시작={} | D-30 종료={} | 대상 광고 수={}",
+        	    now,
+        	    day30Start,
+        	    day30End,
+        	    ads30.size()
+        	);
         
         for (Advertisement ad : ads30) {
 
-        	System.out.println(
-        	        "[D-30 메일 발송 대상] "
-        	        + "adId=" + ad.getAdId()
-        	        + ", title=" + ad.getTitle()
-        	        + ", email=" + ad.getAdvertiser().getEmail()
-        	        + ", endDatetime=" + ad.getEndDatetime()
-        	    );
+        	log.debug(
+        		    "D-30 연장 메일 발송 대상 | adId={} | title={} | endDatetime={}",
+        		    ad.getAdId(),
+        		    ad.getTitle(),
+        		    ad.getEndDatetime()
+        		);
         	
             AdvertisementDto dto = toDto(ad);
 
@@ -3036,7 +3030,10 @@ public class AdvertisementServiceImpl implements AdvertisementService {
             if (advertiser == null || advertiser.getEmail() == null
                     || advertiser.getEmail().isBlank()) {
 
-                System.out.println( "광고주 이메일 없음 - 광고 ID : " + ad.getAdId() );
+            	log.warn(
+            		    "광고주 이메일이 없어 연장 메일을 발송하지 못했습니다. adId={}",
+            		    ad.getAdId()
+            		);
 
                 continue;
             }
@@ -3049,10 +3046,10 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
             ad.markReminder30dSent();
             
-            System.out.println(
-                    "[D-30 메일 발송 완료] adId="
-                    + ad.getAdId()
-            );
+            log.info(
+            	    "D-30 연장 메일 발송 완료 | adId={}",
+            	    ad.getAdId()
+            	);
         }
 
 
@@ -3074,22 +3071,20 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
             Member advertiser = ad.getAdvertiser();
             
-            System.out.println(
-            		"[D-14 메일 발송 대상] "
-            				+ "adId=" + ad.getAdId()
-            				+ ", title=" + ad.getTitle()
-            				+ ", email=" + (
-            						advertiser != null
-            						? advertiser.getEmail()
-            								: "NULL"
-            						)
-            				+ ", endDatetime=" + ad.getEndDatetime()
-            		);
+            log.debug(
+            	    "D-14 연장 메일 발송 대상 | adId={} | title={} | endDatetime={}",
+            	    ad.getAdId(),
+            	    ad.getTitle(),
+            	    ad.getEndDatetime()
+            	);
 
             if (advertiser == null || advertiser.getEmail() == null
                     || advertiser.getEmail().isBlank()) {
 
-                System.out.println( "광고주 이메일 없음 - 광고 ID : " + ad.getAdId() );
+            	log.warn(
+            		    "광고주 이메일이 없어 연장 메일을 발송하지 못했습니다. adId={}",
+            		    ad.getAdId()
+            		);
 
                 continue;
             }
@@ -3102,10 +3097,10 @@ public class AdvertisementServiceImpl implements AdvertisementService {
 
             ad.markReminder14dSent();
             
-            System.out.println(
-                    "[D-14 메일 발송 완료] adId="
-                    + ad.getAdId()
-            );
+            log.info(
+            	    "D-14 연장 메일 발송 완료 | adId={}",
+            	    ad.getAdId()
+            	);
         }
     }
     

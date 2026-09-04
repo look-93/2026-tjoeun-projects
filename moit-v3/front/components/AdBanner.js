@@ -90,12 +90,6 @@ function AdBanner({ position }) {
 
                 impressionSent.current = true;
 
-                console.log(
-                    "광고 노출 처리:",
-                    ad.adId,
-                    position
-                );
-
             } catch (error) {
 
                 console.error(
@@ -129,18 +123,9 @@ function AdBanner({ position }) {
                 position
             );
 
-            console.log(
-                "광고 클릭 처리:",
-                ad.adId,
-                position
-            );
-
         } catch (error) {
 
-            console.error(
-                "광고 클릭 처리 실패:",
-                error
-            );
+            console.error( "광고 클릭 처리 실패:" );
 
         } finally {
 

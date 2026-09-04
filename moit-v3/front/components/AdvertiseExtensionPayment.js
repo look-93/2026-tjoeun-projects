@@ -25,6 +25,8 @@ export default function AdvertiseExtensionPayment({
   const [loading, setLoading] = useState(true);
   const [isReady, setIsReady] = useState(false);
 
+  const [customerInfo, setCustomerInfo] = useState(null);
+
   useEffect(() => {
 
     let isMounted = true;
@@ -55,11 +57,7 @@ export default function AdvertiseExtensionPayment({
         }
 
         const payment = response.data;
-
-        console.log(
-          '연장 결제 정보:',
-          payment
-        );
+        setCustomerInfo(payment);
 
         const serverAmount =
           Number(payment.amount);
@@ -79,8 +77,7 @@ export default function AdvertiseExtensionPayment({
         /*
          * Toss 고객 키
          */
-        const customerKey =
-          `customer_${adId}`;
+        const customerKey = `customer_${payment.advertiserId}`;
 
         const paymentWidget =
           await loadPaymentWidget(
@@ -136,10 +133,7 @@ export default function AdvertiseExtensionPayment({
           return;
         }
 
-        console.error(
-          '연장 결제 초기화 실패:',
-          error
-        );
+        console.error(  '연장 결제 초기화 실패:'  );
 
         message.error(
           error.response?.data?.message ||
@@ -163,8 +157,7 @@ export default function AdvertiseExtensionPayment({
 
   const handlePayment = async () => {
 
-    const paymentWidget =
-      paymentWidgetRef.current;
+    const paymentWidget =  paymentWidgetRef.current;
 
     if (
       !paymentWidget ||
@@ -196,11 +189,9 @@ export default function AdvertiseExtensionPayment({
         orderName:
           `${adTitle} ${days}일 연장`,
 
-        customerName:
-          '광고주',
+        customerName: customerInfo?.advertiserNickname,
 
-        customerEmail:
-          'advertiser@moit.com',
+        customerEmail: customerInfo?.advertiserEmail,
 
         successUrl:
           `${window.location.origin}/user/mypage/advertiseExtensionSuccess`,
@@ -211,8 +202,6 @@ export default function AdvertiseExtensionPayment({
       });
 
     } catch (error) {
-
-      console.error(error);
 
       if (
         error.code === 'USER_CANCEL'

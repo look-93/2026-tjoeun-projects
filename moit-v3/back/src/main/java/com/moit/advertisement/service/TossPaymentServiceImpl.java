@@ -27,7 +27,9 @@ import com.moit.advertisement.enums.PaymentType;
 import com.moit.advertisement.repository.AdvertisementPaymentRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TossPaymentServiceImpl implements TossPaymentService {
@@ -45,7 +47,7 @@ public class TossPaymentServiceImpl implements TossPaymentService {
         // 1. 주문번호로 결제 내역 조회
         AdvertisementPayment payment = paymentRepository.findByOrderId(requestDto.getOrderId())
         		.orElseThrow(() -> {
-                    System.out.println("❌ DB에 이 orderId가 없음!!");
+        			log.warn("결제 내역을 찾을 수 없습니다. orderId={}", requestDto.getOrderId());
                     return new IllegalArgumentException("존재하지 않는 주문번호입니다.");
                 });
         
@@ -127,8 +129,13 @@ public class TossPaymentServiceImpl implements TossPaymentService {
             	// 1. 결제 이력(History) 성공 처리
                 payment.updatePaymentSuccess(requestDto.getPaymentKey(), paymentMethod); 
                 
-                // 2. 광고 본체 가져오기
-//                Advertisement advertisement = payment.getAdvertisement();
+                log.info(
+                	    "토스 결제 승인 완료. orderId={} | adId={} | paymentType={} | paymentMethod={}",
+                	    requestDto.getOrderId(),
+                	    advertisement.getAdId(),
+                	    payment.getPaymentType(),
+                	    paymentMethod
+                	);
                 
              // 결제 유형에 따른 광고 상태 처리
                 if (payment.getPaymentType() == PaymentType.INITIAL) {
@@ -169,8 +176,14 @@ public class TossPaymentServiceImpl implements TossPaymentService {
                 throw new RuntimeException("토스 결제 승인 실패");
             }
         } catch (Exception e) {
-        	e.printStackTrace();
-        	throw new RuntimeException("토스 결제 승인 실패: " + e.getMessage(), e);
+            log.error(
+                "토스 결제 승인 중 오류가 발생했습니다. orderId={} | memberId={}",
+                requestDto.getOrderId(),
+                memberId,
+                e
+            );
+
+            throw new RuntimeException("토스 결제 승인 실패", e);
         }
     }
 }
