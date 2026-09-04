@@ -66,13 +66,13 @@ public class ReviewDto {
 		private Integer likesCount;
 		private Integer viewsCount;
 		private String isPublic; 
-		private String meetupTitle; // 모임제목 
-		private Boolean liked; // 좋아요 체크
+		private String meetupTitle; 
+		private Boolean liked;
 		private List<ReviewImageResponseDto> images = new ArrayList<>();
 		private String createdAt;
 		private String updatedAt;
 
-		// 목록 조회용 변환 메서드
+		// 목록 조회용
 		public static ReviewResponseDto listFrom(Review review, Long currentMemberId, ReviewLikeRepository reviewLikeRepository) {
 			ReviewResponseDto response = new ReviewResponseDto();
 			response.setId(review.getId());
@@ -92,7 +92,7 @@ public class ReviewDto {
 				response.setMemberNickname(review.getMember().getNickname());
 			}
 			
-			// 좋아요 여부 체크 로직
+			// 좋아요 여부 체크
 			if (currentMemberId != null && reviewLikeRepository != null) {
 				boolean isLiked = reviewLikeRepository.existsByReview_IdAndMember_Id(review.getId(), currentMemberId);
 				response.setLiked(isLiked);
@@ -100,7 +100,7 @@ public class ReviewDto {
 				response.setLiked(false);
 			}
 
-			// ★ LazyInitializationException 방지용 try-catch
+		
 			try {
 				if (review.getReviewImages() != null && !review.getReviewImages().isEmpty()) {
 					List<ReviewImageResponseDto> imageDtos = new ArrayList<>();
@@ -116,7 +116,7 @@ public class ReviewDto {
 			return response;
 		}
 
-		// 상세 조회용 변환 메서드
+		// 상세 조회용
 		public static ReviewResponseDto detailFrom(Review review, Long currentMemberId, ReviewLikeRepository reviewLikeRepository) {
 			ReviewResponseDto response = new ReviewResponseDto();
 			response.setId(review.getId());
@@ -136,13 +136,13 @@ public class ReviewDto {
 				response.setMemberNickname(review.getMember().getNickname());
 			}
 			
-			// 상세 조회에서도 좋아요 여부 세팅
+			// 상세 조회에서도 좋아요 여부
 			if (currentMemberId != null && reviewLikeRepository != null) {
 				boolean isLiked = reviewLikeRepository.existsByReview_IdAndMember_Id(review.getId(), currentMemberId);
 				response.setLiked(isLiked);
 			} else {
 				response.setLiked(false);
-			} // 👈 [수정] 여기에 빠져있던 닫는 중괄호를 추가했습니다!
+			} 
 
 			try {
 				if (review.getReviewImages() != null && !review.getReviewImages().isEmpty()) {

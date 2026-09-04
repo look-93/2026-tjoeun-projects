@@ -76,13 +76,11 @@ public class ModerationClientService {
                                    .trim();
 
             log.info("=== GPT 욕설 검사 결과 : [{}] (입력 텍스트: {}) ===", resultText, content);
-
-            // "BAD"가 포함되거나 동일하면 true(차단 대상) 반환
+            
             return resultText.toUpperCase().contains("BAD");
 
         } catch (Exception e) {
-            log.error("=== OpenAI Chat API 필터링 오류 ===", e);
-            // API 오류 시 리뷰 저장이 막히지 않도록 false 처리
+            log.error("=== OpenAI Chat API 필터링 오류 ===", e);           
             return false;
         }
     }

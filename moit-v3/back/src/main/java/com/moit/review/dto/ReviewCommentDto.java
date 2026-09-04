@@ -58,7 +58,6 @@ public class ReviewCommentDto {
         // 대댓글 목록 (계층형 구조)
         private List<ReviewCommentResponseDto> children = new ArrayList<>();
 
-        // Entity -> DTO 변환 메서드
         public static ReviewCommentResponseDto from(ReviewComment comment) {
             ReviewCommentResponseDto response = new ReviewCommentResponseDto();
             
@@ -66,28 +65,25 @@ public class ReviewCommentDto {
             response.setDeleteYn(comment.getDeleteYn());
             response.setContent(comment.getContent());
             
-            // 💡 삭제된 댓글 처리 (원하시는 경우 "삭제된 댓글입니다." 텍스트 유지 혹은 제거 가능)
+            //삭제된 댓글 처리
             if (comment.getDeleteYn() != null && comment.getDeleteYn() == 'Y') {  
                 response.setContent("삭제된 댓글입니다.");
             }
 
-            // 연관관계 안전하게 매핑 (Review)
+            //연관관계 안전하게 매핑 (Review)
             try {
                 if (comment.getReview() != null) {
                     response.setReviewId(comment.getReview().getId());
                 }
             } catch (Exception e) {
-                // 지연 로딩 예외 방어
             }
 
-            // 연관관계 안전하게 매핑 (Member)
             try {
                 if (comment.getMember() != null) {
                     response.setMemberId(comment.getMember().getId());
                     response.setMemberNickname(comment.getMember().getNickname());
                 }
             } catch (Exception e) {
-                // 지연 로딩 예외 방어
             }
 
             // 날짜 포맷팅 
@@ -99,7 +95,6 @@ public class ReviewCommentDto {
                 response.setUpdatedAt(comment.getUpdatedAt().format(formatter));
             }
 
-            // 자식 대댓글 재귀적 변환 매핑 (💡 삭제된('Y') 대댓글은 화면에 아예 안 보이도록 필터링 추가!)
             try {
                 if (comment.getChildren() != null && !comment.getChildren().isEmpty()) {
                     List<ReviewCommentResponseDto> childDtos = comment.getChildren().stream()

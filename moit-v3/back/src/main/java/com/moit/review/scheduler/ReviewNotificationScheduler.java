@@ -57,7 +57,7 @@ public class ReviewNotificationScheduler {
                 notificationRepository.save(notification);
                 log.info("✨ [알림 생성 완료] 회원 ID: {}, 모임 ID: {}", member.getId(), meetup.getId());
 
-                // 5. 이메일 발송
+                //이메일 발송
                 try {
                 	SimpleMailMessage mailMessage = new SimpleMailMessage();
                 	mailMessage.setTo(member.getEmail()); 

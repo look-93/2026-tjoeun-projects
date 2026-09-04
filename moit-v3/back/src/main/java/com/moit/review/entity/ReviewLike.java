@@ -31,7 +31,7 @@ import lombok.Setter;
 	        )
 	    }
 	)
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA용 기본 생성자
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ReviewLike extends BaseEntity {
 
     @Id
@@ -47,7 +47,6 @@ public class ReviewLike extends BaseEntity {
     @JoinColumn(name = "MEMBER_ID", nullable = false)
     private Member member;
 
-    // ★ 클래스 전체가 아닌 빌더를 사용할 생성자에 직접 선언합니다.
     @Builder
     public ReviewLike(Review review, Member member) {
         this.review = review;
