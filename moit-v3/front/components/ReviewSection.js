@@ -103,11 +103,17 @@ function ReviewSection({
 
   // 후기 작성 이동
   const handleWriteClick = () => {
-    // 💡 [추가] 모임 상태가 종료 상태('COMPLETED' 등)인지 확인
-    // 백엔드의 MeetupStatus Enum 값에 맞춰서 문자열을 비교해 주세요 (예: 'COMPLETED', 'FINISH' 등)
-    if (meetupStatus !== 'COMPLETED') {
-      alert('종료된 모임에만 후기를 작성할 수 있습니다.');
-      return; // 🛑 여기서 막아주기 때문에 작성 페이지로 넘어가지 않습니다!
+    console.log("🔍 현재 모임 상태 (meetupStatus):", meetupStatus);
+
+    // 1. meetupStatus 값이 전달되었는데 'COMPLETED'가 아니라면 페이지 이동을 절대 시키지 않고 차단
+    if (meetupStatus) {
+      const statusStr = String(meetupStatus).toUpperCase();
+      const isCompleted = statusStr.includes('COMPLETED') || statusStr.includes('COMPLETE') || statusStr.includes('종료');
+
+      if (!isCompleted) {
+        alert('종료된 모임에만 후기를 작성할 수 있습니다.');
+        return; // 🛑 여기서 함수를 종료하므로 write 페이지로 절대 넘어가지 않습니다!
+      }
     }
 
     dispatch(resetReviewState()); 

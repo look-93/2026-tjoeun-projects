@@ -155,7 +155,7 @@ function AdvertiseWritePage() {
         }
 
       } catch (error) {
-        console.error('광고 가격표를 불러오는데 실패했습니다.', error);
+        console.error('광고 가격표 조회 실패');
         message.error('가격 정보를 불러오지 못했습니다.'); 
       }
     };
@@ -211,7 +211,7 @@ function AdvertiseWritePage() {
 
       message.success({ content: '✨ AI 광고 작성이 완료되었습니다!', key: 'aiLoad', duration: 3 });
     } catch (error) {
-      console.error('AI 광고 작성 실패', error);
+      console.error('AI 광고 작성 실패');
       message.error({ content: 'AI 작성에 실패했습니다.', key: 'aiLoad', duration: 3 });
     } finally {
       setAiLoading(false);
@@ -448,7 +448,7 @@ function AdvertiseWritePage() {
       }
       router.push('/user/mypage/advertiseList');
     } catch (error) {
-      console.error(isEdit ? '광고 수정 실패' : '광고 등록 실패', error);
+      console.error( isEdit ? '광고 수정 실패' : '광고 등록 실패' );
       message.error(error.response?.data?.message || `광고 ${isEdit ? '수정' : '등록'}에 실패했습니다.`);
     } finally {
       setLoading(false);

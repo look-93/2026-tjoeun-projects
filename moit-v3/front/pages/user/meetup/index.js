@@ -7,6 +7,7 @@ import {
     fetchCategoriesRequest,
     fetchSigungusRequest,
     meetupLikeRequest,
+    fetchTodayMeetupCountRequest,
 } from "../../../reducers/meetupReducer";
 
 import MeetupSearchFilter from "../../../components/MeetupSearchFilter";
@@ -38,9 +39,14 @@ function MeetupListPage() {
         orderType: "createAt",
     });
 
-    const { meetups, categories, sigungus, totalCount } = useSelector(
-        (state) => state.meetup,
-    );
+    const {
+        meetups,
+        categories,
+        sigungus,
+        totalCount,
+        todayMeetupCount,
+        error,
+    } = useSelector((state) => state.meetup);
 
     const { user } = useSelector((state) => state.user);
 
@@ -89,14 +95,19 @@ function MeetupListPage() {
         ).values(),
     ];
 
+    // 하루 모임 수 조회
+    useEffect(() => {
+        dispatch(fetchTodayMeetupCountRequest());
+    }, [dispatch]);
+
     // 검색
     const handleSearch = () => {
-        console.log({
-            searchText,
-            sidoId,
-            orderType,
-            categoryId,
-        });
+        // console.log({
+        //     searchText,
+        //     sidoId,
+        //     orderType,
+        //     categoryId,
+        // });
 
         setCurrentPage(1);
 
@@ -142,6 +153,13 @@ function MeetupListPage() {
             router.push("/user/member/login");
             return;
         }
+
+        //오늘 등록한 모임 수
+        if (todayMeetupCount >= 3) {
+            message.error("하루 최대 3개의 모임만 등록할 수 있습니다.");
+            return;
+        }
+
         router.push("/user/meetup/write");
     };
 

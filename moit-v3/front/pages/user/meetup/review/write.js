@@ -41,7 +41,7 @@ function ReviewWritePage() {
   const [previewImage, setPreviewImage] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
 
-  // 💡 다중 선택 시 alert 창이 여러 번 뜨는 것을 방지하기 위한 ref 플래그
+  // 다중 선택 시 alert 창이 여러 번 뜨는 것을 방지하기 위한 ref 플래그
   const alertShownRef = useRef(false);
 
   // URL 파라미터에서 reviewId 및 meetupId 추출 (안전장치 추가)
@@ -54,6 +54,45 @@ function ReviewWritePage() {
 
   // 수정 모드 여부 판단
   const isEditMode = Boolean(queryReviewId);
+
+  // 💡 [디버깅 추가] 진입 시 모임 상태를 조회하여 실제 응답 데이터 구조와 상태값 확인
+  useEffect(() => {
+    if (!router.isReady) return;
+    if (isEditMode) return; // 수정 모드일 때는 모임 상태 체크 건너뜀
+
+    const targetMeetupId = queryMeetupId;
+    if (!targetMeetupId) return;
+
+    const checkMeetupStatus = async () => {
+      try {
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
+        const response = await axios.get(`http://localhost:8080/api/meetups/${targetMeetupId}`, {
+          headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+          },
+          withCredentials: true,
+        });
+
+        // 🔍 서버 응답 데이터 구조 확인용 로그
+        console.log("📥 서버에서 받은 모임 응답 전체:", response.data);
+
+        const meetupData = response.data.data || response.data;
+        const status = meetupData.meetupStatus || meetupData.status;
+
+        console.log("🔍 추출된 최종 모임 상태값 (status):", status);
+
+        // 종료 상태('COMPLETED')가 아닐 경우 경고 후 이전 페이지로 이동
+        if (status !== 'COMPLETED') {
+          alert('종료된 모임에만 후기를 작성할 수 있습니다.');
+          router.back();
+        }
+      } catch (err) {
+        console.error('모임 상태 조회 실패:', err);
+      }
+    };
+
+    checkMeetupStatus();
+  }, [router.isReady, isEditMode, queryMeetupId, router]);
 
   // 1. 수정 모드일 때 기존 리뷰 상세 정보 조회
   useEffect(() => {
@@ -97,7 +136,7 @@ function ReviewWritePage() {
       if (success) {
         alert(isEditMode ? '리뷰가 성공적으로 수정되었습니다.' : '리뷰가 성공적으로 등록되었습니다.');
 
-        // 🌟 [추가 로직] 마이페이지 알림을 통해 진입해 리뷰를 등록한 경우, 서버에 읽음 처리 요청
+        // 마이페이지 알림을 통해 진입해 리뷰를 등록한 경우, 서버에 읽음 처리 요청
         if (queryNotificationId) {
           try {
             await axios.patch(`http://localhost:8080/api/notifications/reviews/${queryNotificationId}/read`);
@@ -108,7 +147,7 @@ function ReviewWritePage() {
 
         dispatch(resetReviewState());
 
-        // 💡 마이페이지에서 진입한 경우 마이페이지로 이동
+        // 마이페이지에서 진입한 경우 마이페이지로 이동
         if (fromMypage) {
           router.push('/user/mypage/review'); 
         } else {
@@ -143,12 +182,11 @@ function ReviewWritePage() {
   }, [success, error, dispatch, router, queryMeetupId, isEditMode, fromMypage, reviewDetail, queryNotificationId]);
 
   const handleImageChange = ({ fileList: newFileList }) => {
-    // 💡 이미지가 5개를 넘어가면 5개까지만 유지하고 alert은 딱 1번만 띄우기
+    // 이미지가 5개를 넘어가면 5개까지만 유지하고 alert은 딱 1번만 띄우기
     if (newFileList.length > 5) {
       if (!alertShownRef.current) {
         alert('이미지는 최대 5개까지만 업로드할 수 있습니다.');
         alertShownRef.current = true;
-        // 다음 이벤트 루프에서 플래그 초기화
         setTimeout(() => {
           alertShownRef.current = false;
         }, 500);
@@ -207,7 +245,6 @@ function ReviewWritePage() {
         uploadedImageIds = [...uploadedImageIds, ...newImageIds];
       }
 
-      // 💡 마이페이지 등에서 meetupId가 없을 경우, 이미 조회해 둔 reviewDetail의 meetupId를 사용하여 400 에러 방지
       const resolvedMeetupId = rawMeetupId 
         ? Number(rawMeetupId) 
         : (reviewDetail && reviewDetail.meetupId ? Number(reviewDetail.meetupId) : undefined);
@@ -322,13 +359,12 @@ function ReviewWritePage() {
             onPreview={handlePreview}
             onChange={handleImageChange}
             beforeUpload={(file) => {
-              // 💡 허용된 파일 형식 검사만 담당 (개수 초과는 onChange에서 제어)
               const isImage = file.type.startsWith('image/');
               if (!isImage) {
                 alert('이미지 파일만 업로드할 수 있습니다.');
                 return Upload.LIST_IGNORE;
               }
-              return false; // 자동 업로드 방지
+              return false;
             }}
             multiple
             accept="image/png, image/jpeg, image/jpg, image/webp"

@@ -116,13 +116,6 @@ public class OpenApiServiceImpl implements OpenApiService {
 		String baseDate =
 		        date.format(formatterYYYYMMDD);
 
-		System.out.println("현재 시간 = " + now);
-		System.out.println("날씨 기준 날짜 = " + baseDate);
-		System.out.println("날씨 기준 시간 = " + baseTime);
-//		System.out.println(baseDate + "aaa"); System.out.println(formattedNow + "ddddd"); System.out.println(baseTime + "aafafs");
-//		System.out.println(request.getNx());
-//		System.out.println(request.getNy());
-		System.out.println("/getVilageFcst?serviceKey="+kmaApiKey+"&numOfRows=1000&pageNo=1&base_date="+baseDate+"&base_time="+baseTime+"&nx="+request.getNx()+"&ny="+request.getNy());
 		String xml  = weatherRestClient
 				.get()
 				.uri("/getVilageFcst?serviceKey="+kmaApiKey+"&numOfRows=1000&pageNo=1&base_date="+baseDate+"&base_time="+baseTime+"&nx="+request.getNx()+"&ny="+request.getNy())
@@ -138,23 +131,16 @@ public class OpenApiServiceImpl implements OpenApiService {
 			        node,
 			        new TypeReference<Map<String, Object>>() {}
 			);
-			//System.out.println(response);
 			Map<String, Object> body = (Map<String, Object>) response.get("body"); // map -> response 에서 body꺼내오기
-			//System.out.println(body);
 			Map<String, Object> items = (Map<String, Object>) body.get("items"); // map -> items 에서 item 꺼내오기
-			//System.out.println(items);
 			List<Map<String, Object>> itemList = 
 			        (List<Map<String, Object>>) items.get("item");
 			List<Map<String, Object>> filteredItemList = itemList.stream().filter(item->{
 				String fcstDate = (String)item.get("fcstDate");
 				String fcstTime = (String)item.get("fcstTime");
-				//System.out.println(fcstTime);
-				//System.out.println(request.getMeetupTime()+ "00");
 ;
 				String meetupTime = String.format("%02d00", request.getMeetupTime());
-				//System.out.println("🔥 찾는 예보시간 = " + meetupTime);
 
-				//System.out.println("🔥 itemList size = " + itemList.size());
 				return fcstDate.equals(request.getMeetupDate()) && fcstTime.equals(meetupTime);
 			}).toList();
 			
@@ -174,8 +160,6 @@ public class OpenApiServiceImpl implements OpenApiService {
 				String fcstValue = (String)item.get("fcstValue");
 //				String fcstDate = (String)item.get("fcstDate");
 //				String fcstTime = (String)item.get("fcstTime");
-//				System.out.println(fcstDate);
-//				System.out.println(fcstTime);
 				if(category.equals("TMP")) {
 					result.setTmp(Double.parseDouble(fcstValue));
 				}else if(category.equals("POP")) {

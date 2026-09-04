@@ -9,7 +9,9 @@ import com.moit.advertisement.dto.AdvertisementDto;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class MailServiceImpl implements MailService {
@@ -80,9 +82,19 @@ public class MailServiceImpl implements MailService {
 		  
 		  mailSender.send(message);
 		  
-		  System.out.println("메일 발송 성공");
-		  
-		  } catch (Exception e) { e.printStackTrace(); }
+		  log.info(
+			        "광고 종료 예정 메일 발송 완료. adId={} | remainDay={}",
+			        ad.getAdId(),
+			        remainDay
+			);
+
+			} catch (Exception e) {
+			    log.error(
+			            "광고 종료 예정 메일 발송 실패. adId={}",
+			            ad.getAdId(),
+			            e
+			    );
+			}
     }
     
     @Override
@@ -196,34 +208,35 @@ public class MailServiceImpl implements MailService {
             
             helper.setText(html, true);
             
-            System.out.println();
-            System.out.println("========================================");
-            System.out.println("===== 광고 결제 요청 메일 발송 =====");
-            System.out.println("발신자       : " + mailSenderEmail);
-            System.out.println("수신자       : " + advertiserEmail);
-            System.out.println("광고 ID      : " + ad.getAdId());
-            System.out.println("광고명       : " + ad.getTitle());
-            System.out.println("광고 기간    : " + ad.getStartDatetime()
-                    + " ~ " + ad.getEndDatetime());
-            System.out.println("결제 금액    : " + ad.getPaymentAmount());
-            System.out.println("========================================");
-            System.out.println();
+            log.info(
+                    "광고 결제 요청 메일 발송 | adId={} | title={} | start={} | end={} | amount={}",
+                    ad.getAdId(),
+                    ad.getTitle(),
+                    ad.getStartDatetime(),
+                    ad.getEndDatetime(),
+                    ad.getPaymentAmount()
+            );
 
             // 실제 메일 발송
             mailSender.send(message);
 
-            System.out.println("===== 메일 발송 성공 =====");
-            
-            System.out.println( "광고 결제 요청 메일 발송 성공 : " + advertiserEmail );
+            log.info(
+                    "광고 결제 요청 메일 발송 완료. adId={}",
+                    ad.getAdId()
+            );
 
         } catch (Exception e) {
 
-            System.err.println( "광고 결제 요청 메일 발송 실패 : " + advertiserEmail );
+            log.error(
+                    "광고 결제 요청 메일 발송 실패. adId={}",
+                    ad.getAdId(),
+                    e
+            );
 
-            e.printStackTrace();
-            throw new RuntimeException( "광고 결제 요청 메일 발송 실패", e );
+            throw new RuntimeException(
+                    "광고 결제 요청 메일 발송 실패",
+                    e
+            );
         }
-        System.out.println( "===== 광고 결제 요청 메일 발송 =====" );
-        System.out.println("수신자 : " + advertiserEmail);
     }
 }

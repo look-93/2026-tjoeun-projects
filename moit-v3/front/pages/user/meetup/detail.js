@@ -33,13 +33,12 @@ import api from "../../../api/axios";
 const { Title } = Typography;
 
 function MeetupDetailPage() {
+    const router = useRouter();
+    const dispatch = useDispatch();
+    const [activeTab, setActiveTab] = useState("detail");
 
-  const router = useRouter();
-  const dispatch = useDispatch();
-  const [activeTab, setActiveTab] = useState('detail');
-
-  const [currentSort, setCurrentSort] = useState('id,desc');
-  const [currentKeyword, setCurrentKeyword] = useState('');
+    const [currentSort, setCurrentSort] = useState("id,desc");
+    const [currentKeyword, setCurrentKeyword] = useState("");
 
     useEffect(() => {
         if (!router.isReady) return;
@@ -63,7 +62,7 @@ function MeetupDetailPage() {
     }, [router.isReady, router.asPath, router.query.tab]);
 
     // meetup
-    const { meetup, recommendedMeetups, error } = useSelector(
+    const { meetup, recommendedMeetups, meetupDetailError } = useSelector(
         (state) => state.meetup,
     );
     const { weather } = useSelector((state) => state.common);
@@ -123,18 +122,18 @@ function MeetupDetailPage() {
     const handleLikeReview = (reviewId) => {
         if (!reviewId) return;
 
-        console.log("좋아요 요청 실행! 리뷰 ID:", reviewId);
+        //console.log("좋아요 요청 실행! 리뷰 ID:", reviewId);
         dispatch(toggleReviewLikeRequest(reviewId));
     };
 
     // 정렬 핸들러 추가
     const handleSortChange = (sortParam) => {
         setCurrentSort(sortParam);
-        console.log("정렬 요청 실행:", sortParam);
+        //console.log("정렬 요청 실행:", sortParam);
         dispatch(
             getReviewListRequest({
                 meetupId: currentMeetupId,
-                sort: sortParam, 
+                sort: sortParam,
                 keyword: currentKeyword,
             }),
         );
@@ -147,7 +146,7 @@ function MeetupDetailPage() {
             "2. MeetupDetailPage에서 handleSearch 실행됨! 검색어:",
             keyword,
         );
-        console.log("현재 모임 ID:", currentMeetupId);
+        //console.log("현재 모임 ID:", currentMeetupId);
 
         dispatch(
             getReviewListRequest({
@@ -187,12 +186,12 @@ function MeetupDetailPage() {
                 `/user/meetup/report/write?targetType=${targetType}&targetId=${targetId}`,
             );
         } catch (error) {
-            console.error("중복 신고 확인 실패:", error);
-            console.error("에러 이름:", error?.name);
-            console.error("에러 메시지:", error?.message);
-            console.error("응답 상태:", error?.response?.status);
-            console.error("응답 데이터:", error?.response?.data);
-            console.error("요청 주소:", error?.config?.url);
+            // console.error("중복 신고 확인 실패:", error);
+            // console.error("에러 이름:", error?.name);
+            // console.error("에러 메시지:", error?.message);
+            // console.error("응답 상태:", error?.response?.status);
+            // console.error("응답 데이터:", error?.response?.data);
+            // console.error("요청 주소:", error?.config?.url);
 
             alert("신고 여부 확인 중 오류가 발생했습니다.");
         }
@@ -225,11 +224,11 @@ function MeetupDetailPage() {
 
     // 상세조회 에러 처리
     useEffect(() => {
-        if (!error) return;
+        if (!meetupDetailError) return;
 
-        alert(error);
+        alert(meetupDetailError);
         router.back();
-    }, [error, router]);
+    }, [meetupDetailError, router]);
 
     // 이미지
     const images =
@@ -250,8 +249,8 @@ function MeetupDetailPage() {
                 ? String(review.createdAt).substring(0, 10)
                 : "",
             likesCount: review.likesCount ?? review.likes ?? 0,
-            liked: Boolean(review.liked || review.isLiked),   // 
-            isLiked: Boolean(review.liked || review.isLiked), // 
+            liked: Boolean(review.liked || review.isLiked), //
+            isLiked: Boolean(review.liked || review.isLiked), //
             isPublic: review.isPublic ?? "Y",
         })) || [];
 
@@ -391,6 +390,7 @@ function MeetupDetailPage() {
                         onSortChange={handleSortChange}
                         onSearch={handleSearch}
                         onReport={handleReport}
+                        meetupStatus={meetup?.meetupStatus} //추가
                     />
                 </Col>
 

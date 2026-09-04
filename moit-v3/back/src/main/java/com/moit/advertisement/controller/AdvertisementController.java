@@ -1,12 +1,10 @@
 package com.moit.advertisement.controller;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -35,7 +33,6 @@ import com.moit.advertisement.dto.AdvertisementSearchDto;
 import com.moit.advertisement.dto.PaymentConfirmRequestDto;
 import com.moit.advertisement.enums.AdPosition;
 import com.moit.advertisement.enums.PaymentStatus;
-import com.moit.advertisement.enums.PaymentType;
 import com.moit.advertisement.service.AdvertisementCalculationService;
 import com.moit.advertisement.service.AdvertisementService;
 import com.moit.advertisement.service.TossPaymentService;
@@ -45,7 +42,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/advertisement")
@@ -328,10 +327,7 @@ public class AdvertisementController {
 
 	                } catch (IllegalArgumentException e) {
 
-	                    System.out.println(
-	                            "⚠️ 잘못된 광고 위치: "
-	                            + imageType
-	                    );
+	                	log.warn("잘못된 광고 위치가 전달되었습니다. imageType={}", imageType);
 	                }
 	            }
 	        }
