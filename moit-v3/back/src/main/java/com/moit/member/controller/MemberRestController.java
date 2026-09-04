@@ -714,7 +714,8 @@ public class MemberRestController {
         refreshTokenService.deleteAllRefreshTokens(
                 memberId
         );
-
+        
+        loginDeviceService.deleteAllLoginDevices(memberId);
 
         // =====================================================
         // Refresh Token Cookie 삭제
