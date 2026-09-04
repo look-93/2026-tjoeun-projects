@@ -286,11 +286,6 @@ public class ReviewServiceImpl implements ReviewService {
 	public String reviewAnalysis(Long meetupId) {
 		List<Review> reviewList = reviewRepository.findByMeetup_IdAndDeleteYnAndIsPublicOrderByIdDesc(meetupId, 'N', "Y");
 
-		System.out.println("===== 🤖 AI 분석용 조회된 후기 개수: " + reviewList.size() + " =====");
-		for (Review r : reviewList) {
-			System.out.println("- 후기 내용: " + r.getContent());
-		}
-
 		if (reviewList.isEmpty()) {
 			return "분석할 수 있는 공개된 후기가 없습니다.";
 		}
