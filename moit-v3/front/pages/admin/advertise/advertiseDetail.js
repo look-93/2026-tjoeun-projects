@@ -37,13 +37,6 @@ function AdvertiseDetailPage() {
       setLoading(true);
       const response = await getAdvertiseAdminDetail(adId);
 
-      console.log('관리자 상세 결제정보:', {
-        paymentType: response.data.paymentType,
-        paymentHistoryStatus: response.data.paymentHistoryStatus,
-        paymentAmount: response.data.paymentAmount,
-        paidAt: response.data.paidAt,
-      });
-
       setAdvertise(response.data);
     } catch (error) {
       console.error('광고 상세 조회 실패', error);
@@ -241,7 +234,7 @@ function AdvertiseDetailPage() {
           </Descriptions.Item>
 
           <Descriptions.Item label="결제 금액">
-            {formatPrice(advertise.paymentAmount ?? '-')}
+            {formatPrice(advertise.paymentAmount)}
           </Descriptions.Item>
 
           <Descriptions.Item label="결제일">
@@ -337,8 +330,17 @@ function formatDateTime(value) {
 }
 
 function formatPrice(value) {
-  if (value == null) return '-';
-  return `${Number(value).toLocaleString()}원`;
+  if (value == null || value === '') {
+    return '-';
+  }
+
+  const number = Number(value);
+
+  if (Number.isNaN(number)) {
+    return '-';
+  }
+
+  return `${number.toLocaleString()}원`;
 }
 
 function formatPaymentMethod(value) {

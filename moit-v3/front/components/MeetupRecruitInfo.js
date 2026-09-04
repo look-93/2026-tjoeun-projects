@@ -2,17 +2,14 @@ import React, { useEffect } from "react";
 import { Card, Space, Row, Button, Typography, message } from "antd";
 import { EnvironmentOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
-import {
-    applyMeetupRequest,
-    resetMeetupState,
-} from "../reducers/meetupReducer";
+import { applyMeetupRequest, resetApplyState } from "../reducers/meetupReducer";
 
 const { Text } = Typography;
 
 function MeetupRecruitInfo({ meetup, isOwner }) {
     const dispatch = useDispatch();
 
-    const { applySuccess, error } = useSelector((state) => state.meetup);
+    const { applySuccess, applyError } = useSelector((state) => state.meetup);
 
     const handleApply = () => {
         dispatch(applyMeetupRequest(meetup.id));
@@ -36,18 +33,26 @@ function MeetupRecruitInfo({ meetup, isOwner }) {
                 message.success("모임 신청이 취소되었습니다.");
             }
 
-            //dispatch(resetMeetupState());
+            dispatch(resetApplyState());
         }
 
-        if (error) {
-            message.error(error);
-            //dispatch(resetMeetupState());
+        if (applyError) {
+            message.error(applyError);
+            dispatch(resetApplyState());
         }
-    }, [applySuccess, error, meetup, dispatch]);
+    }, [applySuccess, applyError, meetup, dispatch]);
 
     return (
         <Card title="모집 정보" className="meetup-side-card">
             <Space direction="vertical" size={16} style={{ width: "100%" }}>
+                <Row justify="space-between">
+                    <Text type="secondary">모임일시</Text>
+
+                    <Text strong>
+                        {meetup.meetupAt.replace("T", " ").slice(0, 16)}
+                    </Text>
+                </Row>
+
                 <Row justify="space-between">
                     <Text type="secondary">인원(최소/최대)</Text>
 

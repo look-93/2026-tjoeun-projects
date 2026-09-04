@@ -22,8 +22,6 @@ export default function PaymentSuccessPage() {
     if (confirmCalled.current) return;
     confirmCalled.current = true;
 
-    console.log('결제 승인 요청 준비 완료:', { paymentKey, orderId, amount });
-
     axios.post('/api/advertisement/payment/confirm', { 
       paymentKey, 
       orderId, 
@@ -38,7 +36,7 @@ export default function PaymentSuccessPage() {
       setIsConfirming(false);
       setIsSuccess(false);
       message.error("결제 승인에 실패했습니다.");
-      console.error(err);
+      console.error('결제 승인 요청 실패', err);
     });
   }, [router.isReady, paymentKey, orderId, amount]);
 

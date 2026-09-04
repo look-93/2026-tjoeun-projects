@@ -59,7 +59,6 @@ public class ReviewController {
             }
         }
         
-        // 💡 인증 정보가 없거나 추출 실패 시 1L 대신 예외를 던져 잘못된 요청/인증 실패를 알립니다.
         throw new IllegalArgumentException("로그인 정보가 유효하지 않습니다. 다시 로그인해 주세요.");
     }
 
@@ -105,16 +104,29 @@ public class ReviewController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "특정 모임의 리뷰 목록 조회", description = "특정 모임에 작성된 리뷰 목록을 조회합니다.")
-    @GetMapping("/meetup/{meetupId}")
-    public ResponseEntity<ReviewListResponseDto> getReviewsByMeetup(
-            @PathVariable("meetupId") Long meetupId,
-            @RequestParam(value = "keyword", required = false) String keyword,
-            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        
-        ReviewListResponseDto response = reviewService.getReviewsByMeetup(meetupId, keyword, pageable);
-        return ResponseEntity.ok(response);
-    }
+    @Operation(summary = "특정 모임의 리뷰 목록 조회", description = "특정 모임에 작성된 리뷰 목록을 조회합니다. (로그인 시 좋아요 상태 반영)")
+	@GetMapping("/meetup/{meetupId}")
+	public ResponseEntity<ReviewListResponseDto> getReviewsByMeetup(
+			@PathVariable("meetupId") Long meetupId,
+			@RequestParam(value = "keyword", required = false) String keyword,
+			@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
+			Authentication authentication) {
+		
+		Long memberId = null;
+				
+		if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+			try {
+				if (userDetails.getUser() != null) {
+					memberId = userDetails.getUser().getMemberId();
+				}
+			} catch (Exception e) {
+				memberId = null;
+			}
+		}
+
+		ReviewListResponseDto response = reviewService.getReviewsByMeetup(meetupId, keyword, pageable, memberId);
+		return ResponseEntity.ok(response);
+	}
 
     @Operation(summary = "내가 작성한 리뷰 목록 조회", description = "마이페이지에서 내가 작성한 리뷰 목록을 조회합니다.")
     @GetMapping("/my")
@@ -130,17 +142,13 @@ public class ReviewController {
     }
 
     @Operation(summary = "리뷰 좋아요 토글", description = "리뷰 좋아요를 등록하거나 취소합니다.")
-    @PostMapping("/{reviewId}/like")
-    public ResponseEntity<Void> reviewLike(@PathVariable("reviewId") Long reviewId, Authentication authentication) {
-        System.out.println("=== [LIKE API 요청 수신] ===");
-        System.out.println("전달받은 reviewId: " + reviewId);
+	@PostMapping("/{reviewId}/like")
+	public ResponseEntity<ReviewResponseDto> reviewLike(@PathVariable("reviewId") Long reviewId, Authentication authentication) {
+		Long memberId = extractMemberId(authentication);
 
-        Long memberId = extractMemberId(authentication);
-        System.out.println("추출된 최종 memberId: " + memberId);
-
-        reviewService.reviewLike(memberId, reviewId);
-        return ResponseEntity.ok().build();
-    }
+		ReviewResponseDto response = reviewService.reviewLike(memberId, reviewId);
+		return ResponseEntity.ok(response); // 👈 최신 데이터가 담긴 DTO를 응답으로 전달!
+	}
 
     @Operation(summary = "AI 리뷰 분석", description = "모임 리뷰 내용을 바탕으로 AI 분석 결과를 반환합니다.")
     @PostMapping("/meetup/{meetupId}/analysis")
@@ -153,19 +161,21 @@ public class ReviewController {
     
     @Operation(summary = "리뷰 이미지 업로드", description = "리뷰 작성에 사용할 이미지들을 업로드하고 ID 목록을 반환합니다.")
     @PostMapping(value = "/images", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadImages( // 👈 응답 타입을 List<Long> 대신 ? 로 해두면 에러 메시지(문자열)도 같이 보낼 수 있습니다.
+    public ResponseEntity<?> uploadImages( 
             @RequestParam("images") List<MultipartFile> images,
             Authentication authentication) {
         try {
             Long memberId = extractMemberId(authentication);
+             //이미지 제한       
+            if (images != null && images.size() > 5) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미지는 최대 5개까지만 업로드할 수 있습니다.");
+            }
             List<Long> imageIds = reviewService.uploadImages(images, memberId);
             return ResponseEntity.ok(imageIds);
         } catch (Exception e) {
-            // 💡 1. 콘솔에 빨간색으로 에러 스택트레이스를 전체 출력합니다!
             e.printStackTrace(); 
             System.out.println("❌ 이미지 업로드 중 발생한 에러 메시지: " + e.getMessage());
             
-            // 💡 2. 프론트엔드에서도 에러 원인을 알 수 있게 body에 메시지를 담아 보냅니다.
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }

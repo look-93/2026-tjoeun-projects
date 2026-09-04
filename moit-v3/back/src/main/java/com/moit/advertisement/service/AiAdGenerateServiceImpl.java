@@ -14,8 +14,9 @@ import com.moit.advertisement.dto.AiAdRequestDto;
 import com.moit.advertisement.dto.AiAdResponseDto;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AiAdGenerateServiceImpl implements AiAdGenerateService {
@@ -119,8 +120,8 @@ public class AiAdGenerateServiceImpl implements AiAdGenerateService {
                     break;
                 }
             }
-            System.out.println("AI 원본 응답 = " + response.getBody());
-            System.out.println("AI 추출 결과 = " + text);
+            log.debug("AI 광고 생성 응답 수신 완료");
+            
             if(text == null){
                 throw new RuntimeException("AI 응답 없음");
             }
@@ -147,7 +148,7 @@ public class AiAdGenerateServiceImpl implements AiAdGenerateService {
             return result;
 
         } catch(Exception e){
-            e.printStackTrace();
+        	log.error("AI 광고 생성 중 오류가 발생했습니다. keyword={}", dto.getKeyword(), e);
 
             AiAdResponseDto fail = new AiAdResponseDto();
 

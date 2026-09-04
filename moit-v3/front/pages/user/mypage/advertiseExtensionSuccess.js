@@ -42,16 +42,6 @@ export default function AdvertiseExtensionSuccess() {
     const confirmPayment = async () => {
 
       try {
-
-        console.log(
-          '🔥 연장 결제 승인 요청',
-          {
-            paymentKey,
-            orderId,
-            amount,
-          }
-        );
-
         await axios.post(
           '/api/advertisement/payment/confirm',
           {
@@ -59,10 +49,6 @@ export default function AdvertiseExtensionSuccess() {
             orderId,
             amount: Number(amount),
           }
-        );
-
-        console.log(
-          '🔥 연장 결제 승인 성공'
         );
 
         setSuccess(true);
@@ -73,10 +59,7 @@ export default function AdvertiseExtensionSuccess() {
 
       } catch (error) {
 
-        console.error(
-          '❌ 연장 결제 승인 실패',
-          error
-        );
+        console.error('연장 결제 승인 실패', error);
 
         const messageText =
           error.response?.data?.message ||
