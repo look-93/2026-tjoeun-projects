@@ -37,8 +37,6 @@ function ReportListPage() {
     const [page, setPage] = useState(1);
 
 
-    console.log('reports: ', reports);
-
     // =====================================================
     // 신고 목록 조회
     // =====================================================

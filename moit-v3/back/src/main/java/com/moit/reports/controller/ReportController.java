@@ -41,16 +41,9 @@ public class ReportController {
 
 	private final ReportsService reportsService;
 
-	// test button
-//	@RequestMapping("/user/meetup/report/button")
-//    public String reportButton() {
-//        return "user/meetup/report/button";
-//    }
-
 	// 로그인 헬퍼
 	private Long getLoginMemberId(Authentication authentication) {
 		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
 		return userDetails.getAppUserId();
 	}
 
@@ -59,7 +52,6 @@ public class ReportController {
 	@PostMapping
 	public ResponseEntity<ReportResponseDto> createReport(
 			Authentication authentication,
-//       	@Parameter(description = "작성자 ID") @RequestParam("memberId") Long memberId,
 			@RequestBody ReportRequestDto requestDto) {
 
 		// 로그인한 memberId 꺼내오기
@@ -81,7 +73,7 @@ public class ReportController {
 
 		ReportResponseDto response = reportsService.updateUserReport(reportId, memberId, requestDto);
 		return ResponseEntity.ok(response);
-	};
+	}
 
 	// 신고 삭제
 	@Operation(summary = "사용자 신고 삭제", description = "")
@@ -102,7 +94,6 @@ public class ReportController {
 	@GetMapping
 	public ResponseEntity<ReportListResponseDto> getReportsMylist(
 			Authentication authentication,
-//       	@Parameter(description = "작성자 ID") @RequestParam("memberId") Long memberId,
 			@PageableDefault(size = 10) Pageable pageable) {
 
 		// 로그인한 memberId 꺼내오기
@@ -131,7 +122,6 @@ public class ReportController {
 	@GetMapping("/checkDoubleReport")
 	public ResponseEntity<Boolean> checkDoubleReport(
 			Authentication authentication,
-//			@RequestParam("memberId") Long memberId,
 			@RequestParam("targetType") TargetType targetType,
 			@RequestParam("targetId") Long targetId) {
 
@@ -158,7 +148,7 @@ public class ReportController {
 		
 		ReportResponseDto response = reportsService.updateAdminReport(reportId, adminMemberId, processDto);
 		return ResponseEntity.ok(response);
-	};
+	}
 
 	// 관리자 신고 삭제
 	@Operation(summary = "관리자 신고 삭제", description = "")

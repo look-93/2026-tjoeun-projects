@@ -13,8 +13,6 @@ import ReportStatusTag from '../../../components/ReportStatusTag';
 import ReportStatusCodeTag from '../../../components/ReportStatusCodeTag';
 import api from '../../../api/axios';
 
-// http://localhost:3000/admin/report
-
 function AdminReportPage() {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -46,7 +44,7 @@ function AdminReportPage() {
         setReportStats(response.data);
 
       } catch (error) {
-        console.error('관리자 신고 통계 조회 실패:', error);
+        message.error('관리자 신고 통계 조회에 실패했습니다.');
       }
     };
 
@@ -336,21 +334,6 @@ function AdminReportPage() {
     },
 
   ];
-
-
-  // 체크박스
-  // const [checkStrictly, setCheckStrictly] = useState(false);
-
-  // const rowSelection = {
-  //   checkStrictly,
-  //   onChange: (selectedRowKeys, selectedRows) => {
-  //     console.log('선택된 ID:', selectedRowKeys);
-  //     console.log('선택된 데이터:', selectedRows);
-  //   },
-  // };
-
-
-
 
   const handleSearch = (values) => {
     setPage(1);

@@ -8,7 +8,9 @@ import com.moit.reports.entity.Report;
 import com.moit.reports.enums.ReportStatus;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SendEmailService {		// 이메일 발송 service
@@ -56,7 +58,7 @@ public class SendEmailService {		// 이메일 발송 service
 	public void sendEmail(EmailRequestDto emailDto) {
 
 		if (emailDto.getEmail() == null || emailDto.getEmail().isBlank()) {
-			System.out.println("이메일이 없습니다. 메일 전송 실패...");
+			log.warn( "이메일이 없어 메일을 전송할 수 없습니다. subject: {}", emailDto.getSubject() );
             return;
         }
 		
@@ -68,7 +70,7 @@ public class SendEmailService {		// 이메일 발송 service
 			);
 			
 		} catch (Exception e) {
-			System.out.println("메일 전송 실패 → Redis Queue 저장");
+			log.error( "메일 전송 실패 - Redis Queue 저장, email: {}, subject: {}", emailDto.getEmail(), emailDto.getSubject(), e );
 	        failedEmailQueueService.push(emailDto);
 	    }
 		

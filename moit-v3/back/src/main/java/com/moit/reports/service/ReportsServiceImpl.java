@@ -39,7 +39,9 @@ import com.moit.review.entity.Review;
 import com.moit.review.repository.ReviewRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -192,7 +194,7 @@ public class ReportsServiceImpl implements ReportsService {
 			ReportStatus changedStatus = processDto.getStatus();
 
 			// APPROVED / REJECTED 검증
-			ReportStatus reportStatus = validateChangedStatus(changedStatus);
+			validateChangedStatus(changedStatus);
 
 			// changeStatus 처리 상태 반영
 			report.changeStatus(changedStatus);
@@ -208,7 +210,7 @@ public class ReportsServiceImpl implements ReportsService {
 					changedStatus, processDto.getProcessReason(), trustScoreChange);
 			reportAuditLogRepository.save(reportAuditLog);
 
-			// 메일 전송 test - 이메일 보내야 한다는 이벤트만 발생
+			// 이메일 발송 이벤트 생성
 			EmailRequestDto emailDto = sendEmailService.adminReportStatusSendEmail(report, changedStatus);
 			eventPublisher.publishEvent(emailDto);
 
@@ -339,6 +341,7 @@ public class ReportsServiceImpl implements ReportsService {
 
 	// 신고 처리 3일 후 만족도 조사 이메일 발송 (8월 24일 기준 - 8월 21일 00:00 ~ 23:59:59)
 	@Override
+	@Transactional
 	public void sendThreeDaysAgoReportEmails() {
 
 		// 오늘 기준 3일 전 날짜
@@ -353,9 +356,9 @@ public class ReportsServiceImpl implements ReportsService {
 		List<ReportAuditLog> logs = reportAuditLogRepository.findByProcessedAtBetweenAndThreeDayEmailSentYn(start, end,
 				'N');
 
-		for (ReportAuditLog log : logs) {
+		for (ReportAuditLog auditLog : logs) {
 
-			Report report = log.getReport();
+			Report report = auditLog.getReport();
 			String email = report.getMember().getEmail(); // 메일주소 조회
 
 			if (email != null && !email.isEmpty()) {
@@ -363,18 +366,18 @@ public class ReportsServiceImpl implements ReportsService {
 				String content = "Moit 신고 처리 결과는 어떠셨나요?" + "\n\n마음에 드셨다면 만족도 참여에 동참해주세요!" + "\n\n링크첨부...";
 
 				try {
-					// 메일 전송 test
+					// 메일 전송
 					apiEmail.sendMail(subject, content, email);
 
 					// 메일 전송 성공 → 다시 발송되지 않도록 Y 처리
-					log.setThreeDayEmailSentYn('Y');
+					auditLog.setThreeDayEmailSentYn('Y');
 
 				} catch (Exception e) {
-					e.printStackTrace();
+					log.error( "3일 후 만족도 메일 발송 실패 - reportId: {}, email: {}", report.getReportId(), email, e );
 				}
 
 			} else {
-				System.out.println("이메일이 없습니다. 메일 전송 실패...");
+				log.warn( "3일 후 만족도 메일 발송 실패 - 이메일 없음, reportId: {}", report.getReportId() );
 			}
 		}
 

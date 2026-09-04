@@ -123,8 +123,6 @@ function ReportWritePage() {
       reasonDetail: reasonDetail || '',
     };
 
-    console.log('신고 등록 요청:', dto);
-
     dispatch(createReportRequest(dto));
   };
 
