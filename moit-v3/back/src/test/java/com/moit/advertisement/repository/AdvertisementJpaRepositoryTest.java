@@ -119,10 +119,6 @@ class AdvertisementJpaRepositoryTest {
 
         assertThat(saved.getAdId())
             .isNotNull();
-
-        System.out.println(
-            "생성 ID : " + saved.getAdId()
-        );
     }
 
 
@@ -151,13 +147,6 @@ class AdvertisementJpaRepositoryTest {
         Advertisement result =
             advertisementRepository.findById(saved.getAdId())
             .orElseThrow();
-
-
-
-        System.out.println(
-            "단건 조회>>>>>> " + result.getTitle()
-        );
-
 
         assertThat(result.getAdId())
             .isEqualTo(saved.getAdId());
@@ -188,7 +177,5 @@ class AdvertisementJpaRepositoryTest {
         assertThat(list)
             .extracting(Advertisement::getTitle)
             .contains("전체 조회 테스트 광고");
-
-        System.out.println("개수 : " + list.size());
     }
 }

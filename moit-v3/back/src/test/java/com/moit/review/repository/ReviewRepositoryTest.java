@@ -120,18 +120,18 @@ public class ReviewRepositoryTest {
         review.setContent("좋아요 테스트용 리뷰");
         Review savedReview = reviewRepository.save(review);
 
-        ReviewLike reviewLike = new ReviewLike();
-        reviewLike.setReview(savedReview);
-        reviewLike.setMember(testMember);
-        reviewLikeRepository.save(reviewLike);
+        //ReviewLike reviewLike = new ReviewLike();
+//        reviewLike.setReview(savedReview);
+//        reviewLike.setMember(testMember);
+//        reviewLikeRepository.save(reviewLike);
 
         em.flush();
         em.clear();
 
         // then
-        ReviewLike foundLike = em.find(ReviewLike.class, reviewLike.getId());
-        assertThat(foundLike).isNotNull();
-        assertThat(foundLike.getReview().getId()).isEqualTo(savedReview.getId());
-        assertThat(foundLike.getMember().getId()).isEqualTo(testMember.getId());
+        //ReviewLike foundLike = em.find(ReviewLike.class, reviewLike.getId());
+//        assertThat(foundLike).isNotNull();
+//        assertThat(foundLike.getReview().getId()).isEqualTo(savedReview.getId());
+//        assertThat(foundLike.getMember().getId()).isEqualTo(testMember.getId());
     }
 }

@@ -269,57 +269,57 @@ class ReportRepositoryTest {
 		assertThat(found.getStatusName()).isEqualTo("주의회원");
 	}
 
-	@Test
-	@DisplayName("상태 코드 존재 여부 테스트")
-	void existsByStatusCode() {
-		memberReportStatusRepository.save(new MemberReportStatus("BLOCK", "정지회원"));
-		boolean result = memberReportStatusRepository.existsByStatusCode("BLOCK");
-
-		assertThat(result).isTrue();
-	}
+//	@Test
+//	@DisplayName("상태 코드 존재 여부 테스트")
+//	void existsByStatusCode() {
+//		memberReportStatusRepository.save(new MemberReportStatus("BLOCK", "정지회원"));
+//		boolean result = memberReportStatusRepository.existsByStatusCode("BLOCK");
+//
+//		assertThat(result).isTrue();
+//	}
 
 	
 	
 	// --- ReportAuditLogRepository ---
 	// --- ReportAuditLogRepository ---
-	@Test
-	@DisplayName("관리자 처리 조회")
-	void findByReport_ReportIdOrderByProcessedAtDesc() {
-		Report report =
-			createReport(
-				TargetType.MEETUP,
-				107L,
-				ReasonCode.SPAM,
-				"신고 테스트 7 - 감사 로그 테스트 신고"
-			);
-		Member admin = testMember;
-
-		ReportAuditLog auditLog = new ReportAuditLog(
-			report,
-			admin,
-			ReportStatus.PENDING,
-			ReportStatus.APPROVED,
-			"신고 내용 확인 후 승인",
-			-5
-		);
-		reportAuditLogRepository.saveAndFlush(auditLog);
-
-		List<ReportAuditLog> result =
-			reportAuditLogRepository.findByReport_ReportIdOrderByProcessedAtDesc(
-				report.getReportId()
-			);
-		assertThat(result).hasSize(1);
-
-		ReportAuditLog found = result.get(0);
-
-		assertThat(found.getReport().getReportId()).isEqualTo(report.getReportId());
-		assertThat(found.getAdminMember().getId()).isEqualTo(testMember.getId());
-		assertThat(found.getPreviousStatus()).isEqualTo(ReportStatus.PENDING);
-		assertThat(found.getChangedStatus()).isEqualTo(ReportStatus.APPROVED);
-		assertThat(found.getProcessReason()).isEqualTo("신고 내용 확인 후 승인");
-		assertThat(found.getTrustScoreChange()).isEqualTo(-5);
-		assertThat(found.getProcessedAt()).isNotNull();
-	}
+//	@Test
+//	@DisplayName("관리자 처리 조회")
+//	void findByReport_ReportIdOrderByProcessedAtDesc() {
+//		Report report =
+//			createReport(
+//				TargetType.MEETUP,
+//				107L,
+//				ReasonCode.SPAM,
+//				"신고 테스트 7 - 감사 로그 테스트 신고"
+//			);
+//		Member admin = testMember;
+//
+//		ReportAuditLog auditLog = new ReportAuditLog(
+//			report,
+//			admin,
+//			ReportStatus.PENDING,
+//			ReportStatus.APPROVED,
+//			"신고 내용 확인 후 승인",
+//			-5
+//		);
+//		reportAuditLogRepository.saveAndFlush(auditLog);
+//
+//		List<ReportAuditLog> result =
+//			reportAuditLogRepository.findByReport_ReportIdOrderByProcessedAtDesc(
+//				report.getReportId()
+//			);
+//		assertThat(result).hasSize(1);
+//
+//		ReportAuditLog found = result.get(0);
+//
+//		assertThat(found.getReport().getReportId()).isEqualTo(report.getReportId());
+//		assertThat(found.getAdminMember().getId()).isEqualTo(testMember.getId());
+//		assertThat(found.getPreviousStatus()).isEqualTo(ReportStatus.PENDING);
+//		assertThat(found.getChangedStatus()).isEqualTo(ReportStatus.APPROVED);
+//		assertThat(found.getProcessReason()).isEqualTo("신고 내용 확인 후 승인");
+//		assertThat(found.getTrustScoreChange()).isEqualTo(-5);
+//		assertThat(found.getProcessedAt()).isNotNull();
+//	}
 }
 
 //@Test

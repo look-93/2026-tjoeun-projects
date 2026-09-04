@@ -31,12 +31,6 @@ class AdvertisementServiceTest {
         int count =
                 advertisementService.selectTotalAdvertisementCnt();
 
-
-        System.out.println(
-            "승인 광고 개수 : " + count
-        );
-
-
         assertThat(count)
                 .isGreaterThanOrEqualTo(0);
 

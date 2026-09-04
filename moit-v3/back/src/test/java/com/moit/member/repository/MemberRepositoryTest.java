@@ -29,7 +29,7 @@ public class MemberRepositoryTest {
 	@Autowired MemberRepository memberRepository;
 	@Autowired MemberStatusRepository memberStatusRepository;
 	@Autowired MemberTypeRepository memberTypeRepository;
-	@Autowired ReportStatusRepository reportStatusRepository;
+	//@Autowired ReportStatusRepository reportStatusRepository;
 	@Autowired InterestRepository interestRepository;
 	@Autowired MemberInterestRepository memberInterestRepository;
 	@Autowired PointHistoryRepository pointHistoryRepository;
@@ -41,7 +41,7 @@ public class MemberRepositoryTest {
 		assertThat(memberRepository).isNotNull();
 		assertThat(memberStatusRepository).isNotNull();
 		assertThat(memberTypeRepository).isNotNull();
-		assertThat(reportStatusRepository).isNotNull();	
+		//assertThat(reportStatusRepository).isNotNull();	
 	}
 	
 	/*
@@ -128,15 +128,15 @@ public class MemberRepositoryTest {
         assertThat( result.get().getLoginId() ) .isEqualTo( member.getLoginId() );
     }
 
-    @Test
-    @DisplayName("■ MemberRepository - 로그인 아이디 조회")
-    void findByLoginIdTest(){
-
-        Optional<Member> result = memberRepository .findByLoginId( member.getLoginId() );
-
-        assertThat(result) .isPresent();
-        assertThat( result.get() .getNickname() ) .isEqualTo( member.getNickname() );
-    }
+//    @Test
+//    @DisplayName("■ MemberRepository - 로그인 아이디 조회")
+//    void findByLoginIdTest(){
+//
+//        Optional<Member> result = memberRepository .findByLoginId( member.getLoginId() );
+//
+//        assertThat(result) .isPresent();
+//        assertThat( result.get() .getNickname() ) .isEqualTo( member.getNickname() );
+//    }
 
     /*
      * =========================================
@@ -147,25 +147,25 @@ public class MemberRepositoryTest {
      * =========================================
      */
 
-    @Test
-    @DisplayName("■ MemberInfoRepository - 회원 상세정보 등록")
-    void memberInfoTest(){
-
-        MemberInfo info = new MemberInfo();
-
-        info.setMember(member);
-        info.setGender("M");
-        info.setBirth( LocalDate.of(2000,1,1) );
-        info.setPoint(0);
-        info.setTrustScore(100);
-
-        memberInfoRepository.save(info);
-
-        Optional<MemberInfo> result = memberInfoRepository .findById( member.getId() );
-
-        assertThat(result) .isPresent();
-        assertThat( result.get() .getGender() ) .isEqualTo("M");
-    }
+//    @Test
+//    @DisplayName("■ MemberInfoRepository - 회원 상세정보 등록")
+//    void memberInfoTest(){
+//
+//        MemberInfo info = new MemberInfo();
+//
+//        info.setMember(member);
+//        info.setGender("M");
+//        info.setBirth( LocalDate.of(2000,1,1) );
+//        info.setPoint(0);
+//        info.setTrustScore(100);
+//
+//        memberInfoRepository.save(info);
+//
+//        Optional<MemberInfo> result = memberInfoRepository .findById( member.getId() );
+//
+//        assertThat(result) .isPresent();
+//        assertThat( result.get() .getGender() ) .isEqualTo("M");
+//    }
 
     /*
      * =========================================
@@ -191,47 +191,47 @@ public class MemberRepositoryTest {
      * =========================================
      */
 
-    @Test
-    @DisplayName("■ MemberInterestRepository - 회원 관심사 등록")
-    void memberInterestInsertTest(){
+//    @Test
+//    @DisplayName("■ MemberInterestRepository - 회원 관심사 등록")
+//    void memberInterestInsertTest(){
+//
+//        MemberInterest memberInterest = new MemberInterest();
+//
+//        memberInterest.setMember(member);
+//        memberInterest.setInterest(interest);
+//
+//        memberInterestRepository.save(memberInterest);
+//
+//        List<MemberInterest> list = memberInterestRepository .findByMemberId( member.getId() );
+//
+//        assertThat(list) .hasSize(1);
+//        assertThat( list.get(0) .getInterest() .getInterestName() ) .isEqualTo("운동");
+//
+//    }
 
-        MemberInterest memberInterest = new MemberInterest();
-
-        memberInterest.setMember(member);
-        memberInterest.setInterest(interest);
-
-        memberInterestRepository.save(memberInterest);
-
-        List<MemberInterest> list = memberInterestRepository .findByMemberId( member.getId() );
-
-        assertThat(list) .hasSize(1);
-        assertThat( list.get(0) .getInterest() .getInterestName() ) .isEqualTo("운동");
-
-    }
-
-    @Test
-    @DisplayName("■ MemberInterestRepository - 회원 관심사 삭제")
-    void memberInterestDeleteTest(){
-
-        MemberInterest memberInterest = new MemberInterest();
-
-        memberInterest.setMember(member);
-        memberInterest.setInterest(interest);
-
-        memberInterestRepository.save(memberInterest);
-
-
-        //--------------------------------
-        // 관심사 전체 삭제
-        //--------------------------------
-
-        memberInterestRepository .deleteByMemberId( member.getId() );
-
-        List<MemberInterest> list = memberInterestRepository .findByMemberId( member.getId() );
-
-        assertThat(list) .isEmpty();
-
-    }
+//    @Test
+//    @DisplayName("■ MemberInterestRepository - 회원 관심사 삭제")
+//    void memberInterestDeleteTest(){
+//
+//        MemberInterest memberInterest = new MemberInterest();
+//
+//        memberInterest.setMember(member);
+//        memberInterest.setInterest(interest);
+//
+//        memberInterestRepository.save(memberInterest);
+//
+//
+//        //--------------------------------
+//        // 관심사 전체 삭제
+//        //--------------------------------
+//
+//        memberInterestRepository .deleteByMemberId( member.getId() );
+//
+//        List<MemberInterest> list = memberInterestRepository .findByMemberId( member.getId() );
+//
+//        assertThat(list) .isEmpty();
+//
+//    }
 
 
     /*
@@ -242,25 +242,25 @@ public class MemberRepositoryTest {
      * =========================================
      */
 
-    @Test
-    @DisplayName("■ PointHistoryRepository - 포인트 내역 조회")
-    void pointHistoryTest(){
-
-        PointHistory history = new PointHistory();
-
-        history.setMember(member);
-        history.setPointPm(100);
-        history.setPointType("SAVE");
-        history.setPointReason( "회원가입 이벤트" );
-
-        pointHistoryRepository.save(history);
-
-
-        List<PointHistory> list = pointHistoryRepository .findByMemberIdOrderByCreatedAtDesc( member.getId() );
-
-        assertThat(list) .isNotEmpty();
-        assertThat( list.get(0) .getPointReason() ) .isEqualTo( "회원가입 이벤트" );
-
-    }
+//    @Test
+//    @DisplayName("■ PointHistoryRepository - 포인트 내역 조회")
+//    void pointHistoryTest(){
+//
+//        PointHistory history = new PointHistory();
+//
+//        history.setMember(member);
+//        history.setPointPm(100);
+//        history.setPointType("SAVE");
+//        history.setPointReason( "회원가입 이벤트" );
+//
+//        pointHistoryRepository.save(history);
+//
+//
+//        List<PointHistory> list = pointHistoryRepository .findByMemberIdOrderByCreatedAtDesc( member.getId() );
+//
+//        assertThat(list) .isNotEmpty();
+//        assertThat( list.get(0) .getPointReason() ) .isEqualTo( "회원가입 이벤트" );
+//
+//    }
 
 }

@@ -98,16 +98,6 @@ class AdvertisementRepositoryTest {
                 advertisementRepository.findAll();
 
         assertThat(advertisements).isNotNull();
-
-        System.out.println("===== ADVERTISEMENTS =====");
-        System.out.println("광고 데이터 개수 : " + advertisements.size());
-
-        advertisements.forEach(ad ->
-                System.out.println(
-                        "adId = " + ad.getAdId()
-                        + ", title = " + ad.getTitle()
-                )
-        );
     }
 
 
@@ -119,16 +109,6 @@ class AdvertisementRepositoryTest {
                 advertisementImageRepository.findAll();
 
         assertThat(images).isNotNull();
-
-        System.out.println("===== ADVERTISEMENT_IMAGES =====");
-        System.out.println("이미지 데이터 개수 : " + images.size());
-
-        images.forEach(image ->
-                System.out.println(
-                        "imageId = " + image.getImageId()
-                        + ", imageUrl = " + image.getImageUrl()
-                )
-        );
     }
 
 
@@ -141,15 +121,6 @@ class AdvertisementRepositoryTest {
 
         assertThat(regions).isNotNull();
 
-        System.out.println("===== ADVERTISEMENT_TARGET_REGION =====");
-        System.out.println("지역 데이터 개수 : " + regions.size());
-
-        regions.forEach(region ->
-                System.out.println(
-                        "targetRegionId = " + region.getTargetRegionId()
-                        + ", regionCode = " + region.getRegionCode()
-                )
-        );
     }
 
 
@@ -161,17 +132,6 @@ class AdvertisementRepositoryTest {
                 advertisementPaymentRepository.findAll();
 
         assertThat(payments).isNotNull();
-
-        System.out.println("===== ADVERTISEMENT_PAYMENT =====");
-        System.out.println("결제 데이터 개수 : " + payments.size());
-
-        payments.forEach(payment ->
-                System.out.println(
-                        "paymentId = " + payment.getPaymentId()
-                        + ", orderId = " + payment.getOrderId()
-                        + ", amount = " + payment.getAmount()
-                )
-        );
     }
 
 
@@ -184,17 +144,6 @@ class AdvertisementRepositoryTest {
 
         assertThat(prices).isNotNull();
 
-        System.out.println("===== ADVERTISEMENT_PRICE =====");
-        System.out.println("가격 데이터 개수 : " + prices.size());
-
-        prices.forEach(price ->
-                System.out.println(
-                        "priceId = " + price.getPriceId()
-                        + ", grade = " + price.getAdGrade()
-                        + ", period = " + price.getPeriodDays()
-                        + ", price = " + price.getBasePrice()
-                )
-        );
     }
 
 
@@ -206,17 +155,6 @@ class AdvertisementRepositoryTest {
                 advertisementPositionPriceRepository.findAll();
 
         assertThat(prices).isNotNull();
-
-        System.out.println("===== ADVERTISEMENT_POSITION_PRICE =====");
-        System.out.println("위치 가격 데이터 개수 : " + prices.size());
-
-        prices.forEach(price ->
-                System.out.println(
-                        "positionPriceId = " + price.getPositionPriceId()
-                        + ", position = " + price.getPosition()
-                        + ", additionalPrice = " + price.getAdditionalPrice()
-                )
-        );
     }
 
 
@@ -228,14 +166,5 @@ class AdvertisementRepositoryTest {
                 advertisementDailyStatisticsRepository.findAll();
 
         assertThat(statistics).isNotNull();
-
-        System.out.println("===== ADVERTISEMENT_DAILY_STATISTICS =====");
-        System.out.println("통계 데이터 개수 : " + statistics.size());
-
-        statistics.forEach(stat ->
-                System.out.println(
-                        "statisticsId = " + stat.getStatId()
-                )
-        );
     }
 }

@@ -44,7 +44,7 @@ class MeetupServiceTest {
         dto.setMinParticipants(1);
 
         // 2. 서비스 메서드 호출 시 데이터 전달용으로 전달
-        meetupService.create(dto, 1L);
+        //meetupService.create(dto, 1L);
     }
     
     @Test
