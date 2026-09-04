@@ -120,20 +120,11 @@ public class UtilUpload {
 
         // 최종 파일 경로가 업로드 폴더 밖으로 나가는지 확인
         if (!targetPath.startsWith(deletePath)) {
-            throw new IllegalArgumentException(
-                    "잘못된 파일 경로입니다."
-            );
+            throw new IllegalArgumentException("잘못된 파일 경로입니다.");
         }
 
         try {
-            if (Files.exists(targetPath)) {
-
-                Files.delete(targetPath);
-
-            } else {
-                System.out.println("삭제할 파일이 존재하지 않습니다.");
-            }
-
+        	Files.deleteIfExists(targetPath);
         } catch (IOException e) {
             throw new RuntimeException(
                     "파일 삭제에 실패했습니다: " + targetPath,
@@ -141,16 +132,4 @@ public class UtilUpload {
             );
         }
     }
-//	public String fileUpload(MultipartFile file) throws IOException {	
-//		//1. 파일 이름 중복안되게
-//		UUID uid = UUID.randomUUID();
-//		String save = uid.toString() + "_" + file.getOriginalFilename();
-//		//2. 파일업로드
-//		File target = new File(resourcePath , save);
-//		FileCopyUtils.copy(file.getBytes(), target);
-//		return save;		
-//	}
-	
-	//1. 업로드 : 팀미션 : 확장자, 용량 사이즈 고려
-	//2. 팀미션 : 글삭제시 파일도 같이 삭제
 }
