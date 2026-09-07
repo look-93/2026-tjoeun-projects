@@ -131,6 +131,7 @@ public class SecurityConfig {
                 "/user/advertisement/click",
                 "/user/member/kakaologout",
                 "/upload/**",
+                "/images/**",
                 
                 //운영환경에서는 yml로 제어 
                 "/swagger-ui/**",
@@ -238,6 +239,7 @@ public class SecurityConfig {
             .logoutSuccessHandler(customLogoutSuccessHandler)
             .invalidateHttpSession(true)
             .clearAuthentication(true)
+            .deleteCookies("JSESSIONID")
             .permitAll()
         );
 
