@@ -109,7 +109,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             
             if (!deviceValid) {
 
-                filterChain.doFilter(request, response);
+            	// Refresh Token Cookie 삭제
+                jakarta.servlet.http.Cookie refreshCookie =
+                    new jakarta.servlet.http.Cookie("refreshToken", "");
+
+                refreshCookie.setHttpOnly(true);
+                refreshCookie.setPath("/");
+                refreshCookie.setMaxAge(0);
+
+                response.addCookie(refreshCookie);
+
+                // JSESSIONID 삭제
+                jakarta.servlet.http.Cookie sessionCookie =
+                    new jakarta.servlet.http.Cookie("JSESSIONID", "");
+
+                sessionCookie.setHttpOnly(true);
+                sessionCookie.setPath("/");
+                sessionCookie.setMaxAge(0);
+
+                response.addCookie(sessionCookie);
+
+                // 인증 실패
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
 

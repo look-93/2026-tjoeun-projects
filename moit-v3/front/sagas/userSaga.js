@@ -914,7 +914,7 @@ function* logoutSaga(action) {
         // 2. 프론트 토큰 삭제
         if (typeof window !== "undefined") {
             localStorage.removeItem("accessToken");
-            //localStorage.removeItem("refreshToken");
+            localStorage.removeItem("refreshToken");
             localStorage.removeItem("deviceId");
         }
 

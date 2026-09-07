@@ -239,6 +239,7 @@ public class SecurityConfig {
             .logoutSuccessHandler(customLogoutSuccessHandler)
             .invalidateHttpSession(true)
             .clearAuthentication(true)
+            .deleteCookies("JSESSIONID")
             .permitAll()
         );
 

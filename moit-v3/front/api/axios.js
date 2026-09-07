@@ -284,6 +284,16 @@ api.interceptors.response.use(
           "accessToken"
         );
 
+        // Social Login에서 저장된 Refresh Token 삭제
+        localStorage.removeItem(
+          "refreshToken"
+        );
+
+        // Device ID 삭제
+        localStorage.removeItem(
+          "deviceId"
+        );
+
         // Refresh Token은 HttpOnly Cookie이므로
         // JavaScript에서 삭제하지 않는다.
         //

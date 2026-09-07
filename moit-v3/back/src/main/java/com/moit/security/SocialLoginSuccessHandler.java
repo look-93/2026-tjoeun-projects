@@ -7,12 +7,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import com.moit.member.service.LoginDeviceService;
 import com.moit.member.service.LoginHistoryService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -21,6 +23,7 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler{
 	private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
     private final LoginHistoryService loginHistoryService;
+    private final LoginDeviceService loginDeviceService;
 	
     @Value("${app.oauth2.redirect-url}")
     private String frontendRedirectUrl;
@@ -40,6 +43,11 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler{
 		HttpSession session = request.getSession();
 		
 		String deviceId = (String) session.getAttribute("deviceId");
+		
+		if (deviceId == null || deviceId.isBlank()) {
+		    deviceId = UUID.randomUUID().toString();
+		    session.setAttribute("deviceId", deviceId);
+		}
 		
 		// 신규 소셜 회원
         if (user.getAppUserId() == 0L) {
@@ -62,6 +70,15 @@ public class SocialLoginSuccessHandler implements AuthenticationSuccessHandler{
         // 로그인 기록 저장
         loginHistoryService.saveLoginHistory(
                 memberId,
+                ipAddress,
+                userAgent,
+                "SOCIAL"
+        );
+        
+        // 로그인 기기 저장
+        loginDeviceService.saveLoginDevice(
+                memberId,
+                deviceId,
                 ipAddress,
                 userAgent,
                 "SOCIAL"

@@ -675,25 +675,41 @@ public class MemberRestController {
         // =====================================================
         // Refresh Token Cookie 삭제
         // =====================================================
-        ResponseCookie deleteCookie =
-                ResponseCookie.from(
-                        "refreshToken",
-                        ""
-                )
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(0)
-                .sameSite("Lax")
-                .build();
+        ResponseCookie deleteRefreshCookie =
+                ResponseCookie.from("refreshToken", "")
+                        .httpOnly(true)
+                        .secure(false)
+                        .path("/")
+                        .maxAge(0)
+                        .sameSite("Lax")
+                        .build();
+        
+        // JSESSIONID 쿠키 삭제
+        ResponseCookie deleteSessionCookie =
+                ResponseCookie.from("JSESSIONID", "")
+                        .httpOnly(true)
+                        .secure(false)
+                        .path("/")
+                        .maxAge(0)
+                        .sameSite("Lax")
+                        .build();
 
+
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.add(
+                HttpHeaders.SET_COOKIE,
+                deleteRefreshCookie.toString()
+        );
+
+        headers.add(
+                HttpHeaders.SET_COOKIE,
+                deleteSessionCookie.toString()
+        );
 
         return ResponseEntity
-                .ok()
-                .header(
-                        HttpHeaders.SET_COOKIE,
-                        deleteCookie.toString()
-                )
+                .noContent()
+                .headers(headers)
                 .build();
     }
     
@@ -1074,6 +1090,7 @@ public class MemberRestController {
     	Long memberId = userDetails.getAppUserId();
     	
     	loginDeviceService.deleteAllLoginDevices(memberId);
+    	refreshTokenService.deleteAllRefreshTokens(memberId);
     	
     	return ResponseEntity.noContent().build();   	
     }
