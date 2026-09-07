@@ -52,7 +52,7 @@ logging:
 
 # 업로드 경로 설정 - 두 파일 방식이 다름
 file:
-  upload-dir: uploads   
+  upload-dir: /home/ubuntu/app/back/build/libs/uploads   
 
 upload:
   path: /upload/**    

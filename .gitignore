@@ -62,6 +62,8 @@ front/.env.local
 front/.env.*.local
 **/.env.local
 **/.env
+**/.env.production
+**/frontend-build.tar.gz
 
 *.tsbuildinfo
 npm-debug.log*
