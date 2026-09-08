@@ -42,10 +42,11 @@ function questionWrite() {
   }, [success, qna, router, dispatch]);
 
   useEffect(() => {
-    if (error) { 
-      alert(error); 
+    if (error) {
+      alert(error);
+      dispatch(qnaReset());
     }
-  }, [error]);
+  }, [error, dispatch]);
 
   return (
     <div className="qna-write-page">
