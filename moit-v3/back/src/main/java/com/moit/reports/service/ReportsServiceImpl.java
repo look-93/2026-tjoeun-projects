@@ -133,6 +133,8 @@ public class ReportsServiceImpl implements ReportsService {
 			ReportResponseDto dto = ReportResponseDto.from(report);
 			// 2. 신고 대상 회원 정보 추가
 			setTargetMemberInfo(report, dto);
+			// 3. 신고 대상 글 제목
+			setTargetTitle(report, dto);
 
 			return dto;
 		}).toList();
@@ -155,7 +157,9 @@ public class ReportsServiceImpl implements ReportsService {
 
 		// 신고당한 회원 정보 추가 !!!
 		setTargetMemberInfo(report, responseDto);
-
+		// 신고당한 게시글 제목
+		setTargetTitle(report, responseDto);
+		
 		return responseDto;
 //		return ReportResponseDto.from(report);
 	}
@@ -181,7 +185,7 @@ public class ReportsServiceImpl implements ReportsService {
 
 		// 현재 처리중
 		if (!acquired) {
-			throw new IllegalStateException("현재 처리중");
+			throw new IllegalStateException("현재 처리중인 신고입니다.");
 		}
 
 		try {
@@ -212,7 +216,12 @@ public class ReportsServiceImpl implements ReportsService {
 
 			// 이메일 발송 이벤트 생성
 			EmailRequestDto emailDto = sendEmailService.adminReportStatusSendEmail(report, changedStatus);
+			
+			log.info("[REPORT] 신고 처리 DB 작업 완료");
+			log.info("[REPORT] 처리 Thread = {}", Thread.currentThread().getName());
+			log.info("[REPORT] 이메일 이벤트 발행 요청");
 			eventPublisher.publishEvent(emailDto);
+			log.info("[REPORT] 신고 처리 로직 종료 - reportId={}", reportId);
 
 			ReportResponseDto responseDto = ReportResponseDto.from(report);
 			setTargetMemberInfo(report, responseDto);
@@ -284,6 +293,8 @@ public class ReportsServiceImpl implements ReportsService {
 			ReportResponseDto dto = ReportResponseDto.from(report);
 			// 신고 대상 회원 정보
 			setTargetMemberInfo(report, dto);
+			// 3. 신고 대상 글 제목
+			setTargetTitle(report, dto);
 
 			return dto;
 		}).toList();
@@ -306,6 +317,9 @@ public class ReportsServiceImpl implements ReportsService {
 
 		// 신고당한 회원 정보 추가 !!!
 		setTargetMemberInfo(report, responseDto);
+		
+		// 신고 대상 게시글 제목 추가
+		setTargetTitle(report, responseDto);
 
 		return responseDto;
 	}
@@ -388,7 +402,13 @@ public class ReportsServiceImpl implements ReportsService {
 	@Transactional
 	public long deleteAuditLogs() {
 		LocalDateTime cutoff = LocalDateTime.now().minusYears(3);
-		return reportAuditLogRepository.deleteByProcessedAtBefore(cutoff);
+		
+		log.info("[AUDIT] 3년 경과 Audit Log 정리 시작");
+	    log.info("[AUDIT] 삭제 기준 시점 = {}", cutoff);
+	    long deletedCount = reportAuditLogRepository.deleteByProcessedAtBefore(cutoff);
+        log.info("[AUDIT] 3년 경과 Audit Log 정리 완료 - 삭제 건수={}", deletedCount);
+	    
+		return deletedCount;
 	}
 	
 	
@@ -436,6 +456,35 @@ public class ReportsServiceImpl implements ReportsService {
 			responseDto.setTargetStatusName(targetMemberInfo.getMemberReportStatus().getStatusName());
 		}
 
+	}
+	
+	// 신고 대상 게시글 제목 찾기
+	private void setTargetTitle(Report report, ReportResponseDto responseDto) {
+
+		if (report.getTargetType() == TargetType.MEETUP) {
+			String targetTitle = meetupRepository.findById(report.getTargetId())
+					.map(Meetup::getTitle)
+					.orElse("삭제된 모임글");
+			responseDto.setTargetTitle(targetTitle);
+			return;
+		}
+
+		if (report.getTargetType() == TargetType.REVIEW) {
+			String targetTitle = reviewRepository.findById(report.getTargetId())
+					.map(review -> {
+				Meetup meetup = review.getMeetup();
+
+				if (meetup == null || meetup.getTitle() == null || meetup.getTitle().isBlank()) {
+					return "모임 후기";
+				}
+				return meetup.getTitle() + " 후기";
+			}).orElse("삭제된 리뷰글");
+
+			responseDto.setTargetTitle(targetTitle);
+			return;
+		}
+
+		responseDto.setTargetTitle("확인할 수 없는 게시글");
 	}
 
 	//////////////////////////////////////////////////////////////////////////////

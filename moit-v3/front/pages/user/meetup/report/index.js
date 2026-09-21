@@ -147,11 +147,7 @@ function ReportListPage() {
             key: 'reportId'
         },
 
-        {
-            title: '신고자 (test 나중에 빼야함!~!!~~!!~!!!)',
-            dataIndex: 'memberNickname',
-            key: 'memberNickname'
-        },
+      
 
         {
             title: '신고 대상',
@@ -176,7 +172,7 @@ function ReportListPage() {
         },
 
         {
-            title: '신고 대상',
+            title: '게시글 유형',
             dataIndex: 'targetType',    // 각 객체에서 어떤 필드를 가져올 것인가
             key: 'targetType',          // 컬럼 자체의 식별자
 
@@ -185,11 +181,7 @@ function ReportListPage() {
             )
         },
 
-        {
-            title: '글 번호',
-            dataIndex: 'targetId',
-            key: 'targetId'
-        },
+
 
         {
             title: '신고 사유',

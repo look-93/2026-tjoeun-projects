@@ -282,7 +282,8 @@ public class SecurityConfig {
 
         // Next.js
         configuration.setAllowedOrigins(
-            List.of("http://localhost:3000")
+            List.of("http://localhost:3000",
+            		"http://localhost:3100")
         );
 
         // 허용 HTTP Method

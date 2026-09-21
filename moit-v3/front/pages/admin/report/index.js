@@ -1,10 +1,10 @@
 // pages/admin/report/index.js
 // 관리자 신고 목록 페이지
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
-import { Row, Col, Button, Table, Tag, message } from 'antd';
+import { Row, Col, Button, Table, Tag, message, Card } from 'antd';
 import AdminStatCard from '../../../components/AdminStatCard';
 import AdminReportSearchBox from '../../../components/AdminReportSearchBox';
 import { fetchAdminReportsRequest, resetReportState } from '../../../reducers/reportReducer';
@@ -34,6 +34,130 @@ function AdminReportPage() {
     approved: 0,
     rejected: 0,
   });
+
+  // =====================================================
+  // Chart.js 신고 처리 현황
+  // =====================================================
+  const chartCanvasRef = useRef(null);
+  const chartInstanceRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const createReportChart = async () => {
+      if (!chartCanvasRef.current) {
+        return;
+      }
+
+      // Next.js에서 브라우저가 실행될 때만 Chart.js 불러오기
+      const { default: Chart } = await import('chart.js/auto');
+
+      if (cancelled) {
+        return;
+      }
+
+      // 기존 차트가 있으면 제거
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+      }
+
+      // 새 차트 생성
+      chartInstanceRef.current = new Chart(
+        chartCanvasRef.current,
+        {
+          type: 'bar',
+
+          data: {
+            labels: ['처리 대기', '승인', '반려'],
+
+            datasets: [
+              {
+                label: '신고 건수',
+
+                data: [
+                  Number(reportStats.pending || 0),
+                  Number(reportStats.approved || 0),
+                  Number(reportStats.rejected || 0),
+                ],
+
+                backgroundColor: [
+                  'rgba(250, 173, 20, 0.65)',
+                  'rgba(82, 196, 26, 0.65)',
+                  'rgba(255, 77, 79, 0.65)',
+                ],
+
+                borderColor: [
+                  'rgba(250, 173, 20, 1)',
+                  'rgba(82, 196, 26, 1)',
+                  'rgba(255, 77, 79, 1)',
+                ],
+
+                borderWidth: 1,
+                borderRadius: 6,
+              },
+            ],
+          },
+
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+              legend: {
+                display: false,
+              },
+
+              tooltip: {
+                callbacks: {
+                  label: (context) => {
+                    return ` ${context.parsed.y}건`;
+                  },
+                },
+              },
+            },
+
+            scales: {
+              y: {
+                beginAtZero: true,
+
+                ticks: {
+                  precision: 0,
+                },
+
+                title: {
+                  display: true,
+                  text: '신고 건수',
+                },
+              },
+
+              x: {
+                title: {
+                  display: true,
+                  text: '처리 상태',
+                },
+              },
+            },
+          },
+        }
+      );
+    };
+
+    createReportChart();
+
+    // 페이지 이동 또는 차트 재생성 시 기존 차트 제거
+    return () => {
+      cancelled = true;
+
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+        chartInstanceRef.current = null;
+      }
+    };
+  }, [
+    reportStats.pending,
+    reportStats.approved,
+    reportStats.rejected,
+  ]);
 
   useEffect(() => {
     const fetchReportStats = async () => {
@@ -275,7 +399,7 @@ function AdminReportPage() {
     },
 
     {
-      title: '타입',
+      title: '신고 유형',
       dataIndex: 'targetType',
       key: 'targetType',
 
@@ -284,11 +408,7 @@ function AdminReportPage() {
       )
     },
 
-    {
-      title: '글 번호',
-      dataIndex: 'targetId',
-      key: 'targetId'
-    },
+
 
     {
       title: '신고 사유',
@@ -367,6 +487,15 @@ function AdminReportPage() {
           </Col>
         ))}
       </Row> 
+
+      <Card
+        title="신고 처리 현황"
+        style={{ marginTop: 24, marginBottom: 24 }}
+      >
+        <div style={{ position: 'relative', width: '100%', height: 320 }}>
+          <canvas ref={chartCanvasRef} />
+        </div>
+      </Card>
 
       {/* 검색 영역 조건*/}
       <AdminReportSearchBox

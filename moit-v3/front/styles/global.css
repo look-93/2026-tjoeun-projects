@@ -1803,3 +1803,401 @@ a {
         height: 250px;
     }
 }
+
+/* =========================
+   사용자 신고 작성 / 수정 / 상세 공통
+========================= */
+
+.report-write-page,
+.report-edit-page,
+.user-report-detail-page {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 30px 0;
+    box-sizing: border-box;
+}
+
+/* 사용자 신고 카드 */
+.report-write-card,
+.report-edit-card,
+.user-report-detail-page .report-detail-card {
+    width: 100%;
+    border: 1px solid #eeeeee !important;
+    border-radius: 15px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* 카드 내부 */
+.report-write-card .ant-card-body,
+.report-edit-card .ant-card-body,
+.user-report-detail-page .report-detail-card .ant-card-body {
+    padding: 32px;
+}
+
+
+/* =========================
+   사용자 신고 상세
+========================= */
+
+.user-report-detail-page
+.report-detail-descriptions
+.ant-descriptions-item-label {
+    width: 140px;
+    min-width: 140px;
+
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+
+    padding: 14px 18px !important;
+    vertical-align: middle;
+}
+
+.user-report-detail-page
+.report-detail-descriptions
+.ant-descriptions-item-content {
+    padding: 14px 18px !important;
+
+    white-space: normal;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+
+    line-height: 1.6;
+    vertical-align: middle;
+}
+
+/* 상세 하단 버튼과 테이블 사이 여백 */
+.user-report-detail-page .report-detail-actions {
+    margin-top: 24px;
+}
+
+
+/* =========================
+   사용자 신고 수정
+========================= */
+
+.report-edit-field {
+    margin-bottom: 30px;
+}
+
+.report-edit-field h5 {
+    margin-bottom: 12px !important;
+}
+
+/* 마지막 상세내용 영역은 버튼 선과 간격 중복 방지 */
+.report-edit-field:last-of-type {
+    margin-bottom: 0;
+}
+
+.report-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-top: 24px;
+    padding-top: 20px;
+
+    border-top: 1px solid #f0f0f0;
+}
+
+.report-edit-actions .ant-btn {
+    min-width: 110px;
+    height: 42px;
+    border-radius: 8px;
+}
+
+
+/* =========================
+   모바일
+========================= */
+
+@media (max-width: 575px) {
+    .report-write-page,
+    .report-edit-page,
+    .user-report-detail-page {
+        max-width: 100%;
+        padding: 20px 16px;
+    }
+
+    .report-write-card .ant-card-body,
+    .report-edit-card .ant-card-body,
+    .user-report-detail-page .report-detail-card .ant-card-body {
+        padding: 24px 20px;
+    }
+
+    .user-report-detail-page
+    .report-detail-descriptions
+    .ant-descriptions-item-label {
+        width: 100px;
+        min-width: 100px;
+        padding: 12px !important;
+    }
+
+    .user-report-detail-page
+    .report-detail-descriptions
+    .ant-descriptions-item-content {
+        padding: 12px !important;
+    }
+}
+
+/* 관리자 신고 상세 라벨 줄바꿈 방지 */
+.report-detail-page
+.report-detail-descriptions
+.ant-descriptions-item-label {
+    width: 150px;
+    min-width: 150px;
+
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+
+    padding: 14px 18px !important;
+    vertical-align: middle;
+}
+
+/* =========================================
+   ADMIN REPORT DETAIL
+========================================= */
+
+.report-detail-page {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+
+/* =========================================
+   A / B+C 2열 레이아웃
+========================================= */
+
+.admin-report-detail-grid {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 3fr)
+        minmax(380px, 2fr);
+
+    grid-template-areas:
+        "detail ai"
+        "process ai";
+
+    gap: 20px;
+}
+
+.admin-report-detail-main {
+    grid-area: detail;
+}
+
+.admin-report-ai-card {
+    grid-area: ai;
+}
+
+.admin-report-process-card {
+    grid-area: process;
+}
+
+
+/* =========================================
+   공통 카드
+========================================= */
+
+.admin-report-detail-main,
+.admin-report-ai-card,
+.admin-report-process-card,
+.admin-report-history-card {
+    height: 100%;
+    border: 1px solid #eeeeee !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+
+/* =========================================
+   A. 관리자 신고 상세
+========================================= */
+
+.admin-report-detail-main .ant-card-body {
+    padding: 24px;
+}
+
+.admin-report-detail-title {
+    margin-top: 0 !important;
+    margin-bottom: 20px !important;
+}
+
+.report-detail-page
+.report-detail-descriptions
+.ant-descriptions-item-content {
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.6;
+}
+
+.admin-report-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.admin-report-detail-header .admin-report-detail-title {
+    margin-bottom: 0 !important;
+}
+
+
+
+/* =========================================
+   섹션 제목 공통
+========================================= */
+
+.admin-report-section-title {
+    margin-top: 0 !important;
+    margin-bottom: 18px !important;
+}
+
+
+/* =========================================
+   B. AI 판단 보조
+========================================= */
+
+.admin-report-ai-card .ant-card-body {
+    padding: 22px;
+}
+
+.admin-report-ai-description {
+    margin: 0;
+    line-height: 1.6;
+    color: #444;
+}
+
+.admin-report-ai-notice {
+    color: #888;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.admin-report-ai-result {
+    width: 100%;
+    margin-top: 4px;
+}
+
+.admin-report-ai-result-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.7;
+}
+
+
+/* =========================================
+   C. 처리 사유
+========================================= */
+
+.admin-report-process-card .ant-card-body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-report-process-reason .ant-input {
+    border-radius: 8px;
+}
+
+.admin-report-process-reason {
+    flex: 1;
+}
+
+.admin-report-process-reason textarea {
+    min-height: 140px;
+}
+
+.admin-report-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 12px;
+
+    margin-top: auto;
+}
+
+.admin-report-actions-left,
+.admin-report-actions-right {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+
+/* =========================================
+   D. 관리자 처리 이력
+========================================= */
+
+.admin-report-history-card {
+    margin-top: 20px;
+}
+
+.admin-report-history-card .ant-card-body {
+    padding: 24px;
+}
+
+.admin-report-history-item {
+    margin-bottom: 12px;
+}
+
+.admin-report-history-item:last-child {
+    margin-bottom: 0;
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 1200px) {
+
+    .admin-report-detail-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "detail"
+            "ai"
+            "process";
+    }
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 575px) {
+
+    .admin-report-detail-main .ant-card-body,
+    .admin-report-ai-card .ant-card-body,
+    .admin-report-process-card .ant-card-body,
+    .admin-report-history-card .ant-card-body {
+        padding: 18px;
+    }
+
+    .report-detail-page
+    .report-detail-descriptions
+    .ant-descriptions-item-label {
+        width: 105px;
+        min-width: 105px;
+    }
+
+    .admin-report-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .admin-report-actions-left,
+    .admin-report-actions-right {
+        width: 100%;
+    }
+
+    .admin-report-actions-left .ant-btn,
+    .admin-report-actions-right .ant-btn {
+        flex: 1;
+    }
+}
