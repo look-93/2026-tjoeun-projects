@@ -173,8 +173,6 @@ function ReportEditPage() {
           </Text>
         </div>
 
-        <Divider />
-
         {/* 신고 사유 */}
         <div className="report-edit-field">
           <Title level={5}>
@@ -200,8 +198,6 @@ function ReportEditPage() {
 
         </div>
 
-        <Divider />
-
         {/* 상세 내용 */}
         <div className="report-edit-field">
           <Title level={5}>
@@ -219,10 +215,7 @@ function ReportEditPage() {
             rows={6}
             placeholder="신고 내용을 자세히 입력해주세요."
           />
-
         </div>
-
-        <Divider />
 
         {/* 버튼 */}
         <div className="report-edit-actions">

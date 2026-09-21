@@ -2,7 +2,7 @@
 // 사용자 신고 상세 조회 페이지
 // 내가 작성한 특정 신고글의 상세 내용을 조회
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import {
@@ -18,6 +18,7 @@ import {
 import ReportStatusTag from '../../../../components/ReportStatusTag';
 import ReportStatusCodeTag from '../../../../components/ReportStatusCodeTag';
 
+import api from '../../../../api/axios';
 
 
 const { Title } = Typography;
@@ -48,7 +49,7 @@ function ReportDetailPage() {
             return;
         }
         dispatch( fetchReportsDetailRequest({reportId: Number(reportId)}) );
-    }, [router.isReady, reportId]);
+    }, [router.isReady, dispatch, reportId]);
     
     // --- 오류 ---
     useEffect(() => {
@@ -102,21 +103,30 @@ function ReportDetailPage() {
 
     //////////////////////////////////////////////////////
     // 해당 신고 대상 글 보기
-    const handleTargetView = () => {
-        // 모임 신고
-        if (currentReport.targetType === 'MEETUP') {
-            router.push(
-                `/user/meetup/detail?meetupId=${currentReport.targetId}`
-            );
-            return;
-        }
+    const handleTargetView = async () => {
+        try {
+            // 모임 신고
+            if (currentReport.targetType === 'MEETUP') {
+                await api.get(`/api/meetups/${currentReport.targetId}`);
+                router.push(`/user/meetup/detail?meetupId=${currentReport.targetId}`);
+                return;
+            }
 
-        // 리뷰 신고
-        if (currentReport.targetType === 'REVIEW') {
+            // 리뷰 신고
+            if (currentReport.targetType === 'REVIEW') {
+                await api.get(`/api/reviews/${currentReport.targetId}`);
+                router.push(`/user/meetup/review/detailreview?reviewId=${currentReport.targetId}&meetupId=${currentReport.meetupId}`);
+                return;
+            }
+            message.warning('신고 대상 정보를 확인할 수 없습니다.');
 
-            router.push(
-                `/user/meetup/review/detailreview?reviewId=${currentReport.targetId}&meetupId=${currentReport.meetupId}`
-            );
+        } catch (error) {
+            const status = error.response?.status;
+            if (status === 400 || status === 404) {
+                message.warning('삭제된 게시글입니다.');
+                return;
+            }
+            message.error('게시글을 불러오지 못했습니다.');
         }
     };
 
@@ -147,6 +157,17 @@ function ReportDetailPage() {
             }
         });
     };
+
+    // 접수번호
+    const formatReceiptNumber = (createdAt, reportId) => {
+        if (!createdAt || reportId === undefined || reportId === null) {
+            return "-";
+        }
+
+        const number = String(reportId).padStart(4, "0");
+
+        return `REPORT-${number}`;
+    };
     
     // 로딩
     if (fetchDetail.loading || !currentReport) {
@@ -156,8 +177,8 @@ function ReportDetailPage() {
     }
 
     return (
-        <div className="report-detail-page">
-            <Card>
+        <div className="user-report-detail-page">
+            <Card className="report-detail-card">
                 <Title level={2}>
                     신고 상세보기
                 </Title>
@@ -165,49 +186,49 @@ function ReportDetailPage() {
                 <Descriptions
                     bordered
                     column={1}
+                    className="report-detail-descriptions"
                 >
-                    {/* 신고 번호 */}
-                    <Descriptions.Item label="신고번호">
-                        {currentReport.reportId}번 신고글
-                    </Descriptions.Item>
-
                     {/* <Descriptions.Item label="신고자 / 매너 점수">
                         {currentReport.memberNickname ?? '-'}{' / '}
                         {currentReport.trustScore}점{' '}
                         <ReportStatusCodeTag statusCode={currentReport.statusCode} />
                     </Descriptions.Item> */}
 
-                    <Descriptions.Item label="신고 대상 / 매너 점수">
+                    <Descriptions.Item label="신고 대상">
                         {currentReport.targetMemberNickname ?? '-'}{' / '}
-                        {currentReport.targetTrustScore}점{' '}
+                        {currentReport?.targetTrustScore}점{' '}
                         <ReportStatusCodeTag statusCode={currentReport.targetStatusCode} />
                     </Descriptions.Item>
 
+                    {/* 신고 번호 */}
+                    <Descriptions.Item label="접수 번호">
+                    {formatReceiptNumber(
+                        currentReport.createdAt,
+                        currentReport.reportId
+                    )}
+                    </Descriptions.Item>
+                    
                     {/* 신고 대상 & 신고 대상 ID */}
-                    <Descriptions.Item label="게시글 번호">
-                        {getTargetTypeText(
-                            currentReport.targetType
-                        )}
-                        {' '}
-                        ({currentReport.targetType})
-                        {' '}
-                        {currentReport.targetId}번 게시글
+                    <Descriptions.Item label="신고 게시글">
+                        {getTargetTypeText(currentReport.targetType)}
+                        {" · "}
+                        {currentReport.targetTitle || "삭제된 게시글"}
                     </Descriptions.Item>
 
                     {/* 신고 사유 */}
                     <Descriptions.Item label="신고 사유">
-                        {getReasonCodeText(
-                            currentReport.reasonCode
-                        )}
+                        {getReasonCodeText(currentReport.reasonCode)}
                     </Descriptions.Item>
 
                     {/* 신고 상세 내용 */}
                     <Descriptions.Item label="상세 내용">
-                        {
-                            currentReport.reasonDetail
-                                ? currentReport.reasonDetail
-                                : '작성된 상세 내용이 없습니다.'
-                        }
+                        <div className="report-detail-description-text">
+                            {
+                                currentReport.reasonDetail
+                                    ? currentReport.reasonDetail
+                                    : '작성된 상세 내용이 없습니다.'
+                            }
+                        </div>
                     </Descriptions.Item>
 
                     {/* 신고 처리 상태 */}
@@ -232,20 +253,14 @@ function ReportDetailPage() {
                 </Descriptions>
 
 
-                <Space style={{marginTop:20}}>
+                <Space className="report-detail-actions">
                     {/* 신고 목록 */}
-                    <Button
-                        onClick={() =>
-                            router.push('/user/mypage/report')
-                        }
-                    >
+                    <Button onClick={() => router.push('/user/mypage/report')}>
                         목록
                     </Button>
 
                     {/* 신고당한 원본 글 */}
-                    <Button
-                        onClick={handleTargetView}
-                    >
+                    <Button onClick={handleTargetView}>
                         해당 글 보기
                     </Button>
 

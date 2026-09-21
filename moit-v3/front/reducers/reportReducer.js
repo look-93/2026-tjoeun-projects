@@ -299,6 +299,11 @@ const reportReducer = createSlice({
             state.adminUpdate.success = false;
             state.adminUpdate.error = action.payload;
         },
+
+        // --- 관리자 처리 상태 (초기화) ---
+        resetAdminUpdateError: (state) => {
+            state.adminUpdate.error = null;
+        },
         
         // --- 관리자 신고 삭제 (물리삭제 -> 논리삭제 변경 + 감사 로그 processReason 포함) ---
         deleteAdminReportRequest: (state) => {
@@ -409,7 +414,7 @@ export const {
     fetchReportsDetailRequest, fetchReportsDetailSuccess, fetchReportsDetailFailure,
     checkDoubleReportRequest, checkDoubleReportSuccess, checkDoubleReportFailure,
     resetReportState,
-    updateAdminReportRequest, updateAdminReportSuccess, updateAdminReportFailure,
+    updateAdminReportRequest, updateAdminReportSuccess, updateAdminReportFailure, resetAdminUpdateError,
     deleteAdminReportRequest, deleteAdminReportSuccess, deleteAdminReportFailure,
     fetchAdminReportsRequest, fetchAdminReportsSuccess, fetchAdminReportsFailure,
     fetchAdminReportsDetailRequest, fetchAdminReportsDetailSuccess, fetchAdminReportsDetailFailure,

@@ -28,6 +28,7 @@ public class ReportsDto {
 		private Long reportId;
 		private TargetType targetType;	// MEETUP/REVIEW
 		private Long targetId;			// 모임글번호/리뷰글번호
+		private String targetTitle;		// 모임글제목/리뷰글제목
 		
 		// 신고자 정보
 		private Long memberId;
